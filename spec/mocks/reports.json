@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "title": "Отчёты о практических занятиях (мок)",
+    "model": "hack/Фронт/МОКИ-ДАННЫЕ.md п. 1.6 (Report) + расширения: student.studentId, timeMetrics[].cardId, grammarErrors[].wrong/expected, errors[].message, aiComment, groupReport.",
+    "note": "Отчёт формируется по каждому курсанту завершённого занятия (reports[]), групповой свод — groupReport. Инсайты и комментарии ИИ — имитация (бейдж «ИИ» в UI). Миграция id выполнена 2026-09-18 синхронно с sessions.json: пользователи u-student-01..03→u-005/u-006/u-007, карточки card-36814850/51/52→c-095/c-093/c-063 (в т.ч. в id отчётов, timeMetrics, grammarErrors, errors и charts)."
+  },
+  "reports": [
+    {
+      "id": "rep-2026-09-16-01-u-005",
+      "sessionId": "ses-2026-09-16-01",
+      "generatedAt": "2026-09-16T10:40:00+03:00",
+      "exportFormats": ["csv", "pdf"],
+      "student": { "studentId": "u-005", "fullName": "Иванов Сергей Петрович", "armNumber": 7 },
+      "timeMetrics": [
+        { "cardId": "c-063", "stage": "Первичная реакция", "normMs": 30000, "factMs": 14000, "deviationMs": -16000 },
+        { "cardId": "c-063", "stage": "Полная отработка", "normMs": 180000, "factMs": 178000, "deviationMs": -2000 },
+        { "cardId": "c-093", "stage": "Первичная реакция", "normMs": 30000, "factMs": 22000, "deviationMs": -8000 },
+        { "cardId": "c-093", "stage": "Полная отработка", "normMs": 180000, "factMs": 232000, "deviationMs": 52000 }
+      ],
+      "grammarErrors": [],
+      "errors": [],
+      "score": 96,
+      "charts": {
+        "byStage": {
+          "stages": ["Первичная реакция", "Полная отработка"],
+          "normMs": [30000, 180000],
+          "attempts": [
+            { "attemptId": "att-01", "cardId": "c-063", "factMs": [14000, 178000] },
+            { "attemptId": "att-02", "cardId": "c-093", "factMs": [22000, 232000] }
+          ]
+        },
+        "byErrorType": { "grammar": { "spelling": 0, "syntax": 0 }, "errors": { "critical": 0, "major": 0, "minor": 0 } },
+        "dynamics": { "labels": ["att-01", "att-02"], "scores": [98, 95] }
+      },
+      "aiComment": "Нормативы соблюдены. Реакция 14 с (норма 30 с), отработка 178 с (норма 180 с). Формулировка соответствует эталону. По второй карточке все этапы пройдены с комментариями, небольшая пауза перед звонком — в пределах нормы. Рекомендуется переход на следующий уровень сложности."
+    },
+    {
+      "id": "rep-2026-09-16-01-u-006",
+      "sessionId": "ses-2026-09-16-01",
+      "generatedAt": "2026-09-16T10:40:00+03:00",
+      "exportFormats": ["csv", "pdf"],
+      "student": { "studentId": "u-006", "fullName": "Петрова Анна Дмитриевна", "armNumber": 8 },
+      "timeMetrics": [
+        { "cardId": "c-063", "stage": "Первичная реакция", "normMs": 30000, "factMs": 48000, "deviationMs": 18000 },
+        { "cardId": "c-063", "stage": "Полная отработка", "normMs": 180000, "factMs": 310000, "deviationMs": 130000 }
+      ],
+      "grammarErrors": [
+        { "cardId": "c-063", "field": "dispatcherAction", "fragment": "Сообщение пренято", "wrong": "пренято", "expected": "принято", "type": "spelling" },
+        { "cardId": "c-063", "field": "dispatcherAction", "fragment": "механик напрален", "wrong": "напрален", "expected": "направлен", "type": "spelling" }
+      ],
+      "errors": [
+        { "cardId": "c-063", "type": "timeReactionExceeded", "severity": "major", "message": "Превышен норматив реакции: 48 с (норма 30 с)" },
+        { "cardId": "c-063", "type": "timeProcessingExceeded", "severity": "major", "message": "Превышено время отработки: 310 с (норма 180 с)" },
+        { "cardId": "c-063", "type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок руководителю смены (301)" }
+      ],
+      "score": 66,
+      "charts": {
+        "byStage": {
+          "stages": ["Первичная реакция", "Полная отработка"],
+          "normMs": [30000, 180000],
+          "attempts": [
+            { "attemptId": "att-03", "cardId": "c-063", "factMs": [48000, 310000] }
+          ]
+        },
+        "byErrorType": { "grammar": { "spelling": 2, "syntax": 0 }, "errors": { "critical": 1, "major": 2, "minor": 0 } },
+        "dynamics": { "labels": ["att-03"], "scores": [66] }
+      },
+      "aiComment": "Две орфографические ошибки в ключевом поле — риск искажения смысла. Рекомендуется повторная отработка карточки базового уровня и тренировка ручного ввода."
+    },
+    {
+      "id": "rep-2026-09-16-01-u-007",
+      "sessionId": "ses-2026-09-16-01",
+      "generatedAt": "2026-09-16T10:40:00+03:00",
+      "exportFormats": ["csv", "pdf"],
+      "student": { "studentId": "u-007", "fullName": "Сидорова Мария Игоревна", "armNumber": 9 },
+      "timeMetrics": [
+        { "cardId": "c-095", "stage": "Первичная реакция", "normMs": 30000, "factMs": 19000, "deviationMs": -11000 },
+        { "cardId": "c-095", "stage": "Полная отработка", "normMs": 180000, "factMs": 223000, "deviationMs": 43000 }
+      ],
+      "grammarErrors": [],
+      "errors": [],
+      "score": 94,
+      "charts": {
+        "byStage": {
+          "stages": ["Первичная реакция", "Полная отработка"],
+          "normMs": [30000, 180000],
+          "attempts": [
+            { "attemptId": "att-04", "cardId": "c-095", "factMs": [19000, 223000] }
+          ]
+        },
+        "byErrorType": { "grammar": { "spelling": 0, "syntax": 0 }, "errors": { "critical": 0, "major": 0, "minor": 0 } },
+        "dynamics": { "labels": ["att-04"], "scores": [94] }
+      },
+      "aiComment": "Хорошая отработка. Отработка 223 с — немного за нормативом 180 с, но в пределах допуска для сложности 2."
+    }
+  ],
+  "groupReport": {
+    "id": "rep-2026-09-16-group",
+    "sessionId": "ses-2026-09-16-01",
+    "generatedAt": "2026-09-16T10:40:00+03:00",
+    "groupInsights": [
+      "1 из 3 курсантов превысил норматив первичной реакции (30 с) — повторить регламент первичной обработки",
+      "Типичная ошибка группы: орфографические ошибки в поле «Действие диспетчера» («пренято», «напрален») — риск искажения смысла при реальной работе",
+      "Пропущенный регламентный звонок руководителю смены — напомнить о точке C перед следующим занятием",
+      "Группа готова к повышению сложности: 2 из 3 курсантов стабильно укладываются в нормативы"
+    ],
+    "charts": {
+      "scoreByStudent": { "kind": "bar", "title": "Интегральный балл по курсантам", "series": { "labels": ["Иванов", "Петрова", "Сидорова"], "values": [96, 66, 94] } },
+      "reactionByAttempt": { "kind": "line", "title": "Время реакции по попыткам (норматив 30 с)", "series": { "labels": ["att-01", "att-02", "att-03", "att-04"], "values": [14, 22, 48, 19], "norm": 30 } },
+      "errorsByCriterion": { "kind": "heatmap", "title": "Ошибки по критериям оценки", "series": { "criteria": ["Время", "Корректность", "Грамматика", "Смысл"], "errors": [2, 0, 2, 0] } }
+    }
+  }
+}

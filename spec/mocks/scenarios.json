@@ -1,0 +1,2207 @@
+{
+  "meta": {
+    "title": "Учебные сценарии АРМ-112 (мок): 32 билета + 4 advanced-вариации",
+    "count": 36,
+    "schema": "hack/Фронт/МОКИ-ДАННЫЕ.md п. 1.4 (Scenario) + раздел 4 (правила сборки из карточек)",
+    "notes": [
+      "level: beginner — типы происшествий билета прямо следуют из фабулы; advanced — в очереди есть осложнение (crossRegion, addressRefined, пометка «03 не требуется», массовость, текущее утопление, суицид, угроза взрыва).",
+      "Расширения норматива п. 1.4: difficulty (1–5: beginner 1–2, advanced 3–5), etalon (expectedActions/keyPhrases), validation (workflow проверки преподавателем), successCriteria, hints — объект {enabled, texts} вместо boolean.",
+      "cardIds: билет N → карточки c-(3N-2), c-(3N-1), c-3N нового cards.json (c-001..c-096).",
+      "successCriteria типовое для всех сценариев (перенесено из моков волны A): maxGrammarErrors 1, обязательные поля dispatcherAction и outfitNumber.",
+      "Старые scn-01..scn-06 не перенесены — их роль выполняют s-001..s-032; keyPhrases scn-01 (ДТП с разливом) встроены в s-032, scn-03 (газ) — в s-031, scn-06 (подозрительный) — в s-028.",
+      "s-033..s-036 — конструкторские вариации (source: generated, validation: pending); s-033 привязана ко второму вхождению дубля «массовая драка» (21.1 = 1.2).",
+      "callTarget — учебный номер главной службы билета (reference.json → internalNumbers); перевод вызова в ЦУС другого региона обозначен действием transfer:region."
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "s-001",
+      "title": "Билет 01: пожар-мусор + массовая драка + ребёнок с велосипеда (др. регион)",
+      "level": "advanced",
+      "sourceTicketNo": 1,
+      "source": "template",
+      "cardIds": [
+        "c-001",
+        "c-002",
+        "c-003"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Откройте карточку в течение 30 секунд, проставьте статус «Принята»",
+          "Массовая драка: 5 пострадавших, палки и прутья — главная 102, дополнительно 103",
+          "Вызов из Волгоградской области — переведите в ЦУС региона, карточку не закрывайте"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-001",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-002",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone",
+          "openCard:c-003",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "вызов переведён в ЦУС Волгоградской области"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-002",
+      "title": "Билет 02: задымление мусоропровода + конфликт с продавцом + авто в воде",
+      "level": "beginner",
+      "sourceTicketNo": 2,
+      "source": "template",
+      "cardIds": [
+        "c-004",
+        "c-005",
+        "c-006"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Откройте карточку в течение 30 секунд",
+          "Задымление без открытого пламени — 101, СМП не вызывайте",
+          "Падение автомобиля в воду — спасатели 101 и бригада 103"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 2,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-004",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-005",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-006",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "информация передана в дежурную часть",
+          "спасатели направлены",
+          "бригада СМП направлена"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-003",
+      "title": "Билет 03: пожар-крыша частного дома (др. регион) + шум во дворе + бревно на авто",
+      "level": "advanced",
+      "sourceTicketNo": 3,
+      "source": "template",
+      "cardIds": [
+        "c-007",
+        "c-008",
+        "c-009"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Крыша горит в г. Королёв — переведите вызов в ЦУС Московской области",
+          "Используйте уточнённый адрес из карточки",
+          "Водитель заблокирован бревном: бригада 103 + расчёт 101 на деблокирование"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-007",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-008",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-009",
+          "status:accepted",
+          "call:103",
+          "call:101",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "вызов переведён в ЦУС Московской области",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "расчёт направлен"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-004",
+      "title": "Билет 04: пожар-балкон 13 эт. + потеря сознания + пожилой не открывает дверь",
+      "level": "advanced",
+      "sourceTicketNo": 4,
+      "source": "template",
+      "cardIds": [
+        "c-010",
+        "c-011",
+        "c-012"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Номер дома уточнён: ул. Грина, 11 — зафиксируйте уточнение",
+          "Дом газифицирован — отметьте риск в карточке",
+          "Пожилой не открывает дверь 3-й день: 102 + 101 на вскрытие"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-010",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-011",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-012",
+          "status:accepted",
+          "call:102",
+          "call:101",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "адрес уточнён",
+          "бригада СМП направлена",
+          "информация передана в дежурную часть"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-005",
+      "title": "Билет 05: пожар-окно 9 эт. + отравление + стройка",
+      "level": "advanced",
+      "sourceTicketNo": 5,
+      "source": "template",
+      "cardIds": [
+        "c-013",
+        "c-014",
+        "c-015"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "На балконе 2 человека — отметьте угрозу людям: 101 + 103",
+          "Отравление лекарствами: 103, зафиксируйте ФИО и дату рождения пострадавшей",
+          "Стройка в Химках — переведите вызов в ЦУС Московской области"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-013",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:workDone",
+          "openCard:c-014",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-015",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "угроза людям",
+          "бригада СМП направлена",
+          "вызов переведён в ЦУС Московской области"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-006",
+      "title": "Билет 06: пожар-автомобиль + мужчине плохо в авто + трое на льдине (др. регион)",
+      "level": "advanced",
+      "sourceTicketNo": 6,
+      "source": "template",
+      "cardIds": [
+        "c-016",
+        "c-017",
+        "c-018"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Горит автомобиль на МКАД — 101, пострадавших нет",
+          "Мужчине плохо в автомобиле — 103, зафиксируйте госномер",
+          "Льдина в Раменском г.о. — переведите вызов в ЦУС Московской области"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-016",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-017",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-018",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "вызов переведён в ЦУС Московской области"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-007",
+      "title": "Билет 07: пожар-авто с пострадавшим + головная боль (др. регион) + розыск пожилого",
+      "level": "advanced",
+      "sourceTicketNo": 7,
+      "source": "template",
+      "cardIds": [
+        "c-019",
+        "c-020",
+        "c-021"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "У водителя ожог рук — 101 + 103",
+          "Вызов из Рязани — переведите в ЦУС Рязанской области",
+          "Розыск пожилого: приметы и время ухода — ориентировка в 102"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-019",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:workDone",
+          "openCard:c-020",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-021",
+          "status:accepted",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "вызов переведён в ЦУС Рязанской области",
+          "ориентировка передана в полицию"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-008",
+      "title": "Билет 08: задымление в ТЦ + мужчина без сознания + текущее утопление",
+      "level": "advanced",
+      "sourceTicketNo": 8,
+      "source": "template",
+      "cardIds": [
+        "c-022",
+        "c-023",
+        "c-024"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Задымление на −1 этаже ТЦ — 101, источник не установлен",
+          "Мужчина без сознания — 103, зафиксируйте ориентиры (пруд, ж/д переезд)",
+          "Тонущий кричит о помощи — немедленно 101 + 103, счёт на секунды"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-022",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-023",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-024",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "спасатели направлены",
+          "тонущий человек"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-009",
+      "title": "Билет 09: задымление в метро + роды + падение с моста в воду",
+      "level": "advanced",
+      "sourceTicketNo": 9,
+      "source": "template",
+      "cardIds": [
+        "c-025",
+        "c-026",
+        "c-027"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Уточните линию метро: Филёвская — зафиксируйте уточнение",
+          "Роды, отошли воды — 103, поддерживайте связь с супругом",
+          "Упал с моста, не умеет плавать — 101 + 103"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-025",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-026",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-027",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "спасатели направлены",
+          "линия метро уточнена"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-010",
+      "title": "Билет 10: пожар-касса ж/д ст. + пожилой женщине плохо + помощь из-за двери",
+      "level": "beginner",
+      "sourceTicketNo": 10,
+      "source": "template",
+      "cardIds": [
+        "c-028",
+        "c-029",
+        "c-030"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Кассир с ожогами — 101 + 103, подъезд служб со стороны ул. Люблинская",
+          "Пожилая женщина просит 03 — бригада 103",
+          "На месте сотрудники полиции — согласуйте действия с 102"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 2,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-028",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:workDone",
+          "openCard:c-029",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-030",
+          "status:accepted",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "подъезд со стороны ул. Люблинская",
+          "информация передана в дежурную часть"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-011",
+      "title": "Билет 11: пожар-автобус + ребёнок теряет сознание + заблудилась в лесу (др. регион)",
+      "level": "advanced",
+      "sourceTicketNo": 11,
+      "source": "template",
+      "cardIds": [
+        "c-031",
+        "c-032",
+        "c-033"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Горит кабина автобуса — 101, бортовой номер в карточку",
+          "Ребёнок теряет сознание — 103",
+          "Заблудилась в лесу, заряд 10% — сразу переведите в ЦУС Владимирской области, пока есть связь"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-031",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-032",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-033",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "вызов переведён в ЦУС Владимирской области",
+          "адрес уточнён"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-012",
+      "title": "Билет 12: задымление в ресторане + боли в сердце (др. регион) + мужчина в крови на мосту",
+      "level": "advanced",
+      "sourceTicketNo": 12,
+      "source": "template",
+      "cardIds": [
+        "c-034",
+        "c-035",
+        "c-036"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Ресторан в Жуковке — используйте уточнённый адрес: дом 70",
+          "Вызов из Тульской области — переведите в ЦУС региона",
+          "Мужчина в крови на мосту — 103 + 102 (возможен криминал)"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-034",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-035",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-036",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "адрес уточнён",
+          "вызов переведён в ЦУС Тульской области",
+          "бригада СМП направлена"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-013",
+      "title": "Билет 13: пожар-деревья в парке + роды в авто + мужчина в крови на обочине",
+      "level": "advanced",
+      "sourceTicketNo": 13,
+      "source": "template",
+      "cardIds": [
+        "c-037",
+        "c-038",
+        "c-039"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Вход в лесопарк со стороны аллеи Первой Маёвки — передайте расчёту 101",
+          "Роды в автомобиле — 103, зафиксируйте госномер и маршрут",
+          "Мужчина в крови на обочине МКАД — 103 + 102"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-037",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-038",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-039",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "бригада СМП направлена",
+          "информация передана в дежурную часть",
+          "ориентиры уточнены"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-014",
+      "title": "Билет 14: пожар-трава у АЗС + астма у ребёнка + похищение",
+      "level": "advanced",
+      "sourceTicketNo": 14,
+      "source": "template",
+      "cardIds": [
+        "c-040",
+        "c-041",
+        "c-042"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Огонь подходит к АЗС — отметьте угрозу, 101 приоритетно",
+          "Ребёнок задыхается (астма) — 103, поддержите брата по телефону",
+          "Похищение: приметы машины и направление — 102 немедленно"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-040",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-041",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-042",
+          "status:accepted",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "угроза распространения на АЗС",
+          "бригада СМП направлена",
+          "информация передана в дежурную часть"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-015",
+      "title": "Билет 15: пожар-лес (др. регион) + травма при нырянии + ножевое ранение",
+      "level": "advanced",
+      "sourceTicketNo": 15,
+      "source": "template",
+      "cardIds": [
+        "c-043",
+        "c-044",
+        "c-045"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Лес горит в Дмитровском г.о. — переведите вызов в ЦУС Московской области",
+          "Рассечение головы при нырянии — 103, пострадавший в сознании",
+          "Ножевое ранение — 102 + 103"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-043",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-044",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-045",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "вызов переведён в ЦУС Московской области",
+          "бригада СМП направлена",
+          "наряд полиции направлен"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-016",
+      "title": "Билет 16: дым в посёлке + ребёнок с велосипеда (др. регион) + отравление снотворным",
+      "level": "advanced",
+      "sourceTicketNo": 16,
+      "source": "template",
+      "cardIds": [
+        "c-046",
+        "c-047",
+        "c-048"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Столб дыма со стороны посёлка — 101 на разведку, объект уточняется",
+          "Вызов из Волгоградской области — переведите в ЦУС региона",
+          "Отравление снотворным — 103, уточните принятую дозу"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-046",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-047",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-048",
+          "status:accepted",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "вызов переведён в ЦУС Волгоградской области",
+          "бригада СМП направлена"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-017",
+      "title": "Билет 17: пожарная сигнализация + судороги в магазине + избита женщина",
+      "level": "beginner",
+      "sourceTicketNo": 17,
+      "source": "template",
+      "cardIds": [
+        "c-049",
+        "c-050",
+        "c-051"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Сигнализация без дыма и возгорания — проверка 101, не закрывайте карточку до подтверждения",
+          "Судороги с пеной изо рта — 103, зафиксируйте травму головы при падении",
+          "Избита женщина — 102 + 103"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 2,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-049",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-050",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-051",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "проверка сигнализации",
+          "бригада СМП направлена",
+          "наряд полиции направлен"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-018",
+      "title": "Билет 18: пожар-объект неизвестен + муж не просыпается + крики о помощи",
+      "level": "advanced",
+      "sourceTicketNo": 18,
+      "source": "template",
+      "cardIds": [
+        "c-052",
+        "c-053",
+        "c-054"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Что горит — неизвестно: 101 на разведку, запросите уточнение у заявителя",
+          "Муж не просыпается, хрипы — 103",
+          "Адрес исправлен заявителем (дом 12 вместо 15) — зафиксируйте исправление, 102"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-052",
+          "status:accepted",
+          "call:101",
+          "status:workDone",
+          "openCard:c-053",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-054",
+          "status:accepted",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "расчёт направлен",
+          "объект горения уточняется",
+          "бригада СМП направлена",
+          "адрес исправлен"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-019",
+      "title": "Билет 19: пожар-поле (др. регион) + укус змеи (др. регион) + сбила электричка",
+      "level": "advanced",
+      "sourceTicketNo": 19,
+      "source": "template",
+      "cardIds": [
+        "c-055",
+        "c-056",
+        "c-057"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Поле горит в Тульской области — переведите в ЦУС региона",
+          "Укус змеи в Рязанской области — переведите в ЦУС региона",
+          "Сбила электричка на переходе — 103 + 102, уведомьте дежурного по платформе"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-055",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-056",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-057",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "вызов переведён в ЦУС Тульской области",
+          "вызов переведён в ЦУС Рязанской области",
+          "бригада СМП направлена",
+          "дежурный по платформе уведомлён"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-020",
+      "title": "Билет 20: драка + инсульт + изнасилование",
+      "level": "beginner",
+      "sourceTicketNo": 20,
+      "source": "template",
+      "cardIds": [
+        "c-058",
+        "c-059",
+        "c-060"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Драка без пострадавших и оружия — 102",
+          "Невнятная речь, перекошенное лицо — признаки инсульта, 103",
+          "Изнасилование — 102 + 103, опрос бережно, не переспрашивайте детали"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 2,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-058",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-059",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-060",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "признаки инсульта",
+          "информация передана в дежурную часть"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-021",
+      "title": "Билет 21: массовая драка + травма топором + ребёнок заперт в машине",
+      "level": "advanced",
+      "sourceTicketNo": 21,
+      "source": "template",
+      "cardIds": [
+        "c-061",
+        "c-062",
+        "c-063"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Массовая драка с прутьями, 5 пострадавших — 102 усиленный наряд + 103",
+          "Травма топором с кровотечением — 103",
+          "Ребёнок заперт в машине — 102 + 101 на вскрытие"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-061",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone",
+          "openCard:c-062",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-063",
+          "status:accepted",
+          "call:102",
+          "call:101",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "массовая драка",
+          "ребёнок заперт в автомобиле"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-022",
+      "title": "Билет 22: драка в квартире + ребёнку плохо в машине (др. регион) + суицид по СМС",
+      "level": "advanced",
+      "sourceTicketNo": 22,
+      "source": "template",
+      "cardIds": [
+        "c-064",
+        "c-065",
+        "c-066"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Драка в квартире без оружия — 102",
+          "Ребёнку плохо у вокзала Ржев-1 — переведите вызов в ЦУС Тверской области",
+          "СМС о суициде — 102 + 103, доступа в квартиру нет, держите заявителя на линии"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-064",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-065",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-066",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "вызов переведён в ЦУС Тверской области",
+          "угроза суицида",
+          "доступ в квартиру отсутствует"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-023",
+      "title": "Билет 23: бытовое насилие + травма перепонки + пропавший ребёнок",
+      "level": "advanced",
+      "sourceTicketNo": 23,
+      "source": "template",
+      "cardIds": [
+        "c-067",
+        "c-068",
+        "c-069"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Бытовое насилие с травмой головы — 102 + 103",
+          "Адрес уточнён: Зеленоград, пос. Малино, ул. Лесная, 5",
+          "Пропавший ребёнок: приметы из карточки — в ориентировку, 102"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-067",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone",
+          "openCard:c-068",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-069",
+          "status:accepted",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "адрес уточнён",
+          "ориентировка на ребёнка передана"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-024",
+      "title": "Билет 24: конфликт из-за парковки + ребёнок с горки + попрошайка с младенцем",
+      "level": "beginner",
+      "sourceTicketNo": 24,
+      "source": "template",
+      "cardIds": [
+        "c-070",
+        "c-071",
+        "c-072"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Ссора из-за парковки — 102",
+          "Ребёнок упал с горки, кровотечение — 103",
+          "Попрошайка с младенцем, окровавленное лицо ребёнка — 102 + 103"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 1,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-070",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-071",
+          "status:accepted",
+          "call:103",
+          "status:workDone",
+          "openCard:c-072",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "ребёнок с окровавленным лицом"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-025",
+      "title": "Билет 25: хулиганство (03 не тр.) + ДТП без пострадавших + констатация смерти",
+      "level": "advanced",
+      "sourceTicketNo": 25,
+      "source": "template",
+      "cardIds": [
+        "c-073",
+        "c-074",
+        "c-075"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Пометка «03 не требуется» — СМП не вызывайте, только 102",
+          "ДТП без пострадавших — 102 (ГИБДД), левый ряд у ТЦ Вегас",
+          "Труп с трупными пятнами — 102 + 103 на констатацию"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-073",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-074",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-075",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "СМП не требуется",
+          "ДТП без пострадавших",
+          "констатация смерти"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-026",
+      "title": "Билет 26: хулиганство у стадиона + ДТП без пострадавших + смерть в доме престарелых",
+      "level": "beginner",
+      "sourceTicketNo": 26,
+      "source": "template",
+      "cardIds": [
+        "c-076",
+        "c-077",
+        "c-078"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Хулиганство с битами у ДС «Мегаспорт» — 102, пострадавших нет",
+          "ДТП без пострадавших у рынка «Мельница» — 102, средние ряды",
+          "Смерть после инсульта в центре для пожилых — 103 констатация + 102, охрана встретит"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 1,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-076",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-077",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-078",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "ДТП без пострадавших",
+          "бригада СМП направлена",
+          "констатация смерти"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-027",
+      "title": "Билет 27: подозрительный автомобиль + ДТП без пострадавших + трещина в перегородке",
+      "level": "beginner",
+      "sourceTicketNo": 27,
+      "source": "template",
+      "cardIds": [
+        "c-079",
+        "c-080",
+        "c-081"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Коробка с проводами под машиной — возможное взрывное устройство: 102, людей не подпускать",
+          "ДТП без пострадавших, въезд в тоннель — 102",
+          "Трещина в перегородке без пострадавших — передайте в аварийно-диспетчерскую (301)"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 2,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-079",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-080",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-081",
+          "status:accepted",
+          "call:301",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "подозрительный предмет",
+          "ДТП без пострадавших",
+          "аварийная бригада направлена"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-028",
+      "title": "Билет 28: подозрительный человек + ДТП без пострадавших + угроза падения табло",
+      "level": "beginner",
+      "sourceTicketNo": 28,
+      "source": "template",
+      "cardIds": [
+        "c-082",
+        "c-083",
+        "c-084"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": true,
+        "texts": [
+          "Подозрительный человек у домофона — 102, приметы в карточку",
+          "ДТП без пострадавших напротив МИД — 102",
+          "Угроза падения табло на Ярославском вокзале — 102, уведомьте дежурного по вокзалу"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 1,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-082",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-083",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-084",
+          "status:accepted",
+          "call:102",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "информация передана в дежурную часть",
+          "полиция",
+          "ДТП без пострадавших",
+          "угроза падения конструкции"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-029",
+      "title": "Билет 29: подозрительный предмет + ДТП с дракой (др. регион) + угроза взрыва",
+      "level": "advanced",
+      "sourceTicketNo": 29,
+      "source": "template",
+      "cardIds": [
+        "c-085",
+        "c-086",
+        "c-087"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Тикающая коробка в парке — 102, предмет не трогать, зона оцепления",
+          "ДТП с дракой в Тульской области — переведите в ЦУС региона",
+          "Угроза взорвать квартиру — 102 + 101, уточните, есть ли люди внутри"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-085",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-086",
+          "status:accepted",
+          "transfer:region",
+          "status:workDone",
+          "openCard:c-087",
+          "status:accepted",
+          "call:102",
+          "call:101",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "не приближаться к предмету",
+          "вызов переведён в ЦУС Тульской области",
+          "угроза взрыва"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-030",
+      "title": "Билет 30: угон + наезд на пешехода + запах газа (03 не тр.)",
+      "level": "advanced",
+      "sourceTicketNo": 30,
+      "source": "template",
+      "cardIds": [
+        "c-088",
+        "c-089",
+        "c-090"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Угон: госномер и время последнего наблюдения — 102",
+          "Наезд, мужчина без сознания — 103 + 102, госномер ВАЗа в карточку",
+          "Запах газа — 104 (МОСГАЗ); пометка «03 не требуется» — СМП не вызывайте"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-088",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-089",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "status:workDone",
+          "openCard:c-090",
+          "status:accepted",
+          "call:104",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "наряд полиции направлен",
+          "бригада СМП направлена",
+          "аварийная бригада газовой службы",
+          "СМП не требуется"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-031",
+      "title": "Билет 31: угон на глазах + наезд-машина скрылась + свист газовой трубы (03 не тр.)",
+      "level": "advanced",
+      "sourceTicketNo": 31,
+      "source": "template",
+      "cardIds": [
+        "c-091",
+        "c-092",
+        "c-093"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Угон на глазах, направление движения — 102 немедленно",
+          "Наезд, машина скрылась: часть номера ?128??177 — 103 + 102",
+          "Свист газовой трубы — 104; пометка «03 не требуется» — СМП не вызывайте"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 3,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-091",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-092",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "status:workDone",
+          "openCard:c-093",
+          "status:accepted",
+          "call:104",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "заявка принята",
+          "бригада",
+          "газ",
+          "ориентировка на автомобиль передана",
+          "наряд полиции направлен"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-032",
+      "title": "Билет 32: заблокирован проезд (03 не тр.) + ДТП с пострадавшими и утечкой + пожар освещения",
+      "level": "advanced",
+      "sourceTicketNo": 32,
+      "source": "template",
+      "cardIds": [
+        "c-094",
+        "c-095",
+        "c-096"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Пометка «03 не требуется» — СМП не вызывайте, только 102 (ГИБДД)",
+          "ДТП: 3 пострадавших в троллейбусе + течёт бензин — 103 + 102 + 101 (пожарный риск)",
+          "Горит уличное освещение на МКАД — 101, укажите километры"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 4,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-094",
+          "status:accepted",
+          "call:102",
+          "status:workDone",
+          "openCard:c-095",
+          "status:accepted",
+          "call:103",
+          "call:102",
+          "call:101",
+          "status:workDone",
+          "openCard:c-096",
+          "status:accepted",
+          "call:101",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "бригада направлена",
+          "место",
+          "утечка топлива",
+          "3 пострадавших",
+          "пожарный расчёт направлен"
+        ]
+      },
+      "validation": {
+        "status": "approved",
+        "reviewedBy": "u-002"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-033",
+      "title": "Advanced: массовая драка с пострадавшими — усиление (база 1.2/21.1)",
+      "level": "advanced",
+      "sourceTicketNo": 21,
+      "source": "generated",
+      "cardIds": [
+        "c-061"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Массовая драка с пострадавшими и оружием — главная 102 усиленный наряд, дополнительно 103",
+          "Уточните число участников и пострадавших, зафиксируйте в карточке",
+          "Очередь из одной карточки: не закрывайте до статуса «Работы завершены»"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-061",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:responseStarted",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "массовая драка",
+          "усиленный наряд направлен",
+          "бригада СМП направлена",
+          "пострадавшие"
+        ]
+      },
+      "validation": {
+        "status": "pending",
+        "comment": "Конструкторская вариация — требуется проверка преподавателем перед утверждением"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-034",
+      "title": "Advanced: текущее утопление (база 8.3)",
+      "level": "advanced",
+      "sourceTicketNo": 8,
+      "source": "generated",
+      "cardIds": [
+        "c-024"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Текущее утопление — счёт на секунды: первичная реакция без задержек",
+          "Главная 101 (ПСС), дополнительно 103",
+          "Уточните точное место и ориентиры на берегу"
+        ]
+      },
+      "callTarget": "101",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-024",
+          "status:accepted",
+          "call:101",
+          "call:103",
+          "status:responseStarted",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "спасатели направлены",
+          "тонущий человек",
+          "бригада СМП направлена",
+          "точное место уточнено"
+        ]
+      },
+      "validation": {
+        "status": "pending",
+        "comment": "Конструкторская вариация — требуется проверка преподавателем перед утверждением"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-035",
+      "title": "Advanced: суицид по СМС (база 22.3)",
+      "level": "advanced",
+      "sourceTicketNo": 22,
+      "source": "generated",
+      "cardIds": [
+        "c-066"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Суицидальная СМС — главная 102, дополнительно 103",
+          "Доступа в квартиру нет — зафиксируйте это в карточке",
+          "Не отпускайте заявителя с линии до прибытия наряда"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-066",
+          "status:accepted",
+          "call:102",
+          "call:103",
+          "status:responseStarted",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "угроза суицида",
+          "наряд полиции направлен",
+          "доступ в квартиру отсутствует",
+          "заявитель на линии"
+        ]
+      },
+      "validation": {
+        "status": "pending",
+        "comment": "Конструкторская вариация — требуется проверка преподавателем перед утверждением"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    },
+    {
+      "id": "s-036",
+      "title": "Advanced: угроза взрыва квартиры (база 29.3)",
+      "level": "advanced",
+      "sourceTicketNo": 29,
+      "source": "generated",
+      "cardIds": [
+        "c-087"
+      ],
+      "timeNorms": {
+        "primaryReactionSec": 30,
+        "fullProcessingSec": 180
+      },
+      "hints": {
+        "enabled": false,
+        "texts": [
+          "Угроза взрыва — главная 102, дополнительно 101",
+          "Зафиксируйте формулировку угрозы дословно",
+          "Уточните, есть ли люди в квартире"
+        ]
+      },
+      "callTarget": "102",
+      "difficulty": 5,
+      "etalon": {
+        "expectedActions": [
+          "openCard:c-087",
+          "status:accepted",
+          "call:102",
+          "call:101",
+          "status:responseStarted",
+          "status:workDone"
+        ],
+        "keyPhrases": [
+          "сообщение принято",
+          "угроза взрыва",
+          "наряд полиции направлен",
+          "эвакуация",
+          "информация передана в дежурную часть"
+        ]
+      },
+      "validation": {
+        "status": "pending",
+        "comment": "Конструкторская вариация — требуется проверка преподавателем перед утверждением"
+      },
+      "successCriteria": {
+        "maxGrammarErrors": 1,
+        "requiredFields": [
+          "dispatcherAction",
+          "outfitNumber"
+        ],
+        "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+      }
+    }
+  ]
+}
