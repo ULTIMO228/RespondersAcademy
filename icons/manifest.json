@@ -1,0 +1,165 @@
+{
+  "source": "manual icon references",
+  "icons": [
+    {
+      "name": "search",
+      "file": "search.svg",
+      "width": 48,
+      "height": 44,
+      "confidence": 0.91,
+      "notes": ""
+    },
+    {
+      "name": "advanced-chevron",
+      "file": "advanced-chevron.svg",
+      "width": 17,
+      "height": 17,
+      "confidence": 0.89,
+      "notes": ""
+    },
+    {
+      "name": "section-collapse",
+      "file": "section-collapse.svg",
+      "width": 21,
+      "height": 22,
+      "confidence": 0.94,
+      "notes": ""
+    },
+    {
+      "name": "notification",
+      "file": "notification.svg",
+      "width": 31,
+      "height": 29,
+      "confidence": 0.95,
+      "notes": ""
+    },
+    {
+      "name": "filter-chevron",
+      "file": "filter-chevron.svg",
+      "width": 17,
+      "height": 17,
+      "confidence": 0.91,
+      "notes": ""
+    },
+    {
+      "name": "top-monitor",
+      "file": "top-monitor.svg",
+      "width": 23,
+      "height": 25,
+      "confidence": 0.88,
+      "notes": ""
+    },
+    {
+      "name": "top-settings",
+      "file": "top-settings.svg",
+      "width": 24,
+      "height": 25,
+      "confidence": 0.78,
+      "notes": "Small raster and heavy subpixel color fringing make exact tooth geometry uncertain."
+    },
+    {
+      "name": "top-info",
+      "file": "top-info.svg",
+      "width": 24,
+      "height": 25,
+      "confidence": 0.86,
+      "notes": ""
+    },
+    {
+      "name": "top-exit",
+      "file": "top-exit.svg",
+      "width": 26,
+      "height": 25,
+      "confidence": 0.72,
+      "notes": "Running-person glyph is only ~11x12 px in the reference; limb joints are reconstructed from the visible silhouette."
+    },
+    {
+      "name": "sort-down",
+      "file": "sort-down.svg",
+      "width": 24,
+      "height": 32,
+      "confidence": 0.94,
+      "notes": ""
+    },
+    {
+      "name": "row-expand",
+      "file": "row-expand.svg",
+      "width": 32,
+      "height": 31,
+      "confidence": 0.93,
+      "notes": ""
+    },
+    {
+      "name": "row-bookmark",
+      "file": "row-bookmark.svg",
+      "width": 32,
+      "height": 31,
+      "confidence": 0.97,
+      "notes": ""
+    },
+    {
+      "name": "row-important",
+      "file": "row-important.svg",
+      "width": 32,
+      "height": 31,
+      "confidence": 0.8,
+      "notes": "Lightning-bolt corners are reconstructed from a very small antialiased silhouette."
+    },
+    {
+      "name": "row-reminder",
+      "file": "row-reminder.svg",
+      "width": 32,
+      "height": 31,
+      "confidence": 0.88,
+      "notes": ""
+    },
+    {
+      "name": "service-status",
+      "file": "service-status.svg",
+      "width": 32,
+      "height": 31,
+      "confidence": 0.68,
+      "notes": "Red status glyph is highly compressed; reconstructed as the simplest bell/status silhouette plus diagonal slash consistent with visible pixels."
+    },
+    {
+      "name": "clipboard",
+      "file": "clipboard.svg",
+      "width": 42,
+      "height": 31,
+      "confidence": 0.9,
+      "notes": ""
+    },
+    {
+      "name": "page-dropdown",
+      "file": "page-dropdown.svg",
+      "width": 16,
+      "height": 17,
+      "confidence": 0.89,
+      "notes": ""
+    },
+    {
+      "name": "page-size-dropdown",
+      "file": "page-size-dropdown.svg",
+      "width": 16,
+      "height": 17,
+      "confidence": 0.89,
+      "notes": ""
+    },
+    {
+      "name": "pagination-prev",
+      "file": "pagination-prev.svg",
+      "width": 18,
+      "height": 18,
+      "confidence": 0.93,
+      "notes": ""
+    },
+    {
+      "name": "pagination-next",
+      "file": "pagination-next.svg",
+      "width": 19,
+      "height": 18,
+      "confidence": 0.93,
+      "notes": ""
+    }
+  ]
+}

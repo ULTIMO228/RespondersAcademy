@@ -1,0 +1,31 @@
+:root {
+  --arm-canvas: #838f97;
+  --arm-search: #ebecec;
+  --arm-clock: #2f353a;
+  --arm-row: #2f353a;
+  --arm-row-sub: #49555d;
+  --arm-grid: #80888e;
+  --arm-muted: #ccd7db;
+  --arm-text: #ffffff;
+  --arm-ink: #111111;
+  --arm-divider: #1a1a1a;
+  --arm-icon: #1f282c;
+  --arm-accent: #157dbd;
+  --arm-warning: #ec653b;
+  --arm-operator: #6c364b;
+  --arm-control: #efefef;
+  --arm-control-border: #829099;
+  --arm-control-text: #7d8b92;
+  --arm-notification: #dbe4e8;
+  --arm-notification-ink: #82929a;
+  --arm-label: #dce4e7;
+  --arm-toggle-border: #dbe5e9;
+  --arm-toggle-track: rgba(255, 255, 255, 0.18);
+  --arm-toggle-on: #0f99d5;
+  --arm-select-border: #d7e0e4;
+  --arm-table-header: #ccd7db;
+  --arm-row-text: #e7edef;
+  --arm-bookmark: #81919a;
+  --arm-status-text: #dbe3e6;
+  --arm-pagination: #e0e7ea;
+}

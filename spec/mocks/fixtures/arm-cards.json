@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "UI-фикстуры рабочей карточки ПОВ-112 (мок)",
-    "note": "UI-фикстуры рабочей карточки ПОВ-112 для экранов /arm (спека 04-pages/02-arm-card.md); учебный датасет — cards.json. Все данные вымышленные и обезличенные. classifierCode — привязка к mocks/classifier.json. Модель: spec/05-data-models.md → IncidentCard",
+    "note": "UI-фикстуры рабочей карточки ПОВ-112 для экранов /arm (спека 04-pages/02-arm-card.md); учебный датасет — cards.json. Все данные вымышленные и обезличенные. classifierCode — привязка к mocks/classifier.json. Модель: spec/05-data-models.md → ArmCardFixture (фикстура рабочей карточки ПОВ-112; учебные карточки c-NNN — IncidentCard)",
     "count": 12
   },
   "cards": [
