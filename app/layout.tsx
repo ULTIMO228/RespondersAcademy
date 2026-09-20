@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
 
-import "@/app/styles/global.css";
-import "@/shared/ui/styles/vars.css";
+export { RootLayout as default } from "@/app";
 
 export const metadata: Metadata = {
-  title: "Поиск происшествий — учебный АРМ-112",
-  description: "Статичный прототип главного экрана АРМ-112",
+  // Шаблон подставляет название экрана: «Поиск происшествий — Учебный АРМ-112» (T5.2-08).
+  title: {
+    default: "Учебный АРМ-112 — тренажёр оператора ДДС",
+    template: "%s — Учебный АРМ-112",
+  },
+  description: "Учебная система. Не является рабочей системой-112.",
 };
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="ru">
-      <body>{children}</body>
-    </html>
-  );
-}

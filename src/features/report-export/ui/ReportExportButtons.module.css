@@ -1,0 +1,11 @@
+.export {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* Кнопки — интерактив: в печати (PDF) их нет. */
+@media print {
+  .export {
+    display: none;
+  }
+}

@@ -1,0 +1,42 @@
+/* Окна будильника «напоминание»: форма создания и окно срабатывания (белое окно Modal ПОВ-112). */
+.reminder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  text-align: left;
+}
+
+.reminder__text {
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  white-space: pre-wrap;
+}
+
+.reminder__meta {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.reminder__error {
+  color: var(--journal-row-violation);
+  font-size: var(--font-size-sm);
+}
+
+.reminder__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+}
+
+.reminder__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--spacing-md);
+  min-height: var(--control-height-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}

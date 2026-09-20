@@ -1,0 +1,153 @@
+.panel {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--card-z-panel);
+  display: flex;
+  align-items: stretch;
+  height: var(--card-panel-height);
+  background: var(--color-graphite-700);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+}
+
+.panel__label {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: var(--card-panel-label-width);
+  padding-left: var(--spacing-md);
+  border-right: var(--border-width) solid var(--card-color-tile-divider);
+  font-size: var(--card-font-label);
+}
+
+.panel__tiles {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.panel__slot {
+  position: relative;
+  display: flex;
+}
+
+.panel__popup {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: var(--card-z-history);
+}
+
+.panel__extra {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: var(--card-z-extra-row);
+  display: flex;
+  background: var(--color-graphite-700);
+}
+
+.panel__none {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--card-font-tile-status);
+}
+
+.panel__chevron {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-panel-btn-size);
+  height: var(--card-panel-btn-size);
+  margin-left: var(--spacing-lg);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: transparent;
+  color: var(--color-white);
+}
+
+.panel__right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-left: auto;
+  padding-right: var(--spacing-md);
+}
+
+.panel__button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-panel-btn-size);
+  height: var(--card-panel-btn-size);
+  border: var(--border-width) solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+}
+
+.panel__badge {
+  position: absolute;
+  top: calc(-1 * var(--spacing-sm));
+  right: calc(-1 * var(--spacing-sm));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--card-badge-size);
+  height: var(--card-badge-size);
+  padding: 0 var(--spacing-xxs);
+  border-radius: var(--card-badge-size);
+  background: var(--card-color-badge);
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-bold);
+}
+
+.panel__envelope {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--card-panel-icon-box) - var(--spacing-xs));
+  height: calc(var(--card-panel-icon-box) - var(--spacing-xs));
+  padding: 0;
+  border: var(--border-width) solid var(--color-accent-blue);
+  background: var(--color-white);
+  color: var(--color-accent-orange);
+}
+
+.panel__pencil {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+}
+
+.panel__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--card-z-overlay);
+  background: var(--color-overlay);
+}
+
+.panel__form {
+  position: fixed;
+  bottom: calc(var(--card-panel-height) + var(--card-status-form-bottom));
+  left: calc(var(--card-panel-label-width) + var(--card-status-form-left));
+  z-index: var(--card-z-form);
+  color: var(--color-ink);
+}
+
+@media (max-width: 1024px) {
+  .panel {
+    overflow-x: auto;
+  }
+
+  .panel__form {
+    left: var(--card-gap);
+  }
+}

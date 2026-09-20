@@ -1,0 +1,60 @@
+.actions__summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-light-muted);
+  font-size: var(--font-size-xs);
+}
+
+.actions__caption {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.actions__list {
+  list-style: none;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.actions__row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: var(--spacing-sm);
+  align-items: center;
+  min-height: 30px;
+  padding: var(--spacing-xxs) var(--spacing-md);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+  font-size: var(--font-size-md);
+}
+
+.actions__offset {
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+}
+
+.actions__mark {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.actions__row--ok .actions__mark {
+  color: var(--color-status-accepted);
+}
+
+.actions__row--pending {
+  background: var(--teacher-pending-bg);
+}
+
+.actions__row--order,
+.actions__row--extra,
+.actions__row--missing {
+  background: var(--teacher-deviation-bg);
+}
+
+.actions__row--order .actions__mark,
+.actions__row--extra .actions__mark,
+.actions__row--missing .actions__mark {
+  color: var(--color-timer-exceeded);
+}

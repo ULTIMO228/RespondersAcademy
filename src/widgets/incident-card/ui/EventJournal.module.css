@@ -1,0 +1,34 @@
+.journal {
+  min-height: var(--card-journal-min-height);
+  max-height: var(--card-journal-max-height);
+  overflow-y: auto;
+  padding: var(--spacing-lg) var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  font-size: var(--card-font-text);
+}
+
+.journal__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: 0 var(--spacing-xs);
+  list-style: none;
+}
+
+.journal__entry {
+  display: flex;
+  flex-direction: column;
+  line-height: var(--line-height-tight);
+}
+
+.journal__head {
+  display: flex;
+  gap: var(--spacing-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.journal__empty {
+  margin: 0;
+  color: var(--color-ink-soft);
+}

@@ -1,0 +1,48 @@
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white);
+  font-size: var(--font-size-sm);
+}
+
+.matrix th,
+.matrix td {
+  height: 26px;
+  padding: 0 var(--spacing-md);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+  text-align: left;
+}
+
+.matrix thead th {
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-weight: var(--font-weight-bold);
+}
+
+.matrix__role {
+  width: 22%;
+}
+
+.matrix__section {
+  font-weight: var(--font-weight-regular);
+}
+
+.matrix__route {
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.matrix__yes {
+  color: var(--color-status-accepted);
+  font-weight: var(--font-weight-bold);
+}
+
+.matrix__note {
+  color: var(--color-ink-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.matrix__no {
+  color: var(--color-ink-soft);
+}

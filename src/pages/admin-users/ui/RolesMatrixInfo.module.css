@@ -1,0 +1,60 @@
+.matrix__readonly {
+  color: var(--color-light-muted);
+  font-size: var(--font-size-xs);
+}
+
+.matrix__columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.matrix__column {
+  padding: var(--spacing-md);
+  background: var(--color-gray-25);
+}
+
+.matrix__title {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.matrix__subtitle {
+  margin-top: var(--spacing-sm);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.matrix__list {
+  margin: var(--spacing-xxs) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.matrix__item {
+  position: relative;
+  padding-left: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+
+.matrix__item::before {
+  position: absolute;
+  left: 0;
+  color: var(--color-status-accepted);
+  content: "+";
+}
+
+.matrix__item--no::before {
+  color: var(--color-accent-red);
+  content: "—";
+}
+
+.matrix__note {
+  margin-top: var(--spacing-md);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}

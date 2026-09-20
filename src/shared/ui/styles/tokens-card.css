@@ -1,0 +1,102 @@
+/* Токены области «card» (hex допустим только в файлах shared/ui/styles). */
+/*
+ * Карточка происшествия ДДС (/arm/card/[cardId]). Размеры сняты со скриншотов ДДС_image6–20
+ * (масштаб браузера 80 %: CSS-px = px на скрине / 0.8), p23_Image108, p16_Image77, КАРТОЧКА_image2.
+ */
+:root {
+  /* ——— Цвета ——— */
+  --card-color-icon-muted: #87898b; /* трубка/чат в колонке телефонии */
+  --card-color-icon-dark: #3a3f43; /* активная иконка чата (есть номер) */
+  --card-color-disabled-btn: #cacdce; /* «записи звонков» без записей */
+  --card-color-tile-divider: #6b7478; /* разделитель плиток служб */
+  --card-color-tile-hover: #56636c;
+  --card-color-history-bg: #157dbd; /* синий попап истории службы */
+  --card-color-history-text: #ffffff;
+  --card-color-form-shadow: rgba(0, 0, 0, 0.35);
+  --card-color-dropdown-hover: #efefef;
+  --card-color-dropdown-disabled: #aeb1b3;
+  --card-color-required: #e0211b;
+  --card-color-map-point: #e0211b;
+  --card-color-map-bg: #e8e4d8;
+  --card-color-badge: #ec653b;
+  --card-color-dashed: #ffffff;
+  --card-color-reaction-ok: #2e9e3e;
+  --card-color-sms-out: #e3eef6;
+
+  /* ——— Сетка и отступы ——— */
+  --card-gap: 10px; /* 8 px на скрине */
+  --card-block-padding-x: 10px;
+  --card-columns: minmax(0, 840fr) minmax(0, 1008fr); /* левая / правая колонки */
+
+  /* ——— Полоса телефонии ——— */
+  --card-phone-bar-height: 80px; /* 64 px */
+  --card-handset-width: 80px; /* 64 px */
+  --card-line-block-width: 270px; /* 216 px */
+  --card-phone-icon-col-width: 42px; /* 34 px */
+  --card-line-btn-height: 23px; /* 18 px */
+  --card-line-btn-rec-width: 130px; /* 104 px */
+  --card-line-btn-sms-width: 108px; /* 87 px */
+  --card-header-width: 260px; /* 208 px */
+  --card-timer-width: 128px;
+  --card-action-btn-width: 120px; /* 96 px */
+  --card-action-btn-height: 35px; /* 28 px */
+  --card-aon-btn-width: 44px;
+
+  /* ——— Блоки ——— */
+  --card-row-height: 49px; /* строка заявителя / флагов, 39 px */
+  --card-address-min-height: 66px; /* 53 px */
+  --card-journal-min-height: 436px; /* 349 px */
+  --card-journal-max-height: 600px; /* длинный журнал — скролл внутри блока */
+  --card-dark-header-height: 35px; /* 28 px */
+  --card-line-min-height: 39px; /* «Класс.:», «[ВИС] Класс.:» — 31 px */
+  --card-flag-btn-width: 65px; /* 52 px */
+  --card-flag-btn-height: 33px; /* 26 px */
+  --card-round-btn-size: 35px; /* 28 px */
+  --card-map-height: 220px;
+  --card-map-point-size: 14px;
+  --card-question-col-width: 300px; /* колонка вопросов опросной карты */
+  --card-statement-min-height: 90px;
+
+  /* ——— Строки отработки (p16_Image77) ——— */
+  --card-work-col-operator: 80px;
+  --card-work-col-datetime: 145px;
+  --card-work-col-service: 180px;
+  --card-work-col-called: 150px;
+  --card-work-col-phone: 150px;
+  --card-work-col-person: 180px;
+  --card-work-row-height: 40px;
+
+  /* ——— Нижняя панель «Службы:» ——— */
+  --card-panel-height: 80px; /* 64 px */
+  --card-panel-label-width: 80px; /* 64 px */
+  --card-tile-width: 130px; /* 104 px */
+  --card-panel-btn-size: 50px; /* 40 px */
+  --card-panel-icon-box: 26px;
+  --card-badge-size: 18px;
+  --card-history-width: 650px; /* 520 px */
+  --card-history-max-height: 140px; /* 112 px, дальше — скролл */
+  --card-history-actor-width: 80px;
+  --card-history-main-width: 300px;
+  --card-status-form-width: 1310px; /* 1047 px */
+  --card-status-field-width: 392px; /* 314 px */
+  --card-status-form-height: 35px; /* 28 px */
+  --card-status-dropdown-width: 295px; /* 236 px */
+  --card-status-form-left: 56px; /* 45 px от начала первой плитки */
+  --card-status-form-bottom: 42px; /* 34 px над панелью */
+
+  /* ——— Типографика карточки (скрин 80 % → CSS) ——— */
+  --card-font-text: 15px; /* основной текст блоков, 12–13 px на скрине */
+  --card-font-label: 12px; /* подписи полей, 9–10 px */
+  --card-font-small-btn: 11px; /* «записи звонков», «просмотр» */
+  --card-font-title: 19px; /* «Происшествие 36814845» */
+  --card-font-phone: 22px; /* номер телефона в поле */
+  --card-font-tile-name: 15px;
+  --card-font-tile-status: 12px;
+
+  /* ——— Слои ——— */
+  --card-z-panel: 50;
+  --card-z-extra-row: 51;
+  --card-z-history: 60;
+  --card-z-overlay: 200;
+  --card-z-form: 210;
+}

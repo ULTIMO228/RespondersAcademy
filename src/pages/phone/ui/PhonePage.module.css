@@ -1,0 +1,118 @@
+.phone {
+  display: grid;
+  grid-template-columns: var(--softphone-console-width) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--spacing-md);
+}
+
+.phone__console {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-gray-50);
+}
+
+.phone__tab {
+  min-height: 420px;
+  border-top: var(--border-width) solid var(--color-gray-200);
+}
+
+.phone__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.phone__empty {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-md);
+}
+
+.stub {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-md);
+}
+
+.stub__divider {
+  padding-bottom: var(--spacing-xs);
+  border-bottom: var(--border-width) dashed var(--color-gray-200);
+  color: var(--softphone-section-divider);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.stub__row {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-sm);
+  background: var(--softphone-row-talk);
+}
+
+.stub__number {
+  font-family: var(--font-mono);
+}
+
+.stub__text {
+  color: var(--color-ink);
+}
+
+.stub__note {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 1100px) {
+  .phone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.page {
+  color: var(--color-ink);
+}
+
+.phone__notice {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  color: var(--color-accent-red);
+  font-size: var(--font-size-sm);
+}
+
+.stub__chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-height: 160px;
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-gray-25);
+}
+
+.stub__compose {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.stub__input {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-height-sm);
+  padding: 0 var(--spacing-sm);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: var(--radius-sm);
+  background: var(--color-gray-50);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.stub__duration {
+  margin-left: auto;
+  font-family: var(--font-mono);
+}
+
+.stub__row--past {
+  background: transparent;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+}

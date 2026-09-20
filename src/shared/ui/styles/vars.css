@@ -1,31 +1,167 @@
+@import "./tokens-journal.css";
+@import "./tokens-card.css";
+@import "./tokens-softphone.css";
+@import "./tokens-teacher.css";
+@import "./tokens-admin.css";
+
+/*
+ * Дизайн-токены АРМ-112 (ПОВ-112). Единственное место с hex-значениями в проекте.
+ * Значения сняты пипеткой с референсов: hack/Фронт/images/p12_Image66.png, p23_Image108.png,
+ * hack/Фронт/Источники/скриншоты_из_docx/ДДС_image1–20.png, КАРТОЧКА_image2–3.png.
+ * Семантика статусов и цветокод служб — spec/07-design-guidelines.md («не менять значения»).
+ */
 :root {
-  --arm-canvas: #838f97;
-  --arm-search: #ebecec;
-  --arm-clock: #2f353a;
-  --arm-row: #2f353a;
-  --arm-row-sub: #49555d;
-  --arm-grid: #80888e;
-  --arm-muted: #ccd7db;
-  --arm-text: #ffffff;
-  --arm-ink: #111111;
-  --arm-divider: #1a1a1a;
-  --arm-icon: #1f282c;
-  --arm-accent: #157dbd;
-  --arm-warning: #ec653b;
-  --arm-operator: #6c364b;
-  --arm-control: #efefef;
-  --arm-control-border: #829099;
-  --arm-control-text: #7d8b92;
-  --arm-notification: #dbe4e8;
-  --arm-notification-ink: #82929a;
-  --arm-label: #dce4e7;
-  --arm-toggle-border: #dbe5e9;
-  --arm-toggle-track: rgba(255, 255, 255, 0.18);
-  --arm-toggle-on: #0f99d5;
-  --arm-select-border: #d7e0e4;
-  --arm-table-header: #ccd7db;
-  --arm-row-text: #e7edef;
-  --arm-bookmark: #81919a;
-  --arm-status-text: #dbe3e6;
-  --arm-pagination: #e0e7ea;
+  /* ——— Акценты ПОВ-112 ——— */
+  --color-accent-orange: #ec653b; /* «создать новую карточку», «сохранить», ЧП */
+  --color-accent-orange-hover: #d9552c;
+  --color-accent-blue: #157dbd; /* выбранные элементы, «просмотр», история службы */
+  --color-accent-blue-hover: #1a8fd6;
+  --color-accent-red: #e0211b;
+
+  /* ——— Базовая палитра ——— */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-ink: #1f1f1f; /* основной текст светлой темы */
+  --color-ink-muted: #5b6166;
+  --color-ink-soft: #8a9095;
+  --color-graphite-900: #2f353a; /* строки таблицы, часы, «дополнение», тёмный заголовок блока */
+  --color-graphite-800: #303335;
+  --color-graphite-700: #49555d; /* подстрока «Описание», панель служб */
+  --color-graphite-600: #6b7478;
+  --color-graphite-500: #838f97; /* фон тёмного экрана «Поиск происшествий» */
+  --color-graphite-400: #8e9091; /* неактивная («только телефонная») плитка службы */
+  --color-graphite-300: #aeb1b3;
+  --color-gray-200: #cacdce; /* неактивные кнопки, иконки телефонии */
+  --color-gray-150: #c9ced1; /* фон светлого экрана карточки */
+  --color-gray-100: #ebecec; /* верхняя панель поиска */
+  --color-gray-50: #efefef; /* панели-блоки карточки */
+  --color-gray-25: #f7f7f7;
+  --color-light-text: #e7edef; /* текст строк тёмной таблицы */
+  --color-light-muted: #ccd7db; /* заголовки колонок, пагинация */
+  --color-operator-cell: #6c364b; /* ячейка «Опер.» в строке ДДС */
+  --color-overlay: rgba(0, 0, 0, 0.4); /* затемнение под формой смены статуса */
+  --color-overlay-strong: rgba(0, 0, 0, 0.55);
+  --color-shadow: rgba(0, 0, 0, 0.25);
+  --color-login-sky: #84b8d7; /* фон экрана «112 ВХОД В СИСТЕМУ» */
+  --color-login-sky-top: #6aaad2;
+  --color-login-sky-bottom: #9cc7e0;
+  --color-login-building-dark: #5a86ab;
+  --color-login-building: #8db8d8;
+  --color-login-building-light: #b9dcf0;
+  --color-login-house: #d9d9d9;
+  --color-login-house-light: #f2f2f2;
+  --color-login-button: #808080;
+  --color-login-button-hover: #6f6f6f;
+  --color-login-link: #1f6fb5;
+
+  /* ——— Статусная палитра (канон АРМ ЕДДС, spec/07 «Цветовая семантика») ——— */
+  --color-status-new: #e0211b; /* Новая / нарушение / «Добавлена»-маркер */
+  --color-status-created: #f2c500; /* Создана / Обрабатывается */
+  --color-status-assigned: #f28c28; /* Назначена */
+  --color-status-accepted: #2e9e3e; /* Реагирование / Принята */
+  --color-status-completed: #8fd18a; /* Завершена */
+  --color-status-closed: #9aa0a4; /* Закрыта / Отменена / неактивно */
+  --color-status-phone-only: #c4c8cb; /* «только телефонные» службы (памятка стр. 20) */
+
+  /* ——— Таймеры ——— */
+  --color-timer-exceeded: #ff0000; /* красный таймер и шапка при превышении норматива */
+  --color-timer-ok: #2e9e3e;
+
+  /* ——— Цветокод служб ——— */
+  --color-service-01: #e0211b;
+  --color-service-02: #1f5fbf;
+  --color-service-03-fill: #ffffff;
+  --color-service-03-stroke: #e0211b;
+  --color-service-04: #f2c500;
+  --color-service-zhkh: #2e9e3e;
+  --color-service-at: #7b3fa0;
+  --color-service-edds: #f28c28;
+  --color-service-112: #111111;
+
+  /* ——— Системные состояния сервисов (админка; degraded — жёлтый, не оранжевый «Назначена») ——— */
+  --color-service-running: #2e9e3e;
+  --color-service-stopped: #9aa0a4;
+  --color-service-degraded: #f2c500;
+
+  /* ——— Бейдж «ИИ» ——— */
+  --color-ai-badge-bg: #e3eef6;
+  --color-ai-badge-text: #157dbd;
+  --color-ai-badge-border: #9cc3de;
+
+  /* ——— Фокус ——— */
+  --color-focus-ring: #157dbd;
+  --focus-ring: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-focus-ring);
+
+  /* ——— Типографика ——— */
+  --font-ui: Roboto, "Segoe UI", Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --font-mono: "Roboto Mono", Consolas, "Courier New", monospace;
+  --font-size-xxs: 10px;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px; /* таблицы */
+  --font-size-base: 14px; /* формы */
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 22px;
+  --font-size-3xl: 32px;
+  --font-size-clock: 60px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.15;
+  --line-height-base: 1.35;
+
+  /* ——— Отступы ——— */
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+
+  /* ——— Радиусы и границы ——— */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --border-width: 1px;
+
+  /* ——— Размеры ——— */
+  --control-height-sm: 24px;
+  --control-height-md: 30px;
+  --control-height-lg: 40px;
+  --row-height-journal: 31px;
+  --service-panel-height: 64px;
+
+  /* ——— Анимации (отключаются prefers-reduced-motion) ——— */
+  --motion-duration-fast: 120ms;
+  --motion-duration-blink: 900ms;
+}
+
+/* Светлая тема: карточка, формы, преподаватель, администратор. */
+[data-theme="light"] {
+  --theme-bg: var(--color-gray-150);
+  --theme-surface: var(--color-gray-50);
+  --theme-surface-raised: var(--color-white);
+  --theme-text: var(--color-ink);
+  --theme-text-muted: var(--color-ink-muted);
+  --theme-border: var(--color-gray-200);
+  --theme-header-bg: var(--color-graphite-900);
+  --theme-header-text: var(--color-white);
+  --theme-label: var(--color-ink-muted);
+}
+
+/* Тёмная тема: «боевой» контур — главный экран «Поиск происшествий». */
+[data-theme="dark"] {
+  --theme-bg: var(--color-graphite-500);
+  --theme-surface: var(--color-graphite-900);
+  --theme-surface-raised: var(--color-graphite-700);
+  --theme-text: var(--color-light-text);
+  --theme-text-muted: var(--color-light-muted);
+  --theme-border: var(--color-graphite-500);
+  --theme-header-bg: var(--color-graphite-900);
+  --theme-header-text: var(--color-white);
+  --theme-label: var(--color-light-muted);
 }

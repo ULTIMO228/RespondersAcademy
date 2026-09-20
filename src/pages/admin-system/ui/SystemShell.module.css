@@ -1,0 +1,44 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.shell__banner {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--admin-alert-critical-bg);
+  color: var(--admin-alert-critical-text);
+  font-size: var(--font-size-md);
+}
+
+.shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-gray-50);
+}
+
+.shell__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-regular);
+}
+
+.shell__dev {
+  padding: var(--spacing-xxs) var(--spacing-md);
+  border: var(--border-width) dashed var(--color-graphite-300);
+  font-size: var(--font-size-xs);
+}
+
+.shell__panel {
+  padding-top: var(--spacing-md);
+}
+
+.shell__state {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-md);
+}

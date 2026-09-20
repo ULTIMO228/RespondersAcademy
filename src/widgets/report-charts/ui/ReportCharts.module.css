@@ -1,0 +1,120 @@
+.charts__block + .charts__block {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: var(--border-width) solid var(--color-gray-200);
+}
+
+.charts__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.charts__optional {
+  padding: 0 var(--spacing-xs);
+  border: var(--border-width) dashed var(--teacher-dev-border);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+}
+
+.charts__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.charts__row > figure {
+  padding: var(--spacing-sm);
+  background: var(--color-white);
+}
+
+.charts__heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.charts__heatTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-white);
+  font-size: var(--font-size-md);
+}
+
+.charts__heatTable th,
+.charts__heatTable td {
+  height: 28px;
+  padding: 0 var(--spacing-md);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.charts__heatTable thead th {
+  background: var(--color-gray-50);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  text-align: center;
+}
+
+.charts__heatTable tbody th {
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+}
+
+.charts__heatTable td {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.charts__heat--0 {
+  background: var(--teacher-heat-0);
+  color: var(--color-ink-soft);
+}
+
+.charts__heat--1 {
+  background: var(--teacher-heat-1);
+}
+
+.charts__heat--2 {
+  background: var(--teacher-heat-2);
+}
+
+.charts__heat--3 {
+  background: var(--teacher-heat-3);
+  color: var(--color-white);
+}
+
+.charts__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.charts__legend span {
+  min-width: 28px;
+  padding: 0 var(--spacing-xs);
+  border: var(--border-width) solid var(--color-gray-200);
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .charts__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Честное пустое состояние тепловой карты: ошибок нет — рисовать нечего. */
+.charts__empty {
+  padding: var(--spacing-md);
+  background: var(--color-gray-50);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-md);
+}

@@ -1,0 +1,47 @@
+/* Окно «Записи разговоров»: вид модалки ПОВ-112 (КАРТОЧКА_image3), но перетаскиваемое и без затемнения. */
+.window {
+  position: fixed;
+  z-index: var(--card-z-form);
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 2 * var(--card-gap));
+  max-height: calc(100vh - 2 * var(--card-gap));
+  background: var(--color-white);
+  color: var(--color-ink);
+  box-shadow: 0 2px 12px var(--color-shadow);
+}
+
+.window__header {
+  position: relative;
+  padding: var(--spacing-xl) var(--spacing-3xl) var(--spacing-md);
+  cursor: move;
+  text-align: center;
+  touch-action: none;
+  user-select: none;
+}
+
+.window__title {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+}
+
+.window__close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  display: inline-flex;
+  padding: var(--spacing-xs);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.window__body {
+  flex: 1;
+  overflow: auto;
+  padding: var(--spacing-md) var(--spacing-2xl) var(--spacing-2xl);
+  font-size: var(--font-size-base);
+}

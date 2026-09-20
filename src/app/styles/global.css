@@ -1,28 +1,106 @@
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html,
 body {
-  min-width: 1180px;
   min-height: 100%;
   margin: 0;
 }
 
 body {
-  background: var(--arm-canvas);
-  color: var(--arm-text);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  min-width: 1180px;
+  background: var(--theme-bg, var(--color-gray-150));
+  color: var(--theme-text, var(--color-ink));
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-variant-numeric: tabular-nums;
+  /*
+   * Длинные неразрывные строки (адрес «г.Москва,ул.Малая-Дмитровка-д.12к3стр1», e-mail, склеенный
+   * комментарий) переносятся, а не вылезают за блок. break-word не меняет min-content сеток —
+   * колонки таблиц остаются прежней ширины (T5.2-07).
+   */
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
 }
 
 button,
+input,
 select,
-input {
+textarea {
   font: inherit;
+  color: inherit;
 }
 
-button,
-select {
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+a {
   color: inherit;
+}
+
+img,
+svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/*
+ * Видимый фокус у всех интерактивов — в палитре ПОВ-112 (синий акцент + белая подложка).
+ * Двухцветное кольцо токена --focus-ring нужно потому, что один синий на графитовых
+ * поверхностях (--color-graphite-500 «Поиск происшествий», --color-graphite-900/700 строки
+ * ленты и панель служб) даёт 1.35–2.78:1 (замер: docs/a11y-contrast.md), белое — 3.31–12.42:1.
+ * Палитра не меняется: оба цвета уже есть в токенах. Outline продублирован под кольцом
+ * токена — он переживает режим высокой контрастности, где box-shadow не рисуется.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

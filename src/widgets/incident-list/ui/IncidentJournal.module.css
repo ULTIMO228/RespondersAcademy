@@ -1,0 +1,37 @@
+/* Тёмный экран «Поиск происшествий» — ДДС_image2–5. */
+.journal {
+  min-height: 100vh;
+  background: var(--color-graphite-500);
+  color: var(--color-light-text);
+}
+
+.journal__list {
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-3xl);
+}
+
+.journal__table {
+  overflow-x: auto;
+}
+
+.journal__banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--journal-banner-bg);
+  color: var(--color-light-text);
+  font-size: var(--font-size-md);
+}
+
+.journal__banner-text {
+  flex: 1;
+}
+
+.journal__banner-close {
+  display: inline-flex;
+  padding: var(--spacing-xxs);
+  border: 0;
+  background: transparent;
+  color: var(--color-light-text);
+}

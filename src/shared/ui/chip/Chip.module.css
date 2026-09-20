@@ -1,0 +1,32 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: var(--spacing-xs) var(--spacing-lg);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: 0;
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--color-accent-blue);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.chip:disabled {
+  cursor: default;
+}
+
+.chip--selected {
+  background: var(--color-accent-blue);
+  border-color: var(--color-accent-blue);
+  color: var(--color-white);
+}

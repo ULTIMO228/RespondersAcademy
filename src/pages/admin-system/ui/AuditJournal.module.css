@@ -1,0 +1,31 @@
+.journal {
+  display: flex;
+  flex-direction: column;
+}
+
+.journal__area {
+  padding: 0 var(--spacing-lg);
+  background: var(--admin-audit-area-bg);
+  overflow-x: auto;
+}
+
+.journal__pager {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--spacing-2xl);
+  padding: var(--spacing-md) 0;
+  color: var(--color-white);
+  font-size: var(--font-size-base);
+}
+
+.journal__arrow {
+  display: inline-flex;
+  padding: var(--spacing-xxs);
+  border: 0;
+  background: transparent;
+}
+
+.journal__arrow:disabled {
+  opacity: 0.4;
+}

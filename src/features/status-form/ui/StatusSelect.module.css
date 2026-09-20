@@ -1,0 +1,76 @@
+.select {
+  position: relative;
+  width: var(--card-status-field-width);
+  flex: none;
+}
+
+.select__button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: calc(var(--card-status-form-height) - var(--spacing-xs));
+  padding: 0 var(--spacing-md);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  text-align: left;
+}
+
+.select__placeholder {
+  color: var(--color-ink);
+}
+
+.select__arrow {
+  transform: none;
+}
+
+.select__arrow--open {
+  transform: rotate(180deg);
+}
+
+/* Форма стоит у нижней панели: список из 7 статусов раскрывается вверх, чтобы все пункты были видны. */
+.select__list {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 1;
+  width: var(--card-status-dropdown-width);
+  margin: 0 0 var(--spacing-xs);
+  padding: 0;
+  list-style: none;
+  background: var(--color-white);
+  box-shadow: 0 2px 6px var(--card-color-form-shadow);
+}
+
+.select__option {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  text-align: left;
+}
+
+.select__option:hover:not(:disabled) {
+  background: var(--card-color-dropdown-hover);
+}
+
+.select__option:disabled {
+  color: var(--card-color-dropdown-disabled);
+  cursor: not-allowed;
+}
+
+.select__option--selected {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+
+.select__option--selected:hover:not(:disabled) {
+  background: var(--color-accent-blue);
+}

@@ -1,0 +1,56 @@
+/* Транскрипт вызовов — та же типографика, что у ленты событий занятия (spec/07). */
+.calls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+}
+
+.calls__empty {
+  padding: var(--spacing-md);
+  color: var(--color-ink-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+}
+
+.calls__item {
+  padding-bottom: var(--spacing-md);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+}
+
+.calls__head {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+}
+
+.calls__meta {
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.calls__lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.calls__line {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: var(--spacing-md);
+}
+
+.calls__line[data-speaker="ai"] {
+  color: var(--color-ink-muted);
+}
+
+.calls__speaker {
+  display: inline-flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+  font-weight: var(--font-weight-medium);
+}

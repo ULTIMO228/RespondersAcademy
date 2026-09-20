@@ -1,0 +1,34 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.feed__list {
+  max-height: 420px;
+  margin: calc(-1 * var(--spacing-md)) calc(-1 * var(--spacing-lg));
+  overflow-y: auto;
+  list-style: none;
+  background: var(--color-white);
+}
+
+.feed__item {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+}
+
+.feed__item--alert .feed__text {
+  color: var(--color-timer-exceeded);
+  font-weight: var(--font-weight-bold);
+}
+
+.feed__time {
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

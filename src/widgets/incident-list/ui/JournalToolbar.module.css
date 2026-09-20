@@ -1,0 +1,76 @@
+/* Светлая панель поиска — ДДС_image2–5 (80 %): заголовок 35 px с линией, лупа справа. */
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 150px;
+  background: var(--color-gray-100);
+  color: var(--color-ink);
+}
+
+.toolbar__search {
+  min-width: 0;
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg) var(--spacing-xl);
+}
+
+.toolbar__title-row {
+  display: flex;
+  align-items: flex-end;
+  height: 56px;
+  border-bottom: var(--border-width) solid var(--journal-search-divider);
+}
+
+.toolbar__title {
+  flex: 1;
+  padding-bottom: var(--spacing-xs);
+  font-size: var(--journal-title-size);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+}
+
+.toolbar__search-button {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.toolbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-md);
+}
+
+.toolbar__advanced {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--font-size-md);
+}
+
+.toolbar__advanced:hover {
+  text-decoration: underline;
+}
+
+.toolbar__chevron--open {
+  transform: rotate(180deg);
+}
+
+.toolbar__reset {
+  height: var(--control-height-sm);
+  padding: 0 var(--spacing-md);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: var(--radius-sm);
+  background: var(--color-gray-100);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-md);
+}
+
+.toolbar__reset:hover {
+  border-color: var(--color-graphite-600);
+  color: var(--color-ink);
+}

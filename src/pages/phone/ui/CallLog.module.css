@@ -1,0 +1,26 @@
+.call-log {
+  font-variant-numeric: tabular-nums;
+}
+
+.call-log__number {
+  font-family: var(--font-mono);
+}
+
+.call-log__link {
+  color: var(--color-accent-blue);
+}
+
+.call-log__link:hover {
+  text-decoration: underline;
+}
+
+.call-log__unsaved {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.call-log__error {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-accent-red);
+  font-size: var(--font-size-sm);
+}

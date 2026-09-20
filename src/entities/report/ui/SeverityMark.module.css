@@ -1,0 +1,33 @@
+/* Цвет тяжести — маркером (палитра статусов), подпись — контрастным текстом. */
+.severity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.severity::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.severity--critical {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+.severity--critical::before {
+  background: var(--color-status-new);
+}
+
+.severity--major::before {
+  background: var(--color-status-assigned);
+}
+
+.severity--minor::before {
+  background: var(--color-status-closed);
+}

@@ -1,0 +1,39 @@
+.chips {
+  margin: 0;
+  padding: var(--spacing-md) var(--card-block-padding-x);
+  background: var(--color-white);
+}
+
+.chips__group {
+  display: grid;
+  grid-template-columns: var(--card-question-col-width) minmax(0, 1fr);
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+}
+
+.chips__question {
+  padding-top: var(--spacing-sm);
+  color: var(--color-ink-soft);
+  font-size: var(--card-font-text);
+}
+
+.chips__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin: 0;
+}
+
+.chips__empty {
+  margin: 0;
+  padding: var(--spacing-md) var(--card-block-padding-x);
+  background: var(--color-white);
+  color: var(--color-ink-soft);
+  font-size: var(--card-font-text);
+}
+
+@media (max-width: 1024px) {
+  .chips__group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

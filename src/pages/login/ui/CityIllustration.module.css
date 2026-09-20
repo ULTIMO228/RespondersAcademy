@@ -1,0 +1,62 @@
+.city {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.city__building-dark {
+  fill: var(--color-login-building-dark);
+}
+
+.city__building {
+  fill: var(--color-login-building);
+}
+
+.city__building-light {
+  fill: var(--color-login-building-light);
+}
+
+.city__house {
+  fill: var(--color-login-house);
+}
+
+.city__house-light {
+  fill: var(--color-login-house-light);
+}
+
+.city__window {
+  fill: var(--journal-login-window);
+}
+
+.city__window-light {
+  fill: var(--journal-login-window-light);
+}
+
+.city__floor-line {
+  fill: none;
+  stroke: var(--journal-login-tower-shade);
+  stroke-width: 3;
+}
+
+.city__heli-body {
+  fill: var(--journal-login-heli-body);
+}
+
+.city__heli-stripe {
+  fill: var(--journal-login-heli-stripe);
+}
+
+.city__heli-glass {
+  fill: var(--journal-login-heli-glass);
+}
+
+.city__heli-dark {
+  fill: var(--journal-login-heli-dark);
+}
+
+.city__heli-rotor {
+  fill: none;
+  stroke: var(--journal-login-heli-dark);
+  stroke-width: 2.5;
+}

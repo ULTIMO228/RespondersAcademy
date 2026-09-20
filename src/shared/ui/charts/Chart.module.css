@@ -1,0 +1,129 @@
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.chart__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+}
+
+.chart__svg {
+  width: 100%;
+  height: auto;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.chart__grid {
+  stroke: var(--color-gray-100);
+  stroke-width: 1;
+}
+
+.chart__tick,
+.chart__label,
+.chart__value {
+  fill: var(--color-ink-muted);
+  font-family: var(--font-ui);
+  font-size: 10px;
+}
+
+.chart__value {
+  fill: var(--color-ink);
+}
+
+.chart__bar {
+  fill: var(--color-accent-blue);
+}
+
+.chart__norm {
+  stroke: var(--color-timer-exceeded);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 3;
+}
+
+.chart__normLabel {
+  fill: var(--color-timer-exceeded);
+  font-family: var(--font-ui);
+  font-size: 10px;
+}
+
+.chart__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.chart__point {
+  fill: var(--color-white);
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.chart__series--blue {
+  color: var(--color-accent-blue);
+}
+
+.chart__series--orange {
+  color: var(--color-accent-orange);
+}
+
+.chart__series--gray {
+  color: var(--color-graphite-600);
+}
+
+.chart__legend {
+  display: flex;
+  gap: var(--spacing-lg);
+  font-size: var(--font-size-xs);
+}
+
+.chart__legend li::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 3px;
+  margin-right: var(--spacing-xs);
+  vertical-align: middle;
+  background: currentColor;
+}
+
+.chart__legendItem--blue {
+  color: var(--color-accent-blue);
+}
+
+.chart__legendItem--orange {
+  color: var(--color-accent-orange);
+}
+
+.chart__legendItem--gray {
+  color: var(--color-graphite-600);
+}
+
+/* Табличный дубль графика (текстовая альтернатива, ТЗ §17): плотная таблица под диаграммой. */
+.chart__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.chart__table caption {
+  padding-bottom: var(--spacing-xxs);
+  color: var(--color-ink-muted);
+  text-align: left;
+}
+
+.chart__table th,
+.chart__table td {
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+  text-align: left;
+}
+
+.chart__table td {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

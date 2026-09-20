@@ -1,0 +1,20 @@
+/* Токены области «teacher» (hex допустим только в файлах shared/ui/styles). */
+:root {
+  /* Плитка курсанта «не подключён» (офлайн) — серая, как неактивные элементы ПОВ-112 */
+  --teacher-tile-offline-bg: #d9dcde;
+  --teacher-tile-offline-text: #7d8387;
+  /* Подсветка отклонений и «правильных по мнению системы» вариантов */
+  --teacher-mark-phrase-bg: #d6ebf7;
+  --teacher-mark-error-bg: #fbd9d3;
+  --teacher-deviation-bg: #fdecea;
+  --teacher-pending-bg: #fff6cc;
+  --teacher-ok-bg: #e6f4e8;
+  /* Heatmap ошибок: 0 → белый, далее по оранжево-красной шкале ПОВ-112 */
+  --teacher-heat-0: #ffffff;
+  --teacher-heat-1: #fbd9cc;
+  --teacher-heat-2: #f4a383;
+  --teacher-heat-3: #ec653b;
+  /* Выбранная строка / панель dev-переключателей */
+  --teacher-selected-row-bg: #e3eef6;
+  --teacher-dev-border: #9aa0a4;
+}

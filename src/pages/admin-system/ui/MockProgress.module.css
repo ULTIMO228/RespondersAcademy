@@ -1,0 +1,22 @@
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+}
+
+.progress__track {
+  height: var(--admin-progress-height);
+  background: var(--admin-progress-track);
+}
+
+.progress__fill {
+  display: block;
+  height: 100%;
+  background: var(--admin-progress-fill);
+  transition: width var(--motion-duration-fast) linear;
+}
+
+.progress__label {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}

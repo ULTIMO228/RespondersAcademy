@@ -1,0 +1,89 @@
+.header {
+  display: flex;
+  flex: none;
+  gap: var(--card-gap);
+  height: var(--card-phone-bar-height);
+}
+
+.header__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: var(--card-header-width);
+  padding: 0 var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+.header__title {
+  margin: 0 0 var(--spacing-xxs);
+  font-size: var(--card-font-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.header__operator {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Превышение норматива: красная вся шапка карточки (источник п. 1.2). */
+.header--exceeded .header__info {
+  background: var(--color-timer-exceeded);
+  color: var(--color-white);
+}
+
+.header__timer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--spacing-xxs);
+  width: var(--card-timer-width);
+}
+
+.header__toggle {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+
+.header__toggle > span,
+.header__timer > span:first-child {
+  width: 100%;
+}
+
+.header__reaction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  color: var(--color-ink);
+  font-size: var(--font-size-xs);
+}
+
+.header__check {
+  color: var(--card-color-reaction-ok);
+}
+
+.header__actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: var(--card-action-btn-width);
+}
+
+.header__button {
+  width: 100%;
+  height: var(--card-action-btn-height);
+  border-radius: 0;
+  font-size: var(--card-font-small-btn);
+}
+
+/* Норматив 30 сек нарушен (факт первичной реакции > 0:30). */
+.header__reaction--late {
+  color: var(--color-timer-exceeded);
+}

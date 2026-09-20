@@ -1,0 +1,94 @@
+/* Тренажёрное дополнение — строится из тех же строк ленты и подписей колонок. */
+.modules {
+  margin-top: var(--spacing-2xl);
+}
+
+.modules__title {
+  padding-left: var(--spacing-3xl);
+  color: var(--color-white);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.modules__head,
+.modules__row {
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) minmax(240px, 2fr) 150px 150px;
+}
+
+.modules__head {
+  padding: var(--spacing-sm) 0 var(--spacing-xs);
+  color: var(--color-light-muted);
+  font-size: var(--font-size-sm);
+}
+
+.modules__head span {
+  padding-left: var(--spacing-md);
+}
+
+.modules__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.modules__row {
+  width: 100%;
+  min-height: var(--row-height-journal);
+  padding: 0;
+  border: 0;
+  background: var(--color-graphite-900);
+  color: var(--color-light-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modules__row:disabled {
+  cursor: progress;
+}
+
+/* Модуль идущего занятия — синий маркер слева (как активная вкладка). */
+.modules__row--active {
+  box-shadow: inset 4px 0 0 var(--journal-tab-active);
+}
+
+.modules__row:hover {
+  background: var(--color-graphite-700);
+}
+
+.modules__name,
+.modules__cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 var(--spacing-md);
+  overflow: hidden;
+  border-right: var(--border-width) solid var(--color-graphite-700);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.modules__name {
+  font-size: var(--font-size-base);
+}
+
+.modules__cell {
+  font-size: var(--font-size-sm);
+}
+
+.modules__status {
+  padding: var(--spacing-xs) var(--spacing-3xl);
+  color: var(--color-light-muted);
+  font-size: var(--font-size-sm);
+}
+
+.modules__status--error {
+  color: var(--journal-row-violation);
+}
+
+.modules__empty {
+  padding: var(--spacing-md) var(--spacing-3xl);
+  color: var(--color-light-muted);
+}

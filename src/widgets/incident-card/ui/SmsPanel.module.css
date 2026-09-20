@@ -1,0 +1,62 @@
+.sms__aon {
+  margin: 0 0 var(--spacing-md);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.sms__empty {
+  margin: var(--spacing-xl) 0;
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.sms__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sms__message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  max-width: 85%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-gray-50);
+  font-size: var(--font-size-md);
+}
+
+.sms__message--out {
+  align-self: flex-end;
+  background: var(--card-color-sms-out);
+}
+
+.sms__meta {
+  color: var(--color-ink-soft);
+  font-size: var(--font-size-xs);
+}
+
+.sms__form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.sms__field {
+  flex: 1;
+  padding: var(--spacing-xxs) 0;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-graphite-300);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  resize: vertical;
+}
+
+.sms__field:focus-visible {
+  outline: none;
+  border-bottom-color: var(--color-accent-blue);
+}

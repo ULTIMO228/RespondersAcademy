@@ -12,3 +12,14 @@ Thumbs.db
 *.tsbuildinfo
 .vscode/
 .idea/
+# генерируется `npm run mocks:sync`; mocks/local (T2.3-06) и mocks/admin (T4.1-01) — моки приложения, в репозитории
+/mocks/*
+!/mocks/local/
+!/mocks/admin/
+# артефакты Playwright (T5.1-01)
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
+/public/icons/
+next-env.d.ts

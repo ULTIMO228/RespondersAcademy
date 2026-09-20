@@ -1,0 +1,22 @@
+.action {
+  display: flex;
+  flex-direction: column;
+}
+
+.action__duty {
+  width: var(--card-status-field-width);
+  max-width: 100%;
+}
+
+/* Вызов точки C (софтфон) — как кнопка вызова в форме отработки (p16_Image77). */
+.action__call {
+  display: inline-flex;
+  flex: none;
+  align-self: flex-end;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-action-btn-height);
+  height: var(--card-action-btn-height);
+  background: var(--color-gray-200);
+  color: var(--card-color-icon-muted);
+}

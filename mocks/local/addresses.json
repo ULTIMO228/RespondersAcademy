@@ -1,0 +1,261 @@
+{
+  "meta": {
+    "title": "Локальный мок-справочник адресов карточки (T2.3-06)",
+    "note": "Эмуляция вариантов адресной строки ПОВ-112 (в реальном АРМ — Яндекс.Карты / Яндекс.Организации / ФИАС). Только локальный контур, без внешних сервисов. Уровень приложения (mocks/local), spec/mocks не расширяется; валидность — тестами приложения.",
+    "count": 14
+  },
+  "addresses": [
+    {
+      "id": "adr-001",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Чертаново Южное",
+      "street": "Чертановская улица",
+      "house": "58",
+      "building": "2",
+      "entrance": "2",
+      "floor": "",
+      "descriptive": "Жилой дом, двор",
+      "geo": {
+        "lat": 55.638,
+        "lon": 37.606
+      }
+    },
+    {
+      "id": "adr-002",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Чертаново Южное",
+      "street": "Чертановская улица",
+      "house": "20",
+      "building": "",
+      "entrance": "1",
+      "floor": "",
+      "descriptive": "Жилой дом",
+      "geo": {
+        "lat": 55.639,
+        "lon": 37.609
+      }
+    },
+    {
+      "id": "adr-003",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Чертаново Южное",
+      "street": "Варшавское шоссе",
+      "house": "120",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Перекрёсток у торгового центра",
+      "geo": {
+        "lat": 55.621,
+        "lon": 37.617
+      }
+    },
+    {
+      "id": "adr-004",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Чертаново Южное",
+      "street": "Балаклавский проспект",
+      "house": "5",
+      "building": "",
+      "entrance": "3",
+      "floor": "",
+      "descriptive": "Жилой дом",
+      "geo": {
+        "lat": 55.642,
+        "lon": 37.612
+      }
+    },
+    {
+      "id": "adr-005",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Чертаново Южное",
+      "street": "Кировоградская улица",
+      "house": "13",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Торговый центр",
+      "geo": {
+        "lat": 55.611,
+        "lon": 37.606
+      }
+    },
+    {
+      "id": "adr-006",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Зюзино",
+      "street": "Севастопольский проспект",
+      "house": "24",
+      "building": "1",
+      "entrance": "",
+      "floor": "5",
+      "descriptive": "Жилой дом",
+      "geo": {
+        "lat": 55.654,
+        "lon": 37.591
+      }
+    },
+    {
+      "id": "adr-007",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Зюзино",
+      "street": "Болотниковская улица",
+      "house": "11",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Жилой дом",
+      "geo": {
+        "lat": 55.658,
+        "lon": 37.585
+      }
+    },
+    {
+      "id": "adr-008",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Царицыно",
+      "street": "Липецкая улица",
+      "house": "4",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Гаражный кооператив",
+      "geo": {
+        "lat": 55.617,
+        "lon": 37.673
+      }
+    },
+    {
+      "id": "adr-009",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Обручевский",
+      "street": "Новаторов улица",
+      "house": "18",
+      "building": "2",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Дворовый проезд",
+      "geo": {
+        "lat": 55.67,
+        "lon": 37.52
+      }
+    },
+    {
+      "id": "adr-010",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЦАО",
+      "raion": "Басманный",
+      "street": "Новая Басманная улица",
+      "house": "12",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Жилой дом, чердак",
+      "geo": {
+        "lat": 55.762,
+        "lon": 37.652
+      }
+    },
+    {
+      "id": "adr-011",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЦАО",
+      "raion": "Тверской",
+      "street": "Тверская улица",
+      "house": "9",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Вход в магазин",
+      "geo": {
+        "lat": 55.759,
+        "lon": 37.611
+      }
+    },
+    {
+      "id": "adr-012",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЦАО",
+      "raion": "Таганский",
+      "street": "Нижняя Красносельская улица",
+      "house": "35",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "descriptive": "Пешеходный переход",
+      "geo": {
+        "lat": 55.748,
+        "lon": 37.654
+      }
+    },
+    {
+      "id": "adr-013",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ТАО",
+      "raion": "Вороновское",
+      "street": "Троицкий административный округ",
+      "house": "",
+      "building": "",
+      "entrance": "",
+      "floor": "3",
+      "descriptive": "Жилой дом",
+      "geo": {
+        "lat": 55.512,
+        "lon": 37.324
+      }
+    },
+    {
+      "id": "adr-014",
+      "country": "Россия",
+      "subject": "Москва",
+      "locality": "Москва",
+      "okrug": "ЮАО",
+      "raion": "Чертаново Центральное",
+      "street": "Сумская улица",
+      "house": "8",
+      "building": "1",
+      "entrance": "4",
+      "floor": "",
+      "descriptive": "Жилой дом",
+      "geo": {
+        "lat": 55.625,
+        "lon": 37.598
+      }
+    }
+  ]
+}

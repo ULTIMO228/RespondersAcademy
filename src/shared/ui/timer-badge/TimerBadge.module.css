@@ -1,0 +1,38 @@
+.timer {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.timer--sm {
+  min-width: 42px;
+  height: 20px;
+  padding: 0 var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.timer--lg {
+  min-width: 108px;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.timer--exceeded {
+  background: var(--color-timer-exceeded);
+}
+
+.timer__caption {
+  margin-top: var(--spacing-xxs);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-regular);
+}

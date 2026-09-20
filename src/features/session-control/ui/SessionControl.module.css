@@ -1,0 +1,61 @@
+/* Управление занятием на /teacher (spec/04-pages/12 «Управление во время занятия»); токены — vars.css. */
+.control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.control__group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.control__note {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.control__error {
+  color: var(--color-timer-exceeded);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.control__banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+}
+
+.control__bannerTitle {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.control__report {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.control__report:hover {
+  background: var(--color-accent-orange-hover);
+}
+
+.control__report:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

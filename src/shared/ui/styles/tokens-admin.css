@@ -1,0 +1,45 @@
+/* Токены области «admin» (hex допустим только в файлах shared/ui/styles). */
+:root {
+  /* Бейджи ролей — различимы без статусной палитры карточки. */
+  --admin-role-student-bg: #e3eef6;
+  --admin-role-student-text: #157dbd;
+  --admin-role-student-border: #9cc3de;
+  --admin-role-teacher-bg: #2f353a;
+  --admin-role-teacher-text: #ffffff;
+  --admin-role-teacher-border: #2f353a;
+  --admin-role-admin-bg: #ffffff;
+  --admin-role-admin-text: #ec653b;
+  --admin-role-admin-border: #ec653b;
+
+  /* Плашки-предупреждения (баннер сбоя, нарушение целостности, валидации). */
+  --admin-alert-critical-bg: #e0211b;
+  --admin-alert-critical-text: #ffffff;
+  --admin-alert-warning-bg: #fff6d1;
+  --admin-alert-warning-border: #f2c500;
+  --admin-note-bg: #f7f7f7;
+
+  /* Журнал аудита — тёмная таблица по образцу экрана «аудит» ПОВ-112 (ИНСТРУКЦИЯ_image114). */
+  --admin-audit-area-bg: #838f97;
+  --admin-audit-filter-bg: #ebecec;
+  --admin-audit-row-bg: #2f353a;
+  --admin-audit-row-border: #5d676e;
+  --admin-audit-row-text: #e7edef;
+  --admin-audit-head-text: #ccd7db;
+
+  /* Системные журналы: подсветка уровней. */
+  --admin-log-error-bg: #fbe3e2;
+  --admin-log-error-text: #b3160f;
+  --admin-log-warn-bg: #fff6d1;
+  --admin-log-warn-text: #7a6200;
+
+  /* Мок-прогресс (бэкап, пакетное обновление). */
+  --admin-progress-track: #cacdce;
+  --admin-progress-fill: #157dbd;
+  --admin-progress-height: 8px;
+
+  /* Размеры плиток и колонок. */
+  --admin-tile-min-width: 260px;
+  --admin-settings-col-min: 360px;
+  --admin-chart-col-min: 340px;
+  --admin-status-dot: 10px;
+}

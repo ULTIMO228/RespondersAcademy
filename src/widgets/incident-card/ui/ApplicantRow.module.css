@@ -1,0 +1,113 @@
+.row {
+  display: grid;
+  grid-template-columns: var(--card-columns);
+  gap: var(--card-gap);
+}
+
+.row__applicant {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-width: 0;
+  min-height: var(--card-row-height);
+  padding: 0 var(--card-block-padding-x);
+  background: var(--color-gray-50);
+}
+
+.row__name {
+  overflow: hidden;
+  min-width: 0;
+  font-size: var(--card-font-text);
+  font-weight: var(--font-weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__status {
+  font-size: var(--card-font-label);
+}
+
+.row__placeholder {
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-medium);
+}
+
+.row__right {
+  display: flex;
+  gap: var(--card-gap);
+  min-width: 0;
+}
+
+.row__flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--spacing-lg);
+  margin: 0;
+  padding: 0 var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  font-size: var(--card-font-text);
+}
+
+.row__buttons {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--spacing-lg);
+  min-height: var(--card-row-height);
+  padding: 0 var(--card-block-padding-x);
+  background: var(--color-gray-50);
+}
+
+.row__flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  width: var(--card-flag-btn-width);
+  height: var(--card-flag-btn-height);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--card-font-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.row__flag:disabled,
+.row__edit:disabled {
+  cursor: default;
+}
+
+.row__flag--chp {
+  border-color: var(--color-accent-orange);
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+}
+
+.row__flag--chs {
+  border-color: var(--color-accent-red);
+  background: var(--color-accent-red);
+  color: var(--color-white);
+}
+
+.row__edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-round-btn-size);
+  height: var(--card-round-btn-size);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: 50%;
+  background: var(--color-white);
+  color: var(--color-ink);
+}
+
+@media (max-width: 1024px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row__right {
+    flex-wrap: wrap;
+  }
+}

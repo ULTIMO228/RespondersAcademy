@@ -8,7 +8,7 @@
     {
       "id": "rep-2026-09-16-01-u-005",
       "sessionId": "ses-2026-09-16-01",
-      "generatedAt": "2026-09-16T10:40:00+03:00",
+      "generatedAt": "2026-09-16T10:35:22+03:00",
       "exportFormats": ["csv", "pdf"],
       "student": { "studentId": "u-005", "fullName": "Иванов Сергей Петрович", "armNumber": 7 },
       "timeMetrics": [
@@ -37,7 +37,7 @@
     {
       "id": "rep-2026-09-16-01-u-006",
       "sessionId": "ses-2026-09-16-01",
-      "generatedAt": "2026-09-16T10:40:00+03:00",
+      "generatedAt": "2026-09-16T10:35:22+03:00",
       "exportFormats": ["csv", "pdf"],
       "student": { "studentId": "u-006", "fullName": "Петрова Анна Дмитриевна", "armNumber": 8 },
       "timeMetrics": [
@@ -70,7 +70,7 @@
     {
       "id": "rep-2026-09-16-01-u-007",
       "sessionId": "ses-2026-09-16-01",
-      "generatedAt": "2026-09-16T10:40:00+03:00",
+      "generatedAt": "2026-09-16T10:35:22+03:00",
       "exportFormats": ["csv", "pdf"],
       "student": { "studentId": "u-007", "fullName": "Сидорова Мария Игоревна", "armNumber": 9 },
       "timeMetrics": [
@@ -97,7 +97,7 @@
   "groupReport": {
     "id": "rep-2026-09-16-group",
     "sessionId": "ses-2026-09-16-01",
-    "generatedAt": "2026-09-16T10:40:00+03:00",
+    "generatedAt": "2026-09-16T10:35:22+03:00",
     "groupInsights": [
       "1 из 3 курсантов превысил норматив первичной реакции (30 с) — повторить регламент первичной обработки",
       "Типичная ошибка группы: орфографические ошибки в поле «Действие диспетчера» («пренято», «напрален») — риск искажения смысла при реальной работе",

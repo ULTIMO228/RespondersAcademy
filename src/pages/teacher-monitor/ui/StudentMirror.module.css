@@ -1,0 +1,23 @@
+.mirror {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--color-graphite-600);
+}
+
+.mirror__screen {
+  position: relative;
+  min-height: 560px;
+  padding-bottom: var(--service-panel-height);
+  overflow: hidden;
+  background: var(--color-gray-150);
+  /* Контейнер для position: fixed внутри виджетов карточки */
+  transform: translateZ(0);
+}
+
+.mirror__services {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}

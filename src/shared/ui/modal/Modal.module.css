@@ -1,0 +1,67 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 450px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  background: var(--color-white);
+  color: var(--color-ink);
+  box-shadow: 0 2px 12px var(--color-shadow);
+}
+
+/*
+ * Само окно получает фокус при открытии (T5.2-02). Глобальное кольцо здесь заменяем внутренним
+ * контуром, чтобы не потерять тень окна и не «раздуть» его на пиксель.
+ */
+.modal:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+  box-shadow: 0 2px 12px var(--color-shadow);
+}
+
+.modal__header {
+  position: relative;
+  padding: var(--spacing-xl) var(--spacing-3xl) var(--spacing-md);
+  text-align: center;
+}
+
+.modal__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+}
+
+.modal__close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  display: inline-flex;
+  padding: var(--spacing-xs);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+}
+
+.modal__body {
+  flex: 1;
+  overflow: auto;
+  padding: var(--spacing-md) var(--spacing-2xl);
+  font-size: var(--font-size-base);
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-2xl) var(--spacing-2xl);
+}

@@ -1,0 +1,81 @@
+/* «Список происшествий ^» · уведомления · автообновление · «выберите что показать» (ДДС_image4, p12_Image66). */
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  min-height: 44px;
+  padding: 0 0 0 var(--spacing-3xl);
+}
+
+.list-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-white);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.list-header__collapse {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.list-header__chevron--collapsed {
+  transform: rotate(180deg);
+}
+
+.list-header__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  margin-left: auto;
+  color: var(--color-light-muted);
+  font-size: var(--font-size-md);
+}
+
+.list-header__session,
+.list-header__new {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  white-space: nowrap;
+}
+
+.list-header__session-time {
+  padding: 0 var(--spacing-xs);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-bold);
+}
+
+.list-header__new-count {
+  min-width: 18px;
+  padding: 0 var(--spacing-xs);
+  background: var(--color-status-new);
+  color: var(--color-white);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.list-header__notification {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-light-muted);
+  font-size: var(--font-size-md);
+}
+
+/* В оригинале подпись тумблера — строчными («автообновление»). */
+.list-header__toggle {
+  text-transform: lowercase;
+}
+
+.list-header__select {
+  width: 252px;
+}

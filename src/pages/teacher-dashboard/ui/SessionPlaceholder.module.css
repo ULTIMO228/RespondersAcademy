@@ -1,0 +1,38 @@
+/* Состояния дашборда без занятия — плашка в палитре светлой темы ПОВ-112 (spec/07). */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  align-items: flex-start;
+  max-width: 640px;
+  margin: var(--spacing-2xl);
+  padding: var(--spacing-xl);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+}
+
+.placeholder__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-regular);
+}
+
+.placeholder__action {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-lg);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.placeholder__action:hover {
+  background: var(--color-gray-100);
+}

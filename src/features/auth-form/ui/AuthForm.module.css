@@ -1,0 +1,80 @@
+/* Форма входа ПОВ-112 (ДДС_image1): белые подписи 12 px, поле без рамки с белой линией, серая кнопка на всю ширину. */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.auth-form__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form__label {
+  color: var(--journal-login-text-soft);
+  font-size: var(--font-size-sm);
+  line-height: 1.2;
+}
+
+.auth-form__input {
+  height: 30px;
+  padding: 0 var(--spacing-xxs);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--journal-login-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--journal-login-text);
+  font-size: var(--journal-login-input-size);
+}
+
+.auth-form__input:focus-visible {
+  outline: none;
+  box-shadow: 0 1px 0 var(--journal-login-text);
+}
+
+.auth-form__submit {
+  height: var(--journal-login-button-height);
+  margin-top: var(--spacing-xl);
+  border: 0;
+  border-radius: 0;
+  background: var(--color-login-button);
+  color: var(--color-white);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+}
+
+.auth-form__submit:hover:not(:disabled) {
+  background: var(--color-login-button-hover);
+}
+
+/* Ожидание ответа входа: кнопка неактивна, цвет прежний (без нового визуала). */
+.auth-form__submit:disabled {
+  cursor: progress;
+}
+
+.auth-form__submit:focus-visible {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+.auth-form__error {
+  color: var(--journal-login-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.auth-form__hint {
+  color: var(--journal-login-text-soft);
+  font-size: var(--font-size-md);
+}
+
+.auth-form__back {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--journal-login-text-soft);
+  font-size: var(--font-size-md);
+  text-decoration: underline;
+}

@@ -1,0 +1,68 @@
+.actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.dialog__text {
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-base);
+}
+
+.dialog__audit {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-left: 3px solid var(--color-accent-blue);
+  background: var(--admin-note-bg);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.dialog__footer {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+}
+
+.dialog__error {
+  margin-top: var(--spacing-md);
+  color: var(--color-accent-red);
+  font-size: var(--font-size-sm);
+}
+
+.dialog__hint {
+  margin-top: var(--spacing-md);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.dialog__password {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-gray-100);
+  font-family: monospace;
+  font-size: var(--font-size-lg);
+  letter-spacing: 0.04em;
+}
+
+.dialog__groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-lg);
+  margin: var(--spacing-md) 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.dialog__legend {
+  width: 100%;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.dialog__check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-base);
+}

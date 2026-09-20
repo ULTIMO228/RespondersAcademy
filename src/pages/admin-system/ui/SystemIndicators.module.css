@@ -1,0 +1,38 @@
+.indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-height: 48px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-gray-50);
+  font-size: var(--font-size-md);
+}
+
+.indicator__dot {
+  flex: none;
+  width: var(--admin-status-dot);
+  height: var(--admin-status-dot);
+  border-radius: 50%;
+  background: var(--color-service-running);
+}
+
+.indicator__hint {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.indicator--broken {
+  background: var(--admin-alert-critical-bg);
+  color: var(--admin-alert-critical-text);
+}
+
+.indicator--broken .indicator__hint {
+  color: var(--admin-alert-critical-text);
+}

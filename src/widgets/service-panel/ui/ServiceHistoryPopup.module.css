@@ -1,0 +1,70 @@
+.history {
+  width: var(--card-history-width);
+  max-width: calc(100vw - 2 * var(--card-gap));
+  padding: var(--spacing-xs) 0 var(--spacing-md);
+  background: var(--card-color-history-bg);
+  color: var(--card-color-history-text);
+}
+
+.history__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-base);
+}
+
+.history__close {
+  display: inline-flex;
+  padding: var(--spacing-xs);
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.history__list {
+  max-height: var(--card-history-max-height);
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history__row {
+  display: grid;
+  grid-template-columns: var(--card-history-actor-width) var(--card-history-main-width) minmax(0, 1fr);
+  align-items: center;
+  min-height: var(--control-height-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.history__actor {
+  padding-left: var(--spacing-xxs);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.history__main,
+.history__comment {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.history__comment {
+  padding-right: var(--spacing-md);
+  line-height: var(--line-height-tight);
+}
+
+.history__arrow {
+  flex: none;
+}
+
+.history__empty {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}

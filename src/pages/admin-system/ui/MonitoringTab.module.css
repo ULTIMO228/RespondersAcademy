@@ -1,0 +1,28 @@
+.monitoring {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.monitoring__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--admin-chart-col-min), 1fr));
+  gap: var(--spacing-lg);
+}
+
+.monitoring__state {
+  padding: var(--spacing-md);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-md);
+}
+
+.monitoring__chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+}
+
+.monitoring__exceeded {
+  color: var(--admin-log-error-text);
+  font-size: var(--font-size-xs);
+}

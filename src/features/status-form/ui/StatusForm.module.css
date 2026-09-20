@@ -1,0 +1,100 @@
+.form {
+  width: var(--card-status-form-width);
+  max-width: calc(100vw - 2 * var(--card-gap));
+  background: var(--color-white);
+  box-shadow: 0 2px 8px var(--card-color-form-shadow);
+}
+
+.form__row {
+  display: flex;
+  align-items: center;
+  gap: var(--card-gap);
+  height: var(--card-status-form-height);
+  padding-right: var(--spacing-xs);
+}
+
+.form__input {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--card-status-form-height) - var(--spacing-xs));
+  padding: 0 var(--spacing-xs);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+}
+
+.form__input::placeholder {
+  color: var(--color-ink-soft);
+}
+
+.form__input:focus-visible {
+  outline: none;
+  /* Одного цвета 1px-границы мало: добавляем вторую линию, как в shared/ui/input. */
+  border-bottom-color: var(--color-accent-blue);
+  box-shadow: 0 1px 0 var(--color-accent-blue);
+}
+
+.form__input--required {
+  border-bottom-color: var(--card-color-required);
+}
+
+.form__input--required::placeholder {
+  color: var(--card-color-required);
+}
+
+.form__button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-status-form-height);
+  height: var(--card-status-form-height);
+  border: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-ink-muted);
+}
+
+.form__button:disabled {
+  color: var(--color-gray-200);
+  cursor: not-allowed;
+}
+
+.form__button:hover:not(:disabled) {
+  border-color: var(--color-accent-orange);
+}
+
+.form__button--cancel {
+  margin-left: var(--spacing-md);
+}
+
+.form__note {
+  margin: 0;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-top: var(--border-width) solid var(--color-gray-200);
+  color: var(--card-color-required);
+  font-size: var(--font-size-sm);
+}
+
+/* Предупреждение перед финальным статусом (памятка стр. 22) — в той же строке-форме, без новых цветов. */
+.form__confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--card-gap);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-top: var(--border-width) solid var(--color-gray-200);
+}
+
+.form__warning {
+  flex: 1;
+  margin: 0;
+  color: var(--card-color-required);
+  font-size: var(--font-size-sm);
+}
+
+.form__actions {
+  display: flex;
+  flex: none;
+  gap: var(--spacing-xs);
+}

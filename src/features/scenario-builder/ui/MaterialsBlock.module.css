@@ -1,0 +1,109 @@
+.materials__files {
+  list-style: none;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.materials__file {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-height: 30px;
+  padding: 0 var(--spacing-md);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+  font-size: var(--font-size-md);
+}
+
+.materials__format {
+  min-width: 40px;
+  padding: 0 var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.materials__name {
+  flex: 1;
+}
+
+.materials__size,
+.materials__field {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.materials__optional {
+  padding: 0 var(--spacing-xs);
+  border: var(--border-width) solid var(--color-gray-200);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.materials__check {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.materials__result {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  font-size: var(--font-size-md);
+}
+
+.materials__text {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  white-space: pre-wrap;
+}
+
+.materials__error {
+  background: var(--teacher-mark-error-bg);
+  color: var(--color-ink);
+  text-decoration: underline wavy var(--color-timer-exceeded);
+}
+
+.materials__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.materials__issues {
+  padding-left: var(--spacing-xl);
+  color: var(--color-ink-muted);
+}
+
+.materials__input {
+  display: none;
+}
+
+.materials__alert {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-timer-exceeded);
+  font-size: var(--font-size-md);
+}
+
+.materials__textField {
+  display: block;
+  margin-top: var(--spacing-md);
+}
+
+.materials__textarea {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-md);
+  resize: vertical;
+}

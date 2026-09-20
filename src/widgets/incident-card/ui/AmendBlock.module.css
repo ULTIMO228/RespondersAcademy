@@ -1,0 +1,20 @@
+.amend {
+  display: flex;
+  flex-direction: column;
+  outline: var(--border-width) solid var(--color-accent-blue);
+}
+
+/* Уведомление блокировки/доступности — плашка в цветах карточки (без новых цветов). */
+.amend__notice {
+  margin: 0;
+  padding: var(--spacing-sm) var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  border-left: 3px solid var(--color-accent-blue);
+  color: var(--color-ink);
+  font-size: var(--card-font-text);
+}
+
+.amend__notice[data-blocked="true"] {
+  border-left-color: var(--card-color-required);
+  color: var(--card-color-required);
+}

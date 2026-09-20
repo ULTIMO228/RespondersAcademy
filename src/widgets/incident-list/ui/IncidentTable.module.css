@@ -1,0 +1,40 @@
+/* Заголовки колонок — мелкий светлый кегль над сеткой (ДДС_image4). */
+.incident-table {
+  min-width: var(--journal-grid-min-width);
+}
+
+.incident-table__head {
+  display: grid;
+  grid-template-columns: var(--journal-grid-columns);
+  align-items: end;
+  height: 32px;
+  padding-bottom: var(--spacing-xs);
+  color: var(--color-light-muted);
+  font-size: var(--font-size-sm);
+}
+
+.incident-table__heading {
+  display: flex;
+  align-items: flex-end;
+  padding-left: var(--spacing-xs);
+  white-space: nowrap;
+}
+
+.incident-table__heading img {
+  margin-bottom: calc(-1 * var(--spacing-md));
+}
+
+.incident-table__empty {
+  padding: var(--spacing-xl) var(--spacing-3xl);
+  color: var(--color-light-muted);
+  font-size: var(--font-size-base);
+}
+
+.incident-table__retry {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-blue);
+  font: inherit;
+  text-decoration: underline;
+}

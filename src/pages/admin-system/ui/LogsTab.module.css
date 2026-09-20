@@ -1,0 +1,18 @@
+.logsTab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.logsTab__retention {
+  align-self: flex-start;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-left: 3px solid var(--color-accent-blue);
+  background: var(--color-gray-50);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.logsTab__audit > div {
+  padding: 0;
+}

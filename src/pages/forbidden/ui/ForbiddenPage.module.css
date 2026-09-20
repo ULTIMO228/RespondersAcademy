@@ -1,0 +1,35 @@
+/* Страница 403 — светлая тема АРМ-112 (те же токены темы, что у разделов). */
+.forbidden {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-3xl) var(--spacing-md);
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+.forbidden__panel {
+  width: min(100%, 560px);
+}
+
+.forbidden__code {
+  color: var(--theme-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.forbidden__text {
+  margin: var(--spacing-sm) 0 var(--spacing-md);
+  font-size: var(--font-size-md);
+}
+
+.forbidden__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.forbidden__link {
+  color: var(--color-login-link);
+  font-size: var(--font-size-md);
+}

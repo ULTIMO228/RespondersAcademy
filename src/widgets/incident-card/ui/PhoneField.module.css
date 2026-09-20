@@ -1,0 +1,84 @@
+.phone {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.phone__icons {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  width: var(--card-phone-icon-col-width);
+  background: var(--color-gray-200);
+}
+
+.phone__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xxs);
+  border: 0;
+  background: transparent;
+  color: var(--card-color-icon-muted);
+}
+
+.phone__icon--active {
+  color: var(--card-color-icon-dark);
+}
+
+.phone__icon:disabled {
+  cursor: default;
+}
+
+.phone__field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--spacing-sm) var(--card-block-padding-x);
+  background: var(--color-gray-50);
+}
+
+.phone__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.phone__label {
+  color: var(--color-ink-muted);
+  font-size: var(--card-font-label);
+}
+
+.phone__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.phone__input {
+  width: 100%;
+  margin-top: var(--spacing-xs);
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-width) solid transparent;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--card-font-phone);
+}
+
+.phone__input--filled {
+  border-bottom: var(--border-width) dashed var(--color-graphite-300);
+}
+
+.phone__input::placeholder {
+  color: var(--color-ink-soft);
+}
+
+.phone__input:focus-visible {
+  outline: none;
+  border-bottom: var(--border-width) solid var(--color-accent-blue);
+}

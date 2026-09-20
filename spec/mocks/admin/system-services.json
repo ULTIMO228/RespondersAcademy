@@ -1,0 +1,41 @@
+{
+  "services": [
+    {
+      "id": "svc-web",
+      "name": "Веб-сервер",
+      "state": "running",
+      "uptimeSec": 1058400,
+      "critical": true,
+      "description": "Раздача интерфейса АРМ-112 учебного класса"
+    },
+    {
+      "id": "svc-db",
+      "name": "БД PostgreSQL",
+      "state": "running",
+      "uptimeSec": 1058280,
+      "critical": true,
+      "description": "Локальная БД: карточки, занятия, отчёты, журналы"
+    },
+    {
+      "id": "svc-sip",
+      "name": "Мок-SIP",
+      "state": "degraded",
+      "uptimeSec": 7320,
+      "critical": false,
+      "description": "Виртуальная IP-телефония (эмуляция вызовов)"
+    },
+    {
+      "id": "svc-ai",
+      "name": "ИИ-модуль (заглушка)",
+      "state": "stopped",
+      "uptimeSec": 0,
+      "critical": false,
+      "description": "Оценка ответов и генерация сценариев"
+    }
+  ],
+  "integrity": {
+    "ok": true,
+    "checkedAt": "2026-09-17T06:00:00+03:00",
+    "details": "Контрольные суммы моков и конфигурации совпали"
+  }
+}

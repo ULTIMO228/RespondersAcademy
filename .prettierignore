@@ -1,0 +1,13 @@
+node_modules/
+.next/
+mocks/
+spec/
+hack/
+research/
+icons/
+public/
+test-results/
+playwright-report/
+extracted.txt
+package-lock.json
+*.md

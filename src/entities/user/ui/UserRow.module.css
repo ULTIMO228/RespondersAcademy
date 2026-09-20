@@ -1,0 +1,76 @@
+.row__name {
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.row__login {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.row__arm {
+  text-align: center;
+}
+
+.row__actions {
+  white-space: nowrap;
+}
+
+.row--blocked td {
+  color: var(--color-ink-muted);
+}
+
+.role {
+  display: inline-block;
+  padding: 0 var(--spacing-sm);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.role--student {
+  background: var(--admin-role-student-bg);
+  border-color: var(--admin-role-student-border);
+  color: var(--admin-role-student-text);
+}
+
+.role--teacher {
+  background: var(--admin-role-teacher-bg);
+  border-color: var(--admin-role-teacher-border);
+  color: var(--admin-role-teacher-text);
+}
+
+.role--admin {
+  background: var(--admin-role-admin-bg);
+  border-color: var(--admin-role-admin-border);
+  color: var(--admin-role-admin-text);
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  white-space: nowrap;
+}
+
+.state[data-state="blocked"] {
+  color: var(--color-accent-red);
+  font-weight: var(--font-weight-bold);
+}
+
+.state__dot {
+  width: var(--admin-status-dot);
+  height: var(--admin-status-dot);
+  border-radius: 50%;
+}
+
+.state__dot--active {
+  background: var(--color-status-accepted);
+}
+
+.state__dot--blocked {
+  background: var(--color-accent-red);
+}

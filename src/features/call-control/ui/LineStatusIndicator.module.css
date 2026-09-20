@@ -1,0 +1,79 @@
+.line-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 0;
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.line-status:hover {
+  background: var(--color-gray-25);
+}
+
+.line-status:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.line-status__icon {
+  flex: none;
+  color: var(--color-graphite-900);
+}
+
+.line-status__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+}
+
+.line-status__caption {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.line-status__value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-base);
+}
+
+.line-status__dot {
+  width: var(--softphone-dot-size);
+  height: var(--softphone-dot-size);
+  border-radius: 50%;
+  background: var(--line-status-color);
+}
+
+.line-status__hint {
+  color: var(--color-ink-soft);
+  font-size: var(--font-size-xs);
+}
+
+.line-status--available {
+  --line-status-color: var(--softphone-line-available);
+}
+
+.line-status--unavailable {
+  --line-status-color: var(--softphone-line-busy);
+}
+
+.line-status--disconnected {
+  --line-status-color: var(--softphone-line-offline);
+}
+
+.line-status--error {
+  --line-status-color: var(--softphone-line-error);
+}
+
+.line-status--error .line-status__value {
+  color: var(--color-accent-red);
+}

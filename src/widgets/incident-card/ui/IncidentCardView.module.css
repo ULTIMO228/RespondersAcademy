@@ -1,0 +1,44 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  padding: var(--card-gap);
+  background: var(--color-gray-150);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+.card__top {
+  display: flex;
+  gap: var(--card-gap);
+}
+
+.card__body {
+  display: grid;
+  grid-template-columns: var(--card-columns);
+  gap: var(--card-gap);
+  align-items: start;
+}
+
+.card__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  min-width: 0;
+}
+
+/* Мобильная версия: вертикальная лента блоков в том же порядке (spec/07 «Адаптив»). */
+@media (max-width: 1024px) {
+  .card__top {
+    flex-direction: column;
+  }
+
+  .card__top > * {
+    flex-wrap: wrap;
+    height: auto;
+  }
+
+  .card__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

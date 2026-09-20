@@ -1,0 +1,47 @@
+/* Токены области «softphone» (hex допустим только в файлах shared/ui/styles). */
+/*
+ * Софтфон и экраны обучающегося «Мой прогресс» / «Справка».
+ * Строки вызовов — по панели управления вызовами АРМ ЕДДС (research/arm-112/screenshots/arm-edds/page-28–30):
+ * «Разговор» — бежевая строка, «На удержании» — сиреневая, «В конференции» — светло-зелёная.
+ */
+:root {
+  /* ——— Статус линии оператора (статусная палитра ПОВ-112) ——— */
+  --softphone-line-available: var(--color-status-accepted);
+  --softphone-line-busy: var(--color-status-assigned);
+  --softphone-line-offline: var(--color-status-closed);
+  --softphone-line-error: var(--color-status-new);
+
+  /* ——— Строки вкладки «Звонки» (пипетка page-28/29) ——— */
+  --softphone-row-talk: #efeedd;
+  --softphone-row-hold: #dcd0e6;
+  --softphone-row-finished: var(--color-gray-100);
+  --softphone-section-divider: var(--color-accent-blue);
+
+  /* ——— Контакты: название службы — оранжевое, как «СМП №3» (page-50) ——— */
+  --softphone-contact-title: var(--color-accent-orange);
+  --softphone-contact-dot: var(--color-status-accepted);
+
+  /* ——— Подсветка ожидаемого по эталону номера (не путать с голубым бейджем «ИИ») ——— */
+  --softphone-expected-bg: #fdf3d8;
+  --softphone-expected-border: var(--color-accent-orange);
+
+  /* ——— Кнопка «Позвонить»: зелёная трубка (page-31) ——— */
+  --softphone-call-icon: #3aa34a;
+  --softphone-hangup: var(--color-accent-red);
+
+  /* ——— Транскрипт вызова ——— */
+  --softphone-transcript-ai-bg: var(--color-white);
+  --softphone-transcript-dispatcher-bg: #e6eaec;
+
+  /* ——— Правка преподавателя в разборе попытки (отлична от голубого блока ИИ) ——— */
+  --progress-teacher-bg: #fbeee8;
+  --progress-teacher-border: var(--color-accent-orange);
+  --progress-ai-bg: var(--color-ai-badge-bg);
+  --progress-ai-border: var(--color-ai-badge-border);
+
+  /* ——— Размеры ——— */
+  --softphone-console-width: 484px; /* 4 вкладки по 120 px + разделители */
+  --softphone-key-size: 44px;
+  --softphone-transcript-height: 260px;
+  --softphone-dot-size: 10px;
+}

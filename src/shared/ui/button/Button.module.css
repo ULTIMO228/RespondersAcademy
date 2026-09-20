@@ -1,0 +1,98 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--motion-duration-fast) linear;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.button:disabled {
+  opacity: 0.55;
+}
+
+.button--sm {
+  height: var(--control-height-sm);
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-xs);
+}
+
+.button--md {
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-lg);
+  font-size: var(--font-size-sm);
+}
+
+.button--lg {
+  height: var(--control-height-lg);
+  padding: 0 var(--spacing-xl);
+  font-size: var(--font-size-lg);
+}
+
+.button--primary {
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--color-accent-orange-hover);
+}
+
+.button--secondary {
+  background: var(--color-white);
+  border-color: var(--color-graphite-300);
+  color: var(--color-ink);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: var(--color-gray-50);
+}
+
+.button--danger {
+  background: var(--color-white);
+  border-color: var(--color-accent-red);
+  color: var(--color-accent-red);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: var(--color-accent-red);
+  color: var(--color-white);
+}
+
+.button--blue {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+
+.button--blue:hover:not(:disabled) {
+  background: var(--color-accent-blue-hover);
+}
+
+.button--dark {
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+}
+
+.button--dark:hover:not(:disabled) {
+  background: var(--color-graphite-700);
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: var(--color-graphite-300);
+  color: inherit;
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: var(--color-gray-100);
+}

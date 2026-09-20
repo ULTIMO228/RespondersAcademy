@@ -1,0 +1,88 @@
+.dial-pad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+}
+
+.dial-pad__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+}
+
+.dial-pad__label {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.dial-pad__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.dial-pad__input {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-height-lg);
+  padding: 0 var(--spacing-xs);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-graphite-300);
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-2xl);
+  letter-spacing: 0.08em;
+}
+
+.dial-pad__input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--color-accent-blue);
+  box-shadow: 0 1px 0 var(--color-accent-blue);
+}
+
+.dial-pad__notice {
+  color: var(--color-accent-red);
+  font-size: var(--font-size-sm);
+}
+
+.dial-pad__keys {
+  display: grid;
+  grid-template-columns: repeat(3, var(--softphone-key-size));
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.dial-pad__key {
+  width: var(--softphone-key-size);
+  height: var(--softphone-key-size);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+}
+
+.dial-pad__key:hover {
+  background: var(--color-gray-50);
+}
+
+.dial-pad__key:active {
+  background: var(--color-gray-100);
+}
+
+.dial-pad__key:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.dial-pad__call {
+  align-self: stretch;
+}
+
+.dial-pad__call-icon {
+  color: var(--softphone-call-icon);
+}

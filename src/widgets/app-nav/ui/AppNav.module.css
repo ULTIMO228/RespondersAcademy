@@ -1,0 +1,76 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: stretch;
+  height: 44px;
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+}
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 0 var(--spacing-xl);
+  border-right: var(--border-width) solid var(--color-graphite-700);
+}
+
+.nav__logo {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.04em;
+}
+
+.nav__role {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.nav__tabs {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  gap: 1px;
+}
+
+.nav__tab {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-xl);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.nav__tab:hover {
+  background: var(--color-graphite-700);
+}
+
+.nav__tab--active,
+.nav__tab--active:hover {
+  background: var(--color-accent-blue);
+}
+
+.nav__user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: 0 var(--spacing-xl);
+  font-size: var(--font-size-sm);
+}
+
+.nav__exit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-light-muted);
+  text-decoration: none;
+}
+
+.nav__exit:hover {
+  color: var(--color-white);
+}

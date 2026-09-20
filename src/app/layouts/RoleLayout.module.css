@@ -1,0 +1,9 @@
+.layout {
+  min-height: 100vh;
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+.layout__main {
+  padding: var(--spacing-md);
+}

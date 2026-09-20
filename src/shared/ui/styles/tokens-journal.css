@@ -1,0 +1,44 @@
+/* Токены области «journal» (hex допустим только в файлах shared/ui/styles). */
+/* Экран входа (ДДС_image1.png) и главный экран «Поиск происшествий» (ДДС_image2–5, p12_Image66). */
+:root {
+  /* ——— Вход «112 ВХОД В СИСТЕМУ» ——— */
+  --journal-login-text: var(--color-white);
+  --journal-login-text-soft: rgba(255, 255, 255, 0.85);
+  --journal-login-line: rgba(255, 255, 255, 0.9);
+  --journal-login-window: #a9b3ba; /* полосы окон на светлых домах */
+  --journal-login-window-light: #c7ced3;
+  --journal-login-tower-shade: #4c7597; /* теневая грань небоскрёба */
+  --journal-login-heli-body: var(--color-white);
+  --journal-login-heli-stripe: #e8541f;
+  --journal-login-heli-glass: #7fc0e6;
+  --journal-login-heli-dark: #3b4650;
+  --journal-login-logo-size: 104px;
+  --journal-login-logo-weight: 300; /* тонкие цифры «112» */
+  --journal-login-support-size: 32px;
+  --journal-login-input-size: 18px;
+  --journal-login-button-height: 44px;
+  --journal-login-column-width: 546px;
+
+  /* ——— Главный экран «Поиск происшествий» ——— */
+  --journal-title-size: 35px;
+  --journal-clock-size: 60px;
+  --journal-clock-seconds-size: 18px;
+  --journal-time-cell-size: 16px;
+  --journal-search-divider: var(--color-ink);
+  --journal-link-cell: var(--color-operator-cell);
+  --journal-chs-cell: var(--color-status-new);
+  --journal-important-cell: var(--color-accent-orange);
+  --journal-row-violation: var(--color-timer-exceeded);
+  --journal-row-flash: var(--color-graphite-700);
+  --journal-tab-active: var(--color-accent-blue);
+  --journal-tab-hover: #3a4248;
+  --journal-banner-bg: #3a4248;
+  --journal-sms-marker: var(--color-status-new);
+  --journal-tooltip-bg: var(--color-accent-blue);
+  --journal-advanced-bg: var(--color-gray-100);
+  --journal-new-marker: var(--color-accent-orange);
+  /* Сетка ленты (ДДС_image4 ÷ 0.8): 5 ячеек-иконок · Опер. · АРМ · Номер · Дата · Время · Тип · Постр. · Адрес · Статус службы · журнал. */
+  --journal-grid-columns: 31px 31px 31px 31px 32px 54px 44px 76px 74px 76px minmax(220px, 383px) 46px
+    minmax(320px, 1fr) 166px 44px;
+  --journal-grid-min-width: 1290px;
+}

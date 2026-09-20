@@ -1,0 +1,80 @@
+.row td {
+  height: 32px;
+  padding: var(--spacing-xxs) var(--spacing-md);
+  border-bottom: var(--border-width) solid var(--color-gray-100);
+  vertical-align: middle;
+}
+
+.row--expanded td {
+  background: var(--color-gray-25);
+}
+
+.row__toggle {
+  width: 32px;
+}
+
+.row__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.row__button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.row__chevron {
+  filter: brightness(0.45); /* иконка набора рассчитана на тёмную строку списка */
+  transition: transform var(--motion-duration-fast) linear;
+}
+
+.row--expanded .row__chevron {
+  transform: rotate(180deg);
+}
+
+.row__mono {
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.row__card {
+  margin-right: var(--spacing-md);
+  color: var(--color-accent-blue);
+  font-weight: var(--font-weight-bold);
+}
+
+.row__card:hover {
+  text-decoration: underline;
+}
+
+.row__type {
+  color: var(--color-ink);
+}
+
+.row__score {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  text-align: right;
+}
+
+.row__count {
+  text-align: right;
+}
+
+.row__details > td {
+  padding: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row__chevron {
+    transition: none;
+  }
+}

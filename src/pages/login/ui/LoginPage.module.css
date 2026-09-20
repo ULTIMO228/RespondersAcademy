@@ -1,0 +1,111 @@
+/* «112 ВХОД В СИСТЕМУ» — ДДС_image1.png: голубой фон с городом, колонка формы справа (≈65–94 % ширины). */
+.login {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 100vh;
+  overflow: hidden;
+  padding-right: 5.8vw;
+  background: linear-gradient(
+    180deg,
+    var(--color-login-sky-top) 0%,
+    var(--color-login-sky) 55%,
+    var(--color-login-sky-bottom) 100%
+  );
+  color: var(--journal-login-text);
+}
+
+.login__column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: clamp(420px, 29vw, var(--journal-login-column-width));
+  padding: var(--spacing-xl) 0 var(--spacing-2xl);
+}
+
+.login__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  color: var(--journal-login-text-soft);
+  font-size: var(--font-size-sm);
+}
+
+.login__disclaimer {
+  color: var(--journal-login-text);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.login__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  margin: 7vh 0 var(--spacing-2xl);
+  font-weight: var(--font-weight-regular);
+}
+
+.login__logo {
+  font-size: var(--journal-login-logo-size);
+  font-weight: var(--journal-login-logo-weight);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+}
+
+.login__caption {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.login__support {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--spacing-3xl);
+  font-size: var(--journal-login-support-size);
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.login__support-link {
+  color: var(--color-login-link);
+}
+
+.login__demo {
+  margin-top: var(--spacing-2xl);
+  color: var(--journal-login-text-soft);
+  font-size: var(--font-size-sm);
+}
+
+.login__demo-title {
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.login__demo-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+}
+
+.login__shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.login__shortcut {
+  color: var(--journal-login-text);
+  font-weight: var(--font-weight-bold);
+}
+
+/* «Сессия истекла» (автовыход 24 ч) — в типографике сообщений формы входа. */
+.login__notice {
+  margin-bottom: var(--spacing-sm);
+  color: var(--journal-login-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}

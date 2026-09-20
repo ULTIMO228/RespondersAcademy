@@ -1,0 +1,60 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--card-tile-width);
+  height: var(--card-panel-height);
+  padding: var(--spacing-xs) var(--spacing-xxs) var(--spacing-xs);
+  border-right: var(--border-width) solid var(--card-color-tile-divider);
+  background: var(--color-graphite-700);
+  color: var(--color-white);
+  text-align: center;
+}
+
+.tile--phone-only {
+  background: var(--color-graphite-400);
+  color: var(--color-gray-50);
+}
+
+.tile--active {
+  background: var(--color-accent-blue);
+}
+
+.tile__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--card-panel-icon-box);
+}
+
+.tile__chevron {
+  color: var(--color-white);
+}
+
+.tile__name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--card-font-tile-name);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Основная служба типа происшествия (источник п. 1.5, 3.9). */
+.tile__name--main {
+  text-decoration-line: underline;
+  text-decoration-style: double;
+  text-underline-offset: 3px;
+}
+
+.tile__status {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: var(--card-font-tile-status);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

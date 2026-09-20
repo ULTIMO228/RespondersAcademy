@@ -1,0 +1,104 @@
+/* Отступ снизу под фиксированную панель «Службы:». */
+.page {
+  min-height: 100vh;
+  padding-bottom: calc(var(--card-panel-height) + var(--card-gap));
+  background: var(--color-gray-150);
+}
+
+.page__state {
+  margin: 0;
+  padding: var(--spacing-xl) var(--card-gap);
+  color: var(--color-ink-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+}
+
+.page__state a {
+  color: var(--color-accent-blue);
+}
+
+/* Баннер «Соединение потеряно» — поверх интерфейса, в цветах шапки превышения (без новых цветов). */
+.page__banner {
+  position: sticky;
+  top: 0;
+  z-index: var(--card-z-form);
+  padding: var(--spacing-sm) var(--card-gap);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  text-align: center;
+}
+
+.page__banner[data-tone="error"] {
+  background: var(--color-accent-red);
+}
+
+/* Плашка-подсказка новичку — незаметная, в палитре карточки; не перекрывает контролы (в потоке). */
+.page__hint {
+  display: flex;
+  gap: var(--spacing-md);
+  margin: var(--card-gap) var(--card-gap) 0;
+  padding: var(--spacing-sm) var(--card-block-padding-x);
+  border-left: 3px solid var(--color-accent-blue);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--card-font-text);
+}
+
+.page__hint-step {
+  flex: none;
+  color: var(--color-ink-muted);
+}
+
+/* Подсказки по зажатому Alt (spec п. 15). */
+.page__hotkeys {
+  position: fixed;
+  top: var(--card-gap);
+  right: var(--card-gap);
+  z-index: var(--card-z-form);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md) var(--spacing-xl);
+  max-width: calc(100vw - 2 * var(--card-gap));
+  padding: var(--spacing-lg);
+  background: var(--color-white);
+  box-shadow: 0 2px 12px var(--color-shadow);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+}
+
+.page__hotkey-group[data-active="false"] {
+  color: var(--color-ink-soft);
+}
+
+.page__hotkey-title {
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-base);
+}
+
+.page__hotkey-list {
+  margin: 0;
+}
+
+.page__hotkey-row {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.page__hotkey-row dt {
+  flex: none;
+  width: var(--card-work-col-datetime);
+  font-family: var(--font-mono);
+}
+
+.page__hotkey-row dd {
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .page__hotkeys {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

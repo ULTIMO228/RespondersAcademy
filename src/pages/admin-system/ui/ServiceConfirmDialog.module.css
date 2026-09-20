@@ -1,0 +1,27 @@
+.dialog__text {
+  font-size: var(--font-size-base);
+  text-align: center;
+}
+
+.dialog__warning {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: var(--border-width) solid var(--admin-alert-warning-border);
+  background: var(--admin-alert-warning-bg);
+  font-size: var(--font-size-sm);
+}
+
+.dialog__warning[data-step="2"] {
+  border-color: var(--color-accent-red);
+  background: var(--admin-log-error-bg);
+  color: var(--admin-log-error-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.dialog__risk {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-md);
+}
