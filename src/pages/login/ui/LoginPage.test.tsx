@@ -54,6 +54,9 @@ describe("LoginScreen (/login)", () => {
 
   it("демо on: подсказки учёток (из mocks/users.json) и ссылки «Войти как …» предзаполняют форму", () => {
     render(<LoginScreen {...DEFAULT_PROPS} />);
+    const summary = screen.getByText("Тестовые учётные записи (демо-режим):");
+    expect(summary.closest("details")).not.toHaveAttribute("open");
+    fireEvent.click(summary);
     expect(screen.getByText("ivanov")).toBeInTheDocument();
     expect(screen.getByText("egorov")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "преподаватель" })).toHaveAttribute(
@@ -65,6 +68,7 @@ describe("LoginScreen (/login)", () => {
 
   it("демо: ?demo=admin предзаполняет учётку администратора, returnUrl сохраняется в ссылках", () => {
     render(<LoginScreen {...DEFAULT_PROPS} demoRole="admin" returnUrl="/admin/system" />);
+    fireEvent.click(screen.getByText("Тестовые учётные записи (демо-режим):"));
     expect(screen.getByLabelText(/логин/i)).toHaveValue("admin");
     expect(screen.getByRole("link", { name: "обучающийся" })).toHaveAttribute(
       "href",

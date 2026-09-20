@@ -42,16 +42,16 @@
   --color-overlay: rgba(0, 0, 0, 0.4); /* затемнение под формой смены статуса */
   --color-overlay-strong: rgba(0, 0, 0, 0.55);
   --color-shadow: rgba(0, 0, 0, 0.25);
-  --color-login-sky: #84b8d7; /* фон экрана «112 ВХОД В СИСТЕМУ» */
-  --color-login-sky-top: #6aaad2;
-  --color-login-sky-bottom: #9cc7e0;
-  --color-login-building-dark: #5a86ab;
-  --color-login-building: #8db8d8;
-  --color-login-building-light: #b9dcf0;
+  --color-login-sky: #76bad3; /* фон экрана «112 ВХОД В СИСТЕМУ» */
+  --color-login-sky-top: #65b2d0;
+  --color-login-sky-bottom: #4eacd0;
+  --color-login-building-dark: #4c86a5;
+  --color-login-building: #68a5c2;
+  --color-login-building-light: #afe0ef;
   --color-login-house: #d9d9d9;
   --color-login-house-light: #f2f2f2;
   --color-login-button: #808080;
-  --color-login-button-hover: #6f6f6f;
+  --color-login-button-hover: #fa5a18;
   --color-login-link: #1f6fb5;
 
   /* ——— Статусная палитра (канон АРМ ЕДДС, spec/07 «Цветовая семантика») ——— */

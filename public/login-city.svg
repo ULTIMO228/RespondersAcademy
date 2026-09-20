@@ -1,0 +1,243 @@
+<svg viewBox="0 0 1798 875" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Вручную отрисованный городской фон">
+<defs>
+  <!-- Background -->
+  <linearGradient id="skyV" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#6da9cf"/>
+    <stop offset="0.56" stop-color="#7fb6d8"/>
+    <stop offset="1" stop-color="#9bc9e2"/>
+  </linearGradient>
+  <radialGradient id="skyGlow" cx="52%" cy="78%" r="72%">
+    <stop offset="0" stop-color="#b1d7ea" stop-opacity=".42"/>
+    <stop offset=".58" stop-color="#9ac8e1" stop-opacity=".16"/>
+    <stop offset="1" stop-color="#6fa9ce" stop-opacity="0"/>
+  </radialGradient>
+
+  <!-- Blue building faces -->
+  <linearGradient id="blueDark" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#557d9f"/>
+    <stop offset="1" stop-color="#6489a8"/>
+  </linearGradient>
+  <linearGradient id="blueDark2" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#4e7393"/>
+    <stop offset="1" stop-color="#5c82a1"/>
+  </linearGradient>
+  <linearGradient id="blueMid" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#79a9ca"/>
+    <stop offset="1" stop-color="#8fbfda"/>
+  </linearGradient>
+  <linearGradient id="blueLight" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#bfe2f0"/>
+    <stop offset="1" stop-color="#cceaf5"/>
+  </linearGradient>
+  <linearGradient id="blueLight2" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#a9d4e8"/>
+    <stop offset="1" stop-color="#ccebf5"/>
+  </linearGradient>
+  <linearGradient id="bluePale" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#c9e7f2"/>
+    <stop offset="1" stop-color="#b8dfef"/>
+  </linearGradient>
+
+  <!-- Foreground buildings -->
+  <linearGradient id="whiteFront" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f2f1f1"/>
+    <stop offset="1" stop-color="#e8e9ea"/>
+  </linearGradient>
+  <linearGradient id="whiteSide" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#eeeeef"/>
+    <stop offset="1" stop-color="#ffffff"/>
+  </linearGradient>
+  <linearGradient id="grayFront" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#d0d0d1"/>
+    <stop offset="1" stop-color="#c4c6c8"/>
+  </linearGradient>
+  <linearGradient id="graySide" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#c4c6c8"/>
+    <stop offset="1" stop-color="#ececed"/>
+  </linearGradient>
+  <filter id="tinySoft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation=".28"/></filter>
+</defs>
+
+<!-- sky -->
+<rect width="1798" height="875" fill="url(#skyV)"/>
+<rect width="1798" height="875" fill="url(#skyGlow)"/>
+
+<!-- =======================================================
+     16 visible building masses / structures.
+     Every building is a separate group; no raster image is used.
+     ======================================================= -->
+
+<!-- 01. Far-left sculpted tower -->
+<g class="building" id="building-01">
+  <path d="M0 60 C7 31 22 11 49 0 L51 309 L89 292 L58 819 H0 Z" fill="url(#blueDark)"/>
+  <path d="M50 0 C78 0 108 5 137 16 L143 298 L194 307 L194 819 H58 L89 292 L51 309 Z" fill="url(#bluePale)"/>
+  <path d="M194 368 L218 379 V819 H194 Z" fill="url(#blueDark2)" opacity=".88"/>
+</g>
+
+<!-- 02. Needle tower -->
+<g class="building" id="building-02">
+  <path d="M218 0 H293 L266 708 H194 Z" fill="url(#blueDark2)"/>
+  <path d="M293 0 H366 L328 819 H266 Z" fill="url(#blueLight2)"/>
+</g>
+
+<!-- 03. Stepped dark tower -->
+<g class="building" id="building-03">
+  <path d="M371 140 H423 L423 343 H341 V819 H434 V344 H371 Z" fill="url(#blueDark)"/>
+  <path d="M423 140 L447 149 V355 L458 365 V819 H434 V344 H423 Z" fill="url(#blueLight2)" opacity=".88"/>
+</g>
+
+<!-- 04. Partly hidden rear tower -->
+<g class="building" id="building-04">
+  <path d="M451 571 L482 590 V819 H451 Z" fill="url(#blueDark2)"/>
+  <path d="M451 796 H483 V819 H451 Z" fill="#bce0ef" opacity=".9"/>
+</g>
+
+<!-- 05. Stacked tower A -->
+<g class="building" id="building-05">
+  <path d="M494 249 L533 240 V265 L494 271 Z" fill="url(#blueDark)"/>
+  <path d="M533 240 L572 247 V270 L533 265 Z" fill="url(#blueLight)"/>
+  <path d="M474 274 L533 264 V386 L474 394 Z" fill="url(#blueDark)"/>
+  <path d="M533 264 L592 275 V389 L533 386 Z" fill="url(#blueLight)"/>
+  <path d="M474 394 L533 386 V520 L474 522 Z" fill="url(#blueDark)"/>
+  <path d="M533 386 L596 392 V519 L533 520 Z" fill="url(#blueLight2)"/>
+  <path d="M474 522 L533 520 V649 L474 652 Z" fill="url(#blueDark)"/>
+  <path d="M533 520 L596 519 V645 L533 649 Z" fill="url(#blueLight2)"/>
+  <path d="M474 652 L533 649 V819 H474 Z" fill="url(#blueDark)"/>
+  <path d="M533 649 L596 645 V819 H533 Z" fill="url(#blueLight2)"/>
+  <path d="M472 394 L594 389" stroke="#3f6887" stroke-width="2" opacity=".55"/>
+  <path d="M474 522 L596 519" stroke="#3f6887" stroke-width="2" opacity=".50"/>
+  <path d="M474 652 L596 645" stroke="#3f6887" stroke-width="2" opacity=".46"/>
+</g>
+
+<!-- 06. Stacked tower B -->
+<g class="building" id="building-06">
+  <path d="M643 343 L674 335 V362 L643 368 Z" fill="url(#blueDark)"/>
+  <path d="M674 335 L716 342 V367 L674 362 Z" fill="url(#blueLight)"/>
+  <path d="M620 373 L674 362 V519 L620 522 Z" fill="url(#blueDark)"/>
+  <path d="M674 362 L730 372 V518 L674 519 Z" fill="url(#blueLight2)"/>
+  <path d="M620 522 L674 519 V647 L620 650 Z" fill="url(#blueDark)"/>
+  <path d="M674 519 L730 518 V644 L674 647 Z" fill="url(#blueLight2)"/>
+  <path d="M620 650 L674 647 V819 H620 Z" fill="url(#blueDark)"/>
+  <path d="M674 647 L730 644 V819 H674 Z" fill="url(#blueLight2)"/>
+  <path d="M620 522 L730 518" stroke="#3f6887" stroke-width="2" opacity=".55"/>
+  <path d="M620 650 L730 644" stroke="#3f6887" stroke-width="2" opacity=".48"/>
+</g>
+
+<!-- 07. Rounded tower -->
+<g class="building" id="building-07">
+  <path d="M744 305 Q757 287 780 283 V875 H744 Z" fill="url(#blueDark2)"/>
+  <path d="M780 283 Q789 279 806 280 V875 H780 Z" fill="url(#blueMid)"/>
+  <path d="M806 280 Q840 278 874 286 V875 H806 Z" fill="url(#blueLight)"/>
+  <path d="M874 286 L884 291 V875 H874 Z" fill="#4f7899"/>
+  <path d="M884 295 L891 297 V875 H884 Z" fill="#c4e4f1" opacity=".85"/>
+  <path d="M728 590 L744 582 V875 H728 Z" fill="#5b82a2" opacity=".9"/>
+</g>
+
+<!-- 08. Isolated blue tower -->
+<g class="building" id="building-08">
+  <path d="M963 625 L985 617 L1027 624 L1027 640 L963 638 Z" fill="url(#blueMid)"/>
+  <path d="M946 639 L982 633 V875 H946 Z" fill="url(#blueDark)"/>
+  <path d="M982 633 L1041 642 V875 H982 Z" fill="url(#blueLight2)"/>
+</g>
+
+<!-- 09. Foreground left office block -->
+<g class="building" id="building-09">
+  <path d="M91 718 H132 V700 H244 V696 H264 V707 H282 V714 H316 V875 H91 Z" fill="url(#whiteFront)"/>
+  <path d="M264 707 L316 718 V875 H264 Z" fill="url(#whiteSide)"/>
+  <g fill="#c9cbcd" opacity=".96">
+    <rect x="108" y="737" width="144" height="15"/>
+    <rect x="108" y="771" width="144" height="15"/>
+    <rect x="108" y="802" width="144" height="15"/>
+    <rect x="108" y="833" width="144" height="15"/>
+    <rect x="108" y="865" width="144" height="10"/>
+  </g>
+</g>
+
+<!-- 10. Small stepped low-rise behind left foreground -->
+<g class="building" id="building-10">
+  <path d="M316 785 H346 V793 H364 V801 H393 V875 H316 Z" fill="#d7d8d9"/>
+  <path d="M345 793 H364 V801 H393 V875 H364 Z" fill="#c4c6c8" opacity=".75"/>
+</g>
+
+<!-- 11. Small gray annex -->
+<g class="building" id="building-11">
+  <rect x="358" y="821" width="93" height="54" fill="url(#grayFront)"/>
+  <rect x="389" y="844" width="39" height="7" fill="#f6f6f6" opacity=".93"/>
+</g>
+
+<!-- 12. Long white low-rise -->
+<g class="building" id="building-12">
+  <rect x="444" y="819" width="278" height="56" fill="url(#whiteFront)"/>
+  <rect x="463" y="844" width="245" height="10" fill="#dedfe0"/>
+</g>
+
+<!-- 13. Rear gray sliver at right -->
+<g class="building" id="building-13">
+  <rect x="1055" y="814" width="27" height="61" fill="#c1c5c8"/>
+  <path d="M1082 806 H1108 V875 H1082 Z" fill="#e5e5e6"/>
+</g>
+
+<!-- 14. Narrow white office -->
+<g class="building" id="building-14">
+  <path d="M1108 749 H1186 V875 H1108 Z" fill="url(#whiteFront)"/>
+  <path d="M1108 749 L1125 744 H1204 V875 H1186 V749 Z" fill="url(#whiteSide)" opacity=".78"/>
+  <g fill="#e0e1e2">
+    <rect x="1130" y="767" width="41" height="7"/>
+    <rect x="1130" y="780" width="41" height="7"/>
+    <rect x="1130" y="793" width="41" height="7"/>
+    <rect x="1130" y="806" width="41" height="7"/>
+    <rect x="1130" y="819" width="41" height="7"/>
+    <rect x="1130" y="832" width="41" height="7"/>
+  </g>
+</g>
+
+<!-- 15. Main right foreground office -->
+<g class="building" id="building-15">
+  <path d="M1187 729 H1227 V706 H1304 V713 L1335 727 H1391 V875 H1187 Z" fill="url(#grayFront)"/>
+  <path d="M1304 706 L1335 713 V727 H1304 Z" fill="#ffffff"/>
+  <path d="M1391 727 L1451 735 V875 H1391 Z" fill="url(#whiteSide)"/>
+  <g fill="#f0f0f1">
+    <rect x="1216" y="759" width="143" height="14"/>
+    <rect x="1216" y="793" width="143" height="14"/>
+    <rect x="1216" y="827" width="143" height="14"/>
+    <rect x="1216" y="861" width="143" height="14"/>
+  </g>
+</g>
+
+<!-- 16. Far-right low office -->
+<g class="building" id="building-16">
+  <path d="M1397 812 H1448 V805 H1545 V808 L1586 818 H1614 V825 H1640 V875 H1397 Z" fill="url(#whiteFront)"/>
+  <path d="M1421 833 H1573 V875 H1421 Z" fill="#c8cbcd"/>
+  <path d="M1451 851 H1547 V875 H1451 Z" fill="#b9bdc0" opacity=".78"/>
+  <path d="M1573 818 L1614 825 H1640 V875 H1573 Z" fill="#f7f7f7"/>
+</g>
+
+<!-- ground strip at extreme left/right edge, as visible in the reference -->
+<path d="M0 809 H91 V875 H0 Z" fill="#f4f4f4"/>
+<path d="M1640 836 L1798 846 V875 H1640 Z" fill="#f6f6f6"/>
+
+<!-- helicopter: still fully vector; included to keep the overall composition -->
+<g id="helicopter" transform="translate(538 89) scale(.57)" filter="url(#tinySoft)">
+  <rect x="64.2" y="39.1" width="245.9" height="4.8" rx="2.4" fill="#1d292e"/>
+  <rect x="184.5" y="43" width="3" height="12" rx="1.3" fill="#6a777d"/>
+  <path d="M170 61 C173 55.7 178.4 53.4 186.2 53.4 C194.2 53.4 199.8 55.7 202.7 61 Z" fill="#f8fafb"/>
+  <path d="M161.4 64.4 C163.2 61.2 166 59.7 170.1 59.7 H202.6 C207.1 59.7 210.2 61.6 211.4 64.4 L210.2 67 H162.7 Z" fill="#6f7b81"/>
+  <path d="M103.7 118.6 L126.3 81.1 C131.8 72 138.4 67.1 149.1 66.8 L225.6 66.8 C249 66.9 274 67.1 295 67.8 L338.6 69.8 L231 115.3 C227.3 116.5 223 121.9 217.6 126.3 C213.8 129.4 209.8 131 203 131 H119.2 C111 131 105.2 126.7 103.7 118.6 Z" fill="#fbfbfb"/>
+  <path d="M103.8 118.8 L126 81.7 C130.9 74 136 70 145.5 68.8 H151.2 L132.1 118.9 L128 131 H119.2 C111.4 131 105.5 126.7 103.8 118.8 Z" fill="#606c72"/>
+  <path d="M129.4 79.9 C132.2 75 136.3 72.2 141.6 71.8 H151.9 L143.8 103.7 H113.9 Z" fill="#9edbf4"/>
+  <path d="M156 75.2 H197.5 L196.6 104.7 H148.2 Z" fill="#91d4f2"/>
+  <path d="M151.4 70.2 H158.1 L148.8 106 H142.3 Z" fill="#f8fafb"/>
+  <path d="M103.8 118.7 L113.4 103.8 H143.7 L134.5 131 H119.3 C111.3 131 105.6 126.9 103.8 118.7 Z" fill="#58636a"/>
+  <path d="M132.7 116 H231.5 C228.4 120.4 224 125.2 218.5 128.3 C214.6 130.5 210.8 131.2 204.5 131.2 H128.7 Z" fill="#fa5a18"/>
+  <g fill="#66584b"><rect x="135.4" y="130.4" width="4.2" height="15.6" rx="1.3"/><rect x="198.6" y="130.4" width="4.2" height="15.6" rx="1.3"/><path d="M121.7 143.2 C122.6 142.7 123.9 142.9 125 143.8 L128.1 145.5 H210.5 C211.9 145.5 212.8 146.3 212.8 147.4 C212.8 148.5 211.9 149.1 210.5 149.1 H128 C126.7 149.1 125.5 148.7 124.7 148 L121.2 145 C120.7 144.4 120.9 143.6 121.7 143.2 Z"/></g>
+  <!-- tail rotor -->
+  <g>
+    <path d="M337.4 68.7 L324 55.9 C322.3 54.3 320.4 54.6 319.4 56.3 C318.4 58 319.2 59.6 321.4 60.5 L340.2 72.4 Z" fill="#46535a"/>
+    <path d="M340.8 71.4 L355.7 82.6 C357.6 84 359.4 83.4 360.1 81.6 C360.8 79.8 359.8 78.4 357.7 77.6 L337.9 68.7 Z" fill="#46535a"/>
+    <path d="M340.2 68.2 L347.1 50.2 C347.9 47.9 349.8 46.5 351.6 47.4 C353.4 48.3 353.7 50.1 352.3 52 L341.2 72 Z" fill="#fbfcfc"/>
+    <path d="M337.8 71.8 L331.8 89.6 C331.1 92 329.4 93.3 327.7 92.4 C325.9 91.5 325.8 89.6 327 87.7 L338.8 68.8 Z" fill="#f7fafb"/>
+    <path d="M332.4 64.8 L346.5 75.6" stroke="#f15a24" stroke-width="2.7" stroke-linecap="round"/>
+    <path d="M342.6 61.8 L335.8 78.6" stroke="#f15a24" stroke-width="2.7" stroke-linecap="round"/>
+  </g>
+</g>
+</svg>

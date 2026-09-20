@@ -3,6 +3,7 @@
 :root {
   /* ——— Вход «112 ВХОД В СИСТЕМУ» ——— */
   --journal-login-text: var(--color-white);
+  --journal-login-label: #204c60;
   --journal-login-text-soft: rgba(255, 255, 255, 0.85);
   --journal-login-line: rgba(255, 255, 255, 0.9);
   --journal-login-window: #a9b3ba; /* полосы окон на светлых домах */

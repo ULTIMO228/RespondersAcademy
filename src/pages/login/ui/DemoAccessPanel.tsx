@@ -19,10 +19,10 @@ type DemoAccessPanelProps = {
 export function DemoAccessPanel({ accounts, roleTitles, returnUrl }: DemoAccessPanelProps) {
   const returnQuery = returnUrl ? { [LOGIN_QUERY.returnUrl]: returnUrl } : {};
   return (
-    <section className={styles["login__demo"]} aria-labelledby="demo-accounts-title">
-      <h2 className={styles["login__demo-title"]} id="demo-accounts-title">
+    <details className={styles["login__demo"]}>
+      <summary className={styles["login__demo-title"]}>
         Тестовые учётные записи (демо-режим):
-      </h2>
+      </summary>
       <ul className={styles["login__demo-list"]}>
         {accounts.map((account) => (
           <li key={account.login}>
@@ -45,6 +45,6 @@ export function DemoAccessPanel({ accounts, roleTitles, returnUrl }: DemoAccessP
           </Link>
         ))}
       </p>
-    </section>
+    </details>
   );
 }
