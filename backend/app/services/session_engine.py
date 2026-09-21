@@ -17,6 +17,8 @@ from app.api.deps import Viewer, resolve_student_scope
 from app.api.errors import forbidden, invalid_transition, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.card import IncidentCard
+from app.models.classifier import ClassifierEntry
+from app.models.reference import ReferenceEntry
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSession
 from app.models.teacher import ProfileMappingRow
@@ -316,12 +318,23 @@ async def resolve_student_profile_groups(db: AsyncSession, student_id: str) -> s
         return None
     rows = (await db.execute(select(ProfileMappingRow))).scalars().all()
     row = next((r for r in rows if _norm(r.profile) == _norm(user.service)), None)
-    return {_norm(g) for g in (row.incident_groups or [])} if row else None
+    if row is None:
+        return None
+    groups = {_norm(g) for g in (row.incident_groups or [])}
+    reference = await db.get(ReferenceEntry, "services")
+    services = reference.value if reference else []
+    names = {_norm(s["classifierName"]) for s in services if s["id"] in row.service_ids and s.get("classifierName")}
+    # Решение US5: районные демо-профили без classifierName сохраняют категории преподавателя.
+    if not names:
+        return groups
+    entries = (await db.execute(select(ClassifierEntry))).scalars().all()
+    reacting = {_norm(e.group) for e in entries if any(_norm(n.get("service", "")) in names and n.get("mode") in ("mapped", "card112") for n in (e.notifications or []))}
+    return groups & reacting
 
 
-async def filter_cards_for_student(db: AsyncSession, pool: list[dict[str, Any]], student_id: str, categories: list[str]) -> list[dict[str, Any]]:
+async def filter_cards_for_student(db: AsyncSession, pool: list[dict[str, Any]], student_id: str, categories: list[str], training_mode: str = "dds") -> list[dict[str, Any]]:
     selected = {_norm(c) for c in categories} if categories else None
-    profile = await resolve_student_profile_groups(db, student_id)
+    profile = await resolve_student_profile_groups(db, student_id) if training_mode != "operator112" else None
     return [c for c in pool if (selected is None or _norm(c["group"]) in selected) and (profile is None or _norm(c["group"]) in profile)]
 
 
@@ -368,14 +381,14 @@ async def build_planned_card_flow(db: AsyncSession, row: TrainingSession, plan: 
     flow = []
     for student_id in row.student_ids or []:
         score = await read_student_score(db, student_id, row.id)
-        queue = order_for_student(await filter_cards_for_student(db, pool, student_id, plan.get("categories", [])), plan.get("issueOrder", "adaptive"), score)
+        queue = order_for_student(await filter_cards_for_student(db, pool, student_id, plan.get("categories", []), row.training_mode), plan.get("issueOrder", "adaptive"), score)
         flow.extend(schedule_for_student(queue, student_id, start_ms, pace_ms_for_student(plan, score), bool(plan.get("conveyor"))))
     return flow
 
 
 async def next_card_for_student(db: AsyncSession, row: TrainingSession, plan: dict[str, Any], student_id: str) -> dict[str, Any] | None:
     issued = {item["cardId"] for item in (row.card_flow or []) if item.get("studentId") == student_id}
-    queue = await filter_cards_for_student(db, await build_session_pool(db, row, plan), student_id, plan.get("categories", []))
+    queue = await filter_cards_for_student(db, await build_session_pool(db, row, plan), student_id, plan.get("categories", []), row.training_mode)
     return next((c for c in queue if c["cardId"] not in issued), queue[0] if queue else None)
 
 

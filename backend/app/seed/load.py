@@ -27,6 +27,7 @@ from app.models import (
     Evaluation,
     GroupReport,
     IncidentCard,
+    ProfileMappingRow,
     ReferenceEntry,
     Report,
     Scenario,
@@ -34,6 +35,7 @@ from app.models import (
     TrainingSession,
     User,
 )
+from app.seed.profile_mapping_seed import PROFILE_MAPPING_SEED
 from app.services.security import hash_password
 from app.services.time import now_iso
 
@@ -387,6 +389,12 @@ async def seed_admin(db: AsyncSession, paths: SeedPaths) -> dict[str, int]:
     return counts
 
 
+async def seed_profile_mapping(db: AsyncSession) -> int:
+    for values in PROFILE_MAPPING_SEED:
+        await _upsert(db, ProfileMappingRow, "id", values)
+    return len(PROFILE_MAPPING_SEED)
+
+
 async def reset_all() -> None:
     engine = get_engine()
     async with engine.begin() as connection:
@@ -404,6 +412,7 @@ async def run_seed(seed_dir: Path | None = None, reset: bool = False) -> dict[st
     async with get_sessionmaker()() as db:
         summary: dict[str, int] = {}
         summary["users"] = await seed_users(db, paths)
+        summary["profileMapping"] = await seed_profile_mapping(db)
         summary["reference"] = await seed_reference(db, paths)
         summary["classifier"] = await seed_classifier(db, paths)
         summary["incidentCards"] = await seed_cards(db, paths)

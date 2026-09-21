@@ -89,13 +89,14 @@ async def test_session_validation_and_feed_access(client):
     assert control.json()["plan"]["paceSec"] == 60 and control.json()["paused"] is False
     started = await client.post(f"/sessions/{session_id}/start")
     flow = started.json()["cardFlow"]
-    assert len(flow) == 6 and [i["cardId"] for i in flow[:3]] == ["c-001", "c-002", "c-003"]
+    # После загрузки PROFILE_MAPPING_SEED билет s-001 не входит в профили этих курсантов.
+    assert flow == []
     paused = await client.post(f"/sessions/{session_id}/control", json={"action": "pause"})
     assert paused.json()["paused"] is True and paused.json()["pendingCount"] >= 0
     resumed = await client.post(f"/sessions/{session_id}/control", json={"action": "resume"})
-    assert resumed.json()["paused"] is False and len(resumed.json()["session"]["cardFlow"]) == 6
+    assert resumed.json()["paused"] is False and resumed.json()["session"]["cardFlow"] == []
     issued = await client.post(f"/sessions/{session_id}/control", json={"action": "issue", "studentId": "u-005", "cardId": "c-002"})
-    assert len(issued.json()["session"]["cardFlow"]) == 7
+    assert len(issued.json()["session"]["cardFlow"]) == 1
     assert (await client.post(f"/sessions/{session_id}/control", json={"action": "fly"})).status_code == 400
     bad_feed = await client.get(f"/sessions/{session_id}/feed", params={"since": "garbage"})
     assert bad_feed.status_code == 400

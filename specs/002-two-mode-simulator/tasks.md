@@ -128,13 +128,13 @@
 
 ### Implementation for User Story 5
 
-- [ ] T051 [P] [US5] Create `backend/app/services/report_export.py` — CSV (`csv` stdlib, UTF-8 BOM; колонки: обучаемый, АРМ, режим, формат, сценарий/карточка, времена по этапам, отклонения, ошибки по типам, балл, сдал/не сдал) и PDF (reportlab, шрифт DejaVu из `backend/data/fonts/`, таблица + графики как таблицы) и endpoints `GET /api/v1/reports/{id}/export.csv|.pdf` в `backend/app/api/v1/reports_export.py` (фронт волны A экспортирует на клиенте — это дополнение, не ломает контракт)
-- [ ] T052 [P] [US5] Extend `backend/app/seed/load.py` — `PROFILE_MAPPING_SEED` перенести из `src/shared/config` в `backend/app/seed/profile_mapping_seed.py` и загружать в `profile_mapping`; model `backend/app/models/profile_mapping.py` (id, service_id, title, incident_groups JSON, updated_by?, updated_at)
-- [ ] T053 [US5] Create `backend/app/api/compat/profile_mapping.py` — `GET /profile-mapping` (`studentCount` по `users.service`), `PUT /profile-mapping` (`{ rows: [{ id, incidentGroups }], savedBy }`, 404 на неизвестный id, аудит `profileMapping.save`)
-- [ ] T054 [US5] Wire `session_engine.build_card_flow` profile/category filters to `profile_mapping` (FR-031: в поток режима B попадают только карточки, где у службы профиля есть реакция в классификаторе — `classifier_entries.notifications[].service ↔ reference.services[].classifierName`) and add unit test `backend/tests/unit/test_card_flow_profiles.py`
-- [ ] T055 [US5] Create contract tests `backend/tests/contract/test_teacher.py` — строки 28–29, 36–38 контракта; сценарий «занятие с планом (темп, порядок, категории) → start → `cardFlow` соответствует плану → control pause/resume/issue»
+- [X] T051 [P] [US5] Create `backend/app/services/report_export.py` — CSV (`csv` stdlib, UTF-8 BOM; колонки: обучаемый, АРМ, режим, формат, сценарий/карточка, времена по этапам, отклонения, ошибки по типам, балл, сдал/не сдал) и PDF (reportlab, шрифт DejaVu из `backend/data/fonts/`, таблица + графики как таблицы) и endpoints `GET /api/v1/reports/{id}/export.csv|.pdf` в `backend/app/api/v1/reports_export.py` (фронт волны A экспортирует на клиенте — это дополнение, не ломает контракт)
+- [X] T052 [P] [US5] Extend `backend/app/seed/load.py` — `PROFILE_MAPPING_SEED` перенести из `src/shared/config` в `backend/app/seed/profile_mapping_seed.py` и загружать в `profile_mapping`; переиспользована существующая model `backend/app/models/teacher.py::ProfileMappingRow` (id, profile, group_name?, service_ids JSON[], incident_groups JSON[], updated_by?, updated_at), см. решение US5 в research.md
+- [X] T053 [US5] Create `backend/app/api/compat/profile_mapping.py` — `GET /profile-mapping` (`studentCount` по `users.service`), `PUT /profile-mapping` (`{ rows: [{ id, incidentGroups }], savedBy }`, 404 на неизвестный id, аудит `profileMapping.save`)
+- [X] T054 [US5] Wire `session_engine.build_card_flow` profile/category filters to `profile_mapping` (FR-031: в поток режима B попадают только карточки, где у службы профиля есть реакция в классификаторе — `classifier_entries.notifications[].service ↔ reference.services[].classifierName`) and add unit test `backend/tests/unit/test_card_flow_profiles.py`
+- [X] T055 [US5] Create contract tests `backend/tests/contract/test_teacher.py` — строки 28–29, 36–38 контракта; сценарий «занятие с планом (темп, порядок, категории) → start → `cardFlow` соответствует плану → control pause/resume/issue»
 
-**Checkpoint**: `scripts/e2e-teacher.sh` — PASS по шагам занятия и отчётов
+**Checkpoint Phase 5**: `uv run pytest -q` — 64 passed; `uv run ruff check .` — PASS. Шаги мастера/мониторинга/контроля/отчётов проверены через ASGI-контрактные и интеграционные тесты; PDF отрисован и проверен на 5 страницах и пустом отчёте; wheel включает шрифт и лицензию. Полный `scripts/e2e-teacher.sh` остаётся в T074: зависит от фаз 6/8; ограничение его категории по умолчанию зафиксировано в research.md.
 
 ---
 

@@ -34,7 +34,7 @@
 |---|---|---|
 | `scenarios` | `id` s-NNN PK, `title`, `level`, `source_ticket_no`, `card_ids` JSON, `time_norms` JSON, `hints` JSON, `call_target`?, `difficulty` 1–5, `etalon` JSON, `validation` JSON (`status`, `reviewedBy`, `comment`, `fields`?), `success_criteria` JSON, `source` (`template` \| `generated` \| `manual` \| `import`), `mode`? (`demo` \| `follow` \| `practice`), `updated_by`?, `updated_at`, `deleted` bool, `validation_report` JSON? (R22), `history` JSON[] (версии) | `DELETE` запрещён для `template` и используемых в занятиях (409 `conflict`); `difficulty` → `level` (1–2 beginner, 3–5 advanced) |
 | `training_materials` | `id` mat-NNN PK, `name`, `size_bytes`?, `format` (DOCX/PDF/MP3 по расширению), `uploaded_by` FK, `uploaded_at` | новые первыми |
-| `profile_mapping` | `id` PK, `service_id`, `title`, `incident_groups` JSON, `updated_by`?, `updated_at` | сид `PROFILE_MAPPING_SEED` (перенести из `src/shared/config`); `studentCount` считается по `users.service` |
+| `profile_mapping` | `id` PK, `profile`, `group_name`?, `service_ids` JSON[], `incident_groups` JSON[], `updated_by`?, `updated_at` | существующая модель `app/models/teacher.py` соответствует контракту `ProfileMappingRow`; сид скопирован из `src/shared/config` в `app/seed/profile_mapping_seed.py`; `studentCount` считается по `users.service` для роли student |
 
 ### Занятия, попытки, оценки
 

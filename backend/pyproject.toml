@@ -38,6 +38,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app", "ml"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"data/fonts" = "app/data/fonts"
+
 [tool.uv]
 default-groups = []
 
