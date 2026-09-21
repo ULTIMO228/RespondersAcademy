@@ -60,10 +60,10 @@
 
 | Таблица | Поля | Примечания |
 |---|---|---|
-| `system_services` | `id` PK, `name`, `state`, `uptime_sec`, `critical`, `description`, `started_at`? | действия start/stop/restart меняют состояние и пишут `system_logs` + аудит; 409 для критичного при идущем занятии; интегрити — вычисляется |
+| `system_services` | `id` PK, `name`, `state`, `uptime_sec`, `critical`, `description`, `started_at`?, `seq` (порядок плиток) | действия start/stop/restart меняют состояние и пишут `system_logs` + аудит; 409 для критичного при идущем занятии; интегрити — вычисляется |
 | `system_settings` | `id` = 1, `settings` JSON (`telephony`, `database` ro, `backup`, `logging`, `security`, `performance`, `autoRecovery`) | PATCH проверяет нормативы (бэкап ≤ 24 ч, журналы ≥ 6 мес, сессии ≥ 20) → 422 |
 | `system_logs` | `id` PK, `at`, `level`, `source`, `message` | сид + события действий |
-| `system_monitoring` / `usage_stats` | статичные JSON из сидов | волна A отдаёт как есть; реальные метрики — вне объёма |
+| `system_static` | `key` PK (`monitoring` \| `usageStats` \| `integrity`), `value` JSON | статичные документы `mocks/admin/` (мониторинг, статистика использования, сводка сида); волна A отдаёт как есть, `integrity` ответа считается на лету (БД, каталоги `var/`, модели) — реальные метрики нагрузки вне объёма |
 
 ## Волна B — новые сущности
 

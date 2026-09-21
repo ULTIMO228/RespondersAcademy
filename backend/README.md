@@ -88,6 +88,13 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 - `POST /calls/reply` (`{ toNumber, turn: answer|reply, text? }` → `AiResponse<CallReply>`): сначала `AiGateway.call_reply` (зона команды ИИ-агентов, заглушка `None`), затем детерминированный `ml/insights/call_responder.py` — «Слушаю вас» / «Понял, информация принята» с вариациями по службе, голос по чётности номера, `speakerTitle` из `reference.internalNumbers`; 404 «Абонент не найден».
 - `POST /cards/{id}/calls` (`{ studentId, toNumber, startedAt, endedAt, transcript }` → 201 `{ sessionId, attemptId, call }`): вызов дописывается в `CardEvent.calls` последней попытки курсанта по карточке (идущее занятие приоритетно); попытку создаёт открытие карточки. Расширение `call.report` — сверка доклада с фактами карточки (номер карточки, адрес, тип, пострадавшие, решение); при оценке попытки без `etalon.reportChecklist` пропуски попадают в ошибку `reportIncomplete` (оценщик `dds-1.1.0`).
 
+## Phase 8: администрирование
+
+- `/admin/users` (список с фильтрами `role/state/group/q`, `POST` 201 / 409 при занятом логине, `PATCH`, `block/unblock/toggle-active`, `reset-password` — временный пароль показывается один раз). Инициатор — cookie администратора либо `adminId` в теле; студент/преподаватель на `/admin/*` → 403.
+- `/admin/system/services` (+ `integrity`: БД, каталоги `var/`, модели), `POST …/{id}/action` (`start/stop/restart`; критичный сервис при идущем занятии → 409), `/admin/system/settings` (`PATCH` по секциям, `database` read-only, нормативы ТЗ → 422 со списком нарушений), `/admin/system/logs?level=`, `/admin/system/monitoring`, `/admin/system/usage-stats?period=`, `/admin/audit` (фильтры `type/operator/card/from/to/q`, пагинация).
+- Бэкап «Выполнить сейчас» (`PATCH {backup:{lastAt}}`): SQLite — копия БД, PostgreSQL — `pg_dump` (нужен в `PATH`) → `var/backups/`; сбой пишется в системные журналы, настройки всё равно сохраняются.
+- Сиды раздела: `mocks/admin/{system-services,system-settings,system-logs,monitoring,usage-stats,audit-log}.json` — грузятся `python -m app.seed.load` (после обновления схемы — `--reset`).
+
 ## Переменные окружения
 
 См. `.env.example`. Ключевые: `DATABASE_URL`, `JWT_SECRET`, `SEED_DIR`, `MODELS_DIR`, `OLLAMA_URL`.

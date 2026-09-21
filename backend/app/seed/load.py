@@ -31,7 +31,10 @@ from app.models import (
     ReferenceEntry,
     Report,
     Scenario,
+    SystemLog,
+    SystemService,
     SystemSettings,
+    SystemStatic,
     TrainingSession,
     User,
 )
@@ -386,6 +389,39 @@ async def seed_admin(db: AsyncSession, paths: SeedPaths) -> dict[str, int]:
         settings = read_json(settings_path)["settings"]
         await _upsert(db, SystemSettings, "id", {"id": 1, "settings": settings})
         counts["systemSettings"] = 1
+    services_path = paths.admin / "system-services.json"
+    if services_path.exists():
+        doc = read_json(services_path)
+        for seq, service in enumerate(doc["services"]):
+            await _upsert(
+                db,
+                SystemService,
+                "id",
+                {
+                    "id": service["id"],
+                    "name": service["name"],
+                    "state": service.get("state", "running"),
+                    "uptime_sec": int(service.get("uptimeSec", 0)),
+                    "critical": bool(service.get("critical", False)),
+                    "description": service.get("description", ""),
+                    "started_at": None,
+                    "seq": seq,
+                },
+            )
+        counts["systemServices"] = len(doc["services"])
+        if doc.get("integrity"):
+            await _upsert(db, SystemStatic, "key", {"key": "integrity", "value": doc["integrity"]})
+    logs_path = paths.admin / "system-logs.json"
+    if logs_path.exists():
+        logs = read_json(logs_path)["logs"]
+        for entry in logs:
+            await _upsert(db, SystemLog, "id", {"id": entry["id"], "at": entry["at"], "level": entry["level"], "source": entry["source"], "message": entry["message"]})
+        counts["systemLogs"] = len(logs)
+    for key, name in (("monitoring", "monitoring.json"), ("usageStats", "usage-stats.json")):
+        path = paths.admin / name
+        if path.exists():
+            await _upsert(db, SystemStatic, "key", {"key": key, "value": read_json(path)})
+            counts[key] = 1
     return counts
 
 

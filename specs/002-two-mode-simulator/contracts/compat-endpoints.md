@@ -52,7 +52,7 @@ Viewer: cookie `arm112_session` (JSON URL-encoded, `token` = JWT) или `Author
 | 42 | `GET /attempts/[id]/evaluation` | `compat/attempts` | готовая оценка (override приоритетен) либо `ai_gateway.evaluate_attempt` → сохранить; нет эталона → 404 `evaluationPending`; чужая попытка для S → 403 | сохраняет `evaluations` | -/S/T/A |
 | 43 | `POST /attempts/[id]/evaluation` | `compat/attempts` | `teacher_overrides` + `Evaluation.teacherOverride` | аудит `evaluation.override` («было → стало», ФИО); `calibration_samples` | T |
 | 44 | `GET /admin/users` | `compat/admin_users` | `role`, `state`, `group`, `q` (ФИО/логин, регистронезависимо) | — | A |
-| 45 | `POST /admin/users` | `compat/admin_users` | валидации; `u-NNN`; argon2 (201); логин занят → 409 | аудит `user.create` | A |
+| 45 | `POST /admin/users` | `compat/admin_users` | валидации; `u-NNN`; argon2 (201); логин занят → 409; без cookie и `adminId` → 400, `adminId` не администратора → 403 | аудит `user.create` | A |
 | 46 | `PATCH /admin/users/[id]` | `compat/admin_users` | ролевые поля приводятся к новой роли | аудит `user.update` / `user.roleChange` | A |
 | 47 | `POST /admin/users/[id]/block` | `compat/admin_users` | `is_active=false`; сам себя → 409 | аудит `user.block` | A |
 | 48 | `POST /admin/users/[id]/unblock` | `compat/admin_users` | `is_active=true` | аудит `user.unblock` | A |
@@ -64,7 +64,7 @@ Viewer: cookie `arm112_session` (JSON URL-encoded, `token` = JWT) или `Author
 | 54 | `GET /admin/system/services` | `compat/admin_system` | `{ services, integrity }`; интегрити — самопроверка (БД, модели загружены, каталоги) | — | A |
 | 55 | `POST /admin/system/services/[id]/action` | `compat/admin_system` | `start/stop/restart`; 409 для критичного при идущем занятии | аудит `service.action`, `system_logs` | A |
 | 56 | `GET /admin/system/settings` | `compat/admin_system` | + `security`, `performance`, `autoRecovery` | — | A |
-| 57 | `PATCH /admin/system/settings` | `compat/admin_system` | секции; `database` не принимается; нормативы → 422 | аудит `settings.update`; `backup.lastAt` → `backup.run` (реальный `pg_dump`/копия SQLite в `var/backups`) | A |
+| 57 | `PATCH /admin/system/settings` | `compat/admin_system` | секции; `database` не принимается; нормативы → 422 со всеми нарушениями | аудит `settings.update`; `backup.lastAt` → `backup.run` (реальный `pg_dump`/копия SQLite в `var/backups`, `lastAt` сохраняется как передан; сбой архива — `ERROR` в `system_logs`, ответ 200) | A |
 | 58 | `GET /admin/system/logs` | `compat/admin_system` | `level` фильтр; новые первыми | — | A |
 | 59 | `GET /admin/system/monitoring` | `compat/admin_system` | статичные ряды из сида | — | A |
 | 60 | `GET /admin/system/usage-stats` | `compat/admin_system` | `period` `week` \| `month`; мусор → 400 | — | A |

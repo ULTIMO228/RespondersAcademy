@@ -5,6 +5,7 @@ from app.models.reference import ReferenceEntry, SystemSettings
 from app.models.report import CalibrationSample, GroupReport, Report, ReportFeedback
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSession
+from app.models.system import SystemLog, SystemService, SystemStatic
 from app.models.teacher import ProfileMappingRow, TrainingMaterial
 from app.models.user import User
 
@@ -24,7 +25,10 @@ __all__ = [
     "Report",
     "ReportFeedback",
     "Scenario",
+    "SystemLog",
+    "SystemService",
     "SystemSettings",
+    "SystemStatic",
     "TeacherOverride",
     "TrainingMaterial",
     "TrainingSession",
