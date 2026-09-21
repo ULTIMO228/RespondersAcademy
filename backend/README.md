@@ -23,11 +23,12 @@ BACKEND_URL=http://localhost:8000 npm run dev
 ## PostgreSQL
 
 ```bash
-DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run alembic upgrade head
+uv sync --extra pg --group dev
 DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run python -m app.seed.load
 ```
 
-или `docker compose up` из `backend/` (профиль `llm` поднимает Ollama).
+Схему создаёт сид (`create_all`); миграции Alembic — задача T109 (Phase 17), пока `alembic/` пуст.
+Или `docker compose up` из `backend/` (профиль `llm` поднимает Ollama).
 
 ## Структура
 
@@ -106,6 +107,21 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
   - Сгенерированный сценарий содержит две карточки — новую и исходную карточку группы (`cardIds = [новая, исходная]`, как мок); эталон исходной — отдельный сегмент без ловушки; валидатор прогоняется по обеим.
   - `GET /admin/audit` доступен и преподавателю (студент → 403).
   - Прогрев ML при старте: `ML_WARMUP=1` (по умолчанию) в фоне загружает эмбеддер, symspell и классификатор (~25 с), иначе первая оценка попытки упирается в тайм-аут прокси Next; в тестах `ML_WARMUP=0`.
+
+## Проверено 2026-09-22: quickstart §1–§6 на чистом окружении (T076)
+
+Свежий `git clone --depth 1` (коммит `a1bef24`), Windows 11 / Git Bash, Python 3.13 через `uv`, Node 24.19 / npm 11.17, SQLite. Ничего, кроме репозитория, не переносилось (модели и артефакты собраны заново).
+
+| § | Шаг | Результат |
+|---|---|---|
+| 1 | `uv sync --extra nlp --extra pg --group dev` → `prepare_models` → `train_classifier` | 15 с; rubert-tiny2 115 МБ; `ekp_group_lr.joblib` — 2767 примеров, 105 классов, ~2 мин |
+| 2 | `python -m app.seed.load` ×2 | users 24, classifier 1283, incidentCards 96, armCardFixtures 12, scenarios 36, sessions 2, reports 3, auditLog 22, addresses 14 (+ profileMapping 6, reference 10, admin-сиды); повтор не дублирует (`var/` создаётся сам) |
+| 3 | `uvicorn` + curl | `/reference` 200; `x-classifier-version` есть; `POST …/status` без комментария → 400 `validationFailed`; `/api/docs` 200; прогрев ML 29,8 с (embedder, spellcheck, classifier=lr) |
+| 4 | `uv run pytest -q`, `ruff check .` | 146 passed за 32 с; ruff чисто |
+| 5 | `npm ci` + `backend/scripts/run_frontend_e2e.sh` | e2e-student 40/40, e2e-teacher 96/96, e2e-admin 140/140, EXIT=0 |
+| 6 | `eval_classifier`, `eval_assessor`, `pytest tests/unit/test_validator.py` | классификатор accuracy 1,0 / top-3 1,0 на 96 (cv 0,57, 0,15 с/текст); оценщик `dds-1.1.0` на 110 образцах — согласие 1,0, κ 1,0, Pearson 0,93, **Spearman 0,76** (ниже 0,8: критерий `eval_assessor` — Pearson ≥ 0,8; ранговая корреляция занижена связками в экспертных баллах — у образцов `refusedProfile-noComment` эксперт ставит 0, оценщик 39–45), MAE 10,5; валидатор 9 passed (20/20 и 20/20) |
+
+Не входило в прогон: PostgreSQL (нет на машине; схему создаёт сид, Alembic — T109), Docker, §7–§8 (волна B, офлайн-приёмка).
 
 ## Переменные окружения
 

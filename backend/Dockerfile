@@ -8,10 +8,9 @@ COPY backend/pyproject.toml backend/README.md ./
 COPY backend/app ./app
 COPY backend/ml ./ml
 COPY backend/data ./data
-COPY backend/alembic ./alembic
-COPY backend/alembic.ini ./alembic.ini
 
 RUN uv pip install --system ".[pg]"
 
 EXPOSE 8000
-CMD ["sh", "-c", "alembic upgrade head && python -m app.seed.load && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+# Схему создаёт сид (create_all); миграции Alembic — T109.
+CMD ["sh", "-c", "python -m app.seed.load && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
