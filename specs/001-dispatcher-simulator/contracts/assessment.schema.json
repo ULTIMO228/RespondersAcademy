@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://team82.lct/contracts/assessment.schema.json",
+  "title": "AssessmentResult",
+  "description": "Результат авто-оценки попытки. Каждая ошибка обязана ссылаться на правило-источник (принцип II). Версия контракта 1.0.",
+  "type": "object",
+  "required": ["contract_version", "attempt_id", "engine_version", "components", "errors", "warnings", "total_score", "timeline"],
+  "properties": {
+    "contract_version": { "const": "1.0" },
+    "attempt_id": { "type": "string", "format": "uuid" },
+    "engine_version": { "type": "string" },
+    "total_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "overridden": { "type": "boolean", "default": false },
+    "components": {
+      "type": "object",
+      "description": "ключ — компонент оценки; отсутствие модели → available=false, score=null",
+      "propertyNames": { "enum": ["timing", "first_decision", "status_sequence", "comments", "fields", "grammar", "address", "multitask", "report"] },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["available", "weight"],
+        "properties": {
+          "available": { "type": "boolean" },
+          "score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "details": { "type": "object" }
+        }
+      }
+    },
+    "timings": {
+      "type": "object",
+      "properties": {
+        "first_status_s": { "type": ["number", "null"] },
+        "first_status_norm_s": { "type": "number" },
+        "full_cycle_s": { "type": ["number", "null"] },
+        "full_cycle_norm_s": { "type": "number" },
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["status", "at_s"],
+            "properties": { "status": { "type": "string" }, "at_s": { "type": "number" }, "deviation_s": { "type": ["number", "null"] } }
+          }
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "rule", "message"],
+        "properties": {
+          "type": {
+            "description": "типология: 7 категорий нарушений памятки + дополнительные",
+            "enum": [
+              "no_first_status", "status_mismatch", "refused_core_incident", "no_comment", "incomplete_comment", "no_progress_statuses", "no_contact",
+              "wrong_first_decision", "invalid_transition", "late_first_status", "late_full_cycle",
+              "field_wrong", "address_typo", "similar_street", "spelling", "grammar",
+              "multitask_neglect", "report_item_missing", "report_item_wrong", "action_text_mismatch"
+            ]
+          },
+          "rule": { "type": "string", "description": "id правила из реестра, напр. MEMO-V4" },
+          "rule_source": { "type": "string", "description": "человекочитаемый источник: памятка/классификатор/Q&A/решение команды" },
+          "message": { "type": "string" },
+          "step_seq": { "type": ["integer", "null"], "description": "seq события в таймлайне" },
+          "field": { "type": ["string", "null"] },
+          "expected": {}, "actual": {},
+          "fixed": { "type": "boolean", "default": false },
+          "removed_by_teacher": { "type": "boolean", "default": false }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "message"],
+        "properties": {
+          "type": { "enum": ["possible_guessing", "too_fast_progress", "component_unavailable", "stt_unrecognized"] },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "description": "для экрана разбора: каждый шаг с вердиктом",
+      "items": {
+        "type": "object",
+        "required": ["seq", "ts_s", "label", "verdict"],
+        "properties": {
+          "seq": { "type": "integer" },
+          "ts_s": { "type": "number" },
+          "label": { "type": "string" },
+          "verdict": { "enum": ["ok", "late", "wrong", "missing", "info"] },
+          "rule": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "report_checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "verdict"],
+        "properties": {
+          "key": { "type": "string" },
+          "verdict": { "enum": ["named", "missing", "wrong"] },
+          "evidence": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "recommendations": { "type": "array", "items": { "type": "object", "required": ["text", "rule"], "properties": { "text": { "type": "string" }, "rule": { "type": "string" } } } }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://team82.lct/contracts/event.schema.json",
+  "title": "AttemptEvent",
+  "description": "Одно действие обучаемого в рамках попытки. Таймстамп — серверный. Версия контракта 1.0.",
+  "type": "object",
+  "required": ["contract_version", "attempt_id", "seq", "type", "ts", "payload"],
+  "properties": {
+    "contract_version": { "const": "1.0" },
+    "attempt_id": { "type": "string", "format": "uuid" },
+    "seq": { "type": "integer", "minimum": 1 },
+    "type": {
+      "enum": ["queued", "opened", "switched_away", "switched_to", "status_set", "field_changed", "comment_added", "action_text", "call_started", "call_finished", "not_notified", "closed"]
+    },
+    "ts": { "type": "string", "format": "date-time" },
+    "payload": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "status_set" } } },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": ["status"],
+            "properties": {
+              "status": { "enum": ["accepted", "rejected", "started", "arrived", "working", "done", "refused"] },
+              "comment": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "field_changed" } } },
+      "then": {
+        "properties": {
+          "payload": {
+            "required": ["field", "before", "after"],
+            "properties": {
+              "field": { "type": "string", "description": "путь в card, напр. address.street" },
+              "before": {}, "after": {}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "comment_added" } } },
+      "then": { "properties": { "payload": { "required": ["text"], "properties": { "text": { "type": "string" }, "status": { "type": ["string", "null"] } } } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "action_text" } } },
+      "then": { "properties": { "payload": { "required": ["text"], "properties": { "text": { "type": "string" } } } } }
+    },
+    {
+      "if": { "properties": { "type": { "const": "call_finished" } } },
+      "then": {
+        "properties": {
+          "payload": {
+            "properties": {
+              "mode": { "enum": ["voice", "text"] },
+              "transcript": { "type": ["string", "null"] },
+              "recording_path": { "type": ["string", "null"] },
+              "duration_s": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "switched_away" } } },
+      "then": { "properties": { "payload": { "properties": { "to_attempt_id": { "type": "string", "format": "uuid" } } } } }
+    }
+  ]
+}

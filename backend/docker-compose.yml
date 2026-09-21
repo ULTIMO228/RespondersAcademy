@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: arm112
+      POSTGRES_PASSWORD: arm112
+      POSTGRES_DB: arm112
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arm112"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://arm112:arm112@postgres:5432/arm112
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      SEED_DIR: /repo
+      MODELS_DIR: /models
+    volumes:
+      - ../spec/mocks:/repo/spec/mocks:ro
+      - ../mocks:/repo/mocks:ro
+      - models:/models
+      - var:/app/backend/var
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  ollama:
+    image: ollama/ollama
+    profiles: ["llm"]
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+
+volumes:
+  pgdata:
+  models:
+  var:
+  ollama:

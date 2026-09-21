@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://team82.lct/contracts/session-report.schema.json",
+  "title": "SessionReport",
+  "description": "Отчёт по занятию (Q&A: ФИО, номер АРМ, время по этапам и отклонение, ошибки, интегральный балл, сводные диаграммы). Версия контракта 1.0.",
+  "type": "object",
+  "required": ["contract_version", "session_id", "generated_at", "session", "students", "group_summary"],
+  "properties": {
+    "contract_version": { "const": "1.0" },
+    "session_id": { "type": "string", "format": "uuid" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "session": {
+      "type": "object",
+      "required": ["teacher", "group", "mode", "started_at", "finished_at", "params"],
+      "properties": {
+        "teacher": { "type": "string" }, "group": { "type": "string" },
+        "mode": { "enum": ["cards", "actions"] },
+        "started_at": { "type": "string", "format": "date-time" },
+        "finished_at": { "type": ["string", "null"], "format": "date-time" },
+        "params": { "type": "object" }
+      }
+    },
+    "students": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["user_id", "full_name", "arm_number", "attempts", "avg_score", "norm_violations", "errors_by_type"],
+        "properties": {
+          "user_id": { "type": "string", "format": "uuid" },
+          "full_name": { "type": "string" },
+          "arm_number": { "type": ["string", "null"] },
+          "avg_score": { "type": ["number", "null"] },
+          "norm_violations": { "type": "integer" },
+          "errors_by_type": { "type": "object", "additionalProperties": { "type": "integer" } },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["attempt_id", "scenario_id", "status", "total_score", "stages", "errors_count"],
+              "properties": {
+                "attempt_id": { "type": "string", "format": "uuid" },
+                "scenario_id": { "type": "string", "format": "uuid" },
+                "scenario_title": { "type": "string" },
+                "status": { "enum": ["completed", "interrupted", "unfinished"] },
+                "total_score": { "type": ["number", "null"] },
+                "overridden": { "type": "boolean" },
+                "stages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["status", "at_s", "norm_s", "deviation_s"],
+                    "properties": {
+                      "status": { "type": "string" }, "at_s": { "type": ["number", "null"] },
+                      "norm_s": { "type": ["number", "null"] }, "deviation_s": { "type": ["number", "null"] }
+                    }
+                  }
+                },
+                "errors_count": { "type": "integer" },
+                "errors_by_type": { "type": "object", "additionalProperties": { "type": "integer" } },
+                "grammar_errors": { "type": "integer" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "group_summary": {
+      "type": "object",
+      "required": ["attempts_total", "avg_score", "top_errors", "heatmap"],
+      "properties": {
+        "attempts_total": { "type": "integer" },
+        "avg_score": { "type": ["number", "null"] },
+        "norm_compliance_pct": { "type": ["number", "null"] },
+        "top_errors": {
+          "type": "array",
+          "items": { "type": "object", "required": ["type", "count", "share"], "properties": { "type": { "type": "string" }, "count": { "type": "integer" }, "share": { "type": "number" } } }
+        },
+        "heatmap": {
+          "type": "array",
+          "description": "категория ЕКП × тип ошибки",
+          "items": { "type": "object", "required": ["group_no", "error_type", "count"], "properties": { "group_no": { "type": "integer" }, "error_type": { "type": "string" }, "count": { "type": "integer" } } }
+        },
+        "insights": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://team82.lct/contracts/scenario.schema.json",
+  "title": "Scenario",
+  "description": "Сценарий = карточка происшествия + эталон правильных действий для целевой ДДС. Версия контракта 1.0.",
+  "type": "object",
+  "required": ["contract_version", "id", "origin", "card", "reference", "difficulty", "approval_status"],
+  "properties": {
+    "contract_version": { "const": "1.0" },
+    "id": { "type": "string", "format": "uuid" },
+    "origin": { "enum": ["ticket", "generated", "imported"] },
+    "ticket_ref": { "type": ["string", "null"], "description": "напр. \"1.3\"" },
+    "parent_id": { "type": ["string", "null"], "format": "uuid" },
+    "version": { "type": "integer", "minimum": 1 },
+    "approval_status": { "enum": ["pending", "approved", "partially_approved", "rejected"] },
+    "difficulty": { "type": "number", "minimum": 0, "maximum": 3000 },
+    "card": { "$ref": "#/$defs/card" },
+    "reference": { "$ref": "#/$defs/reference" },
+    "quality": {
+      "type": "object",
+      "properties": {
+        "category_confirmed": { "type": "boolean" },
+        "predicted_group": { "type": "integer" },
+        "duplicate_of": { "type": ["string", "null"], "format": "uuid" },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "card": {
+      "type": "object",
+      "required": ["number", "source", "registered_at", "caller", "address", "description", "notify_list"],
+      "properties": {
+        "number": { "type": "string" },
+        "source": { "enum": ["operator112", "vis", "duplicate", "era_glonass"] },
+        "registered_by": { "type": "string", "description": "оператор/АРМ или \"оп. 9999\" для ВИС" },
+        "registered_at": { "type": "string", "format": "date-time" },
+        "phones": {
+          "type": "object",
+          "properties": {
+            "aon": { "type": ["string", "null"] },
+            "provided": { "type": ["string", "null"] },
+            "on_site": { "type": ["string", "null"] }
+          }
+        },
+        "flags": {
+          "type": "object",
+          "properties": {
+            "victims": { "type": "boolean" },
+            "not_on_site_or_refused_ambulance": { "type": "boolean" },
+            "no_access_or_blocked": { "type": "boolean" },
+            "no_contact": { "type": "boolean" },
+            "call_dropped": { "type": "boolean" }
+          }
+        },
+        "caller": {
+          "type": "object",
+          "properties": { "name": { "type": "string" }, "status": { "type": ["string", "null"] } }
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "country": { "type": "string" }, "region": { "type": "string" }, "city": { "type": "string" },
+            "object": { "type": ["string", "null"] }, "okrug": { "type": ["string", "null"] }, "district": { "type": ["string", "null"] },
+            "street": { "type": ["string", "null"] }, "house": { "type": ["string", "null"] }, "building": { "type": ["string", "null"] },
+            "structure": { "type": ["string", "null"] }, "flat": { "type": ["string", "null"] }, "entrance": { "type": ["string", "null"] },
+            "floor": { "type": ["string", "null"] }, "intercom": { "type": ["string", "null"] },
+            "free_text": { "type": ["string", "null"], "description": "описательный адрес" }
+          }
+        },
+        "description": { "type": "string", "maxLength": 1999 },
+        "survey": {
+          "type": "object",
+          "description": "опросная карта; может отсутствовать у ВИС",
+          "properties": {
+            "incident_type": { "type": ["string", "null"] },
+            "sign1": { "type": ["string", "null"] }, "sign2": { "type": ["string", "null"] }, "sign3": { "type": ["string", "null"] }
+          }
+        },
+        "notify_list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["service_code", "service_name"],
+            "properties": {
+              "service_code": { "type": "string" },
+              "service_name": { "type": "string" },
+              "status": { "type": ["string", "null"] },
+              "status_at": { "type": ["string", "null"], "format": "date-time" }
+            }
+          }
+        }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": ["ekp_code", "group_no", "final_type", "target_service", "expected_first_status", "notify_services"],
+      "properties": {
+        "ekp_code": { "type": "string" },
+        "group_no": { "type": "integer", "minimum": 1, "maximum": 23 },
+        "final_type": { "type": "string" },
+        "main_service": { "type": ["string", "null"] },
+        "notify_services": { "type": "array", "items": { "type": "string" } },
+        "target_service": { "type": "string", "description": "служба обучаемого, для которой рассчитан эталон" },
+        "expected_first_status": { "enum": ["accepted", "rejected"] },
+        "expected_reject_reason": { "type": ["string", "null"] },
+        "required_comment_elements": {
+          "type": "array",
+          "items": { "enum": ["reason", "handed_to", "clarified_address", "object_owner", "duplicate_of", "works_result"] }
+        },
+        "expected_fields": {
+          "type": "object",
+          "description": "правильные значения полей, которые обучаемый должен заполнить/исправить",
+          "properties": {
+            "address": { "type": "object" },
+            "survey": { "type": "object" },
+            "flags": { "type": "object" }
+          }
+        },
+        "traps": {
+          "type": "array",
+          "items": { "enum": ["out_of_moscow", "incomplete_address", "no_ambulance_needed", "non_core", "multi_service", "gasified", "duplicate", "vis_partial", "similar_street"] }
+        },
+        "report_checklist": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "expected"],
+            "properties": {
+              "key": { "enum": ["card_number", "address", "incident_type", "victims", "decision"] },
+              "expected": { "type": "string" },
+              "paraphrases": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "needs_teacher_review": { "type": "boolean", "description": "true, если классификатор не дал однозначный эталон" }
+      }
+    }
+  }
+}

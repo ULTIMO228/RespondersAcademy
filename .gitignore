@@ -23,3 +23,9 @@ Thumbs.db
 /.playwright/
 /public/icons/
 next-env.d.ts
+
+# бэкенд (backend/): рантайм, модели, окружение
+/backend/var/
+/backend/models/
+/backend/.venv/
+/backend/**/__pycache__/

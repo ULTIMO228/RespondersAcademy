@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "responders-academy/evaluation.schema.json",
+  "title": "Evaluation",
+  "description": "Оценка попытки: форма, которую отдают GET/POST /attempts/[id]/evaluation (совместима с src/shared/api/types → Evaluation). Поля components/mode/assessorVersion/passed — расширения, фронт волны A их игнорирует.",
+  "type": "object",
+  "required": ["timeScore", "correctnessScore", "grammarScore", "semanticScore", "totalScore", "grammarErrors", "errors", "aiComment"],
+  "properties": {
+    "timeScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "correctnessScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "grammarScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "semanticScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "totalScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "grammarErrors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "fragment", "wrong", "expected", "type"],
+        "properties": {
+          "field": { "type": "string" },
+          "fragment": { "type": "string" },
+          "wrong": { "type": "string" },
+          "expected": { "type": "string" },
+          "type": { "enum": ["spelling", "syntax"] }
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "severity", "message"],
+        "properties": {
+          "type": { "type": "string", "description": "тип ошибки: для dds — one of memo violations v1..v7 (например, 'noPrimaryStatus', 'wrongDecision', 'refusedProfile', 'missingComment', 'incompleteComment', 'noProgressStatus', 'noContact') или типология команды; для operator112 — 'wrongFinalType', 'addressTypo', 'addressLookalike', 'lostFact', 'missingSign', 'wrongApplicant', 'lateAnswer', 'lateSubmit'" },
+          "severity": { "enum": ["critical", "major", "minor"] },
+          "message": { "type": "string", "description": "пояснение + правило-источник в одной строке" },
+          "ruleId": { "type": "string" },
+          "step": { "type": "string", "description": "id события таймлайна" },
+          "fixed": { "type": "boolean" }
+        }
+      }
+    },
+    "aiComment": { "type": "string" },
+    "teacherOverride": {
+      "type": "object",
+      "required": ["score", "comment", "at", "by"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "comment": { "type": "string" },
+        "at": { "type": "string", "format": "date-time" },
+        "by": { "type": "string" }
+      }
+    },
+    "mode": { "enum": ["dds", "operator112"], "default": "dds" },
+    "assessorVersion": { "type": "string" },
+    "passed": { "type": "boolean", "description": "только для экзамена" },
+    "components": {
+      "type": "object",
+      "description": "полный AssessmentResult для разбора и калибровки",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["score", "weight"],
+        "properties": {
+          "score": { "type": "number", "minimum": 0, "maximum": 1 },
+          "weight": { "type": "number", "minimum": 0, "maximum": 1 },
+          "available": { "type": "boolean" },
+          "details": { "type": "object" }
+        }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}
