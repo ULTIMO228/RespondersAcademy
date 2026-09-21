@@ -31,7 +31,7 @@ Viewer: cookie `arm112_session` (JSON URL-encoded, `token` = JWT) или `Author
 | 21 | `PATCH /scenarios/[id]` | `compat/scenarios` | частичное обновление, `difficulty` → `level`, валидации; `history` | аудит `scenario.update` | T |
 | 22 | `DELETE /scenarios/[id]?deletedBy=` | `compat/scenarios` | 409 для `template` и используемых в занятиях | аудит `scenario.delete` | T |
 | 23 | `POST /scenarios/[id]/validate` | `compat/scenarios` | машина валидации (`submit/approve/approvePartial/reject`), 409 вне графа | аудит `scenario.<action>`; при `approved` — задача TTS (волна B) | T |
-| 24 | `POST /scenarios/generate` | `compat/scenarios` | `ai_gateway.generate_scenario(category, cards, addresses)` → 3 сценария `pending/generated` с новыми карточками `c-NNN` (`mode_origin=generated`, ловушки по умолчанию: —, `foreignTerritory`, `operatorMistake`), дедупликация по `title`; каждая карточка прогнана через валидатор (R22), отчёт — `validation_report` и расширение ответа `validationReport` (201); 400 — пустая категория / нет карточек-источников | аудит `scenario.generate` | T |
+| 24 | `POST /scenarios/generate` | `compat/scenarios` | `ai_gateway.generate_scenario(category, cards, addresses)` → 3 сценария `pending/generated` с новыми карточками `c-NNN` (`mode_origin=generated`, ловушки по умолчанию: —, `foreignTerritory`, `operatorMistake`); `cardIds = [новая, исходная карточка группы]` (как мок, `GENERATED_CARD_LIMIT=2`), эталон исходной — отдельный сегмент без ловушки; дедупликация по `title`; каждая карточка `cardIds` прогнана через валидатор (R22), отчёт — `validation_report` и расширение ответа `validationReport` (201); 400 — пустая категория / нет карточек-источников | аудит `scenario.generate` | T |
 | 25 | `GET /training-cards` | `compat/scenarios` | `incident_cards` (96 + сформированные обучаемыми + сгенерированные) → `IncidentCard[]` | — | - |
 | 26 | `GET /materials` | `compat/materials` | новые первыми | — | - |
 | 27 | `POST /materials` | `compat/materials` | формат по расширению (201) | аудит `material.upload` | T |
@@ -60,7 +60,7 @@ Viewer: cookie `arm112_session` (JSON URL-encoded, `token` = JWT) или `Author
 | 50 | `POST /admin/users/[id]/toggle-active` | `compat/admin_users` | инверсия `is_active` | аудит block/unblock | A |
 | 51 | `GET /admin/services` | `compat/admin_system` | `SystemService[]` | — | A |
 | 52 | `GET /admin/settings` | `compat/admin_system` | `SystemSettings` | — | A |
-| 53 | `GET /admin/audit` | `compat/admin_system` | фильтры `type`, `operator`, `card`, `from/to`, `q`, пагинация; новые первыми | — | A |
+| 53 | `GET /admin/audit` | `compat/admin_system` | фильтры `type`, `operator`, `card`, `from/to`, `q`, пагинация; новые первыми; читает и преподаватель (`e2e-teacher.sh` сверяет решения конструктора и правки оценок), S → 403 | — | T/A |
 | 54 | `GET /admin/system/services` | `compat/admin_system` | `{ services, integrity }`; интегрити — самопроверка (БД, модели загружены, каталоги) | — | A |
 | 55 | `POST /admin/system/services/[id]/action` | `compat/admin_system` | `start/stop/restart`; 409 для критичного при идущем занятии | аудит `service.action`, `system_logs` | A |
 | 56 | `GET /admin/system/settings` | `compat/admin_system` | + `security`, `performance`, `autoRecovery` | — | A |

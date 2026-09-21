@@ -169,8 +169,9 @@ async def test_generate_is_idempotent_and_validated(client):
             assert isinstance(report["passed"], bool) and set(report["tickets"]) == set(scenario["cardIds"])
         cards = (await client.get("/training-cards")).json()
         assert len(cards) == before_cards + len(generated) and cards[0]["id"] == "c-001"
-        generated_cards = {c["id"]: c for c in cards if c["id"] in {cid for s in generated for cid in s["cardIds"]}}
+        generated_cards = {c["id"]: c for c in cards if c["id"] in {s["cardIds"][0] for s in generated}}  # cardIds[1] — исходная карточка группы
         assert all(c["group"] == CATEGORY and c["baseCardId"].startswith("c-") for c in generated_cards.values())
+        assert all(s["cardIds"][1] == generated_cards[s["cardIds"][0]]["baseCardId"] for s in generated)
         assert {c.get("trap") for c in generated_cards.values()} == {None, "foreignTerritory", "operatorMistake"}
         listed = await client.get("/scenarios", params={"source": "generated", "validationStatus": "pending"})
         assert {s["id"] for s in listed.json()} >= set(new_ids)

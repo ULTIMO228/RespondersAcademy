@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     ollama_timeout_sec: float = Field(default=120.0, alias="OLLAMA_TIMEOUT_SEC")
     api_prefixes: list[str] = Field(default=["/api/mock", "/api/v1"], alias="API_PREFIXES")
     two_factor_stub: bool = Field(default=True, alias="TWO_FACTOR_STUB")
+    ml_warmup: bool = Field(default=True, alias="ML_WARMUP")  # прогрев моделей при старте (в тестах выключен)
     app_env: str = Field(default="dev", alias="APP_ENV")
 
     @property

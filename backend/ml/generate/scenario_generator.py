@@ -272,15 +272,25 @@ def build_scenario(index: int, category: str, ticket: dict[str, Any], base: dict
     hints, main_number = group_hints(category, reference, entries)
     numbers = service_numbers(base.get("expectedServices") or [])
     call_target = numbers[0] if numbers else main_number
+    # Сценарий вариации = новая карточка + её исходная карточка группы (как мок: до двух карточек группы в очереди);
+    # эталон исходной — стандартный, без ловушки, отдельным сегментом expectedActions.
+    etalon = build_etalon(card_ref, ticket, trap, base, reference)
+    base_id = str(base.get("id") or "")
+    if base_id:
+        base_etalon = build_etalon(base_id, base, None, base, reference)
+        etalon["expectedActions"] = [*etalon["expectedActions"], *base_etalon["expectedActions"]]
+        etalon["keyPhrases"] = [*etalon["keyPhrases"], *[p for p in base_etalon["keyPhrases"] if p not in etalon["keyPhrases"]]]
+        if base_etalon.get("cards"):
+            etalon["cards"] = {**etalon.get("cards", {}), **base_etalon["cards"]}
     scenario: dict[str, Any] = {
         "title": f"Вариация {index + 1} (ИИ): {category}",
         "level": "advanced",
         "sourceTicketNo": int(base.get("ticketNo") or 0),
-        "cardIds": [card_ref],
+        "cardIds": [card_ref, *([base_id] if base_id else [])],
         "timeNorms": {"primaryReactionSec": PRIMARY_REACTION_SEC, "fullProcessingSec": FULL_PROCESSING_SEC},
         "hints": {"enabled": False, "texts": hints},
         "difficulty": GENERATED_DIFFICULTIES[index % len(GENERATED_DIFFICULTIES)],
-        "etalon": build_etalon(card_ref, ticket, trap, base, reference),
+        "etalon": etalon,
         "validation": {"status": "pending"},
         "successCriteria": {"maxGrammarErrors": MAX_GRAMMAR_ERRORS, "requiredFields": list(REQUIRED_FIELDS), "syntaxRequirements": SYNTAX_REQUIREMENTS},
         "source": "generated",

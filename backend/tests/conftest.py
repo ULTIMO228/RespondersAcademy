@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 from collections.abc import AsyncIterator
 from urllib.parse import quote
 
@@ -17,6 +18,8 @@ from app.config import get_settings
 from app.db.session import configure_engine
 from app.seed.load import run_seed
 from app.services import reference as reference_service
+
+os.environ.setdefault("ML_WARMUP", "0")  # get_settings() ещё не вызывался: модели грузятся лениво там, где нужны тесту
 
 DEMO_USERS = {
     "student": {"login": "ivanov", "password": "student112", "armNumber": 1},

@@ -95,6 +95,18 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 - Бэкап «Выполнить сейчас» (`PATCH {backup:{lastAt}}`): SQLite — копия БД, PostgreSQL — `pg_dump` (нужен в `PATH`) → `var/backups/`; сбой пишется в системные журналы, настройки всё равно сохраняются.
 - Сиды раздела: `mocks/admin/{system-services,system-settings,system-logs,monitoring,usage-stats,audit-log}.json` — грузятся `python -m app.seed.load` (после обновления схемы — `--reset`).
 
+## Phase 9: гейт волны A
+
+- Формы ответов: `uv run python scripts/extract_ts_fields.py` извлекает обязательные поля из `src/shared/api/types/*.ts` в `tests/contract/expected_fields.json`; `tests/contract/test_response_shapes.py` сверяет с ними все GET-эндпоинты таблицы контракта (тест `test_expected_fields_are_fresh` требует перегенерации после изменения TS-типов).
+- Демо-путь `docs/demo-script.md` целиком через HTTP — `tests/integration/test_demo_path.py` (admin → teacher → занятие на двух курсантов → попытки со звонком → отчёт → правка → обратная связь → данные `/arm/progress`).
+- Сквозные скрипты фронта: `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `powershell -File backend\scripts\run_frontend_e2e.ps1` — поднимают бэкенд на `:8130` с чистым сидом (`var/e2e.db`), собирают фронт, запускают `next start -p 3130` с `BACKEND_URL` и прогоняют `scripts/e2e-{student,teacher,admin}.sh`; логи — `var/e2e-logs/`. В Git Bash в `PATH` подставляется системный `C:\Windows\System32\curl.exe` — mingw-curl портит кириллицу в argv.
+- Ограничения Git Bash/Windows: `sort` из System32 добавляет CR (дедуп в скрипте через `awk`), порты освобождаются через `netstat`/`taskkill`, `PYTHONUTF8=1`; фронт собирается `mocks:sync` + `mocks:validate` + `npx next build` (не `npm run build` — его строка с `NEXT_TELEMETRY_DISABLED=1` под cmd не работает). Rewrite по `BACKEND_URL` запекается в `.next/routes-manifest.json` при сборке, поэтому `.env.local` на время прогона откладывается и восстанавливается по завершении.
+- Правки бэкенда ради гейта (согласованы 2026-09-21, подробности — `specs/002-two-mode-simulator/research.md`):
+  - Фильтр профиля курсанта (T054): если «категории плана ∩ профиль ∩ реакция службы» пусто, план откатывается на «категории плана ∩ категории профиля» с `WARN` в системных журналах (`session_engine.resolve_student_profile` → `(groups, strict)`).
+  - Сгенерированный сценарий содержит две карточки — новую и исходную карточку группы (`cardIds = [новая, исходная]`, как мок); эталон исходной — отдельный сегмент без ловушки; валидатор прогоняется по обеим.
+  - `GET /admin/audit` доступен и преподавателю (студент → 403).
+  - Прогрев ML при старте: `ML_WARMUP=1` (по умолчанию) в фоне загружает эмбеддер, symspell и классификатор (~25 с), иначе первая оценка попытки упирается в тайм-аут прокси Next; в тестах `ML_WARMUP=0`.
+
 ## Переменные окружения
 
 См. `.env.example`. Ключевые: `DATABASE_URL`, `JWT_SECRET`, `SEED_DIR`, `MODELS_DIR`, `OLLAMA_URL`.

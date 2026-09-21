@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
+import time
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -12,12 +15,27 @@ from app.api.errors import install_error_handlers
 from app.config import get_settings
 from app.db.session import init_db
 
+log = logging.getLogger("uvicorn.error")
+
+
+def warmup_ml() -> None:
+    """Прогрев ML-компонент в фоне: первая оценка попытки на холодном процессе (эмбеддер, индекс symspell,
+    классификатор) иначе занимает десятки секунд и упирается в тайм-аут прокси фронта (FR: оценка ≤ 5 с)."""
+    started = time.perf_counter()
+    from ml.classify import ekp_group_classifier as classifier
+    from ml.nlp import embedder, grammar
+
+    parts = {"embedder": embedder.available(), "spellcheck": grammar.available(), "classifier": classifier.mode()}
+    log.info("ML warmup за %.1f с: %s", time.perf_counter() - started, parts)
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings = get_settings()
     if settings.sqlite:
         await init_db()
+    if settings.ml_warmup:
+        asyncio.get_running_loop().run_in_executor(None, warmup_ml)  # не блокирует старт — запросы принимаются сразу
     yield
 
 

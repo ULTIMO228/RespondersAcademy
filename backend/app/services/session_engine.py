@@ -312,30 +312,62 @@ async def build_session_pool(db: AsyncSession, row: TrainingSession, plan: dict[
     return unique(merged)
 
 
-async def resolve_student_profile_groups(db: AsyncSession, student_id: str) -> set[str] | None:
+async def resolve_student_profile(db: AsyncSession, student_id: str) -> tuple[set[str] | None, set[str] | None]:
+    """Категории профиля курсанта и их строгое подмножество с реакцией службы в классификаторе (T054).
+
+    Возвращает `(groups, strict)`: `groups` — категории профиля (None — профиля нет), `strict` — `groups` ∩ группы,
+    где хотя бы одна служба профиля реагирует (`mapped`/`card112`); None — у служб профиля нет `classifierName`
+    (районные демо-профили сохраняют категории преподавателя).
+    """
     user = await db.get(User, student_id)
     if user is None or not user.service:
-        return None
+        return None, None
     rows = (await db.execute(select(ProfileMappingRow))).scalars().all()
     row = next((r for r in rows if _norm(r.profile) == _norm(user.service)), None)
     if row is None:
-        return None
+        return None, None
     groups = {_norm(g) for g in (row.incident_groups or [])}
     reference = await db.get(ReferenceEntry, "services")
     services = reference.value if reference else []
     names = {_norm(s["classifierName"]) for s in services if s["id"] in row.service_ids and s.get("classifierName")}
-    # Решение US5: районные демо-профили без classifierName сохраняют категории преподавателя.
     if not names:
-        return groups
+        return groups, None
     entries = (await db.execute(select(ClassifierEntry))).scalars().all()
     reacting = {_norm(e.group) for e in entries if any(_norm(n.get("service", "")) in names and n.get("mode") in ("mapped", "card112") for n in (e.notifications or []))}
-    return groups & reacting
+    return groups, groups & reacting
+
+
+async def resolve_student_profile_groups(db: AsyncSession, student_id: str) -> set[str] | None:
+    groups, strict = await resolve_student_profile(db, student_id)
+    return groups if strict is None else strict
+
+
+async def _warn_profile_fallback(db: AsyncSession, student_id: str, categories: list[str]) -> None:
+    from app.models.system import SystemLog
+
+    message = f"План занятия для {student_id}: у служб профиля нет реакции на категории {', '.join(categories) or '—'} в классификаторе — карточки выданы по категориям профиля без проверки реакции"
+    db.add(SystemLog(id=await next_id(db, PREFIX["systemLog"], SystemLog.id), at=now_iso(), level="WARN", source="svc-web", message=message))
+    await db.flush()
 
 
 async def filter_cards_for_student(db: AsyncSession, pool: list[dict[str, Any]], student_id: str, categories: list[str], training_mode: str = "dds") -> list[dict[str, Any]]:
+    """Карточки курсанта: категории плана ∩ профиль ∩ реакция службы; при пустом строгом пересечении — мягкий фолбэк
+    на «категории плана ∩ категории профиля» с предупреждением в системных журналах (уточнение T054, 2026-09-21)."""
     selected = {_norm(c) for c in categories} if categories else None
-    profile = await resolve_student_profile_groups(db, student_id) if training_mode != "operator112" else None
-    return [c for c in pool if (selected is None or _norm(c["group"]) in selected) and (profile is None or _norm(c["group"]) in profile)]
+    groups, strict = (await resolve_student_profile(db, student_id)) if training_mode != "operator112" else (None, None)
+
+    def pick(profile: set[str] | None) -> list[dict[str, Any]]:
+        return [c for c in pool if (selected is None or _norm(c["group"]) in selected) and (profile is None or _norm(c["group"]) in profile)]
+
+    if strict is None:
+        return pick(groups)
+    cards = pick(strict)
+    if cards:
+        return cards
+    fallback = pick(groups)
+    if fallback:
+        await _warn_profile_fallback(db, student_id, categories)
+    return fallback
 
 
 async def read_student_score(db: AsyncSession, student_id: str, except_session_id: str | None) -> float | None:

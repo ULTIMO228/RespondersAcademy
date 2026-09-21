@@ -25,6 +25,10 @@ def _now() -> str:
 async def test_access_matrix_non_admin_forbidden(client: AsyncClient, role: str, path: str):
     await login_as(client, role)
     response = await client.get(path)
+    if role == "teacher" and path == "/admin/audit":
+        # Преподаватель читает журнал (e2e-teacher.sh сверяет решения конструктора и правки оценок).
+        assert response.status_code == 200, response.text
+        return
     assert response.status_code == 403 and response.json()["error"]["code"] == "forbidden", response.text
 
 

@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 from app.db.session import get_sessionmaker
 from app.models.classifier import ClassifierEntry
 from app.models.reference import ReferenceEntry
+from app.models.system import SystemLog
 from app.models.teacher import ProfileMappingRow
 from app.models.user import User
 from app.seed.load import seed_profile_mapping
@@ -21,7 +22,11 @@ async def test_profile_reaction_categories_and_fallback(seeded_db):
         await db.flush()
         pool = [{'cardId': g, 'group': g} for g in ['allowed', 'none', 'unrelated', 'outside']]
         assert await filter_cards_for_student(db, pool, user.id, []) == pool[:1]
-        assert await filter_cards_for_student(db, pool, user.id, ['none']) == []
+        # Строгое пересечение пусто → мягкий фолбэк на категории профиля с WARN в системных журналах (уточнение T054).
+        assert await filter_cards_for_student(db, pool, user.id, ['none']) == pool[1:2]
+        warning = (await db.execute(select(SystemLog).where(SystemLog.level == 'WARN').order_by(SystemLog.id.desc()))).scalars().first()
+        assert warning and 'u-005' in warning.message and 'none' in warning.message
+        assert await filter_cards_for_student(db, pool, user.id, ['outside']) == []
         assert await filter_cards_for_student(db, pool, user.id, ['none'], 'operator112') == pool[1:2]
         mapping = await db.get(ProfileMappingRow, 'test-profile')
         mapping.service_ids = ['unmapped-district']

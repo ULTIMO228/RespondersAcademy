@@ -324,6 +324,11 @@ async def generate_scenarios(db: AsyncSession, body: dict[str, Any], viewer: Vie
         doc = scenario_generator.resolve_placeholders(scenario_doc, card_ids)
         if not doc.get("cardIds"):
             doc["cardIds"] = [c["id"] for c in bases[: scenario_generator.DEFAULT_COUNT]]
+        for card_id in doc["cardIds"]:  # исходные карточки группы в очереди сценария тоже проходят валидатор
+            if card_id not in reports:
+                contract = next((c for c in all_cards if c.get("id") == card_id), None)
+                if contract is not None:
+                    reports[card_id] = await asyncio.to_thread(validator.validate, contract, all_cards)
         doc["validation"] = {"status": "pending"}
         doc["source"] = "generated"
         scenario_row = Scenario(id=await next_id(db, PREFIX["scenario"], Scenario.id), doc=doc, title="", level="", difficulty=1, source="", validation_status="", history=[])

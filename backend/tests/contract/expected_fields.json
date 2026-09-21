@@ -1,0 +1,1548 @@
+{
+ "source": "src/shared/api/types",
+ "types": {
+  "AdminUserActionRequest": {
+   "file": "requests.ts",
+   "required": [
+    "adminId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AdminUserCreateRequest": {
+   "file": "requests.ts",
+   "required": [
+    "adminId",
+    "fullName",
+    "login",
+    "password",
+    "role",
+    "armNumber"
+   ],
+   "optional": [
+    "group",
+    "service",
+    "assignedGroups"
+   ],
+   "extends": [
+    "AdminUserRoleFields"
+   ]
+  },
+  "AdminUserListQuery": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "role",
+    "state",
+    "group",
+    "q"
+   ],
+   "extends": []
+  },
+  "AdminUserPasswordResetResponse": {
+   "file": "requests.ts",
+   "required": [
+    "user",
+    "temporaryPassword"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AdminUserRoleFields": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "group",
+    "service",
+    "assignedGroups"
+   ],
+   "extends": []
+  },
+  "AdminUserUpdateRequest": {
+   "file": "requests.ts",
+   "required": [
+    "adminId"
+   ],
+   "optional": [
+    "group",
+    "service",
+    "assignedGroups",
+    "fullName",
+    "login",
+    "armNumber",
+    "role"
+   ],
+   "extends": [
+    "AdminUserRoleFields"
+   ]
+  },
+  "ApiErrorBody": {
+   "file": "api.ts",
+   "required": [
+    "error"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ArmCardAddress": {
+   "file": "arm-card.ts",
+   "required": [
+    "formal",
+    "okrug",
+    "raion",
+    "descriptive"
+   ],
+   "optional": [
+    "geo"
+   ],
+   "extends": []
+  },
+  "ArmCardApplicant": {
+   "file": "arm-card.ts",
+   "required": [
+    "name",
+    "status"
+   ],
+   "optional": [
+    "birthDate"
+   ],
+   "extends": []
+  },
+  "ArmCardCasualties": {
+   "file": "arm-card.ts",
+   "required": [
+    "injured",
+    "ambulanceRefused",
+    "blocked"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ArmCardFixture": {
+   "file": "arm-card.ts",
+   "required": [
+    "id",
+    "number",
+    "createdAt",
+    "registeredBy",
+    "source",
+    "cardStatus",
+    "phones",
+    "applicant",
+    "address",
+    "what",
+    "description",
+    "workLines",
+    "notificationList",
+    "emergency",
+    "createdByVis"
+   ],
+   "optional": [
+    "smsList"
+   ],
+   "extends": []
+  },
+  "ArmCardPhones": {
+   "file": "arm-card.ts",
+   "required": [
+    "aon",
+    "provided",
+    "onSite"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ArmCardWhat": {
+   "file": "arm-card.ts",
+   "required": [
+    "pollAnswers",
+    "signs",
+    "finalType",
+    "klass",
+    "casualties"
+   ],
+   "optional": [
+    "visKlass",
+    "classifierCode"
+   ],
+   "extends": []
+  },
+  "AttemptProgressRequest": {
+   "file": "attempts.ts",
+   "required": [],
+   "optional": [
+    "status",
+    "enteredText",
+    "completedAt"
+   ],
+   "extends": []
+  },
+  "AuditLogEntry": {
+   "file": "admin.ts",
+   "required": [
+    "id",
+    "at",
+    "userId",
+    "role",
+    "action",
+    "details"
+   ],
+   "optional": [
+    "ip",
+    "cardId",
+    "operatorArm"
+   ],
+   "extends": []
+  },
+  "AuditLogQuery": {
+   "file": "admin.ts",
+   "required": [],
+   "optional": [
+    "type",
+    "operator",
+    "card",
+    "from",
+    "to",
+    "q",
+    "page",
+    "perPage"
+   ],
+   "extends": []
+  },
+  "AuthPolicy": {
+   "file": "user.ts",
+   "required": [
+    "twoFactorRequired",
+    "minPasswordLength",
+    "lockAfterAttempts"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AuthSession": {
+   "file": "user.ts",
+   "required": [
+    "userId",
+    "role",
+    "token",
+    "twoFactorUsed",
+    "issuedAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CallReply": {
+   "file": "calls.ts",
+   "required": [
+    "text",
+    "voice",
+    "speakerTitle"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CallReplyRequest": {
+   "file": "calls.ts",
+   "required": [
+    "toNumber",
+    "turn"
+   ],
+   "optional": [
+    "text"
+   ],
+   "extends": []
+  },
+  "CardAttemptRequest": {
+   "file": "attempts.ts",
+   "required": [
+    "studentId"
+   ],
+   "optional": [
+    "issuedAt"
+   ],
+   "extends": []
+  },
+  "CardAttemptResponse": {
+   "file": "attempts.ts",
+   "required": [
+    "sessionId",
+    "attempt",
+    "created"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardCallRequest": {
+   "file": "calls.ts",
+   "required": [
+    "studentId",
+    "toNumber",
+    "startedAt",
+    "endedAt",
+    "transcript"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardCallResponse": {
+   "file": "calls.ts",
+   "required": [
+    "sessionId",
+    "attemptId",
+    "call"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardEvent": {
+   "file": "session.ts",
+   "required": [
+    "id",
+    "cardId",
+    "studentId",
+    "openedAt",
+    "primaryReactionMs",
+    "statuses",
+    "servicesCalled",
+    "completedAt",
+    "fullProcessingMs",
+    "enteredText",
+    "calls"
+   ],
+   "optional": [
+    "evaluation"
+   ],
+   "extends": []
+  },
+  "CardFlowItem": {
+   "file": "session.ts",
+   "required": [
+    "cardId",
+    "studentId",
+    "issuedAt",
+    "level"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardLink": {
+   "file": "card-runtime.ts",
+   "required": [
+    "cardId",
+    "role"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardLinksResponse": {
+   "file": "card-runtime.ts",
+   "required": [
+    "cardId",
+    "chain"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardRecording": {
+   "file": "card-runtime.ts",
+   "required": [
+    "id",
+    "cardId",
+    "startedAt",
+    "duration",
+    "title",
+    "audioUrl"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardReminder": {
+   "file": "card-runtime.ts",
+   "required": [
+    "id",
+    "cardId",
+    "text",
+    "remindAt",
+    "createdAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardReminderRequest": {
+   "file": "card-runtime.ts",
+   "required": [
+    "text",
+    "remindAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardRuntimeState": {
+   "file": "card-runtime.ts",
+   "required": [
+    "statusEvents",
+    "workLines",
+    "reminders",
+    "sms"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardSearchFilters": {
+   "file": "card-search.ts",
+   "required": [],
+   "optional": [
+    "incidentType",
+    "signs",
+    "arms",
+    "address",
+    "okrugs",
+    "raion",
+    "descriptiveAddress",
+    "region",
+    "services",
+    "description",
+    "applicant",
+    "channels",
+    "sources",
+    "operator",
+    "cardNumber",
+    "cardStatuses",
+    "createdFrom",
+    "createdTo"
+   ],
+   "extends": []
+  },
+  "CardSms": {
+   "file": "card-runtime.ts",
+   "required": [
+    "id",
+    "cardId",
+    "direction",
+    "text",
+    "at"
+   ],
+   "optional": [
+    "phone"
+   ],
+   "extends": []
+  },
+  "CardSmsRequest": {
+   "file": "card-runtime.ts",
+   "required": [
+    "text"
+   ],
+   "optional": [
+    "phone"
+   ],
+   "extends": []
+  },
+  "CardStatusDef": {
+   "file": "reference.ts",
+   "required": [
+    "status",
+    "title",
+    "alert"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardStatusEvent": {
+   "file": "card-runtime.ts",
+   "required": [
+    "id",
+    "cardId",
+    "ddsStatus",
+    "at"
+   ],
+   "optional": [
+    "comment",
+    "dutyNumber"
+   ],
+   "extends": []
+  },
+  "CardStatusMark": {
+   "file": "session.ts",
+   "required": [
+    "ddsStatus",
+    "at"
+   ],
+   "optional": [
+    "comment",
+    "dutyNumber"
+   ],
+   "extends": []
+  },
+  "CardStatusRequest": {
+   "file": "card-runtime.ts",
+   "required": [
+    "ddsStatus"
+   ],
+   "optional": [
+    "comment",
+    "dutyNumber"
+   ],
+   "extends": []
+  },
+  "CardWorkLine": {
+   "file": "card-runtime.ts",
+   "required": [
+    "operator",
+    "at",
+    "service",
+    "calledTo",
+    "person",
+    "message",
+    "id",
+    "cardId"
+   ],
+   "optional": [],
+   "extends": [
+    "WorkLine"
+   ]
+  },
+  "CardWorkLineRequest": {
+   "file": "card-runtime.ts",
+   "required": [
+    "service",
+    "calledTo",
+    "person",
+    "message",
+    "confirmed"
+   ],
+   "optional": [
+    "operator"
+   ],
+   "extends": []
+  },
+  "ChartData": {
+   "file": "report.ts",
+   "required": [
+    "kind",
+    "title",
+    "series"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ClassifierEntry": {
+   "file": "classifier.ts",
+   "required": [
+    "code",
+    "group",
+    "sign1",
+    "sign2",
+    "sign3",
+    "extraSigns",
+    "finalType",
+    "ekp35Type",
+    "mainService",
+    "notifications"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ClassifierMeta": {
+   "file": "classifier.ts",
+   "required": [
+    "title",
+    "sourceFile",
+    "version",
+    "extractedAt",
+    "rowCount",
+    "groupCount",
+    "note"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ClassifierQuery": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "group",
+    "code"
+   ],
+   "extends": []
+  },
+  "ClassifierRowsRef": {
+   "file": "reference.ts",
+   "required": [
+    "rowCount",
+    "note"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "DdsStatusDef": {
+   "file": "reference.ts",
+   "required": [
+    "status",
+    "title",
+    "requiresComment",
+    "next"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "District": {
+   "file": "reference.ts",
+   "required": [
+    "okrug",
+    "raions"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "Etalon": {
+   "file": "scenario.ts",
+   "required": [
+    "expectedActions",
+    "keyPhrases"
+   ],
+   "optional": [
+    "expectedFields",
+    "expectedText"
+   ],
+   "extends": []
+  },
+  "Evaluation": {
+   "file": "session.ts",
+   "required": [
+    "timeScore",
+    "correctnessScore",
+    "grammarScore",
+    "semanticScore",
+    "totalScore",
+    "grammarErrors",
+    "errors",
+    "aiComment"
+   ],
+   "optional": [
+    "teacherOverride"
+   ],
+   "extends": []
+  },
+  "EvaluationError": {
+   "file": "session.ts",
+   "required": [
+    "type",
+    "severity",
+    "message"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "EvaluationOverrideRequest": {
+   "file": "report.ts",
+   "required": [
+    "teacherId",
+    "score",
+    "comment"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GeoPoint": {
+   "file": "arm-card.ts",
+   "required": [
+    "lat",
+    "lon"
+   ],
+   "optional": [
+    "accuracy"
+   ],
+   "extends": []
+  },
+  "GrammarCheckRequest": {
+   "file": "teacher.ts",
+   "required": [
+    "text"
+   ],
+   "optional": [
+    "field"
+   ],
+   "extends": []
+  },
+  "GrammarError": {
+   "file": "session.ts",
+   "required": [
+    "field",
+    "fragment",
+    "wrong",
+    "expected",
+    "type"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GroupReport": {
+   "file": "report.ts",
+   "required": [
+    "id",
+    "sessionId",
+    "generatedAt",
+    "groupInsights",
+    "charts"
+   ],
+   "optional": [
+    "reportIds"
+   ],
+   "extends": []
+  },
+  "GroupReportCharts": {
+   "file": "report.ts",
+   "required": [
+    "scoreByStudent",
+    "reactionByAttempt",
+    "errorsByCriterion"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "IncidentCaller": {
+   "file": "incident-card.ts",
+   "required": [
+    "name",
+    "phone"
+   ],
+   "optional": [
+    "status"
+   ],
+   "extends": []
+  },
+  "IncidentCard": {
+   "file": "incident-card.ts",
+   "required": [
+    "id",
+    "ticketNo",
+    "situationNo",
+    "group",
+    "summary",
+    "address",
+    "caller",
+    "expectedServices",
+    "expectedTags"
+   ],
+   "optional": [
+    "addressRefined",
+    "victims",
+    "noAmbulance",
+    "crossRegion",
+    "duplicateOf",
+    "createdByStudentId"
+   ],
+   "extends": []
+  },
+  "IncidentVictims": {
+   "file": "incident-card.ts",
+   "required": [
+    "count"
+   ],
+   "optional": [
+    "note"
+   ],
+   "extends": []
+  },
+  "InternalNumber": {
+   "file": "reference.ts",
+   "required": [
+    "number",
+    "title"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "LabeledSeries": {
+   "file": "report.ts",
+   "required": [
+    "labels",
+    "values"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "LoginRequest": {
+   "file": "requests.ts",
+   "required": [
+    "login",
+    "password",
+    "armNumber"
+   ],
+   "optional": [
+    "twoFactorCode"
+   ],
+   "extends": []
+  },
+  "MaterialUploadRequest": {
+   "file": "teacher.ts",
+   "required": [
+    "name",
+    "uploadedBy"
+   ],
+   "optional": [
+    "sizeBytes"
+   ],
+   "extends": []
+  },
+  "NotificationEntry": {
+   "file": "arm-card.ts",
+   "required": [
+    "serviceId",
+    "addedBy",
+    "statuses"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PageQuery": {
+   "file": "api.ts",
+   "required": [],
+   "optional": [
+    "page",
+    "perPage"
+   ],
+   "extends": []
+  },
+  "PageResponse": {
+   "file": "api.ts",
+   "required": [
+    "items",
+    "total",
+    "page",
+    "perPage"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PhoneCall": {
+   "file": "session.ts",
+   "required": [
+    "toNumber",
+    "startedAt",
+    "transcript"
+   ],
+   "optional": [
+    "id",
+    "fromUserId",
+    "endedAt"
+   ],
+   "extends": []
+  },
+  "ProfileMappingRow": {
+   "file": "teacher.ts",
+   "required": [
+    "id",
+    "profile",
+    "incidentGroups",
+    "serviceIds",
+    "studentCount"
+   ],
+   "optional": [
+    "groupName"
+   ],
+   "extends": []
+  },
+  "ProfileMappingSaveRequest": {
+   "file": "teacher.ts",
+   "required": [
+    "rows",
+    "savedBy"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PublicUser": {
+   "file": "user.ts",
+   "required": [
+    "id",
+    "login",
+    "fullName",
+    "role",
+    "armNumber",
+    "isActive"
+   ],
+   "optional": [
+    "group",
+    "service",
+    "assignedGroups"
+   ],
+   "extends": []
+  },
+  "ReferenceData": {
+   "file": "reference.ts",
+   "required": [
+    "ddsStatuses",
+    "serviceStatuses",
+    "callerStatuses",
+    "channels",
+    "services",
+    "incidentGroups",
+    "classifierRows",
+    "cardStatuses",
+    "districts",
+    "sources",
+    "internalNumbers"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "Report": {
+   "file": "report.ts",
+   "required": [
+    "id",
+    "sessionId",
+    "generatedAt",
+    "exportFormats",
+    "student",
+    "timeMetrics",
+    "grammarErrors",
+    "errors",
+    "score",
+    "charts"
+   ],
+   "optional": [
+    "aiComment",
+    "teacherFeedback"
+   ],
+   "extends": []
+  },
+  "ReportCharts": {
+   "file": "report.ts",
+   "required": [
+    "byStage",
+    "byErrorType",
+    "dynamics"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportError": {
+   "file": "report.ts",
+   "required": [
+    "cardId",
+    "type",
+    "severity",
+    "message"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportFeedback": {
+   "file": "report.ts",
+   "required": [
+    "reportId",
+    "sessionId",
+    "studentId",
+    "text",
+    "recommendations",
+    "at",
+    "by",
+    "byName"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportFeedbackRequest": {
+   "file": "report.ts",
+   "required": [
+    "reportId",
+    "teacherId",
+    "text"
+   ],
+   "optional": [
+    "recommendations"
+   ],
+   "extends": []
+  },
+  "ReportGrammarError": {
+   "file": "report.ts",
+   "required": [
+    "cardId",
+    "field",
+    "fragment",
+    "wrong",
+    "expected",
+    "type"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportJournalFilters": {
+   "file": "report.ts",
+   "required": [
+    "groups",
+    "students",
+    "categories"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportJournalQuery": {
+   "file": "report.ts",
+   "required": [],
+   "optional": [
+    "teacherId",
+    "studentId",
+    "group",
+    "category",
+    "from",
+    "to"
+   ],
+   "extends": []
+  },
+  "ReportJournalResponse": {
+   "file": "report.ts",
+   "required": [
+    "rows",
+    "filters"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportJournalRow": {
+   "file": "report.ts",
+   "required": [
+    "sessionId",
+    "teacherId",
+    "teacherName",
+    "startedAt",
+    "finishedAt",
+    "groups",
+    "categories",
+    "students",
+    "averageScore",
+    "status",
+    "mode",
+    "cardSource",
+    "generatedAt",
+    "buildSec"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportJournalStudent": {
+   "file": "report.ts",
+   "required": [
+    "id",
+    "fullName"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportStageAttempt": {
+   "file": "report.ts",
+   "required": [
+    "attemptId",
+    "cardId",
+    "factMs"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportStudent": {
+   "file": "report.ts",
+   "required": [
+    "studentId",
+    "fullName",
+    "armNumber"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportTimeMetric": {
+   "file": "report.ts",
+   "required": [
+    "cardId",
+    "stage",
+    "normMs",
+    "factMs",
+    "deviationMs"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportsResponse": {
+   "file": "requests.ts",
+   "required": [
+    "reports",
+    "groupReport"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "Scenario": {
+   "file": "scenario.ts",
+   "required": [
+    "id",
+    "title",
+    "level",
+    "sourceTicketNo",
+    "cardIds",
+    "timeNorms",
+    "hints",
+    "difficulty",
+    "etalon",
+    "validation",
+    "successCriteria",
+    "source"
+   ],
+   "optional": [
+    "callTarget",
+    "mode"
+   ],
+   "extends": []
+  },
+  "ScenarioGenerateRequest": {
+   "file": "teacher.ts",
+   "required": [
+    "category",
+    "requestedBy"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioHints": {
+   "file": "scenario.ts",
+   "required": [
+    "enabled",
+    "texts"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioListQuery": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "group",
+    "difficulty",
+    "source",
+    "validationStatus"
+   ],
+   "extends": []
+  },
+  "ScenarioTimeNorms": {
+   "file": "scenario.ts",
+   "required": [
+    "primaryReactionSec",
+    "fullProcessingSec"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioUpdateRequest": {
+   "file": "teacher.ts",
+   "required": [
+    "updatedBy"
+   ],
+   "optional": [
+    "title",
+    "difficulty",
+    "level",
+    "mode",
+    "timeNorms",
+    "etalon",
+    "successCriteria"
+   ],
+   "extends": []
+  },
+  "ScenarioValidateRequest": {
+   "file": "requests.ts",
+   "required": [
+    "action",
+    "reviewedBy"
+   ],
+   "optional": [
+    "fields",
+    "comment"
+   ],
+   "extends": []
+  },
+  "ScenarioValidation": {
+   "file": "scenario.ts",
+   "required": [
+    "status"
+   ],
+   "optional": [
+    "reviewedBy",
+    "comment",
+    "approvedFields"
+   ],
+   "extends": []
+  },
+  "ServiceNotification": {
+   "file": "classifier.ts",
+   "required": [
+    "service",
+    "mode"
+   ],
+   "optional": [
+    "condition",
+    "mappedType"
+   ],
+   "extends": []
+  },
+  "ServiceRef": {
+   "file": "reference.ts",
+   "required": [
+    "id",
+    "name",
+    "shortName",
+    "kind"
+   ],
+   "optional": [
+    "classifierName"
+   ],
+   "extends": []
+  },
+  "ServiceStatusDef": {
+   "file": "reference.ts",
+   "required": [
+    "status",
+    "title",
+    "requiresComment",
+    "next"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ServiceStatusEvent": {
+   "file": "arm-card.ts",
+   "required": [
+    "status",
+    "at",
+    "actor"
+   ],
+   "optional": [
+    "comment"
+   ],
+   "extends": []
+  },
+  "Session": {
+   "file": "session.ts",
+   "required": [
+    "id",
+    "teacherId",
+    "studentIds",
+    "scenarioIds",
+    "mode",
+    "cardSource",
+    "cardFlow",
+    "state",
+    "startedAt",
+    "cardEvents"
+   ],
+   "optional": [
+    "finishedAt"
+   ],
+   "extends": []
+  },
+  "SessionControlRequest": {
+   "file": "requests.ts",
+   "required": [
+    "action"
+   ],
+   "optional": [
+    "studentId",
+    "cardId"
+   ],
+   "extends": []
+  },
+  "SessionControlResponse": {
+   "file": "requests.ts",
+   "required": [
+    "session",
+    "plan",
+    "paused",
+    "pausedAt",
+    "pendingCount"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SessionCreateRequest": {
+   "file": "requests.ts",
+   "required": [
+    "teacherId",
+    "studentIds",
+    "scenarioIds",
+    "mode",
+    "cardSource"
+   ],
+   "optional": [
+    "cardFlow",
+    "timeNorms",
+    "plan"
+   ],
+   "extends": []
+  },
+  "SessionFeedQuery": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "since",
+    "at",
+    "studentId"
+   ],
+   "extends": []
+  },
+  "SessionFeedResponse": {
+   "file": "requests.ts",
+   "required": [
+    "sessionId",
+    "at",
+    "events"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SessionListQuery": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "teacherId",
+    "studentId",
+    "state"
+   ],
+   "extends": []
+  },
+  "SessionPlan": {
+   "file": "requests.ts",
+   "required": [
+    "categories",
+    "issueOrder",
+    "hints",
+    "timeNorms",
+    "maxGrammarErrors",
+    "paceSec",
+    "conveyor"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SuccessCriteria": {
+   "file": "scenario.ts",
+   "required": [
+    "maxGrammarErrors",
+    "requiredFields",
+    "syntaxRequirements"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemIntegrity": {
+   "file": "admin.ts",
+   "required": [
+    "ok",
+    "checkedAt",
+    "details"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemLogEntry": {
+   "file": "admin.ts",
+   "required": [
+    "id",
+    "at",
+    "level",
+    "source",
+    "message"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemLogsQuery": {
+   "file": "admin.ts",
+   "required": [],
+   "optional": [
+    "level"
+   ],
+   "extends": []
+  },
+  "SystemMonitoring": {
+   "file": "admin.ts",
+   "required": [
+    "generatedAt",
+    "windowHours",
+    "stepMinutes",
+    "labels",
+    "series",
+    "norms"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemService": {
+   "file": "admin.ts",
+   "required": [
+    "id",
+    "name",
+    "state",
+    "uptimeSec",
+    "critical",
+    "description"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemServiceActionRequest": {
+   "file": "admin.ts",
+   "required": [
+    "action"
+   ],
+   "optional": [
+    "adminId"
+   ],
+   "extends": []
+  },
+  "SystemServicesResponse": {
+   "file": "admin.ts",
+   "required": [
+    "services",
+    "integrity"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemSettings": {
+   "file": "admin.ts",
+   "required": [
+    "telephony",
+    "database",
+    "backup",
+    "logging",
+    "security",
+    "performance",
+    "autoRecovery"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "SystemSettingsPatch": {
+   "file": "admin.ts",
+   "required": [],
+   "optional": [
+    "telephony",
+    "backup",
+    "logging",
+    "security",
+    "performance",
+    "autoRecovery",
+    "adminId"
+   ],
+   "extends": []
+  },
+  "TeacherOverride": {
+   "file": "session.ts",
+   "required": [
+    "score",
+    "comment",
+    "at",
+    "by"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ToggleUserActiveRequest": {
+   "file": "requests.ts",
+   "required": [
+    "adminId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "TrainingMaterial": {
+   "file": "teacher.ts",
+   "required": [
+    "id",
+    "name",
+    "format",
+    "sizeBytes",
+    "uploadedBy",
+    "uploadedAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "TranscriptLine": {
+   "file": "session.ts",
+   "required": [
+    "speaker",
+    "text",
+    "at"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "UsageStats": {
+   "file": "admin.ts",
+   "required": [
+    "periods"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "UsageStatsPeriod": {
+   "file": "admin.ts",
+   "required": [
+    "id",
+    "label",
+    "loginsByRole",
+    "activityByTime",
+    "cards"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "UsageStatsQuery": {
+   "file": "admin.ts",
+   "required": [],
+   "optional": [
+    "period"
+   ],
+   "extends": []
+  },
+  "User": {
+   "file": "user.ts",
+   "required": [
+    "id",
+    "login",
+    "password",
+    "fullName",
+    "role",
+    "armNumber",
+    "isActive"
+   ],
+   "optional": [
+    "group",
+    "service",
+    "assignedGroups"
+   ],
+   "extends": []
+  },
+  "UserListQuery": {
+   "file": "requests.ts",
+   "required": [],
+   "optional": [
+    "role",
+    "group"
+   ],
+   "extends": []
+  },
+  "WorkLine": {
+   "file": "arm-card.ts",
+   "required": [
+    "operator",
+    "at",
+    "service",
+    "calledTo",
+    "person",
+    "message"
+   ],
+   "optional": [],
+   "extends": []
+  }
+ }
+}

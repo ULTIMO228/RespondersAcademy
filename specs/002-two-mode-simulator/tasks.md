@@ -200,13 +200,15 @@
 
 **Purpose**: подключить фронт к бэкенду и пройти его сквозные проверки — критерий приёмки волны A
 
-- [ ] T072 Add rewrite to `next.config.ts` — `async rewrites() { return { beforeFiles: process.env.BACKEND_URL ? [{ source: "/api/mock/:path*", destination: `${process.env.BACKEND_URL}/api/mock/:path*` }] : [] } }`; документировать в root `README.md` («Реальный бэкенд: `BACKEND_URL=http://localhost:8000 npm start`»); `npm run check` остаётся зелёным
-- [ ] T073 Create `backend/scripts/extract_ts_fields.py` — извлечение обязательных полей из `src/shared/api/types/*.ts` → `backend/tests/contract/expected_fields.json`; параметризованный тест `backend/tests/contract/test_response_shapes.py` сверяет ответы всех GET-эндпоинтов таблицы с обязательными полями
-- [ ] T074 Create `backend/scripts/run_frontend_e2e.sh` (и `.ps1`) — поднять бэкенд с `--reset` сидом, `npm run build`, `BACKEND_URL=http://localhost:8000 npx next start -p 3130`, прогнать `scripts/e2e-student.sh`, `scripts/e2e-teacher.sh`, `scripts/e2e-admin.sh`; исправить расхождения в бэкенде до PASS всех трёх (правки фронта запрещены, кроме T072)
-- [ ] T075 Add `backend/app/seed/load.py --reset` (truncate + reload) и `backend/tests/integration/test_demo_path.py` — демо-путь `docs/demo-script.md` через HTTP: admin создаёт группу/пользователя → teacher генерирует и утверждает сценарий → занятие на 2 обучаемых → попытки → отчёт → правка → обратная связь → `/arm/progress` данные
+- [X] T072 Add rewrite to `next.config.ts` — `async rewrites() { return { beforeFiles: process.env.BACKEND_URL ? [{ source: "/api/mock/:path*", destination: `${process.env.BACKEND_URL}/api/mock/:path*` }] : [] } }`; документировать в root `README.md` («Реальный бэкенд: `BACKEND_URL=http://localhost:8000 npm start`»); `npm run check` остаётся зелёным
+- [X] T073 Create `backend/scripts/extract_ts_fields.py` — извлечение обязательных полей из `src/shared/api/types/*.ts` → `backend/tests/contract/expected_fields.json`; параметризованный тест `backend/tests/contract/test_response_shapes.py` сверяет ответы всех GET-эндпоинтов таблицы с обязательными полями
+- [X] T074 Create `backend/scripts/run_frontend_e2e.sh` (и `.ps1`) — поднять бэкенд с `--reset` сидом, `npm run build`, `BACKEND_URL=http://localhost:8000 npx next start -p 3130`, прогнать `scripts/e2e-student.sh`, `scripts/e2e-teacher.sh`, `scripts/e2e-admin.sh`; исправить расхождения в бэкенде до PASS всех трёх (правки фронта запрещены, кроме T072)
+- [X] T075 Add `backend/app/seed/load.py --reset` (truncate + reload) и `backend/tests/integration/test_demo_path.py` — демо-путь `docs/demo-script.md` через HTTP: admin создаёт группу/пользователя → teacher генерирует и утверждает сценарий → занятие на 2 обучаемых → попытки → отчёт → правка → обратная связь → `/arm/progress` данные
 - [ ] T076 Run quickstart §1–§6 на чистом окружении (SQLite) и зафиксировать результат в `backend/README.md` («Проверено 2026-MM-DD: e2e PASS, метрики …»)
 
 **Checkpoint (гейт волны A)**: три `scripts/e2e-*.sh` — PASS; `pytest` зелёный; фронт без правок кроме `next.config.ts`
+
+**Checkpoint Phase 9 (2026-09-21)**: `uv run pytest -q` — 146 passed; `uv run ruff check .` — PASS. `backend/scripts/run_frontend_e2e.sh` (Git Bash, Windows): e2e-student 40/40, e2e-teacher 96/96, e2e-admin 140/140, EXIT=0; фронт без правок кроме T072. Правки бэкенда ради гейта (research.md, «Решения реализации гейта волны A»): мягкий фолбэк профиля в `filter_cards_for_student` с WARN в `system_logs`, сгенерированный сценарий = новая карточка + исходная (`cardIds` из двух), `/admin/audit` читает и преподаватель, фоновый прогрев ML при старте (`ML_WARMUP`). T076 — отдельно.
 
 ---
 

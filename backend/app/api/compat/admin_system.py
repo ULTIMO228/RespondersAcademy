@@ -256,7 +256,9 @@ def _parse_date(params, key: str) -> int | None:
 
 @router.get("/admin/audit")
 async def get_audit(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
-    _assert_admin(viewer)
+    # Журнал читает и преподаватель (scripts/e2e-teacher.sh сверяет решения конструктора и правки оценок); студент → 403.
+    if viewer is not None and viewer.role not in ("admin", "teacher"):
+        raise forbidden(ADMIN_ONLY_MESSAGE)
     params = request.query_params
     event_type = read_string(params, "type")
     if event_type is not None and event_type not in AUDIT_EVENT_TYPES:

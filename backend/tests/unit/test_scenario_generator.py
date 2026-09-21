@@ -44,7 +44,8 @@ def test_template_variations_keep_category_and_use_directory_addresses(cards, ad
         assert address_nlp.match(ticket["address"]).exact
         assert "(место:" in ticket["summary"]
         assert scenario["source"] == "generated" and scenario["validation"] == {"status": "pending"}
-        assert scenario["cardIds"] == ["new:0"] and scenario["etalon"]["expectedActions"][0] == "openCard:new:0"
+        assert scenario["cardIds"] == ["new:0", ticket["baseCardId"]] and scenario["etalon"]["expectedActions"][0] == "openCard:new:0"
+        assert f"openCard:{ticket['baseCardId']}" in scenario["etalon"]["expectedActions"]  # исходная карточка — отдельный сегмент эталона
         assert scenario["level"] == "advanced" and scenario["difficulty"] in (3, 4, 5)
         assert scenario["timeNorms"] == {"primaryReactionSec": 30, "fullProcessingSec": 180}
         assert scenario["hints"]["texts"] and scenario["successCriteria"]["maxGrammarErrors"] == 1
@@ -64,10 +65,11 @@ def test_default_traps_and_etalon_from_expected_services(cards, addresses):
     traps = [item["cards"][0].get("trap") for item in produced]
     assert traps == [None, "foreignTerritory", "operatorMistake"]
     clean = produced[0]["scenario"]["etalon"]
-    assert clean["expectedActions"] == ["openCard:new:0", "status:accepted", "call:101", "status:workDone"]
+    assert clean["expectedActions"][:4] == ["openCard:new:0", "status:accepted", "call:101", "status:workDone"]
+    assert clean["expectedActions"][4].startswith("openCard:c-")  # сегмент исходной карточки группы
     assert "расчёт направлен" in clean["keyPhrases"] and produced[0]["scenario"]["callTarget"] == "101"
     foreign = produced[1]["scenario"]["etalon"]
-    assert foreign["expectedActions"] == ["openCard:new:0", "status:notAccepted"]
+    assert foreign["expectedActions"][:2] == ["openCard:new:0", "status:notAccepted"] and foreign["expectedActions"][2].startswith("openCard:c-")
     per_card = foreign["cards"]["new:0"]
     assert per_card["expectedDecision"] == "notAccepted" and per_card["trap"] == "foreignTerritory"
     assert per_card["expectedTransferTo"].startswith("ОДС района ")
@@ -91,10 +93,10 @@ def test_explicit_traps_duplicate_and_cross_region(cards, addresses):
 def test_resolve_placeholders_rewrites_ids(cards, addresses):
     scenario = gen.generate_template(CATEGORY, cards, addresses, count=1, traps=["foreignTerritory"])[0]["scenario"]
     resolved = gen.resolve_placeholders(scenario, ["c-097"])
-    assert resolved["cardIds"] == ["c-097"]
+    assert resolved["cardIds"][0] == "c-097" and len(resolved["cardIds"]) == 2
     assert resolved["etalon"]["expectedActions"][0] == "openCard:c-097"
     assert list(resolved["etalon"]["cards"]) == ["c-097"]
-    assert scenario["cardIds"] == ["new:0"]  # исходный документ не изменён
+    assert scenario["cardIds"][0] == "new:0"  # исходный документ не изменён
 
 
 def test_service_helpers():
