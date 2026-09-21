@@ -1,7 +1,9 @@
 """Доменный словарь `backend/data/domain_words.txt` для спеллчекера (R2): слова из сидов и памятки.
 
 Запуск: `uv run python -m ml.scripts.build_domain_words`. Берутся все словоформы из карточек, сценариев,
-классификатора ЕКП, справочников и служб (spec/mocks), плюс ручной список терминов ниже.
+классификатора ЕКП, справочников и служб (spec/mocks), адресов `mocks/local/addresses.json`, названий улиц
+справочника `data/streets/moscow_streets.json` (иначе валидатор билетов правил бы «Сумская» → «Сумка»),
+плюс ручной список терминов ниже.
 Слова доменного словаря считаются правильными и не исправляются.
 """
 
@@ -56,6 +58,13 @@ def main() -> int:
         path = root / "spec" / "mocks" / name
         if path.exists():
             collect_words(read_json(path), counter)
+    local = root / "mocks" / "local" / "addresses.json"
+    if local.exists():
+        collect_words(read_json(local), counter)
+    streets = OUTPUT.parent / "streets" / "moscow_streets.json"
+    if streets.exists():
+        for street in read_json(streets).get("streets", []):
+            counter.update(WORD.findall(str(street.get("name") or "")))
     memo = root / "hack" / "Фронт" / "Работа с АРМ-112 для ДДС от ОКр_ГСИ.md"
     if memo.exists():
         counter.update(WORD.findall(memo.read_text(encoding="utf-8")))

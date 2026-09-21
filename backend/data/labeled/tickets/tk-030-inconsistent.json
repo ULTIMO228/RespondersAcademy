@@ -1,0 +1,33 @@
+{
+ "id": "tk-030",
+ "kind": "defective",
+ "defect": "inconsistent",
+ "expectedFailed": [
+  "consistency"
+ ],
+ "sourceCardId": "c-017",
+ "note": "в фабулу добавлено «03 не требуется» без признака noAmbulance",
+ "ticket": {
+  "id": "tk-030",
+  "ticketNo": 6,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777, 03 не требуется",
+  "address": "Москва, ул. Красный Казанец, 19Б, напротив дома, на стоянке",
+  "caller": {
+   "name": "Иванов Павел Сергеевич",
+   "phone": "916 897 5623",
+   "status": "пострадавший"
+  },
+  "victims": {
+   "count": 1,
+   "note": "мужчине 40 лет плохо"
+  },
+  "expectedServices": [
+   "103 (главная)"
+  ],
+  "expectedTags": [
+   "Плохо"
+  ]
+ }
+}

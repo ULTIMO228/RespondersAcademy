@@ -31,13 +31,13 @@ Viewer: cookie `arm112_session` (JSON URL-encoded, `token` = JWT) или `Author
 | 21 | `PATCH /scenarios/[id]` | `compat/scenarios` | частичное обновление, `difficulty` → `level`, валидации; `history` | аудит `scenario.update` | T |
 | 22 | `DELETE /scenarios/[id]?deletedBy=` | `compat/scenarios` | 409 для `template` и используемых в занятиях | аудит `scenario.delete` | T |
 | 23 | `POST /scenarios/[id]/validate` | `compat/scenarios` | машина валидации (`submit/approve/approvePartial/reject`), 409 вне графа | аудит `scenario.<action>`; при `approved` — задача TTS (волна B) | T |
-| 24 | `POST /scenarios/generate` | `compat/scenarios` | `ai_gateway.generate_scenario(category)` → 2–3 сценария `pending/generated`, дедупликация по `title`; каждый прогнан через валидатор (R22), отчёт в `validation_report` (201) | аудит `scenario.generate` | T |
-| 25 | `GET /training-cards` | `compat/scenarios` | `incident_cards` (96 + сформированные обучаемыми) → `IncidentCard[]` | — | - |
+| 24 | `POST /scenarios/generate` | `compat/scenarios` | `ai_gateway.generate_scenario(category, cards, addresses)` → 3 сценария `pending/generated` с новыми карточками `c-NNN` (`mode_origin=generated`, ловушки по умолчанию: —, `foreignTerritory`, `operatorMistake`), дедупликация по `title`; каждая карточка прогнана через валидатор (R22), отчёт — `validation_report` и расширение ответа `validationReport` (201); 400 — пустая категория / нет карточек-источников | аудит `scenario.generate` | T |
+| 25 | `GET /training-cards` | `compat/scenarios` | `incident_cards` (96 + сформированные обучаемыми + сгенерированные) → `IncidentCard[]` | — | - |
 | 26 | `GET /materials` | `compat/materials` | новые первыми | — | - |
 | 27 | `POST /materials` | `compat/materials` | формат по расширению (201) | аудит `material.upload` | T |
 | 28 | `GET /profile-mapping` | `compat/profile_mapping` | `profile_mapping` + `studentCount` по `users.service` | — | - |
 | 29 | `PUT /profile-mapping` | `compat/profile_mapping` | 404 на неизвестный id | аудит `profileMapping.save` | T |
-| 30 | `POST /grammar-check` | `compat/grammar` | `ai_gateway.check_grammar` (R2 symspell + R3 адреса при `field` адресном) → `AiResponse<GrammarError[]>` | — | - |
+| 30 | `POST /grammar-check` | `compat/grammar` | `ai_gateway.check_grammar` (R2 symspell + синтаксис) → `AiResponse<GrammarError[]>` (`provider: service`); для адресного `field` синтаксические правила не применяются, зато добавляется похожая улица справочника R3 как `spelling` | — | - |
 | 31 | `GET /sessions` | `compat/sessions` | фильтры `teacherId`, `studentId`, `state`; для S — проекция (свои `studentIds`, `cardFlow`, `cardEvents`); чужой `studentId` → 403; аноним со `studentId` → 401 | — | -/S/T/A |
 | 32 | `POST /sessions` | `compat/sessions` | мастер → `configured`, `plan` сохраняется (201) | — | T |
 | 33 | `POST /sessions/[id]/start` | `compat/sessions` | `configured → running`; `card_flow_items` по `plan` (темп, порядок, конвейер, категории, профили; без плана — шаг 3 мин); 409 | — | T |

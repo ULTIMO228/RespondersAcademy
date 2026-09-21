@@ -1,0 +1,30 @@
+{
+ "id": "tk-025",
+ "kind": "defective",
+ "defect": "inconsistent",
+ "expectedFailed": [
+  "consistency"
+ ],
+ "sourceCardId": "c-008",
+ "note": "в фабулу добавлено «03 не требуется» без признака noAmbulance",
+ "ticket": {
+  "id": "tk-025",
+  "ticketNo": 3,
+  "situationNo": 2,
+  "group": "нарушение тишины",
+  "summary": "Громко играет музыка во дворе, 03 не требуется",
+  "address": "Бульвар Маршала Рокоссовского, 25, двор",
+  "caller": {
+   "name": "Соколов Иван Петрович",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Нарушение тишины - в неразрешенное время",
+   "Шум, музыка, ремонт, сигнализация автомашины"
+  ]
+ }
+}

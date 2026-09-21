@@ -1,0 +1,33 @@
+{
+ "id": "tk-040",
+ "kind": "defective",
+ "defect": "wrongCategory",
+ "expectedFailed": [
+  "category"
+ ],
+ "sourceCardId": "c-043",
+ "note": "группа «пожар на улице» заменена на «Радиация»",
+ "ticket": {
+  "id": "tk-040",
+  "ticketNo": 15,
+  "situationNo": 1,
+  "group": "Радиация",
+  "summary": "Горит лес за деревней Варварино, пострадавших нет",
+  "address": "МО, Дмитровский г.о., за деревней Варварино",
+  "caller": {
+   "name": "Антонова Мария Петровна",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "crossRegion": true,
+  "expectedServices": [
+   "перевод вызова в ЦУС Московской обл.",
+   "101 (МЧС региона)"
+  ],
+  "expectedTags": [
+   "на улице",
+   "Лес",
+   "открытое пламя"
+  ]
+ }
+}

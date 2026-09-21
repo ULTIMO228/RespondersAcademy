@@ -1,8 +1,14 @@
 """ИИ-шлюз — интерфейс как у фронта (`app/api/mock/_server/ai-gateway.ts`): единая точка подключения ML.
 
-Реализованы локально (backend/ml): оценка попытки, проверка грамматики, инсайты группы.
-Генерация сценариев и реплики ИИ-абонента — точки расширения для команды ИИ-агентов: `LocalAiGateway`
-отдаёт детерминированные заглушки, замена — через `set_gateway()` или подкласс.
+Реализованы локально (backend/ml): оценка попытки, проверка грамматики, инсайты группы, генерация сценариев
+(`ml.generate.scenario_generator`: шаблонный путь всегда, LLM-путь через Ollama при `OLLAMA_URL`, решение
+2026-09-21). Реплики ИИ-абонента — точка расширения команды ИИ-агентов: заглушка `None`.
+
+Граница для команды ИИ-агентов: заменить реализацию можно через `set_gateway()` или подклассом `LocalAiGateway`,
+не меняя эндпоинты. Контракт `generate_scenario`: вход — категория (группа ЕКП), карточки банка (контракт
+`IncidentCard`), адреса справочника, число вариаций и ловушки; выход — список `{ "scenario": Scenario без id,
+"cards": [IncidentCard без id] }` с плейсхолдерами `new:<i>` (см. `ml.generate.scenario_generator`). Сервис
+сам назначает id, прогоняет валидатор и пишет аудит — реализации шлюза этого делать не нужно.
 """
 
 from __future__ import annotations
@@ -21,7 +27,7 @@ class AiGateway(Protocol):
 
     def group_insights(self, session: dict[str, Any], reports: list[dict[str, Any]]) -> list[str]: ...
 
-    def generate_scenario(self, category: str, cards: list[dict[str, Any]], count: int = 3) -> list[dict[str, Any]]: ...
+    def generate_scenario(self, category: str, cards: list[dict[str, Any]], addresses: list[dict[str, Any]], *, count: int = 3, traps: list[str | None] | None = None) -> list[dict[str, Any]]: ...
 
     def call_reply(self, to_number: str, turn: str, context: dict[str, Any]) -> dict[str, Any] | None: ...
 
@@ -41,9 +47,10 @@ class LocalAiGateway:
 
         return build_insights(session, reports)
 
-    def generate_scenario(self, category: str, cards: list[dict[str, Any]], count: int = 3) -> list[dict[str, Any]]:
-        # Точка подключения генератора (US6, команда ИИ-агентов): пока сценарии не генерируются.
-        return []
+    def generate_scenario(self, category: str, cards: list[dict[str, Any]], addresses: list[dict[str, Any]], *, count: int = 3, traps: list[str | None] | None = None) -> list[dict[str, Any]]:
+        from ml.generate import scenario_generator
+
+        return scenario_generator.generate(category, cards, addresses, count=count, traps=traps)
 
     def call_reply(self, to_number: str, turn: str, context: dict[str, Any]) -> dict[str, Any] | None:
         # Точка подключения ИИ-абонента (US10, команда ИИ-агентов).

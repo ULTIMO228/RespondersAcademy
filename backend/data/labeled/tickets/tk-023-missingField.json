@@ -1,0 +1,27 @@
+{
+ "id": "tk-023",
+ "kind": "defective",
+ "defect": "missingField",
+ "expectedFailed": [
+  "requiredFields"
+ ],
+ "sourceCardId": "c-005",
+ "note": "пустой список ожидаемых служб",
+ "ticket": {
+  "id": "tk-023",
+  "ticketNo": 2,
+  "situationNo": 2,
+  "group": "Скандал",
+  "summary": "Поругался с продавцом «Мегафон», бросил трубку",
+  "address": "Москва, Сущевский Вал, 5, стр.1",
+  "caller": {
+   "name": "не указан",
+   "phone": "916 896 3254",
+   "status": "участник"
+  },
+  "expectedServices": [],
+  "expectedTags": [
+   "Скандал"
+  ]
+ }
+}

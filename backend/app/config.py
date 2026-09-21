@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     seed_dir: Path = Field(default=REPO_ROOT, alias="SEED_DIR")
     var_dir: Path = Field(default=BACKEND_DIR / "var", alias="VAR_DIR")
     ollama_url: str | None = Field(default=None, alias="OLLAMA_URL")
+    ollama_model: str = Field(default="qwen2.5:7b-instruct", alias="OLLAMA_MODEL")
+    ollama_timeout_sec: float = Field(default=120.0, alias="OLLAMA_TIMEOUT_SEC")
     api_prefixes: list[str] = Field(default=["/api/mock", "/api/v1"], alias="API_PREFIXES")
     two_factor_stub: bool = Field(default=True, alias="TWO_FACTOR_STUB")
     app_env: str = Field(default="dev", alias="APP_ENV")

@@ -24,7 +24,7 @@
 
 | Таблица | Поля | Примечания |
 |---|---|---|
-| `incident_cards` | `id` c-NNN PK, `ticket_no`, `situation_no`, `group`, `summary`, `address`, `address_refined`?, `caller` JSON, `victims` JSON?, `no_ambulance`?, `cross_region`?, `expected_services` JSON, `expected_tags` JSON, `duplicate_of`?, `created_by_student_id`? FK, `mode_origin` (`seed` \| `operator112`), `source_attempt_id`? | 96 учебных карточек + карточки, сформированные обучаемыми (US8); `GET /training-cards` |
+| `incident_cards` | `id` c-NNN PK, `ticket_no`, `situation_no`, `group`, `summary`, `address`, `address_refined`?, `caller` JSON, `victims` JSON?, `no_ambulance`?, `cross_region`?, `expected_services` JSON, `expected_tags` JSON, `duplicate_of`?, `created_by_student_id`? FK, `mode_origin` (`seed` \| `operator112` \| `generated`), `source_attempt_id`?, `extra` JSON? (расширения контракта: у сгенерированных — `baseCardId`, `fabulaCardId`?, `trap`?, `raion`?) | 96 учебных карточек + карточки, сформированные обучаемыми (US8) + вариации генератора (US6); `GET /training-cards` |
 | `arm_card_fixtures` | `id` card-NNNNNN PK, `number`, `created_at`, `registered_by`, `source`, `card_status`, `phones` JSON, `sms_list` JSON?, `applicant` JSON, `address` JSON, `what` JSON, `description`, `work_lines` JSON, `notification_list` JSON, `emergency` JSON, `created_by_vis` | 12 UI-фикстур; `fixture_map` (group → fixture id) — правило в коде, как `src/shared/api/mock/fixture-map.ts` |
 | `card_runtime` | `card_id` PK (card-* или c-NNN), `status_events` JSON[] (`CardStatusEvent`), `work_lines` JSON[], `reminders` JSON[], `sms` JSON[] (входящие фикстуры + исходящие), `current_dds_status`?, `closed` bool | «store» мутаций мок-слоя; `GET /cards/[id]` возвращает `CardDetails { kind, resolvedFixtureId?, runtime }` |
 
@@ -32,7 +32,7 @@
 
 | Таблица | Поля | Примечания |
 |---|---|---|
-| `scenarios` | `id` s-NNN PK, `title`, `level`, `source_ticket_no`, `card_ids` JSON, `time_norms` JSON, `hints` JSON, `call_target`?, `difficulty` 1–5, `etalon` JSON, `validation` JSON (`status`, `reviewedBy`, `comment`, `fields`?), `success_criteria` JSON, `source` (`template` \| `generated` \| `manual` \| `import`), `mode`? (`demo` \| `follow` \| `practice`), `updated_by`?, `updated_at`, `deleted` bool, `validation_report` JSON? (R22), `history` JSON[] (версии) | `DELETE` запрещён для `template` и используемых в занятиях (409 `conflict`); `difficulty` → `level` (1–2 beginner, 3–5 advanced) |
+| `scenarios` | `id` s-NNN PK, `title`, `level`, `source_ticket_no`, `card_ids` JSON, `time_norms` JSON, `hints` JSON, `call_target`?, `difficulty` 1–5, `etalon` JSON, `validation` JSON (`status`, `reviewedBy`, `comment`, `fields`?), `success_criteria` JSON, `source` (`template` \| `generated` \| `manual` \| `import`), `mode`? (`demo` \| `follow` \| `practice`), `updated_by`?, `updated_at`, `deleted` bool, `validation_report` JSON? (R22: `{ version, passed, needsReview, checks[{ id, passed, needsReview, message, confidence?, available, details, cardId }], tickets{cardId → отчёт} }`), `history` JSON[] (версии: `{ at, by, changes[], previous{} }`) | `DELETE` — мягкое (`deleted=true`), запрещён для `template` и используемых в занятиях (409 `conflict`); `difficulty` → `level` (1–2 beginner, 3–5 advanced); у сгенерированных в `doc.generation` — `{ provider, baseCardId, trap, category }` |
 | `training_materials` | `id` mat-NNN PK, `name`, `size_bytes`?, `format` (DOCX/PDF/MP3 по расширению), `uploaded_by` FK, `uploaded_at` | новые первыми |
 | `profile_mapping` | `id` PK, `profile`, `group_name`?, `service_ids` JSON[], `incident_groups` JSON[], `updated_by`?, `updated_at` | существующая модель `app/models/teacher.py` соответствует контракту `ProfileMappingRow`; сид скопирован из `src/shared/config` в `app/seed/profile_mapping_seed.py`; `studentCount` считается по `users.service` для роли student |
 
@@ -81,7 +81,7 @@
 
 - **Статусы ДДС** (`reference.ddsStatuses[].next`): старт → `accepted` | `notAccepted`; `accepted` → `responseStarted` → `arrived` → `workInProgress` → `workDone`; после `accepted` на любом этапе — `workRefused`; `notAccepted` → только `accepted`. `requiresComment` (`notAccepted`, `workRefused`) без комментария → 400 `validationFailed`; вне графа → 409 `invalidTransition`; неизвестный статус → 400. `workDone`/`workRefused` закрывают карточку.
 - **Занятие**: `draft → configured → running → finished → reported`; `start` только из `configured`, `stop` только из `running`, `control.report` только из `finished` (иначе 409). `pause/resume` — флаг внутри `running`.
-- **Валидация сценария**: `draft → pending` (submit) → `approved` | `rejected` (approve/approvePartial/reject); повторный `submit` из `rejected` разрешён; из `approved` — только через PATCH → `draft`.
+- **Валидация сценария**: `draft → pending` (submit) → `approved` | `rejected` (approve/approvePartial/reject); `submit` разрешён из `draft`, `rejected` и `approved` (граф мока; `scripts/e2e-teacher.sh` возвращает утверждённый сценарий на проверку), `PATCH` статус не меняет.
 - **Попытка**: открыта (`completed_at` пусто) → завершена (`completedAt`), либо «прервана»/«не завершено» при завершении занятия.
 - **Задание/экзамен (волна B)**: `assigned → in_progress → completed (passed | failed)`; экзамен — одна попытка на билет, повтор → 409.
 

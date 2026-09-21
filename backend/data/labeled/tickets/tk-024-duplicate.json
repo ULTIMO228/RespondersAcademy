@@ -1,0 +1,33 @@
+{
+ "id": "tk-024",
+ "kind": "defective",
+ "defect": "duplicate",
+ "expectedFailed": [
+  "duplicate"
+ ],
+ "sourceCardId": "c-007",
+ "note": "фабула и адрес скопированы из c-018 без duplicateOf",
+ "ticket": {
+  "id": "tk-024",
+  "ticketNo": 3,
+  "situationNo": 1,
+  "group": "пожар в жилом доме",
+  "summary": "Трое мужчин плывут на льдине",
+  "address": "МО, Раменский г.о., р. Быковка, СНТ Малаховский городок (дер. Михнево)",
+  "caller": {
+   "name": "Иванова Инна Степановна",
+   "phone": "916-126-34-71",
+   "status": "очевидец"
+  },
+  "crossRegion": true,
+  "expectedServices": [
+   "перевод вызова в ЦУС Московской обл.",
+   "101 (МЧС региона)"
+  ],
+  "expectedTags": [
+   "жилой дом",
+   "частный дом",
+   "открытое пламя"
+  ]
+ }
+}

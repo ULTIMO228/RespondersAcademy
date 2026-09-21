@@ -23,6 +23,7 @@ PREFIX = {
     "session": "ses",
     "attempt": "att",
     "call": "call",
+    "card": "c",
 }
 
 

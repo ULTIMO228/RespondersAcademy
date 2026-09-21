@@ -1,0 +1,33 @@
+{
+ "id": "tk-038",
+ "kind": "defective",
+ "defect": "duplicate",
+ "expectedFailed": [
+  "duplicate"
+ ],
+ "sourceCardId": "c-041",
+ "note": "фабула и адрес скопированы из c-008 без duplicateOf",
+ "ticket": {
+  "id": "tk-038",
+  "ticketNo": 14,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Громко играет музыка во дворе",
+  "address": "Бульвар Маршала Рокоссовского, 25, двор",
+  "caller": {
+   "name": "брат",
+   "phone": "916 897 5623",
+   "status": "родственник"
+  },
+  "victims": {
+   "count": 1,
+   "note": "ребёнок 12 л., задыхается, астма"
+  },
+  "expectedServices": [
+   "103 (главная)"
+  ],
+  "expectedTags": [
+   "Задыхается"
+  ]
+ }
+}

@@ -10,7 +10,7 @@ from urllib.parse import unquote
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.errors import forbidden, unauthorized
+from app.api.errors import forbidden, unauthorized, validation_failed
 from app.db.session import get_db
 from app.models.user import User
 from app.services.security import decode_token
@@ -113,6 +113,26 @@ async def require_admin_actor(db: AsyncSession, viewer: Viewer | None, admin_id:
     if user is None or user.role != "admin":
         raise forbidden("Действие доступно только администратору")
     return user
+
+
+async def require_teacher_actor(db: AsyncSession, viewer: Viewer | None, user_id: object, field: str) -> User:
+    """Преподаватель-автор действия по id из тела/query (как в моке: 400, если это не преподаватель).
+
+    При наличии сессии (решение Phase 5): обучающийся → 403; преподаватель может действовать только от своего
+    имени → иначе 403; администратор — без ограничений.
+    """
+    if viewer is not None and viewer.role not in ("teacher", "admin"):
+        raise forbidden("Действие доступно преподавателю и администратору")
+    user = await db.get(User, user_id) if isinstance(user_id, str) and user_id else None
+    if user is None or user.role != "teacher":
+        raise validation_failed(f"Поле «{field}» — userId преподавателя")
+    if viewer is not None and viewer.role == "teacher" and viewer.user_id != user.id:
+        raise forbidden("Нельзя действовать от имени другого преподавателя")
+    return user
+
+
+def actor_role(viewer: Viewer | None, fallback: str = "teacher") -> str:
+    return viewer.role if viewer is not None else fallback
 
 
 DbDep = Depends(get_db)
