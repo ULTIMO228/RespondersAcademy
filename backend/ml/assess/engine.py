@@ -29,7 +29,7 @@ from ml.assess.types import (
     TimeNorms,
 )
 
-ASSESSOR_VERSION = "dds-1.0.0"
+ASSESSOR_VERSION = "dds-1.1.0"  # 1.1: компонент report по сверке доклада с карточкой (US10)
 COMPONENTS_DDS = (timing, decision, statuses, comments, fields, grammar, address, multitask, report)
 # Решение команды (spec 002, US2 сценарий 2): неверное первичное решение — не сдал. Итог ограничен сверху:
 # нет статуса реагирования (памятка №1) — 0,4; статус не соответствует заявке / отказ от профильного (№2, №3) — 0,5.

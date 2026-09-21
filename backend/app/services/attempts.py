@@ -34,7 +34,8 @@ async def _scenario_ids_for_card(db: AsyncSession, card_id: str) -> list[str]:
     return [row.id for row in rows if card_id in (row.card_ids or [])]
 
 
-async def _find_existing(db: AsyncSession, card_id: str, student_id: str) -> tuple[TrainingSession, Attempt] | None:
+async def find_student_attempt(db: AsyncSession, card_id: str, student_id: str) -> tuple[TrainingSession, Attempt] | None:
+    """Последняя попытка курсанта по карточке: сначала идущее занятие, затем самое позднее по startedAt."""
     sessions = list((await db.execute(select(TrainingSession))).scalars().all())
     sessions.sort(key=lambda s: (0 if s.state == "running" else 1, -parse_iso_ms(s.started_at)))
     for session in sessions:
@@ -78,7 +79,7 @@ async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any]) -> 
         raise validation_failed("Укажите курсанта (studentId)")
     student_id = student_id.strip()
     issued_at = _read_iso(body["issuedAt"], "issuedAt") if body.get("issuedAt") is not None else None
-    existing = await _find_existing(db, card_id, student_id)
+    existing = await find_student_attempt(db, card_id, student_id)
     if existing:
         session, attempt = existing
         return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False

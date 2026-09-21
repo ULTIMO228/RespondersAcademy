@@ -2,13 +2,17 @@
 
 Реализованы локально (backend/ml): оценка попытки, проверка грамматики, инсайты группы, генерация сценариев
 (`ml.generate.scenario_generator`: шаблонный путь всегда, LLM-путь через Ollama при `OLLAMA_URL`, решение
-2026-09-21). Реплики ИИ-абонента — точка расширения команды ИИ-агентов: заглушка `None`.
+2026-09-21). Реплики ИИ-абонента — точка расширения команды ИИ-агентов: заглушка `None`, при которой
+`compat/calls` использует детерминированный `ml.insights.call_responder` (решение US10, 2026-09-21).
 
 Граница для команды ИИ-агентов: заменить реализацию можно через `set_gateway()` или подклассом `LocalAiGateway`,
 не меняя эндпоинты. Контракт `generate_scenario`: вход — категория (группа ЕКП), карточки банка (контракт
 `IncidentCard`), адреса справочника, число вариаций и ловушки; выход — список `{ "scenario": Scenario без id,
 "cards": [IncidentCard без id] }` с плейсхолдерами `new:<i>` (см. `ml.generate.scenario_generator`). Сервис
 сам назначает id, прогоняет валидатор и пишет аудит — реализации шлюза этого делать не нужно.
+Контракт `call_reply`: вход — номер точки C, ход `answer`/`reply`, `context = { "number": InternalNumber,
+"text": реплика диспетчера, "reference": Reference }`; выход — `{ text, voice: male|female, speakerTitle }` либо `None`
+(тогда отвечает детерминированный ответчик). Сверку доклада с чек-листом выполняет бэкенд при записи вызова.
 """
 
 from __future__ import annotations
@@ -53,7 +57,7 @@ class LocalAiGateway:
         return scenario_generator.generate(category, cards, addresses, count=count, traps=traps)
 
     def call_reply(self, to_number: str, turn: str, context: dict[str, Any]) -> dict[str, Any] | None:
-        # Точка подключения ИИ-абонента (US10, команда ИИ-агентов).
+        # Точка подключения ИИ-абонента (US10, команда ИИ-агентов); None → ml.insights.call_responder в compat/calls.
         return None
 
 

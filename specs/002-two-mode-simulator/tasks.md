@@ -170,9 +170,11 @@
 
 ### Implementation for User Story 10
 
-- [ ] T064 [P] [US10] Create `backend/ml/insights/call_responder.py` — конечный автомат ответчика: `answer` → «Слушаю» (по `reference.internalNumbers[].title`), `reply` → «Понял, информация принята» (+ вариации по службе), `voice` male/female детерминированно по номеру, `speakerTitle`; при `text` доклада — сверка с чек-листом (номер карточки, адрес, тип, пострадавшие, решение) → сохраняется в попытку для компонента `report`
-- [ ] T065 [US10] Create `backend/app/api/compat/calls.py` — `POST /cards/{id}/calls` (`{ studentId, toNumber, startedAt, endedAt, transcript }` → `phone_calls` попытки курсанта по карточке, идущее занятие приоритетно, 404 карточка/номер/нет попытки, 201), `POST /calls/reply` (`{ toNumber, turn, text? }` → T064; 400 мусор, 404 номер)
-- [ ] T066 [US10] Create contract tests `backend/tests/contract/test_calls.py` — строки 16–17 контракта
+- [X] T064 [P] [US10] Create `backend/ml/insights/call_responder.py` — конечный автомат ответчика: `answer` → «Слушаю» (по `reference.internalNumbers[].title`), `reply` → «Понял, информация принята» (+ вариации по службе), `voice` male/female детерминированно по номеру, `speakerTitle`; при `text` доклада — сверка с чек-листом (номер карточки, адрес, тип, пострадавшие, решение) → сохраняется в попытку для компонента `report`
+- [X] T065 [US10] Create `backend/app/api/compat/calls.py` — `POST /cards/{id}/calls` (`{ studentId, toNumber, startedAt, endedAt, transcript }` → `phone_calls` попытки курсанта по карточке, идущее занятие приоритетно, 404 карточка/номер/нет попытки, 201), `POST /calls/reply` (`{ toNumber, turn, text? }` → T064; 400 мусор, 404 номер)
+- [X] T066 [US10] Create contract tests `backend/tests/contract/test_calls.py` — строки 16–17 контракта
+
+**Checkpoint Phase 7**: `uv run pytest -q` — 97 passed; `uv run ruff check .` — PASS. Ответчик — фолбэк за `AiGateway.call_reply` (заглушка команды ИИ остаётся); сверка доклада хранится в `attempts.calls[i].report` и питает компонент `report` оценщика (`dds-1.1.0`); unit-тесты `tests/unit/test_call_responder.py`.
 
 ---
 

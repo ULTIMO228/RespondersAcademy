@@ -83,6 +83,11 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 - Генератор (`ml/generate/scenario_generator.py`): шаблонный путь без сети; при заданных `OLLAMA_URL` / `OLLAMA_MODEL` (`OLLAMA_TIMEOUT_SEC`, см. `.env.example`) и доступном сервере — LLM-путь с JSON-схемой и ≤ 2 повторами, при сбое — шаблон. Подключён в `LocalAiGateway.generate_scenario` (`app/ai_gateway.py`); подмена реализации командой ИИ-агентов — через `set_gateway()`.
 - `scripts/e2e-teacher.sh` на Windows не гоняется (curl из Git Bash портит кириллицу в argv); генерация проверена на живом сервере, общий гейт — T074.
 
+## Phase 7: софтфон B→C
+
+- `POST /calls/reply` (`{ toNumber, turn: answer|reply, text? }` → `AiResponse<CallReply>`): сначала `AiGateway.call_reply` (зона команды ИИ-агентов, заглушка `None`), затем детерминированный `ml/insights/call_responder.py` — «Слушаю вас» / «Понял, информация принята» с вариациями по службе, голос по чётности номера, `speakerTitle` из `reference.internalNumbers`; 404 «Абонент не найден».
+- `POST /cards/{id}/calls` (`{ studentId, toNumber, startedAt, endedAt, transcript }` → 201 `{ sessionId, attemptId, call }`): вызов дописывается в `CardEvent.calls` последней попытки курсанта по карточке (идущее занятие приоритетно); попытку создаёт открытие карточки. Расширение `call.report` — сверка доклада с фактами карточки (номер карточки, адрес, тип, пострадавшие, решение); при оценке попытки без `etalon.reportChecklist` пропуски попадают в ошибку `reportIncomplete` (оценщик `dds-1.1.0`).
+
 ## Переменные окружения
 
 См. `.env.example`. Ключевые: `DATABASE_URL`, `JWT_SECRET`, `SEED_DIR`, `MODELS_DIR`, `OLLAMA_URL`.
