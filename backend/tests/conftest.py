@@ -20,7 +20,7 @@ from app.services import reference as reference_service
 
 DEMO_USERS = {
     "student": {"login": "ivanov", "password": "student112", "armNumber": 1},
-    "student2": {"login": "petrov", "password": "student112", "armNumber": 2},
+    "student2": {"login": "petrova", "password": "student112", "armNumber": 2},
     "teacher": {"login": "morozova", "password": "teacher112", "armNumber": 21},
     "admin": {"login": "admin", "password": "admin112", "armNumber": 24},
     "blocked": {"login": "egorov", "password": "student112", "armNumber": 6},

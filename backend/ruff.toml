@@ -7,3 +7,7 @@ ignore = ["E501"]
 
 [lint.isort]
 known-first-party = ["app", "ml"]
+
+[lint.flake8-bugbear]
+# FastAPI: Depends() в значениях по умолчанию — идиома фреймворка
+extend-immutable-calls = ["fastapi.Depends"]

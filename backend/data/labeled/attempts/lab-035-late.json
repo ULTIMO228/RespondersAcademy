@@ -1,0 +1,177 @@
+{
+ "id": "lab-035",
+ "name": "late",
+ "note": "опоздание",
+ "attempt": {
+  "id": "lab-035",
+  "cardId": "c-061",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:42:05+03:00",
+  "primaryReactionMs": 59000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:42:20+03:00",
+    "dutyNumber": "17"
+   },
+   {
+    "ddsStatus": "workDone",
+    "at": "2026-09-18T10:44:01+03:00",
+    "comment": "Работы завершены, опасности нет"
+   }
+  ],
+  "servicesCalled": [
+   "102",
+   "103"
+  ],
+  "completedAt": "2026-09-18T10:44:01+03:00",
+  "fullProcessingMs": 116000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, наряд полиции направлен, бригада СМП направлена",
+   "outfitNumber": "4"
+  },
+  "calls": [
+   {
+    "toNumber": "102",
+    "startedAt": "2026-09-18T10:42:40+03:00",
+    "endedAt": "2026-09-18T10:43:05+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T10:42:41+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 21: Дерутся 10–15 человек, 5 пострадавших, палки и железные прутья. Адрес: Москва, рядом с посольством Азербайджана на тротуаре (Леонтьевский пер., 16, стр. 1). Прошу направить наряд.",
+      "at": "2026-09-18T10:42:43+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T10:42:46+03:00"
+     }
+    ]
+   },
+   {
+    "toNumber": "103",
+    "startedAt": "2026-09-18T10:43:18+03:00",
+    "endedAt": "2026-09-18T10:43:43+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T10:43:19+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 21: Дерутся 10–15 человек, 5 пострадавших, палки и железные прутья. Адрес: Москва, рядом с посольством Азербайджана на тротуаре (Леонтьевский пер., 16, стр. 1). Прошу направить наряд.",
+      "at": "2026-09-18T10:43:21+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T10:43:24+03:00"
+     }
+    ]
+   }
+  ]
+ },
+ "scenario": {
+  "id": "s-021",
+  "title": "Билет 21: массовая драка + травма топором + ребёнок заперт в машине",
+  "level": "advanced",
+  "sourceTicketNo": 21,
+  "source": "template",
+  "cardIds": [
+   "c-061",
+   "c-062",
+   "c-063"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Массовая драка с прутьями, 5 пострадавших — 102 усиленный наряд + 103",
+    "Травма топором с кровотечением — 103",
+    "Ребёнок заперт в машине — 102 + 101 на вскрытие"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-061",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone",
+    "openCard:c-062",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-063",
+    "status:accepted",
+    "call:102",
+    "call:101",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "наряд полиции направлен",
+    "бригада СМП направлена",
+    "массовая драка",
+    "ребёнок заперт в автомобиле"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-061",
+  "ticketNo": 21,
+  "situationNo": 1,
+  "group": "Драка",
+  "summary": "Дерутся 10–15 человек, 5 пострадавших, палки и железные прутья",
+  "address": "Москва, рядом с посольством Азербайджана на тротуаре (Леонтьевский пер., 16, стр. 1)",
+  "caller": {
+   "name": "Иванов Пётр Иванович",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "victims": {
+   "count": 5,
+   "note": "пострадавшие при массовой драке"
+  },
+  "expectedServices": [
+   "102 (главная)",
+   "103"
+  ],
+  "expectedTags": [
+   "Драка",
+   "Улица общественное место",
+   "Массовая (от 10 человек)",
+   "Пострадавшие"
+  ],
+  "duplicateOf": "c-002"
+ },
+ "session": null,
+ "expectedErrors": [
+  "timeReactionExceeded"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 90
+}

@@ -1,0 +1,123 @@
+{
+ "id": "lab-026",
+ "name": "trap-incompleteComment",
+ "note": "«не обслуживаем» без «кому передано»",
+ "attempt": {
+  "id": "lab-026",
+  "cardId": "c-070",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:28:11+03:00",
+  "primaryReactionMs": 11000,
+  "statuses": [
+   {
+    "ddsStatus": "notAccepted",
+    "at": "2026-09-18T10:28:23+03:00",
+    "comment": "не обслуживаем"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:28:23+03:00",
+  "fullProcessingMs": 12000,
+  "enteredText": {
+   "dispatcherAction": "не обслуживаем",
+   "outfitNumber": "—"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-024-trap",
+  "title": "Билет 24: конфликт из-за парковки + ребёнок с горки + попрошайка с младенцем",
+  "level": "beginner",
+  "sourceTicketNo": 24,
+  "source": "template",
+  "cardIds": [
+   "c-070",
+   "c-071",
+   "c-072"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": true,
+   "texts": [
+    "Ссора из-за парковки — 102",
+    "Ребёнок упал с горки, кровотечение — 103",
+    "Попрошайка с младенцем, окровавленное лицо ребёнка — 102 + 103"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 1,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-070",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-071",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-072",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "наряд полиции направлен",
+    "бригада СМП направлена",
+    "ребёнок с окровавленным лицом"
+   ],
+   "cards": {
+    "c-070": {
+     "expectedDecision": "notAccepted",
+     "expectedTransferTo": "Мосводоканал",
+     "trap": "operatorMistake",
+     "expectedCommentPhrases": [
+      "передано в Мосводоканал"
+     ]
+    }
+   }
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-070",
+  "ticketNo": 24,
+  "situationNo": 1,
+  "group": "Скандал",
+  "summary": "Ссора во дворе из-за парковки",
+  "address": "Москва, ул. Вешняковская, 37, двор у 5 подъезда",
+  "caller": {
+   "name": "Соколов Иван Петрович",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Скандал"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "incompleteComment"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 85
+}

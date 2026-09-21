@@ -39,6 +39,22 @@ DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run pyt
   `unit`, `integration`.
 - `var/` — рантайм (БД SQLite, аудио, бэкапы), `models/` — локальные модели; оба вне git.
 
+## ML: модели и данные
+
+```bash
+uv sync --extra nlp --group dev                 # torch CPU + sentence-transformers (~500 МБ)
+uv run python -m ml.scripts.prepare_models      # rubert-tiny2 → backend/models (единственная точка сети)
+uv run python -m ml.scripts.eval_assessor       # метрики оценщика на data/labeled → var/metrics.json
+uv run python -m ml.scripts.calibrate [--db]    # ridge-подбор весов (+ правки преподавателей) → var/weights.json
+```
+
+- Без extra `nlp`/модели оценщик работает: смысловые компоненты считаются лексически и помечаются
+  `available=false` (FR-043). Первая загрузка модели ~10 с, дальше — в памяти процесса.
+- Данные в репозитории: `data/streets/moscow_streets.json` (OSM, `ml.scripts.build_streets`),
+  `data/dict/ru_frequency.txt` + `data/domain_words.txt` (`ml.scripts.build_domain_words`) для symspell,
+  `data/labeled/` (размеченная выборка, `ml.scripts.build_labeled`, правила — `data/labeled/README.md`).
+- Индекс spellcheck кэшируется в `var/symspell_ru.pkl` (пересобирается при изменении словарей).
+
 ## Переменные окружения
 
 См. `.env.example`. Ключевые: `DATABASE_URL`, `JWT_SECRET`, `SEED_DIR`, `MODELS_DIR`, `OLLAMA_URL`.

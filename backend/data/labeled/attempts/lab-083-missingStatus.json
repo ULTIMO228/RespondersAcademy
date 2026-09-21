@@ -1,0 +1,142 @@
+{
+ "id": "lab-083",
+ "name": "missingStatus",
+ "note": "пропущен статус",
+ "attempt": {
+  "id": "lab-083",
+  "cardId": "c-037",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T11:24:07+03:00",
+  "primaryReactionMs": 7000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T11:24:16+03:00",
+    "dutyNumber": "4"
+   }
+  ],
+  "servicesCalled": [
+   "101"
+  ],
+  "completedAt": "2026-09-18T11:25:46+03:00",
+  "fullProcessingMs": 99000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, расчёт направлен",
+   "outfitNumber": "10"
+  },
+  "calls": [
+   {
+    "toNumber": "101",
+    "startedAt": "2026-09-18T11:24:46+03:00",
+    "endedAt": "2026-09-18T11:25:21+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T11:24:47+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 13: Горят деревья, площадь 10×10 м, пострадавших нет. Адрес: Москва, Кусковский лесопарк. Прошу направить наряд.",
+      "at": "2026-09-18T11:24:49+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T11:24:52+03:00"
+     }
+    ]
+   }
+  ]
+ },
+ "scenario": {
+  "id": "s-013",
+  "title": "Билет 13: пожар-деревья в парке + роды в авто + мужчина в крови на обочине",
+  "level": "advanced",
+  "sourceTicketNo": 13,
+  "source": "template",
+  "cardIds": [
+   "c-037",
+   "c-038",
+   "c-039"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Вход в лесопарк со стороны аллеи Первой Маёвки — передайте расчёту 101",
+    "Роды в автомобиле — 103, зафиксируйте госномер и маршрут",
+    "Мужчина в крови на обочине МКАД — 103 + 102"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 3,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-037",
+    "status:accepted",
+    "call:101",
+    "status:workDone",
+    "openCard:c-038",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-039",
+    "status:accepted",
+    "call:103",
+    "call:102",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "бригада СМП направлена",
+    "информация передана в дежурную часть",
+    "ориентиры уточнены"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-037",
+  "ticketNo": 13,
+  "situationNo": 1,
+  "group": "пожар на улице",
+  "summary": "Горят деревья, площадь 10×10 м, пострадавших нет",
+  "address": "Москва, Кусковский лесопарк",
+  "addressRefined": "рядом со стадионом Фрезер, вход со стороны аллеи Первой Маёвки",
+  "caller": {
+   "name": "Сидорова Ольга Викторовна",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)"
+  ],
+  "expectedTags": [
+   "на улице",
+   "Парк",
+   "открытое пламя"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "statusMissing"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 85
+}

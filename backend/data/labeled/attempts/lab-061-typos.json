@@ -1,0 +1,147 @@
+{
+ "id": "lab-061",
+ "name": "typos",
+ "note": "2 опечатки",
+ "attempt": {
+  "id": "lab-061",
+  "cardId": "c-091",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T11:03:09+03:00",
+  "primaryReactionMs": 9000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T11:03:23+03:00",
+    "dutyNumber": "12"
+   },
+   {
+    "ddsStatus": "workDone",
+    "at": "2026-09-18T11:04:44+03:00",
+    "comment": "Работы завершены, опасности нет"
+   }
+  ],
+  "servicesCalled": [
+   "102"
+  ],
+  "completedAt": "2026-09-18T11:04:44+03:00",
+  "fullProcessingMs": 95000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение пренято, наряд полиции напрален",
+   "outfitNumber": "12"
+  },
+  "calls": [
+   {
+    "toNumber": "102",
+    "startedAt": "2026-09-18T11:03:37+03:00",
+    "endedAt": "2026-09-18T11:04:12+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T11:03:38+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 31: Угон Mercedes чёрный А128АА 177 на глазах у владельца, уехал в сторону Садового кольца. Адрес: Москва, ул. Большая Ордынка на пересечении с Пыжёвским пер.. Прошу направить наряд.",
+      "at": "2026-09-18T11:03:40+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T11:03:43+03:00"
+     }
+    ]
+   }
+  ]
+ },
+ "scenario": {
+  "id": "s-031",
+  "title": "Билет 31: угон на глазах + наезд-машина скрылась + свист газовой трубы (03 не тр.)",
+  "level": "advanced",
+  "sourceTicketNo": 31,
+  "source": "template",
+  "cardIds": [
+   "c-091",
+   "c-092",
+   "c-093"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Угон на глазах, направление движения — 102 немедленно",
+    "Наезд, машина скрылась: часть номера ?128??177 — 103 + 102",
+    "Свист газовой трубы — 104; пометка «03 не требуется» — СМП не вызывайте"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 3,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-091",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-092",
+    "status:accepted",
+    "call:103",
+    "call:102",
+    "status:workDone",
+    "openCard:c-093",
+    "status:accepted",
+    "call:104",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "заявка принята",
+    "бригада",
+    "газ",
+    "ориентировка на автомобиль передана",
+    "наряд полиции направлен"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-091",
+  "ticketNo": 31,
+  "situationNo": 1,
+  "group": "Угон транспорта",
+  "summary": "Угон Mercedes чёрный А128АА 177 на глазах у владельца, уехал в сторону Садового кольца",
+  "address": "Москва, ул. Большая Ордынка на пересечении с Пыжёвским пер.",
+  "caller": {
+   "name": "Соколов Иван Петрович",
+   "phone": "916 896 3254",
+   "status": "пострадавший"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Угон транспорта",
+   "Транспорт автомашина",
+   "До 30 минут"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "grammarLimitExceeded"
+ ],
+ "expectedGrammarErrors": 2,
+ "expertScore": 82
+}

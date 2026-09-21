@@ -1,0 +1,118 @@
+{
+ "id": "lab-045",
+ "name": "refusedProfile-noComment",
+ "note": "«Не принята» по профильному без комментария",
+ "attempt": {
+  "id": "lab-045",
+  "cardId": "c-049",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:49:10+03:00",
+  "primaryReactionMs": 10000,
+  "statuses": [
+   {
+    "ddsStatus": "notAccepted",
+    "at": "2026-09-18T10:49:20+03:00"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:49:20+03:00",
+  "fullProcessingMs": 10000,
+  "enteredText": {
+   "dispatcherAction": "",
+   "outfitNumber": ""
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-017",
+  "title": "Билет 17: пожарная сигнализация + судороги в магазине + избита женщина",
+  "level": "beginner",
+  "sourceTicketNo": 17,
+  "source": "template",
+  "cardIds": [
+   "c-049",
+   "c-050",
+   "c-051"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": true,
+   "texts": [
+    "Сигнализация без дыма и возгорания — проверка 101, не закрывайте карточку до подтверждения",
+    "Судороги с пеной изо рта — 103, зафиксируйте травму головы при падении",
+    "Избита женщина — 102 + 103"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 2,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-049",
+    "status:accepted",
+    "call:101",
+    "status:workDone",
+    "openCard:c-050",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-051",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "проверка сигнализации",
+    "бригада СМП направлена",
+    "наряд полиции направлен"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-049",
+  "ticketNo": 17,
+  "situationNo": 1,
+  "group": "пожар в жилом доме",
+  "summary": "Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет",
+  "address": "Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215",
+  "caller": {
+   "name": "Сухов Леонид Сергеевич",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)"
+  ],
+  "expectedTags": [
+   "жилой дом",
+   "сигнализация"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "missedRequiredCall",
+  "missingComment",
+  "refusedProfile",
+  "requiredFieldMissing",
+  "statusMissing"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 0
+}

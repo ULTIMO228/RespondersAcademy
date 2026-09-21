@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -25,8 +25,10 @@ from app.models import (
     CardRuntime,
     ClassifierEntry,
     Evaluation,
+    GroupReport,
     IncidentCard,
     ReferenceEntry,
+    Report,
     Scenario,
     SystemSettings,
     TrainingSession,
@@ -297,6 +299,53 @@ async def seed_sessions(db: AsyncSession, paths: SeedPaths) -> int:
     return len(sessions)
 
 
+async def seed_reports(db: AsyncSession, paths: SeedPaths) -> int:
+    """reports.json → статические отчёты (static=True): никогда не пересобираются (docs/mock-api.md)."""
+    path = paths.spec("reports.json")
+    if not path.exists():
+        return 0
+    data = read_json(path)
+    reports = data.get("reports", [])
+    for doc in reports:
+        await _upsert(
+            db,
+            Report,
+            "id",
+            {
+                "id": doc["id"],
+                "session_id": doc["sessionId"],
+                "student_id": doc["student"]["studentId"],
+                "generated_at": doc["generatedAt"],
+                "export_formats": doc.get("exportFormats", ["csv", "pdf"]),
+                "student": doc["student"],
+                "time_metrics": doc.get("timeMetrics", []),
+                "grammar_errors": doc.get("grammarErrors", []),
+                "errors": doc.get("errors", []),
+                "score": int(doc.get("score", 0)),
+                "charts": doc.get("charts", {}),
+                "ai_comment": doc.get("aiComment"),
+                "static": True,
+            },
+        )
+    group = data.get("groupReport")
+    if group:
+        await _upsert(
+            db,
+            GroupReport,
+            "id",
+            {
+                "id": group["id"],
+                "session_id": group["sessionId"],
+                "generated_at": group["generatedAt"],
+                "report_ids": group.get("reportIds") or [r["id"] for r in reports if r["sessionId"] == group["sessionId"]],
+                "group_insights": group.get("groupInsights", []),
+                "charts": group.get("charts", {}),
+                "static": True,
+            },
+        )
+    return len(reports)
+
+
 async def seed_addresses(db: AsyncSession, paths: SeedPaths) -> int:
     path = paths.local / "addresses.json"
     if not path.exists():
@@ -361,6 +410,7 @@ async def run_seed(seed_dir: Path | None = None, reset: bool = False) -> dict[st
         summary["armCardFixtures"] = await seed_fixtures(db, paths)
         summary["scenarios"] = await seed_scenarios(db, paths)
         summary["sessions"] = await seed_sessions(db, paths)
+        summary["reports"] = await seed_reports(db, paths)
         summary["addresses"] = await seed_addresses(db, paths)
         summary.update(await seed_admin(db, paths))
         await db.commit()

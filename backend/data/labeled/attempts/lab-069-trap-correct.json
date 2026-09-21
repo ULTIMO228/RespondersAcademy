@@ -1,0 +1,132 @@
+{
+ "id": "lab-069",
+ "name": "trap-correct",
+ "note": "ловушка распознана: ошибка оператора 112: по фабуле прорыв трубы, тип «запах газа»",
+ "attempt": {
+  "id": "lab-069",
+  "cardId": "c-095",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T11:10:10+03:00",
+  "primaryReactionMs": 10000,
+  "statuses": [
+   {
+    "ddsStatus": "notAccepted",
+    "at": "2026-09-18T11:10:23+03:00",
+    "comment": "Не обслуживаем территорию, информация передана в Мосводоканал"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T11:10:23+03:00",
+  "fullProcessingMs": 13000,
+  "enteredText": {
+   "dispatcherAction": "Не обслуживаем территорию, информация передана в Мосводоканал",
+   "outfitNumber": "—"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-032-trap",
+  "title": "Билет 32: заблокирован проезд (03 не тр.) + ДТП с пострадавшими и утечкой + пожар освещения",
+  "level": "advanced",
+  "sourceTicketNo": 32,
+  "source": "template",
+  "cardIds": [
+   "c-094",
+   "c-095",
+   "c-096"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Пометка «03 не требуется» — СМП не вызывайте, только 102 (ГИБДД)",
+    "ДТП: 3 пострадавших в троллейбусе + течёт бензин — 103 + 102 + 101 (пожарный риск)",
+    "Горит уличное освещение на МКАД — 101, укажите километры"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-094",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-095",
+    "status:accepted",
+    "call:103",
+    "call:102",
+    "call:101",
+    "status:workDone",
+    "openCard:c-096",
+    "status:accepted",
+    "call:101",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "бригада направлена",
+    "место",
+    "утечка топлива",
+    "3 пострадавших",
+    "пожарный расчёт направлен"
+   ],
+   "cards": {
+    "c-095": {
+     "expectedDecision": "notAccepted",
+     "expectedTransferTo": "Мосводоканал",
+     "trap": "operatorMistake",
+     "expectedCommentPhrases": [
+      "передано в Мосводоканал"
+     ]
+    }
+   }
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-095",
+  "ticketNo": 32,
+  "situationNo": 2,
+  "group": "Дорожно-транспортные происшествия с пострадавшими",
+  "summary": "ДТП, 3 пострадавших в троллейбусе (маршрут 27, борт. № 11458), не блокированы + ВАЗ-2115, течёт бензин",
+  "address": "Москва, Волгоградский проспект в сторону области, остановка «Завод Спецэлектрод»",
+  "caller": {
+   "name": "Иванова Елена Сергеевна",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "victims": {
+   "count": 3,
+   "note": "пострадавшие в троллейбусе, не блокированы"
+  },
+  "expectedServices": [
+   "103 (главная)",
+   "102",
+   "101 (пожарный риск)"
+  ],
+  "expectedTags": [
+   "ДТП пострадавшие",
+   "Транспорт общественный",
+   "Разлив топлива"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [],
+ "expectedGrammarErrors": 0,
+ "expertScore": 100
+}

@@ -1,0 +1,127 @@
+{
+ "id": "lab-015",
+ "name": "late",
+ "note": "опоздание",
+ "attempt": {
+  "id": "lab-015",
+  "cardId": "c-065",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:21:18+03:00",
+  "primaryReactionMs": 65000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:21:30+03:00",
+    "dutyNumber": "5"
+   },
+   {
+    "ddsStatus": "workDone",
+    "at": "2026-09-18T10:25:54+03:00",
+    "comment": "Работы завершены, опасности нет"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:25:54+03:00",
+  "fullProcessingMs": 276000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, вызов переведён в ЦУС другого региона",
+   "outfitNumber": "13"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-022",
+  "title": "Билет 22: драка в квартире + ребёнку плохо в машине (др. регион) + суицид по СМС",
+  "level": "advanced",
+  "sourceTicketNo": 22,
+  "source": "template",
+  "cardIds": [
+   "c-064",
+   "c-065",
+   "c-066"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Драка в квартире без оружия — 102",
+    "Ребёнку плохо у вокзала Ржев-1 — переведите вызов в ЦУС Тверской области",
+    "СМС о суициде — 102 + 103, доступа в квартиру нет, держите заявителя на линии"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 5,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-064",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-065",
+    "status:accepted",
+    "transfer:region",
+    "status:workDone",
+    "openCard:c-066",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "наряд полиции направлен",
+    "вызов переведён в ЦУС Тверской области",
+    "угроза суицида",
+    "доступ в квартиру отсутствует"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-065",
+  "ticketNo": 22,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Соловьёв Максим, 4 г., боль в животе, рвота с кровью; а/м Mazda-6 белый, П325ОР 197",
+  "address": "Ленинградское ш., около памятника Ленину, напротив вокзала ст. Ржев-1 (ехали из Зубцова в сторону Селижарово)",
+  "caller": {
+   "name": "папа",
+   "phone": "916 896 3254",
+   "status": "родственник"
+  },
+  "victims": {
+   "count": 1,
+   "note": "ребёнок 4 г., рвота с кровью"
+  },
+  "crossRegion": true,
+  "expectedServices": [
+   "перевод вызова в ЦУС Тверской обл.",
+   "СМП региона"
+  ],
+  "expectedTags": [
+   "Боль в животе",
+   "Рвота"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "timeProcessingExceeded",
+  "timeReactionExceeded"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 80
+}

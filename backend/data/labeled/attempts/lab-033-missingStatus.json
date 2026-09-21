@@ -1,0 +1,165 @@
+{
+ "id": "lab-033",
+ "name": "missingStatus",
+ "note": "пропущен статус",
+ "attempt": {
+  "id": "lab-033",
+  "cardId": "c-012",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:35:18+03:00",
+  "primaryReactionMs": 18000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:35:32+03:00",
+    "dutyNumber": "14"
+   }
+  ],
+  "servicesCalled": [
+   "102",
+   "101"
+  ],
+  "completedAt": "2026-09-18T10:37:12+03:00",
+  "fullProcessingMs": 114000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, наряд полиции направлен, расчёт направлен",
+   "outfitNumber": "11"
+  },
+  "calls": [
+   {
+    "toNumber": "102",
+    "startedAt": "2026-09-18T10:35:51+03:00",
+    "endedAt": "2026-09-18T10:36:16+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T10:35:52+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 4: Пожилой инвалид, одинокий, не открывает дверь 3-й день. Адрес: Зеленоград, 9 мкр., корп. 902, кв. 45, под. 1, эт. 3, код 45В. Прошу направить наряд.",
+      "at": "2026-09-18T10:35:54+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T10:35:57+03:00"
+     }
+    ]
+   },
+   {
+    "toNumber": "101",
+    "startedAt": "2026-09-18T10:36:22+03:00",
+    "endedAt": "2026-09-18T10:36:47+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T10:36:23+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 4: Пожилой инвалид, одинокий, не открывает дверь 3-й день. Адрес: Зеленоград, 9 мкр., корп. 902, кв. 45, под. 1, эт. 3, код 45В. Прошу направить наряд.",
+      "at": "2026-09-18T10:36:25+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T10:36:28+03:00"
+     }
+    ]
+   }
+  ]
+ },
+ "scenario": {
+  "id": "s-004",
+  "title": "Билет 04: пожар-балкон 13 эт. + потеря сознания + пожилой не открывает дверь",
+  "level": "advanced",
+  "sourceTicketNo": 4,
+  "source": "template",
+  "cardIds": [
+   "c-010",
+   "c-011",
+   "c-012"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Номер дома уточнён: ул. Грина, 11 — зафиксируйте уточнение",
+    "Дом газифицирован — отметьте риск в карточке",
+    "Пожилой не открывает дверь 3-й день: 102 + 101 на вскрытие"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 3,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-010",
+    "status:accepted",
+    "call:101",
+    "status:workDone",
+    "openCard:c-011",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-012",
+    "status:accepted",
+    "call:102",
+    "call:101",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "адрес уточнён",
+    "бригада СМП направлена",
+    "информация передана в дежурную часть"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-012",
+  "ticketNo": 4,
+  "situationNo": 3,
+  "group": "Социальная помощь",
+  "summary": "Пожилой инвалид, одинокий, не открывает дверь 3-й день",
+  "address": "Зеленоград, 9 мкр., корп. 902, кв. 45, под. 1, эт. 3, код 45В",
+  "caller": {
+   "name": "Иванова Елена Сергеевна",
+   "phone": "916 896 3254",
+   "status": "знакомый"
+  },
+  "expectedServices": [
+   "101 (главная)",
+   "102",
+   "103"
+  ],
+  "expectedTags": [
+   "Одинокий инвалид  пожилой человек или болен, ограничен в движении",
+   "Открыть дверь в квартиру"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "statusMissing"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 85
+}

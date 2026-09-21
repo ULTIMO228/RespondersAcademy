@@ -1,4 +1,10 @@
-from app.services.session_engine import build_feed, order_for_student, pace_ms_for_student, project_for_student, schedule_for_student
+from app.services.session_engine import (
+    build_feed,
+    order_for_student,
+    pace_ms_for_student,
+    project_for_student,
+    schedule_for_student,
+)
 
 SESSION = {
     "id": "ses-1",

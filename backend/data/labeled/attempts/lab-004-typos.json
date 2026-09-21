@@ -1,0 +1,125 @@
+{
+ "id": "lab-004",
+ "name": "typos",
+ "note": "2 опечатки",
+ "attempt": {
+  "id": "lab-004",
+  "cardId": "c-035",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:07:16+03:00",
+  "primaryReactionMs": 16000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:07:26+03:00",
+    "dutyNumber": "15"
+   },
+   {
+    "ddsStatus": "workDone",
+    "at": "2026-09-18T10:07:49+03:00",
+    "comment": "Работы завершены, опасности нет"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:07:49+03:00",
+  "fullProcessingMs": 33000,
+  "enteredText": {
+   "dispatcherAction": "Сообшение пренято, вызов переведён в ЦУС другого региона",
+   "outfitNumber": "13"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-012",
+  "title": "Билет 12: задымление в ресторане + боли в сердце (др. регион) + мужчина в крови на мосту",
+  "level": "advanced",
+  "sourceTicketNo": 12,
+  "source": "template",
+  "cardIds": [
+   "c-034",
+   "c-035",
+   "c-036"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Ресторан в Жуковке — используйте уточнённый адрес: дом 70",
+    "Вызов из Тульской области — переведите в ЦУС региона",
+    "Мужчина в крови на мосту — 103 + 102 (возможен криминал)"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-034",
+    "status:accepted",
+    "call:101",
+    "status:workDone",
+    "openCard:c-035",
+    "status:accepted",
+    "transfer:region",
+    "status:workDone",
+    "openCard:c-036",
+    "status:accepted",
+    "call:103",
+    "call:102",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "адрес уточнён",
+    "вызов переведён в ЦУС Тульской области",
+    "бригада СМП направлена"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-035",
+  "ticketNo": 12,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Сергеева Наталья Петровна, 55 л., сильные боли в сердце",
+  "address": "Тульская обл., просёлочная дорога от пос. Октябрьский Киреевского р-на в сторону пос. Троицкий, у водокачки рядом с плотиной р. Шиворонь",
+  "caller": {
+   "name": "Петрова Ирина Сергеевна",
+   "phone": "916 897 5623",
+   "status": "знакомый"
+  },
+  "victims": {
+   "count": 1,
+   "note": "сильные боли в сердце"
+  },
+  "crossRegion": true,
+  "expectedServices": [
+   "перевод вызова в ЦУС Тульской обл.",
+   "СМП региона"
+  ],
+  "expectedTags": [
+   "Плохо с сердцем"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "grammarLimitExceeded"
+ ],
+ "expectedGrammarErrors": 2,
+ "expertScore": 82
+}

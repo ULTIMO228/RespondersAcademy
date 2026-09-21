@@ -1,0 +1,134 @@
+{
+ "id": "lab-041",
+ "name": "trap-incompleteComment",
+ "note": "«не обслуживаем» без «кому передано»",
+ "attempt": {
+  "id": "lab-041",
+  "cardId": "c-061",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:42:05+03:00",
+  "primaryReactionMs": 5000,
+  "statuses": [
+   {
+    "ddsStatus": "notAccepted",
+    "at": "2026-09-18T10:42:20+03:00",
+    "comment": "не обслуживаем"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:42:20+03:00",
+  "fullProcessingMs": 15000,
+  "enteredText": {
+   "dispatcherAction": "не обслуживаем",
+   "outfitNumber": "—"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-021-trap",
+  "title": "Билет 21: массовая драка + травма топором + ребёнок заперт в машине",
+  "level": "advanced",
+  "sourceTicketNo": 21,
+  "source": "template",
+  "cardIds": [
+   "c-061",
+   "c-062",
+   "c-063"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Массовая драка с прутьями, 5 пострадавших — 102 усиленный наряд + 103",
+    "Травма топором с кровотечением — 103",
+    "Ребёнок заперт в машине — 102 + 101 на вскрытие"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-061",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone",
+    "openCard:c-062",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-063",
+    "status:accepted",
+    "call:102",
+    "call:101",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "наряд полиции направлен",
+    "бригада СМП направлена",
+    "массовая драка",
+    "ребёнок заперт в автомобиле"
+   ],
+   "cards": {
+    "c-061": {
+     "expectedDecision": "notAccepted",
+     "expectedTransferTo": "КП-36814850",
+     "trap": "duplicate",
+     "expectedCommentPhrases": [
+      "передано в КП-36814850"
+     ]
+    }
+   }
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-061",
+  "ticketNo": 21,
+  "situationNo": 1,
+  "group": "Драка",
+  "summary": "Дерутся 10–15 человек, 5 пострадавших, палки и железные прутья",
+  "address": "Москва, рядом с посольством Азербайджана на тротуаре (Леонтьевский пер., 16, стр. 1)",
+  "caller": {
+   "name": "Иванов Пётр Иванович",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "victims": {
+   "count": 5,
+   "note": "пострадавшие при массовой драке"
+  },
+  "expectedServices": [
+   "102 (главная)",
+   "103"
+  ],
+  "expectedTags": [
+   "Драка",
+   "Улица общественное место",
+   "Массовая (от 10 человек)",
+   "Пострадавшие"
+  ],
+  "duplicateOf": "c-002"
+ },
+ "session": null,
+ "expectedErrors": [
+  "incompleteComment"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 85
+}

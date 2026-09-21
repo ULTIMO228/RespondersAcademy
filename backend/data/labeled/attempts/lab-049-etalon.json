@@ -1,0 +1,121 @@
+{
+ "id": "lab-049",
+ "name": "etalon",
+ "note": "эталонная отработка",
+ "attempt": {
+  "id": "lab-049",
+  "cardId": "c-055",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:56:09+03:00",
+  "primaryReactionMs": 9000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:56:21+03:00",
+    "dutyNumber": "10"
+   },
+   {
+    "ddsStatus": "workDone",
+    "at": "2026-09-18T10:56:46+03:00",
+    "comment": "Работы завершены, опасности нет"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:56:46+03:00",
+  "fullProcessingMs": 37000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, вызов переведён в ЦУС другого региона",
+   "outfitNumber": "21"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-019",
+  "title": "Билет 19: пожар-поле (др. регион) + укус змеи (др. регион) + сбила электричка",
+  "level": "advanced",
+  "sourceTicketNo": 19,
+  "source": "template",
+  "cardIds": [
+   "c-055",
+   "c-056",
+   "c-057"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Поле горит в Тульской области — переведите в ЦУС региона",
+    "Укус змеи в Рязанской области — переведите в ЦУС региона",
+    "Сбила электричка на переходе — 103 + 102, уведомьте дежурного по платформе"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-055",
+    "status:accepted",
+    "transfer:region",
+    "status:workDone",
+    "openCard:c-056",
+    "status:accepted",
+    "transfer:region",
+    "status:workDone",
+    "openCard:c-057",
+    "status:accepted",
+    "call:103",
+    "call:102",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "вызов переведён в ЦУС Тульской области",
+    "вызов переведён в ЦУС Рязанской области",
+    "бригада СМП направлена",
+    "дежурный по платформе уведомлён"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-055",
+  "ticketNo": 19,
+  "situationNo": 1,
+  "group": "пожар на улице",
+  "summary": "Горит поле, пострадавших нет",
+  "address": "Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки",
+  "caller": {
+   "name": "Орлова Вера Ивановна",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "crossRegion": true,
+  "expectedServices": [
+   "перевод вызова в ЦУС Тульской обл.",
+   "101 (МЧС региона)"
+  ],
+  "expectedTags": [
+   "на улице",
+   "Трава",
+   "открытое пламя"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [],
+ "expectedGrammarErrors": 0,
+ "expertScore": 100
+}

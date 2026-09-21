@@ -1,0 +1,104 @@
+"""Реестр правил оценщика (принцип II конституции): у каждого правила — источник и текст пояснения.
+
+Режим B (ДДС): семь нарушений отдела контроля реагирования из памятки «Работа с АРМ-112 для ДДС»
+(ОКР ГСИ, стр. 28–31), тайминги из Q&A заказчика (30 с / 3 мин), решение и служба-получатель
+по классификатору ЕКП (эталон сценария), адрес по справочнику улиц (Q&A «Дубнинская/Дубининская»),
+признаки угадывания и многозадачность — решения команды, зафиксированные в spec 002.
+
+`Evaluation.errors[].message` = «<текст> — <source>» (одна строка, объяснимая преподавателю).
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from ml.assess.types import AssessError
+
+MEMO = "памятка «Работа с АРМ-112 для ДДС» (ОКР ГСИ), стр. 28–31"
+QA_TIMING = "Q&A заказчика: норматив первичной реакции 30 с, полной отработки 3 мин"
+EKP = "классификатор ЕКП и эталон сценария (список оповещения карточки)"
+QA_ADDRESS = "Q&A заказчика: адрес проверяется по справочнику улиц Москвы («Дубнинская» / «Дубининская»)"
+TEAM = "решение команды (spec 002-two-mode-simulator"
+SCENARIO = "критерии успеха сценария (Scenario.successCriteria)"
+ETALON = "эталон сценария (Scenario.etalon)"
+
+
+@dataclass(frozen=True)
+class Rule:
+    id: str
+    error_type: str
+    severity: str  # critical | major | minor
+    source: str
+    text: str  # шаблон пояснения (str.format по именованным полям)
+
+    def error(self, step: str | None = None, fixed: bool = False, **fields: object) -> AssessError:
+        text = self.text.format(**fields) if fields else self.text
+        return AssessError(rule_id=self.id, type=self.error_type, severity=self.severity, message=f"{text} — {self.source}", step=step, fixed=fixed)
+
+
+RULES: dict[str, Rule] = {}
+
+
+def _register(rule: Rule) -> Rule:
+    if rule.id in RULES:
+        raise ValueError(f"duplicate rule id: {rule.id}")
+    RULES[rule.id] = rule
+    return rule
+
+
+# ─── Семь нарушений памятки (режим B) ──────────────────────────────────────────────────────────────
+
+V1_NO_PRIMARY_STATUS = _register(Rule("v1", "noPrimaryStatus", "critical", f"{MEMO}, нарушение №1", "Отсутствует статус реагирования: по карточке не проставлено ни «Принята», ни «Не принята»"))
+V2_WRONG_DECISION = _register(Rule("v2", "wrongDecision", "critical", f"{MEMO}, нарушение №2", "Статус реагирования не соответствует заявке: проставлено «{actual}», ожидалось «{expected}»{hint}"))
+V2_TRAP_MISSED = _register(Rule("v2t", "wrongDecision", "critical", f"{MEMO}, нарушение №2", "Не распознана ловушка ({trap}): проставлено «{actual}», ожидалось «{expected}»{hint}"))
+V3_REFUSED_PROFILE = _register(Rule("v3", "refusedProfile", "critical", f"{MEMO}, нарушение №3", "Отказ от реагирования на профильное происшествие: проставлено «{actual}», ожидалось «{expected}»"))
+V4_MISSING_COMMENT = _register(Rule("v4", "missingComment", "critical", f"{MEMO}, нарушение №4", "Нет комментария к статусу «{status}»: укажите причину и кому передана информация"))
+V5_INCOMPLETE_COMMENT = _register(Rule("v5", "incompleteComment", "major", f"{MEMO}, нарушение №5", "Неполный комментарий к статусу «{status}»: не указано {missing}"))
+V6_NO_PROGRESS_STATUS = _register(Rule("v6", "noProgressStatus", "major", f"{MEMO}, нарушение №6", "Отсутствует статус хода выполнения работ «{status}» после полученной информации о ходе реагирования"))
+V6_NO_PROGRESS_COMMENT = _register(Rule("v6c", "noProgressStatus", "minor", f"{MEMO}, нарушение №6", "Статус хода работ «{status}» без комментария о ходе реагирования"))
+V7_NO_CONTACT = _register(Rule("v7", "noContact", "major", f"{MEMO}, нарушение №7", "Не обеспечена оперативная связь: не отвечено на звонок отдела контроля / руководителя смены ({number})"))
+
+# ─── Тайминги (Q&A) ───────────────────────────────────────────────────────────────────────────────
+
+TIME_REACTION = _register(Rule("t1", "timeReactionExceeded", "major", QA_TIMING, "Превышен норматив первичной реакции: {fact} с (норма {norm} с)"))
+TIME_PROCESSING = _register(Rule("t2", "timeProcessingExceeded", "major", QA_TIMING, "Превышено время полной отработки: {fact} с (норма {norm} с)"))
+TIME_NOT_COMPLETED = _register(Rule("t3", "timeNotCompleted", "major", QA_TIMING, "Отработка карточки не завершена к окончанию занятия"))
+
+# ─── Решение и служба-получатель (ЕКП / эталон) ───────────────────────────────────────────────────
+
+MISSED_CALL = _register(Rule("d1", "missedRequiredCall", "critical", EKP, "Пропущен ожидаемый звонок точке C: {target}"))
+WRONG_RECIPIENT = _register(Rule("d2", "wrongRecipient", "major", EKP, "Информация передана не той службе: звонок {actual}, ожидалось {expected}"))
+TRANSFER_MISSING = _register(Rule("d3", "transferMissing", "major", EKP, "Не выполнен перевод вызова в ЦУС другого региона (происшествие вне зоны ответственности)"))
+DUPLICATE_MISSED = _register(Rule("d4", "wrongDecision", "major", f"{MEMO}, нарушение №4 (дубль)", "Карточка — дубль карточки {original}: ожидалось «Не принята: дубль, реагирование по КП»"))
+
+# ─── Статусы хода работ (эталон + памятка №6) ─────────────────────────────────────────────────────
+
+STATUS_MISSING = _register(Rule("s1", "statusMissing", "major", f"{ETALON}; {MEMO}, нарушение №6", "Не проставлен ожидаемый статус ДДС «{status}»"))
+STATUS_ORDER = _register(Rule("s2", "statusSequenceOrder", "minor", f"{ETALON}; граф статусов reference.ddsStatuses", "Нарушен порядок статусов относительно эталона: {actual}"))
+STATUS_NOT_CLOSED = _register(Rule("s3", "statusMissing", "major", f"{MEMO}, статус «Не завершено»", "Карточка не закрыта: нет статуса «Работы завершены» или «Отказ от выполнения работ»"))
+
+# ─── Комментарии и смысл ──────────────────────────────────────────────────────────────────────────
+
+KEY_PHRASE_MISSING = _register(Rule("c1", "keyPhraseMissing", "minor", f"{ETALON}: keyPhrases; Q&A «сравнение смысловое, не побуквенное»", "В действиях диспетчера не отражено: {phrases}"))
+REPORT_INCOMPLETE = _register(Rule("c2", "reportIncomplete", "minor", f"{TEAM}, FR-035i): чек-лист доклада точке C", "В докладе по телефону не прозвучало: {items}"))
+
+# ─── Поля и грамотность (критерии сценария) ───────────────────────────────────────────────────────
+
+FIELD_MISSING = _register(Rule("f1", "requiredFieldMissing", "major", f"{SCENARIO}: requiredFields", "Не заполнено обязательное поле «{field}»"))
+GRAMMAR_LIMIT = _register(Rule("g1", "grammarLimitExceeded", "major", f"{SCENARIO}: maxGrammarErrors", "Грамматических ошибок: {count} (допустимо {limit})"))
+
+# ─── Адрес (Q&A) ──────────────────────────────────────────────────────────────────────────────────
+
+ADDRESS_LOOKALIKE = _register(Rule("a1", "addressLookalike", "major", QA_ADDRESS, "Похожая улица: введено «{entered}», по билету «{expected}»"))
+ADDRESS_TYPO = _register(Rule("a2", "addressTypo", "minor", QA_ADDRESS, "Опечатка в названии улицы: «{entered}» (справочник: «{expected}»)"))
+ADDRESS_MISMATCH = _register(Rule("a3", "addressMismatch", "critical", QA_ADDRESS, "Адрес не совпадает с билетом: введено «{entered}», ожидалось «{expected}»"))
+ADDRESS_UNKNOWN = _register(Rule("a4", "addressUnknown", "major", QA_ADDRESS, "Улица «{entered}» не найдена в справочнике улиц Москвы"))
+
+# ─── Многозадачность и угадывание (решения команды) ───────────────────────────────────────────────
+
+PARALLEL_IGNORED = _register(Rule("m1", "parallelCardIgnored", "major", f"{TEAM}, FR-035f): реакция на параллельные карточки", "Параллельная карточка {card} не открыта в норматив реакции ({norm} с) во время работы с текущей"))
+GUESSING = _register(Rule("x1", "guessing", "minor", f"{TEAM}, FR-042): порог чтения карточки", "Возможное угадывание: решение принято через {fact} с после открытия карточки (порог {threshold} с)"))
+
+
+def by_type(error_type: str) -> list[Rule]:
+    return [rule for rule in RULES.values() if rule.error_type == error_type]

@@ -1,0 +1,122 @@
+{
+ "id": "lab-010",
+ "name": "missingStatus",
+ "note": "пропущен статус",
+ "attempt": {
+  "id": "lab-010",
+  "cardId": "c-015",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:14:14+03:00",
+  "primaryReactionMs": 14000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:14:21+03:00",
+    "dutyNumber": "5"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T10:14:54+03:00",
+  "fullProcessingMs": 40000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, вызов переведён в ЦУС другого региона",
+   "outfitNumber": "21"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-005",
+  "title": "Билет 05: пожар-окно 9 эт. + отравление + стройка",
+  "level": "advanced",
+  "sourceTicketNo": 5,
+  "source": "template",
+  "cardIds": [
+   "c-013",
+   "c-014",
+   "c-015"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "На балконе 2 человека — отметьте угрозу людям: 101 + 103",
+    "Отравление лекарствами: 103, зафиксируйте ФИО и дату рождения пострадавшей",
+    "Стройка в Химках — переведите вызов в ЦУС Московской области"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-013",
+    "status:accepted",
+    "call:101",
+    "call:103",
+    "status:workDone",
+    "openCard:c-014",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-015",
+    "status:accepted",
+    "transfer:region",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "угроза людям",
+    "бригада СМП направлена",
+    "вызов переведён в ЦУС Московской области"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-015",
+  "ticketNo": 5,
+  "situationNo": 3,
+  "group": "Падение с высоты, в люки, колодцы, на рельсы",
+  "summary": "Рабочий упал в котлован на стройке жилого дома",
+  "address": "МО, г.о. Химки, мкр. Подрезково, стройка между ул. Центральная и 1-я Лесная",
+  "caller": {
+   "name": "Иванова Елена Сергеевна",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "victims": {
+   "count": 1,
+   "note": "рабочий упал в котлован"
+  },
+  "crossRegion": true,
+  "expectedServices": [
+   "перевод вызова в ЦУС Московской обл.",
+   "103 (СМП региона)",
+   "101 (МЧС региона)"
+  ],
+  "expectedTags": [
+   "Падение",
+   "Падение человека с высоты (из окна с балкона на стройке в котлован на производстве )"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "statusMissing"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 85
+}

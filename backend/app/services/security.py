@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 import string
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from argon2 import PasswordHasher
@@ -33,7 +33,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 def issue_token(user_id: str, role: str) -> str:
     settings = get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {"sub": user_id, "role": role, "iat": int(now.timestamp()), "exp": int((now + timedelta(hours=settings.jwt_ttl_hours)).timestamp())}
     return jwt.encode(payload, settings.jwt_secret, algorithm=ALGORITHM)
 

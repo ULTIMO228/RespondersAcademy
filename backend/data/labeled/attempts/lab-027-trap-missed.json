@@ -1,0 +1,153 @@
+{
+ "id": "lab-027",
+ "name": "trap-missed",
+ "note": "ловушка не распознана: ошибка оператора 112: по фабуле прорыв трубы, тип «запах газа»",
+ "attempt": {
+  "id": "lab-027",
+  "cardId": "c-070",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T10:28:11+03:00",
+  "primaryReactionMs": 11000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T10:28:23+03:00",
+    "dutyNumber": "13"
+   },
+   {
+    "ddsStatus": "workDone",
+    "at": "2026-09-18T10:29:34+03:00",
+    "comment": "Работы завершены, опасности нет"
+   }
+  ],
+  "servicesCalled": [
+   "102"
+  ],
+  "completedAt": "2026-09-18T10:29:34+03:00",
+  "fullProcessingMs": 83000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, наряд полиции направлен",
+   "outfitNumber": "7"
+  },
+  "calls": [
+   {
+    "toNumber": "102",
+    "startedAt": "2026-09-18T10:28:40+03:00",
+    "endedAt": "2026-09-18T10:29:15+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T10:28:41+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 24: Ссора во дворе из-за парковки. Адрес: Москва, ул. Вешняковская, 37, двор у 5 подъезда. Прошу направить наряд.",
+      "at": "2026-09-18T10:28:43+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T10:28:46+03:00"
+     }
+    ]
+   }
+  ]
+ },
+ "scenario": {
+  "id": "s-024-trap",
+  "title": "Билет 24: конфликт из-за парковки + ребёнок с горки + попрошайка с младенцем",
+  "level": "beginner",
+  "sourceTicketNo": 24,
+  "source": "template",
+  "cardIds": [
+   "c-070",
+   "c-071",
+   "c-072"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": true,
+   "texts": [
+    "Ссора из-за парковки — 102",
+    "Ребёнок упал с горки, кровотечение — 103",
+    "Попрошайка с младенцем, окровавленное лицо ребёнка — 102 + 103"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 1,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-070",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-071",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-072",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "наряд полиции направлен",
+    "бригада СМП направлена",
+    "ребёнок с окровавленным лицом"
+   ],
+   "cards": {
+    "c-070": {
+     "expectedDecision": "notAccepted",
+     "expectedTransferTo": "Мосводоканал",
+     "trap": "operatorMistake",
+     "expectedCommentPhrases": [
+      "передано в Мосводоканал"
+     ]
+    }
+   }
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-070",
+  "ticketNo": 24,
+  "situationNo": 1,
+  "group": "Скандал",
+  "summary": "Ссора во дворе из-за парковки",
+  "address": "Москва, ул. Вешняковская, 37, двор у 5 подъезда",
+  "caller": {
+   "name": "Соколов Иван Петрович",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Скандал"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "wrongDecision"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 50
+}

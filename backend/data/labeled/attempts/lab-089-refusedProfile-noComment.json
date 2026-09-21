@@ -1,0 +1,125 @@
+{
+ "id": "lab-089",
+ "name": "refusedProfile-noComment",
+ "note": "«Не принята» по профильному без комментария",
+ "attempt": {
+  "id": "lab-089",
+  "cardId": "c-002",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T11:31:09+03:00",
+  "primaryReactionMs": 9000,
+  "statuses": [
+   {
+    "ddsStatus": "notAccepted",
+    "at": "2026-09-18T11:31:18+03:00"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T11:31:18+03:00",
+  "fullProcessingMs": 9000,
+  "enteredText": {
+   "dispatcherAction": "",
+   "outfitNumber": ""
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-001",
+  "title": "Билет 01: пожар-мусор + массовая драка + ребёнок с велосипеда (др. регион)",
+  "level": "advanced",
+  "sourceTicketNo": 1,
+  "source": "template",
+  "cardIds": [
+   "c-001",
+   "c-002",
+   "c-003"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Откройте карточку в течение 30 секунд, проставьте статус «Принята»",
+    "Массовая драка: 5 пострадавших, палки и прутья — главная 102, дополнительно 103",
+    "Вызов из Волгоградской области — переведите в ЦУС региона, карточку не закрывайте"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 4,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-001",
+    "status:accepted",
+    "call:101",
+    "status:workDone",
+    "openCard:c-002",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone",
+    "openCard:c-003",
+    "status:accepted",
+    "transfer:region",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "наряд полиции направлен",
+    "бригада СМП направлена",
+    "вызов переведён в ЦУС Волгоградской области"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-002",
+  "ticketNo": 1,
+  "situationNo": 2,
+  "group": "Драка",
+  "summary": "Дерутся 10–15 человек, 5 пострадавших, палки и железные прутья",
+  "address": "Москва, рядом с посольством Азербайджана на тротуаре (Леонтьевский пер., 16, стр.1)",
+  "caller": {
+   "name": "Иванов Петр Иванович",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "victims": {
+   "count": 5,
+   "note": "пострадавшие при массовой драке"
+  },
+  "expectedServices": [
+   "102 (главная)",
+   "103"
+  ],
+  "expectedTags": [
+   "Драка",
+   "Улица общественное место",
+   "Массовая (от 10 человек)",
+   "Пострадавшие"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "missedRequiredCall",
+  "missingComment",
+  "refusedProfile",
+  "requiredFieldMissing",
+  "statusMissing"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 0
+}

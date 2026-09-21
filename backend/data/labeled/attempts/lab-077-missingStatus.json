@@ -1,0 +1,139 @@
+{
+ "id": "lab-077",
+ "name": "missingStatus",
+ "note": "пропущен статус",
+ "attempt": {
+  "id": "lab-077",
+  "cardId": "c-074",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T11:17:18+03:00",
+  "primaryReactionMs": 18000,
+  "statuses": [
+   {
+    "ddsStatus": "accepted",
+    "at": "2026-09-18T11:17:28+03:00",
+    "dutyNumber": "20"
+   }
+  ],
+  "servicesCalled": [
+   "102"
+  ],
+  "completedAt": "2026-09-18T11:18:37+03:00",
+  "fullProcessingMs": 79000,
+  "enteredText": {
+   "dispatcherAction": "Сообщение принято, наряд полиции направлен",
+   "outfitNumber": "25"
+  },
+  "calls": [
+   {
+    "toNumber": "102",
+    "startedAt": "2026-09-18T11:17:34+03:00",
+    "endedAt": "2026-09-18T11:18:09+03:00",
+    "transcript": [
+     {
+      "speaker": "ai",
+      "text": "Служба, слушаю",
+      "at": "2026-09-18T11:17:35+03:00"
+     },
+     {
+      "speaker": "dispatcher",
+      "text": "Диспетчер ДДС, карточка 25: ДТП без пострадавших и без раненых, легковой + фольксваген. Адрес: Москва, МКАД от Варшавского ш. в сторону Каширского, напротив ТЦ Вегас, левый ряд. Прошу направить наряд.",
+      "at": "2026-09-18T11:17:37+03:00"
+     },
+     {
+      "speaker": "ai",
+      "text": "Принято, направляем",
+      "at": "2026-09-18T11:17:40+03:00"
+     }
+    ]
+   }
+  ]
+ },
+ "scenario": {
+  "id": "s-025",
+  "title": "Билет 25: хулиганство (03 не тр.) + ДТП без пострадавших + констатация смерти",
+  "level": "advanced",
+  "sourceTicketNo": 25,
+  "source": "template",
+  "cardIds": [
+   "c-073",
+   "c-074",
+   "c-075"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Пометка «03 не требуется» — СМП не вызывайте, только 102",
+    "ДТП без пострадавших — 102 (ГИБДД), левый ряд у ТЦ Вегас",
+    "Труп с трупными пятнами — 102 + 103 на констатацию"
+   ]
+  },
+  "callTarget": "102",
+  "difficulty": 3,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-073",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-074",
+    "status:accepted",
+    "call:102",
+    "status:workDone",
+    "openCard:c-075",
+    "status:accepted",
+    "call:102",
+    "call:103",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "наряд полиции направлен",
+    "СМП не требуется",
+    "ДТП без пострадавших",
+    "констатация смерти"
+   ]
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-074",
+  "ticketNo": 25,
+  "situationNo": 2,
+  "group": "Дорожно-транспортные происшествия без пострадавших",
+  "summary": "ДТП без пострадавших и без раненых, легковой + фольксваген",
+  "address": "Москва, МКАД от Варшавского ш. в сторону Каширского, напротив ТЦ Вегас, левый ряд",
+  "caller": {
+   "name": "Иванова Елена Сергеевна",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "ДТП"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [
+  "statusMissing"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 85
+}

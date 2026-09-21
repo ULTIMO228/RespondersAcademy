@@ -1,0 +1,125 @@
+{
+ "id": "lab-084",
+ "name": "trap-correct",
+ "note": "ловушка распознана: дубль карточки, реагирование по КП",
+ "attempt": {
+  "id": "lab-084",
+  "cardId": "c-037",
+  "studentId": "u-005",
+  "openedAt": "2026-09-18T11:24:07+03:00",
+  "primaryReactionMs": 7000,
+  "statuses": [
+   {
+    "ddsStatus": "notAccepted",
+    "at": "2026-09-18T11:24:16+03:00",
+    "comment": "Не обслуживаем территорию, информация передана в КП-36814850"
+   }
+  ],
+  "servicesCalled": [],
+  "completedAt": "2026-09-18T11:24:16+03:00",
+  "fullProcessingMs": 9000,
+  "enteredText": {
+   "dispatcherAction": "Не обслуживаем территорию, информация передана в КП-36814850",
+   "outfitNumber": "—"
+  },
+  "calls": []
+ },
+ "scenario": {
+  "id": "s-013-trap",
+  "title": "Билет 13: пожар-деревья в парке + роды в авто + мужчина в крови на обочине",
+  "level": "advanced",
+  "sourceTicketNo": 13,
+  "source": "template",
+  "cardIds": [
+   "c-037",
+   "c-038",
+   "c-039"
+  ],
+  "timeNorms": {
+   "primaryReactionSec": 30,
+   "fullProcessingSec": 180
+  },
+  "hints": {
+   "enabled": false,
+   "texts": [
+    "Вход в лесопарк со стороны аллеи Первой Маёвки — передайте расчёту 101",
+    "Роды в автомобиле — 103, зафиксируйте госномер и маршрут",
+    "Мужчина в крови на обочине МКАД — 103 + 102"
+   ]
+  },
+  "callTarget": "101",
+  "difficulty": 3,
+  "etalon": {
+   "expectedActions": [
+    "openCard:c-037",
+    "status:accepted",
+    "call:101",
+    "status:workDone",
+    "openCard:c-038",
+    "status:accepted",
+    "call:103",
+    "status:workDone",
+    "openCard:c-039",
+    "status:accepted",
+    "call:103",
+    "call:102",
+    "status:workDone"
+   ],
+   "keyPhrases": [
+    "сообщение принято",
+    "расчёт направлен",
+    "бригада СМП направлена",
+    "информация передана в дежурную часть",
+    "ориентиры уточнены"
+   ],
+   "cards": {
+    "c-037": {
+     "expectedDecision": "notAccepted",
+     "expectedTransferTo": "КП-36814850",
+     "trap": "duplicate",
+     "expectedCommentPhrases": [
+      "передано в КП-36814850"
+     ]
+    }
+   }
+  },
+  "validation": {
+   "status": "approved",
+   "reviewedBy": "u-002"
+  },
+  "successCriteria": {
+   "maxGrammarErrors": 1,
+   "requiredFields": [
+    "dispatcherAction",
+    "outfitNumber"
+   ],
+   "syntaxRequirements": "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
+  }
+ },
+ "card": {
+  "id": "c-037",
+  "ticketNo": 13,
+  "situationNo": 1,
+  "group": "пожар на улице",
+  "summary": "Горят деревья, площадь 10×10 м, пострадавших нет",
+  "address": "Москва, Кусковский лесопарк",
+  "addressRefined": "рядом со стадионом Фрезер, вход со стороны аллеи Первой Маёвки",
+  "caller": {
+   "name": "Сидорова Ольга Викторовна",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)"
+  ],
+  "expectedTags": [
+   "на улице",
+   "Парк",
+   "открытое пламя"
+  ]
+ },
+ "session": null,
+ "expectedErrors": [],
+ "expectedGrammarErrors": 0,
+ "expertScore": 100
+}
