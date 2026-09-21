@@ -65,6 +65,24 @@ uv run python -m ml.scripts.calibrate [--db]    # ridge-подбор весов 
 - Визуальная QA PDF: `uv run python scripts/check_report_pdf.py` создаёт тестовые файлы в `var/` на отдельной БД в памяти; затем отрисовать `pdftoppm -png var/report-export-qa.pdf var/report-export-qa`.
 - Полный `scripts/e2e-teacher.sh` остаётся гейтом T074 после фаз 6/8; этапы мастера/контроля/отчётов покрываются pytest сейчас. Категория скрипта по умолчанию «пожар в жилом доме» исключается для Чертаново строгой проверкой реакции `Деп. ЖКХ` в текущем классификаторе (решение T054).
 
+## Phase 6: сценарии, генерация, валидация
+
+- Эндпоинты `/api/mock` (и `/api/v1`): `GET/POST /scenarios`, `GET/PATCH/DELETE /scenarios/{id}`, `POST /scenarios/{id}/validate` (`submit` из draft/rejected/approved, `approve`/`approvePartial`/`reject` из pending, иначе 409), `POST /scenarios/generate` (201, категория → 3 вариации с ловушками `—`/`foreignTerritory`/`operatorMistake`; повтор по категории возвращает существующие), `GET /training-cards` (96 исходных + сгенерированные `c-097…`), `GET/POST /materials`, `POST /grammar-check`. Удаление мягкое; шаблоны и сценарии из занятий не удаляются (409). Отчёт валидатора — в ответе как дополнительное поле `validationReport`.
+- Роли: без cookie — как мок (id из тела/query); с cookie студент → 403, чужой преподаватель → 403, администратор — без ограничений.
+- Классификатор групп ЕКП (`ml/classify/ekp_group_classifier.py`, rubert-tiny2 + LogisticRegression). Артефакт `models/ekp_group_lr.joblib` **не в git** — после клона обучить:
+
+```bash
+uv run python -m ml.scripts.build_synthetic_groups   # строки classifier.json → data/labeled/synthetic_groups.json (уже в репозитории)
+uv run python -m ml.scripts.train_classifier         # 96 карточек + синтетика → models/ekp_group_lr.joblib
+uv run python -m ml.scripts.eval_classifier          # accuracy на 96 карточках + 5-блочная кросс-валидация → var/metrics.json
+uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных + 20 дефектных билетов → data/labeled/tickets/ (уже в репозитории)
+```
+
+  Без артефакта классификатор работает по прототипам (центроиды групп), без эмбеддингов — лексически с `available=false`. Текущие метрики: accuracy 1,0 на 96 карточках (в обучении) и 0,57 на кросс-валидации.
+- Валидатор (`ml/generate/validator.py`): критерии `category`, `address`, `requiredFields`, `duplicate`, `grammar`, `consistency`; на `data/labeled/tickets/` — 20/20 и 20/20 (`uv run pytest tests/unit/test_validator.py`). Дедупликация (`ml/nlp/dedup.py`) использует `multilingual-e5-small`, если скачан (`prepare_models --only dedup`), иначе rubert-tiny2; порог 0,92.
+- Генератор (`ml/generate/scenario_generator.py`): шаблонный путь без сети; при заданных `OLLAMA_URL` / `OLLAMA_MODEL` (`OLLAMA_TIMEOUT_SEC`, см. `.env.example`) и доступном сервере — LLM-путь с JSON-схемой и ≤ 2 повторами, при сбое — шаблон. Подключён в `LocalAiGateway.generate_scenario` (`app/ai_gateway.py`); подмена реализации командой ИИ-агентов — через `set_gateway()`.
+- `scripts/e2e-teacher.sh` на Windows не гоняется (curl из Git Bash портит кириллицу в argv); генерация проверена на живом сервере, общий гейт — T074.
+
 ## Переменные окружения
 
 См. `.env.example`. Ключевые: `DATABASE_URL`, `JWT_SECRET`, `SEED_DIR`, `MODELS_DIR`, `OLLAMA_URL`.

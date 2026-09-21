@@ -49,3 +49,38 @@
 
 Согласие по типам ошибок ≥ 0,85 (accuracy «есть/нет» по словарю типов) и корреляция Пирсона ≥ 0,8
 между `totalScore` и `expertScore`; результат воспроизводим при повторном прогоне.
+
+## `tickets/` — приёмка валидатора билетов (T056/T060, SC-005)
+
+40 файлов `tk-NNN-<kind>.json`, генерируются детерминированно `uv run python -m ml.scripts.build_labeled_tickets`
+из карточек `spec/mocks/cards.json`: 20 корректных (`tk-001…020-correct`) и 20 дефектных
+(`tk-021…040-<defect>`), по одному внесённому дефекту на файл.
+
+| Поле | Значение |
+|---|---|
+| `id`, `kind` | идентификатор; `correct` / `defective` |
+| `defect` | вид дефекта (`null` для корректных) |
+| `expectedFailed` | критерии валидатора, которые должны быть не пройдены (`[]` для корректных) |
+| `sourceCardId` | исходная карточка банка |
+| `note` | что именно изменено |
+| `ticket` | `IncidentCard` контракта, подаваемый в `ml.generate.validator.validate` |
+
+| `defect` | Что испорчено | Ожидаемый критерий |
+|---|---|---|
+| `wrongCategory` | группа заменена на неподходящую («Радиация», «пожар в метро», …) | `category` |
+| `unknownStreet` | адрес заменён на улицу вне справочника | `address` |
+| `missingField` | пустой телефон заявителя либо пустой список ожидаемых служб | `requiredFields` |
+| `duplicate` | фабула и адрес скопированы с другой карточки без `duplicateOf` | `duplicate` |
+| `typo` | опечатка в фабуле из типового списка («женшина», «чиловек») | `grammar` |
+| `inconsistent` | факты фабулы противоречат признакам: снят `victims` при пострадавших, снят `crossRegion` при другой области, «03 не требуется» без `noAmbulance` | `consistency` |
+
+Проверка: `uv run pytest tests/unit/test_validator.py` — корректные проходят все критерии, дефектные
+не проходят ожидаемый; текущий результат 20/20 и 20/20.
+
+## `synthetic_groups.json` — обучающая выборка классификатора групп ЕКП (T059)
+
+Собирается `uv run python -m ml.scripts.build_synthetic_groups` из строк `spec/mocks/classifier.json` (v046.24):
+для каждой строки — текст «тип: подтип, признаки» и фраза «Сообщение заявителя: {итог}. Признаки: {признаки}»
+(поле `templates`); 2671 образец `{ text, group }`, `group` — группа из `reference.incidentGroups`.
+Используется `ml.scripts.train_classifier` вместе с 96 карточками (вес карточек 5); метрики —
+`ml.scripts.eval_classifier` → `var/metrics.json` (`classifier.accuracy`, `classifier.cvAccuracy`).
