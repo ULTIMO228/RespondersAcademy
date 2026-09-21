@@ -45,6 +45,13 @@ npm run mocks:sync     # spec/mocks → mocks/, icons → public/icons (выпо
 npm run dev            # режим разработки: http://localhost:3000
 ```
 
+Реальный бэкенд (`backend/`, см. `backend/README.md`) вместо мок-слоя — одна переменная окружения,
+код фронта не меняется (rewrite `/api/mock/*` → бэкенд в `next.config.ts`):
+
+```bash
+BACKEND_URL=http://localhost:8000 npm run dev     # или BACKEND_URL=... npm start
+```
+
 Production-сборка (её же используют сквозные проверки и демо):
 
 ```bash
