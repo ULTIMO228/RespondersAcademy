@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ml.assess.types import AXES, AssessmentResult
+from ml.assess.types import AXES, AssessmentResult, axes_for
 
 AI_COMMENT_PREFIX = "ИИ-оценка:"
 AXIS_TITLES = {"timeScore": "время", "correctnessScore": "корректность", "grammarScore": "грамотность", "semanticScore": "смысловая точность"}
@@ -30,7 +30,7 @@ def axis_score(result: AssessmentResult, names: tuple[str, ...]) -> int:
 
 
 def build_ai_comment(scores: dict[str, int], errors: list[dict[str, Any]], grammar_count: int, warnings: list[str]) -> str:
-    parts = ", ".join(f"{AXIS_TITLES[axis]} {scores[axis]}" for axis in AXES)
+    parts = ", ".join(f"{AXIS_TITLES[axis]} {scores[axis]}" for axis in AXES if axis in scores)
     critical = sum(1 for e in errors if e.get("severity") == "critical")
     total_errors = len(errors) + grammar_count
     if total_errors == 0:
@@ -44,7 +44,7 @@ def build_ai_comment(scores: dict[str, int], errors: list[dict[str, Any]], gramm
 
 
 def to_evaluation(result: AssessmentResult, teacher_override: dict[str, Any] | None = None, passed: bool | None = None) -> dict[str, Any]:
-    scores = {axis: axis_score(result, names) for axis, names in AXES.items()}
+    scores = {axis: axis_score(result, names) for axis, names in axes_for(result.mode).items()}
     errors = [error.to_contract() for error in result.errors]
     grammar_errors = list(result.grammar_errors)
     warnings = list(result.warnings)
@@ -67,6 +67,8 @@ def to_evaluation(result: AssessmentResult, teacher_override: dict[str, Any] | N
         },
         "warnings": warnings,
     }
+    if result.field_diff is not None:
+        evaluation["fieldDiff"] = list(result.field_diff)
     if passed is not None:
         evaluation["passed"] = passed
     if teacher_override:

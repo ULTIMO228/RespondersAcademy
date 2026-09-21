@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.errors import not_found, validation_failed
+from app.api.errors import invalid_transition, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.scenario import Scenario
 from app.models.session import Attempt, TrainingSession
@@ -134,6 +134,8 @@ async def record_progress(db: AsyncSession, attempt_id: str, body: dict[str, Any
     attempt = await find_attempt(db, attempt_id)
     if attempt is None:
         raise not_found(f"Попытка «{attempt_id}» не найдена")
+    if attempt.mode == "operator112":
+        raise invalid_transition("Попытка режима специалиста-112 ведётся через /api/v1/operator112/attempts")
     if status:
         attempt.statuses = [*attempt.statuses, status]
     if entered:

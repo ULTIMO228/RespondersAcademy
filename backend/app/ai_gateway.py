@@ -13,6 +13,9 @@
 Контракт `call_reply`: вход — номер точки C, ход `answer`/`reply`, `context = { "number": InternalNumber,
 "text": реплика диспетчера, "reference": Reference }`; выход — `{ text, voice: male|female, speakerTitle }` либо `None`
 (тогда отвечает детерминированный ответчик). Сверку доклада с чек-листом выполняет бэкенд при записи вызова.
+Контракт `call_script` (US3, решение 2026-09-22): вход — билет (`IncidentCard`) и `context = { "voice": male|female,
+"reference": Reference }`; выход — текст реплики заявителя (все факты билета разговорным языком) либо `None`, тогда
+берётся шаблон `ml.generate.call_script`. Озвучивание (Silero) и оценка карточки остаются на стороне бэкенда.
 """
 
 from __future__ import annotations
@@ -34,6 +37,8 @@ class AiGateway(Protocol):
     def generate_scenario(self, category: str, cards: list[dict[str, Any]], addresses: list[dict[str, Any]], *, count: int = 3, traps: list[str | None] | None = None) -> list[dict[str, Any]]: ...
 
     def call_reply(self, to_number: str, turn: str, context: dict[str, Any]) -> dict[str, Any] | None: ...
+
+    def call_script(self, ticket: dict[str, Any], context: dict[str, Any]) -> str | None: ...
 
 
 class LocalAiGateway:
@@ -58,6 +63,10 @@ class LocalAiGateway:
 
     def call_reply(self, to_number: str, turn: str, context: dict[str, Any]) -> dict[str, Any] | None:
         # Точка подключения ИИ-абонента (US10, команда ИИ-агентов); None → ml.insights.call_responder в compat/calls.
+        return None
+
+    def call_script(self, ticket: dict[str, Any], context: dict[str, Any]) -> str | None:
+        # Точка подключения LLM-генерации реплики заявителя (US3, команда ИИ-агентов); None → ml.generate.call_script.
         return None
 
 

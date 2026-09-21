@@ -50,6 +50,8 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
     existing = await evaluation_contract(db, attempt.id)
     if existing is not None:
         return existing
+    if attempt.mode == "operator112":
+        return None  # оценка режима A появляется при отправке карточки (operator112_service.submit), эталон ДДС не применим
     session = await db.get(TrainingSession, attempt.session_id)
     scenario = await find_scenario_for_attempt(db, attempt, session)
     if scenario is None:

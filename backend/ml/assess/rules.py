@@ -100,5 +100,32 @@ PARALLEL_IGNORED = _register(Rule("m1", "parallelCardIgnored", "major", f"{TEAM}
 GUESSING = _register(Rule("x1", "guessing", "minor", f"{TEAM}, FR-042): порог чтения карточки", "Возможное угадывание: решение принято через {fact} с после открытия карточки (порог {threshold} с)"))
 
 
+# ─── Режим A (специалист-112): опросная карта, адрес, факты, заявитель (FR-036) ───────────────────
+
+MEMO_CARD = "памятка «Работа на АРМ-112» (ГБУ «Система 112»), стр. 12–20: карточка ПОВ-112 (заявитель, адресный блок, описание, опросная карта, список оповещения)"
+MEMO_POLL = "памятка «Работа на АРМ-112», стр. 15: опросная карта → итоговый тип → список оповещения по ЕКП"
+QA_CALL = "Q&A заказчика и FR-011: ответ на вызов в 30 с, неответ фиксируется как событие"
+FACTS = f"{TEAM}, FR-036d): факты записи заявителя сверяются по смыслу, а не побуквенно"
+
+OP_ANSWER_TIMEOUT = _register(Rule("op-t1", "answerTimeout", "major", QA_CALL, "Вызов принят с опозданием: {fact} с (норматив {norm} с)"))
+OP_NOT_ANSWERED = _register(Rule("op-t0", "answerTimeout", "critical", QA_CALL, "Вызов не принят: заявитель не получил ответа оператора"))
+OP_PROCESSING = _register(Rule("op-t2", "timeProcessingExceeded", "major", QA_TIMING, "Превышено время до отправки карточки: {fact} с (норма {norm} с)"))
+OP_NOT_SUBMITTED = _register(Rule("op-t3", "timeNotCompleted", "critical", f"{MEMO_CARD}; FR-016", "Карточка не отправлена: попытка не завершена"))
+
+OP_WRONG_FINAL_TYPE = _register(Rule("op-f1", "wrongFinalType", "critical", MEMO_POLL, "Неверный итоговый тип: выбрано «{actual}», по билету ожидался тип группы «{expected}»{missing}"))
+OP_NO_FINAL_TYPE = _register(Rule("op-f0", "wrongFinalType", "critical", MEMO_POLL, "Итоговый тип не определён: опросная карта не заполнена (ожидался тип группы «{expected}»)"))
+OP_MISSING_SERVICE = _register(Rule("op-f2", "missingService", "major", f"{EKP}; {MEMO_CARD}", "В списке оповещения нет ожидаемой службы: {services}"))
+OP_MISSING_SIGN = _register(Rule("op-s1", "missingSign", "major", MEMO_POLL, "Не выставлен признак «{sign}» из билета"))
+OP_MISSING_FLAG = _register(Rule("op-s2", "missingSign", "major", f"{MEMO_CARD}: флаги «Пострадавшие» / «Отказ от СМП»", "Не выставлен признак «{flag}», хотя по билету {reason}"))
+OP_EXTRA_FLAG = _register(Rule("op-s3", "extraFlag", "minor", f"{MEMO_CARD}: флаги ЧС/ЧП", "Флаг «{flag}» выставлен без оснований по билету"))
+OP_LOST_FACT = _register(Rule("op-d1", "lostFact", "major", FACTS, "Потерян ключевой факт записи: «{fact}» не отражён в описании"))
+OP_EMPTY_DESCRIPTION = _register(Rule("op-d0", "lostFact", "critical", f"{MEMO_CARD}: описание со слов заявителя", "Описание со слов заявителя не заполнено"))
+OP_APPLICANT_NAME = _register(Rule("op-a1", "applicantMismatch", "major", f"{MEMO_CARD}: блок «Заявитель»", "Заявитель записан неверно: введено «{entered}», по записи «{expected}»"))
+OP_APPLICANT_STATUS = _register(Rule("op-a2", "applicantMismatch", "minor", f"{MEMO_CARD}: статус заявителя", "Статус заявителя: введено «{entered}», по записи «{expected}»"))
+OP_PHONE = _register(Rule("op-a3", "phoneMismatch", "major", f"{MEMO_CARD}: телефон предоставленный", "Телефон заявителя записан неверно: введено «{entered}», по записи «{expected}»"))
+OP_PHONE_MISSING = _register(Rule("op-a4", "phoneMismatch", "minor", f"{MEMO_CARD}: телефон предоставленный", "Телефон заявителя не записан (по записи «{expected}»)"))
+OP_ADDRESS_MISSING = _register(Rule("op-a5", "addressMismatch", "critical", f"{MEMO_CARD}: адресный блок", "Адрес происшествия не заполнен"))
+
+
 def by_type(error_type: str) -> list[Rule]:
     return [rule for rule in RULES.values() if rule.error_type == error_type]

@@ -1,6 +1,6 @@
 """Единственная точка сети: скачивает модели в MODELS_DIR один раз (принцип I конституции).
 
-Запуск: `uv run python -m ml.scripts.prepare_models [--only embedder]`.
+Запуск: `uv run python -m ml.scripts.prepare_models [--only embedder dedup tts]` (по умолчанию — только embedder).
 В рантайме модели читаются только с диска; при отсутствии — компоненты работают в режиме фолбэка.
 """
 
@@ -17,16 +17,27 @@ MODELS = {
     "embedder": {"repo": "cointegrated/rubert-tiny2", "dir": "rubert-tiny2"},
     # Дедупликация сценариев (R1, волна B): ≈470 МБ.
     "dedup": {"repo": "intfloat/multilingual-e5-small", "dir": "multilingual-e5-small"},
+    # TTS аудиозаписи обращения (R6, волна B): Silero v4 ru, один файл ≈50 МБ с сайта Silero (не HF).
+    "tts": {"url": "https://models.silero.ai/models/tts/ru/v4_ru.pt", "dir": "silero", "file": "v4_ru.pt"},
 }
 DEFAULT_MODELS = ("embedder",)
 
 
 def download(name: str, models_dir: Path) -> Path:
-    from huggingface_hub import snapshot_download
-
     spec = MODELS[name]
     target = models_dir / spec["dir"]
     target.mkdir(parents=True, exist_ok=True)
+    if "url" in spec:
+        from urllib.request import urlretrieve
+
+        destination = target / spec["file"]
+        if not destination.exists():
+            tmp = destination.with_suffix(".part")
+            urlretrieve(spec["url"], tmp)  # noqa: S310 — фиксированный https-адрес Silero
+            tmp.replace(destination)
+        return target
+    from huggingface_hub import snapshot_download
+
     snapshot_download(repo_id=spec["repo"], local_dir=str(target), allow_patterns=["*.json", "*.txt", "*.safetensors", "*.model", "1_Pooling/*", "2_Dense/*", "modules.json"])
     return target
 

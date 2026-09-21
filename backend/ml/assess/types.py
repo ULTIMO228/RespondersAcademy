@@ -24,6 +24,18 @@ DEFAULT_WEIGHTS_DDS: dict[str, float] = {
     "address": 0.05,
 }
 
+# Веса компонентов режима A (специалист-112, FR-036 a–g); (h) прослушивания/подсказки — информационно, без веса.
+DEFAULT_WEIGHTS_OPERATOR112: dict[str, float] = {
+    "answer_timing": 0.15,
+    "final_type": 0.25,
+    "address": 0.15,
+    "description_facts": 0.15,
+    "signs_flags": 0.10,
+    "applicant_phone": 0.10,
+    "grammar": 0.10,
+    "activity": 0.0,
+}
+
 # Оси Evaluation фронта ← компоненты (R17).
 AXES: dict[str, tuple[str, ...]] = {
     "timeScore": ("timing",),
@@ -31,6 +43,16 @@ AXES: dict[str, tuple[str, ...]] = {
     "grammarScore": ("grammar", "address"),
     "semanticScore": ("comments", "report"),
 }
+AXES_OPERATOR112: dict[str, tuple[str, ...]] = {
+    "timeScore": ("answer_timing",),
+    "correctnessScore": ("final_type", "signs_flags", "applicant_phone"),
+    "grammarScore": ("grammar", "address"),
+    "semanticScore": ("description_facts",),
+}
+
+
+def axes_for(mode: str) -> dict[str, tuple[str, ...]]:
+    return AXES_OPERATOR112 if mode == MODE_OPERATOR112 else AXES
 
 
 @dataclass(frozen=True)
@@ -119,6 +141,7 @@ class AssessmentResult:
     weights: dict[str, float]  # эффективные (нормированные по применимым) веса
     grammar_errors: list[dict[str, str]]
     total: float  # 0..1
+    field_diff: list[dict[str, Any]] | None = None  # режим A: сравнение «моя карточка ↔ эталон» по полям (FR-040)
 
     @property
     def errors(self) -> list[AssessError]:

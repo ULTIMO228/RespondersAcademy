@@ -1,0 +1,120 @@
+{
+ "id": "op-053",
+ "name": "addressLookalike",
+ "note": "похожая улица: «Большой Ржевский переулок» вместо «Большой Сухаревский переулок»",
+ "attempt": {
+  "id": "op-053",
+  "cardId": "c-049",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T13:25:00+03:00",
+  "answeredAt": "2026-09-22T13:25:04+03:00",
+  "completedAt": "2026-09-22T13:27:43+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Сухов Леонид Сергеевич",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 123-98-78",
+    "provided": "+7 (916) 123-98-78",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215",
+    "street": "Большой Ржевский переулок",
+    "house": "",
+    "source": "manual",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет",
+    "signs": [
+     "жилой дом",
+     "сигнализация"
+    ],
+    "finalType": "пожарная сигнализация (жилой дом)",
+    "classifierCode": "1051600",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-101",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gorhoz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moszhilinsp",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-komitet-turizm",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-049",
+  "ticketNo": 17,
+  "situationNo": 1,
+  "group": "пожар в жилом доме",
+  "summary": "Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет",
+  "address": "Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215",
+  "caller": {
+   "name": "Сухов Леонид Сергеевич",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)"
+  ],
+  "expectedTags": [
+   "жилой дом",
+   "сигнализация"
+  ]
+ },
+ "expectedErrors": [
+  "addressLookalike"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 78
+}

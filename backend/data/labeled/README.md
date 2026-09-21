@@ -50,6 +50,27 @@
 Согласие по типам ошибок ≥ 0,85 (accuracy «есть/нет» по словарю типов) и корреляция Пирсона ≥ 0,8
 между `totalScore` и `expertScore`; результат воспроизводим при повторном прогоне.
 
+## `operator112/` — выборка оценщика режима A (T078, SC-004)
+
+58 файлов `op-NNN-<variant>.json`, детерминированно (`uv run python -m ml.scripts.build_labeled_operator112`, seed 112)
+из московских билетов `spec/mocks/cards.json` с улицей справочника и ФИО заявителя. Поля: `attempt` (OperatorAttempt с
+`cardSnapshot` = `CardDraft`), `ticket` (`IncidentCard` — эталон режима A), `expectedErrors`, `expectedGrammarErrors`,
+`expertScore`, `note`. Метрики: `uv run python -m ml.scripts.eval_assessor --mode operator112` → `metrics.json[assessorOperator112]`.
+
+| `variant` | Что испорчено | Ожидаемые типы | Экспертный балл |
+|---|---|---|---|
+| `etalon` | ничего: все факты, адрес по справочнику, тип и список по билету | — | 96 |
+| `wrongFinalType` | строка ЕКП другой группы (признаки, тип, код, список по ней) | `wrongFinalType`, `missingSign` | 40 |
+| `lostFact` | из описания удалён последний факт фабулы | `lostFact` | 82 |
+| `addressLookalike` | улица заменена на похожую улицу справочника (85 ≤ ratio < 100) | `addressLookalike` | 78 |
+| `missingSign` | снят флаг «Пострадавшие» либо один признак билета | `missingSign` | 80 |
+| `phoneMismatch` | последняя цифра телефона заявителя изменена | `phoneMismatch` | 84 |
+| `answerTimeout` | вызов принят через 40–75 с (норматив 30 с) | `answerTimeout` | 86 |
+| `typos` | две опечатки в описании из типового списка (только замечаемые spellcheck) | `grammarLimitExceeded` | 80 |
+
+Рубрика — по аналогии с режимом B: неверный итоговый тип ≤ 50 («не сдал», потолок `FINAL_TYPE_CAP`), остальные —
+один major-дефект на карточку. Результат 2026-09-22: согласие 1,0, κ 1,0, Pearson 0,97, Spearman 0,83, MAE 11,0.
+
 ## `tickets/` — приёмка валидатора билетов (T056/T060, SC-005)
 
 40 файлов `tk-NNN-<kind>.json`, генерируются детерминированно `uv run python -m ml.scripts.build_labeled_tickets`

@@ -1,0 +1,141 @@
+{
+ "id": "op-017",
+ "name": "phoneMismatch",
+ "note": "последняя цифра телефона заявителя записана неверно",
+ "attempt": {
+  "id": "op-017",
+  "cardId": "c-010",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T10:25:00+03:00",
+  "answeredAt": "2026-09-22T10:25:03+03:00",
+  "completedAt": "2026-09-22T10:26:41+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Сидорова Анна Викторовна",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 126-34-71",
+    "provided": "+7 (916) 126-34-72",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Грина, № дома неизвестен, в доме библиотека № 193",
+    "street": "улица Грина",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Горит балкон и два окна на 13-м этаже, открытое пламя, наблюдают с улицы. Дом 14 эт., газифицирован",
+    "signs": [
+     "жилой дом",
+     "балкон",
+     "открытое пламя"
+    ],
+    "finalType": "пожар: балкон",
+    "classifierCode": "1050201",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Горит балкон и два окна на 13-м этаже, открытое пламя, наблюдают с улицы. Дом 14 эт., газифицирован.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-101",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moblgaz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gorhoz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moslift",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zodd",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moszhilinsp",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-104",
+     "addedBy": "manual"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-010",
+  "ticketNo": 4,
+  "situationNo": 1,
+  "group": "пожар в жилом доме",
+  "summary": "Горит балкон и два окна на 13-м этаже, открытое пламя, наблюдают с улицы. Дом 14 эт., газифицирован",
+  "address": "Москва, ул. Грина, № дома неизвестен, в доме библиотека № 193",
+  "addressRefined": "ул. Грина, 11",
+  "caller": {
+   "name": "Сидорова Анна Викторовна",
+   "phone": "916-126-34-71",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)",
+   "104 (дом газифицирован)",
+   "102"
+  ],
+  "expectedTags": [
+   "жилой дом",
+   "балкон",
+   "открытое пламя"
+  ]
+ },
+ "expectedErrors": [
+  "phoneMismatch"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 84
+}

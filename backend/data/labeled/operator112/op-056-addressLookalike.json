@@ -1,0 +1,133 @@
+{
+ "id": "op-056",
+ "name": "addressLookalike",
+ "note": "похожая улица: «Ланинский переулок» вместо «Ленинский проспект»",
+ "attempt": {
+  "id": "op-056",
+  "cardId": "c-081",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T13:40:00+03:00",
+  "answeredAt": "2026-09-22T13:40:17+03:00",
+  "completedAt": "2026-09-22T13:42:49+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Селезнева Наталья Петровна",
+    "status": "участник"
+   },
+   "phones": {
+    "aon": "+7 (903) 226-13-83",
+    "provided": "+7 (903) 226-13-83",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, Ланинский переулок, 57, кв. 28, под. 1, эт. 5, код 57В",
+    "street": "Ланинский переулок",
+    "house": "",
+    "source": "manual",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "У соседей ремонт, отлетела плитка, трещина ~1 м, пострадавших нет",
+    "signs": [
+     "Дом многоквартирный",
+     "Объект имеет только трещину, которая появилась некоторе время назад. Других признаков обрушения нет."
+    ],
+    "finalType": "Дом многоквартирный угроза обрушения (трещины в зданиях)",
+    "classifierCode": "6060100",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: У соседей ремонт, отлетела плитка, трещина ~1 м, пострадавших нет.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-101",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-ods-psz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gorhoz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zodd",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-rosgvardiya",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moszhilinsp",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-dep-gks",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-081",
+  "ticketNo": 27,
+  "situationNo": 3,
+  "group": "Угрозы обрушений",
+  "summary": "У соседей ремонт, отлетела плитка, трещина ~1 м, пострадавших нет",
+  "address": "Москва, Ленинский проспект, 57, кв. 28, под. 1, эт. 5, код 57В",
+  "caller": {
+   "name": "Селезнева Наталья Петровна",
+   "phone": "903-226-13-83",
+   "status": "участник"
+  },
+  "expectedServices": [
+   "101 (главная)",
+   "Городское хозяйство"
+  ],
+  "expectedTags": [
+   "Дом многоквартирный",
+   "Объект имеет только трещину, которая появилась некоторе время назад. Других признаков обрушения нет."
+  ]
+ },
+ "expectedErrors": [
+  "addressLookalike"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 78
+}

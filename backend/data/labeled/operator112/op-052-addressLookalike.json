@@ -1,0 +1,102 @@
+{
+ "id": "op-052",
+ "name": "addressLookalike",
+ "note": "похожая улица: «улица Маршала Катукова» вместо «проспект Маршала Жукова»",
+ "attempt": {
+  "id": "op-052",
+  "cardId": "c-030",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T13:20:00+03:00",
+  "answeredAt": "2026-09-22T13:20:14+03:00",
+  "completedAt": "2026-09-22T13:22:40+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Иванова Елена Сергеевна",
+    "status": "знакомый"
+   },
+   "phones": {
+    "aon": "+7 (916) 897-56-23",
+    "provided": "+7 (916) 897-56-23",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, улица Маршала Катукова, 20 корп. 2, кв. 57, под. 3, эт. 5, код 57В",
+    "street": "улица Маршала Катукова",
+    "house": "",
+    "source": "manual",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Женщина просит о помощи из-за закрытой двери квартиры, на месте сотрудники полиции",
+    "signs": [
+     "Открыть дверь, поднять с пола, перенести в скорую",
+     "Требуется медицинская помощь"
+    ],
+    "finalType": "Открыть дверь (требуется мед. помощь)",
+    "classifierCode": "17080100",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Женщина просит о помощи из-за закрытой двери квартиры, на месте сотрудники полиции.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-ods-psz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-103",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-101",
+     "addedBy": "manual"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-030",
+  "ticketNo": 10,
+  "situationNo": 3,
+  "group": "Открыть дверь",
+  "summary": "Женщина просит о помощи из-за закрытой двери квартиры, на месте сотрудники полиции",
+  "address": "Москва, проспект Маршала Жукова, 20 корп. 2, кв. 57, под. 3, эт. 5, код 57В",
+  "caller": {
+   "name": "Иванова Елена Сергеевна",
+   "phone": "916 897 5623",
+   "status": "знакомый"
+  },
+  "expectedServices": [
+   "101 (главная)",
+   "102",
+   "103"
+  ],
+  "expectedTags": [
+   "Открыть дверь, поднять с пола, перенести в скорую",
+   "Требуется медицинская помощь"
+  ]
+ },
+ "expectedErrors": [
+  "addressLookalike"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 78
+}

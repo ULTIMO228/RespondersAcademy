@@ -1,0 +1,102 @@
+{
+ "id": "op-002",
+ "name": "wrongFinalType",
+ "note": "итоговый тип другой группы: «Повышенное давление бытового газа в частном доме» вместо группы «пожар в жилом доме»",
+ "attempt": {
+  "id": "op-002",
+  "cardId": "c-004",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T09:10:00+03:00",
+  "answeredAt": "2026-09-22T09:10:17+03:00",
+  "completedAt": "2026-09-22T09:12:40+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Ким Олег Юрьевич",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 126-34-71",
+    "provided": "+7 (916) 126-34-71",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Берзарина, 21, корп. 1, под. 3, домофон 68",
+    "street": "улица Берзарина",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Задымление мусоропровода, дом 17 эт., заявитель на 7-м, пламени нет, пострадавших нет",
+    "signs": [
+     "Повышенное давление газа",
+     "Дом частный"
+    ],
+    "finalType": "Повышенное давление бытового газа в частном доме",
+    "classifierCode": "13040100",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Задымление мусоропровода, дом 17 эт., заявитель на 7-м, пламени нет, пострадавших нет.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-104",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moblgaz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-004",
+  "ticketNo": 2,
+  "situationNo": 1,
+  "group": "пожар в жилом доме",
+  "summary": "Задымление мусоропровода, дом 17 эт., заявитель на 7-м, пламени нет, пострадавших нет",
+  "address": "Москва, ул. Берзарина, 21, корп. 1, под. 3, домофон 68",
+  "caller": {
+   "name": "Ким Олег Юрьевич",
+   "phone": "916-126-34-71",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)"
+  ],
+  "expectedTags": [
+   "жилой дом",
+   "мусоропровод",
+   "дым"
+  ]
+ },
+ "expectedErrors": [
+  "wrongFinalType",
+  "missingSign"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 40
+}

@@ -1,0 +1,149 @@
+{
+ "id": "op-027",
+ "name": "wrongFinalType",
+ "note": "итоговый тип другой группы: «Убийство (подземные коммуникации)» вместо группы «Оказание медицинской скорой и неотложной помощи»",
+ "attempt": {
+  "id": "op-027",
+  "cardId": "c-014",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T11:15:00+03:00",
+  "answeredAt": "2026-09-22T11:15:08+03:00",
+  "completedAt": "2026-09-22T11:17:33+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "супруг",
+    "status": "родственник"
+   },
+   "phones": {
+    "aon": "+7 (916) 897-56-23",
+    "provided": "+7 (916) 897-56-23",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, Коломенская наб., 18, кв. 142, под. 3, эт. 4, код 142",
+    "street": "Коломенская набережная",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Женщина выпила случайно не те лекарства, потеряла сознание. Иванова Ирина Петровна, д/р 10.03.1975",
+    "signs": [
+     "На улице",
+     "Люк (шахта, колодец)",
+     "Убийство"
+    ],
+    "finalType": "Убийство (подземные коммуникации)",
+    "classifierCode": "19020503",
+    "casualties": {
+     "injured": true,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Женщина выпила случайно не те лекарства, потеряла сознание. Иванова Ирина Петровна, д/р 10.03.1975. отравление лекарствами, без сознания.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-103",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-104",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-mvk",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moek",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moesk",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zodd",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moskollector",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-dtu-ritual",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-rosgvardiya",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-014",
+  "ticketNo": 5,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Женщина выпила случайно не те лекарства, потеряла сознание. Иванова Ирина Петровна, д/р 10.03.1975",
+  "address": "Москва, Коломенская наб., 18, кв. 142, под. 3, эт. 4, код 142",
+  "caller": {
+   "name": "супруг",
+   "phone": "916 897 5623",
+   "status": "родственник"
+  },
+  "victims": {
+   "count": 1,
+   "note": "отравление лекарствами, без сознания"
+  },
+  "expectedServices": [
+   "103 (главная)"
+  ],
+  "expectedTags": [
+   "Отравление"
+  ]
+ },
+ "expectedErrors": [
+  "wrongFinalType",
+  "missingSign"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 40
+}

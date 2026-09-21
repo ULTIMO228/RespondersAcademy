@@ -1,0 +1,102 @@
+{
+ "id": "op-058",
+ "name": "typos",
+ "note": "опечаток в описании: 2 (допустимо 1)",
+ "attempt": {
+  "id": "op-058",
+  "cardId": "c-082",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T13:50:00+03:00",
+  "answeredAt": "2026-09-22T13:50:04+03:00",
+  "completedAt": "2026-09-22T13:52:12+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Иванова Инна Васильевна",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 896-32-54",
+    "provided": "+7 (916) 896-32-54",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Матвеевская, 28 корп. 1, под. 5, код 100",
+    "street": "Матвеевская улица",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Молодой человек ~20 л. (синяя джинсовая куртка и джинсы, чёрные ботинки) стоит у домофона, в подъезд не заходит, причину не пояснил",
+    "signs": [
+     "Подозрительные, посторонние граждане"
+    ],
+    "finalType": "Подозрительные граждане",
+    "classifierCode": "15140000",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Молодой чиловек ~20 л. (синяя джинсовая куртка и джинсы, чёрные ботинки) стоит у домофона, в подьезд не заходит, причину не пояснил.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-rosgvardiya",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-082",
+  "ticketNo": 28,
+  "situationNo": 1,
+  "group": "Подозрительные, посторонние граждане",
+  "summary": "Молодой человек ~20 л. (синяя джинсовая куртка и джинсы, чёрные ботинки) стоит у домофона, в подъезд не заходит, причину не пояснил",
+  "address": "Москва, ул. Матвеевская, 28 корп. 1, под. 5, код 100",
+  "caller": {
+   "name": "Иванова Инна Васильевна",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Подозрительные, посторонние граждане"
+  ]
+ },
+ "expectedErrors": [
+  "grammarLimitExceeded"
+ ],
+ "expectedGrammarErrors": 2,
+ "expertScore": 80
+}

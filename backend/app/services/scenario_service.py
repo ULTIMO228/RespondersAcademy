@@ -245,6 +245,11 @@ async def validate_scenario(db: AsyncSession, scenario_id: str, body: dict[str, 
     row.history = [*(row.history or []), {"at": at, "by": reviewer.id, "changes": [f"validation:{request.action}"], "previous": {"validation": before}}]
     details = "; ".join(part for part in (f"Сценарий {scenario_id} → «{validation['status']}»", f"поля: {', '.join(fields)}" if fields else "", f"комментарий: {comment}" if comment else "") if part)
     await record(db, action=f"scenario.{request.action}", user_id=reviewer.id, role=actor_role(viewer), details=details)
+    if validation["status"] == "approved":
+        # T085: утверждённый билет режима A получает аудиозапись обращения (текст сразу, синтез в фоне; без TTS — failed).
+        from app.services import ticket_audio_service
+
+        await ticket_audio_service.prepare_for_cards(db, list(row.card_ids or []))
     await db.commit()
     return scenario_contract(row)
 

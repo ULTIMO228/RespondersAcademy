@@ -1,0 +1,158 @@
+{
+ "id": "op-023",
+ "name": "phoneMismatch",
+ "note": "последняя цифра телефона заявителя записана неверно",
+ "attempt": {
+  "id": "op-023",
+  "cardId": "c-013",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T10:55:00+03:00",
+  "answeredAt": "2026-09-22T10:55:16+03:00",
+  "completedAt": "2026-09-22T10:57:04+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Яшин Игорь Вадимович",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 126-34-71",
+    "provided": "+7 (916) 126-34-72",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Цюрупы, 12, корп. 6, подъезд единственный, балкон со стороны подъезда",
+    "street": "улица Цюрупы",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Горит окно на 9 этаже, открытое пламя, на балконе 2 человека кричат о помощи. Дом 17 эт., не газифицирован",
+    "signs": [
+     "жилой дом",
+     "квартира",
+     "открытое пламя",
+     "Угроза людям"
+    ],
+    "finalType": "пожар: квартира",
+    "classifierCode": "1050101",
+    "casualties": {
+     "injured": true,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Горит окно на 9 этаже, открытое пламя, на балконе 2 человека кричат о помощи. Дом 17 эт., не газифицирован. люди на балконе, угроза жизни.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-101",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-103",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zemp",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moblgaz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gorhoz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moslift",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zodd",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-oati",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-evazhd",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moszhilinsp",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-102",
+     "addedBy": "manual"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-013",
+  "ticketNo": 5,
+  "situationNo": 1,
+  "group": "пожар в жилом доме",
+  "summary": "Горит окно на 9 этаже, открытое пламя, на балконе 2 человека кричат о помощи. Дом 17 эт., не газифицирован",
+  "address": "Москва, ул. Цюрупы, 12, корп. 6, подъезд единственный, балкон со стороны подъезда",
+  "caller": {
+   "name": "Яшин Игорь Вадимович",
+   "phone": "916-126-34-71",
+   "status": "очевидец"
+  },
+  "victims": {
+   "count": 2,
+   "note": "люди на балконе, угроза жизни"
+  },
+  "expectedServices": [
+   "101 (главная)",
+   "103",
+   "102 (эвакуация)"
+  ],
+  "expectedTags": [
+   "жилой дом",
+   "квартира",
+   "открытое пламя",
+   "Угроза людям"
+  ]
+ },
+ "expectedErrors": [
+  "phoneMismatch"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 84
+}

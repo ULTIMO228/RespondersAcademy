@@ -6,24 +6,24 @@
 
 | Метод и путь | Вход | Ответ | Примечания |
 |---|---|---|---|
-| `GET /tickets` | `group[]`, `difficulty[]`, `source`, `validationStatus`, `q` | `Ticket[]` = `IncidentCard` + `{ audio?: { status, durationMs }, validation?: ValidationReport, difficulty, approved }` | единый банк для обоих режимов; `c-NNN` |
-| `POST /tickets` | `IncidentCard` без `id` + `difficulty` | `Ticket` (201) | ручное создание преподавателем; эталон достраивается по `group` через классификатор; грамматика проверяется |
+| `GET /tickets` | `group[]`, `difficulty[]`, `source` (seed \| generated \| operator112 \| manual), `validationStatus`, `q` | `Ticket[]` = `IncidentCard` + `{ audio?: { status, durationMs }, validation?: ValidationReport, difficulty, approved, modeOrigin }` | единый банк для обоих режимов; `c-NNN`; `approved` — утверждённый сценарий или сидовый билет без сценария |
+| `POST /tickets` | `IncidentCard` без `id` + `difficulty` (1–5) | `Ticket` (201) | T/A; группа только из справочника (400); `expectedServices`/`expectedTags` достраиваются по строке ЕКП группы, если не заданы; грамматика фабулы — `extra.grammarErrors`; `mode_origin=manual` |
 | `POST /tickets/[id]/validate` | — | `ValidationReport { checks: [{ id: category \| address \| requiredFields \| duplicate \| grammar \| consistency, passed, confidence?, message }], passed, needsReview }` | R22 |
-| `POST /tickets/[id]/audio` | `{ voice?: male \| female \| auto }` | `TicketAudio { status: pending \| ready \| failed, path?, transcript, durationMs? }` (202) | TTS Silero; фоновая задача, опрос через `GET /tickets/[id]/audio` |
-| `GET /tickets/[id]/audio` | — | `TicketAudio` | |
-| `GET /tickets/[id]/audio/file` | — | `audio/wav` | доступ: S — только в рамках активной попытки по билету; в экзамене — один запрос (счётчик `replays`) |
+| `POST /tickets/[id]/audio` | `{ voice?: male \| female \| auto }` | `TicketAudio { cardId, status: pending \| ready \| failed, transcript, voice, path?, durationMs?, generatedAt?, error?, emergency }` (202) | T/A; текст — `AiGateway.call_script` или шаблон; TTS Silero в фоне (`BackgroundTasks`), перегенерация; без модели / `TTS_ENABLED=0` — `failed` + `emergency: true` (FR-013) |
+| `GET /tickets/[id]/audio` | — | `TicketAudio` | нет записи → `status: pending`, `emergency: true` |
+| `GET /tickets/[id]/audio/file` | — | `audio/wav` (24 кГц mono) | не готова → 404; S — только в рамках своей открытой попытки по билету (403); экзамен — один запрос (счётчик `replays`, второй → 409) |
 
 ## Режим специалиста-112 (US3; FR-011–FR-017)
 
 | Метод и путь | Вход | Ответ | Примечания |
 |---|---|---|---|
-| `POST /operator112/attempts` | `{ assignmentId, cardId }` | `OperatorAttempt { id, cardId, aon, incidentNumber, createdAt, answeredAt?, state }` (201) | «поступление вызова»; `aon` из билета |
-| `POST /operator112/attempts/[id]/answer` | — | `OperatorAttempt` | фиксирует `answeredAt`; событие «вызов не принят вовремя», если > норматива |
-| `POST /operator112/attempts/[id]/events` | `{ type: fieldChanged \| signSelected \| serviceAdded \| replay \| hintShown, payload }` | `Event` (201) | серверный таймстамп, «было/стало» |
-| `GET /operator112/attempts/[id]/notification-list` | — | `{ finalType, classifierCode, services: [{ serviceId, addedBy }] }` | по выбранным признакам опросной карты через классификатор (FR-015) |
-| `POST /operator112/attempts/[id]/submit` | `ArmCardFixture`-подобный `CardDraft` (заявитель, адрес, описание, признаки, флаги, опросная карта, список оповещения) | `{ attempt: OperatorAttempt, card: IncidentCard, evaluationId }` | сохраняет `card_snapshot`, создаёт `incident_cards` с `createdByStudentId` и `mode_origin=operator112` (US8), запускает оценку режима A (FR-036) |
-| `GET /operator112/attempts/[id]/evaluation` | — | `Evaluation` + `fieldDiff: [{ field, entered, expected, ok }]` | FR-040 |
-| `GET /streets` | `q` (≥ 3 символа), `limit` | `Street[]` | подсказка адреса (FR-014) |
+| `POST /operator112/attempts` | `{ assignmentId, cardId, studentId? }` | `OperatorAttempt { id, cardId, studentId, aon, incidentNumber, createdAt, openedAt, answeredAt?, completedAt?, state: ringing \| answered \| submitted, assignmentId, events[], replays, hintsShown, hints { enabled, idleSec, steps[{ stage, text }] }, audio: TicketAudio, cardSnapshot? }` (201) | «поступление вызова»; `aon` из билета; `studentId` — для T/A; тренировка: открытая попытка возвращается повторно (200), экзамен: повтор по билету → 409; запись билета ставится на синтез (Phase 10) |
+| `POST /operator112/attempts/[id]/answer` | — | `OperatorAttempt` | фиксирует `answeredAt` (идемпотентно); событие `answerTimeout` в `events`, если > `params.norms.answerSec` (30 с); после `submit` → 409 |
+| `POST /operator112/attempts/[id]/events` | `{ type: fieldChanged \| signSelected \| serviceAdded \| replay \| hintShown, payload }` | `Event { id, type, at, payload, before? }` (201) | серверный таймстамп; `fieldChanged { field, value }` получает `before`; до `answer` / после `submit` → 409; экзамен: второй `replay` → 409, `hintShown` при отключённых подсказках → 409; `signSelected { signs[] }`, `serviceAdded { serviceId }` питают список оповещения (Phase 10) |
+| `GET /operator112/attempts/[id]/notification-list` | `signs[]?`, `classifierCode?` (предпросмотр) | `{ finalType, classifierCode, group, services: [{ serviceId, addedBy: auto \| manual, title, mode?, condition? }], conditional: [{ … }] }` | по признакам из событий (`signSelected`, `fieldChanged what.*`) через ЕКП (FR-015); условные колонки классификатора вычисляются по флагам карточки, невыполненные/неизвестные — в `conditional` для ручного добавления (Phase 10) |
+| `POST /operator112/attempts/[id]/submit` | `CardDraft { applicant { name, status }, phones { aon, provided, onSite }, address { formal, street, house, okrug, raion, descriptive, source: directory \| manual }, what { pollAnswers, signs[], flags[], finalType, classifierCode, casualties { injured, ambulanceRefused, blocked } }, description, emergency { chs, chp }, notificationList[{ serviceId, addedBy }] }` | `{ attempt: OperatorAttempt, card: IncidentCard, evaluationId }` | минимум — адрес и описание/опросная карта (400); пустой `notificationList` достраивается по опросной карте; сохраняет `cardSnapshot`, создаёт `incident_cards` с `createdByStudentId`, `mode_origin=operator112`, `sourceCardId` (US8), считает оценку режима A синхронно (FR-036); экзамен → `passed` по `params.passThreshold`; повтор → 409 |
+| `GET /operator112/attempts/[id]/evaluation` | — | `Evaluation` + `fieldDiff: [{ field, entered, expected, ok }]`, `mode: operator112`, `assessorVersion`, `components`, `warnings`, `passed?` | FR-040; до `submit` → 404 `evaluationPending`; та же оценка доступна через совместимый `GET /attempts/[id]/evaluation` |
+| `GET /streets` | `q` (≥ 3 символа, иначе 400), `limit` (10, ≤ 50) | `Street[] { id, name, type, okrug?, raion? }` | подсказка адреса (FR-014): таблица `streets` (OSM, 3992) по префиксу, затем нечётко |
 
 ## Задания и экзамен (US5; FR-003, FR-030)
 

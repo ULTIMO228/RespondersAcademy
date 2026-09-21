@@ -108,6 +108,15 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
   - `GET /admin/audit` доступен и преподавателю (студент → 403).
   - Прогрев ML при старте: `ML_WARMUP=1` (по умолчанию) в фоне загружает эмбеддер, symspell и классификатор (~25 с), иначе первая оценка попытки упирается в тайм-аут прокси Next; в тестах `ML_WARMUP=0`.
 
+## Phase 10: режим специалиста-112 (`/api/v1`, US3)
+
+- Эндпоинты `app/api/v1/tickets.py` и `app/api/v1/operator112.py` по `specs/002-two-mode-simulator/contracts/v1-endpoints.md`: билеты и аудио (`GET/POST /tickets`, `POST|GET /tickets/{id}/audio`, `GET …/audio/file`), попытка режима A (`POST /operator112/attempts` → `answer` → `events` → `notification-list` → `submit` → `evaluation` с `fieldDiff`), `GET /streets?q=`. Все — с сессией (401), обучающийся — только свои попытки (403).
+- Задания: модели `assignments`/`assignment_attempts` (API — Phase 12); демо-сид `app/seed/assignments_seed.py` — `asg-001` тренировка (c-010, c-050), `asg-002` экзамен (c-071, c-090, порог 70) для `ivanov`/`petrova`. Экзамен: билет и запись — один раз, подсказки отключены.
+- Аудио билета: текст — `AiGateway.call_script` (команда ИИ) или шаблон `ml/generate/call_script.py`; синтез — Silero v4 ru (`uv run python -m ml.scripts.prepare_models --only tts` → `models/silero/v4_ru.pt`, ≈40 МБ), файлы `var/audio/{cardId}.wav`, в фоне. Без модели или `TTS_ENABLED=0` — `status: failed` и расшифровка с `emergency: true` (аварийный режим). Генерируется лениво: первая попытка по билету, `POST /tickets/{id}/audio`, утверждение сценария.
+- Оценщик режима A: `ml/assess/operator112.py` (`operator112-1.0.0`), правила `op-*` в `ml/assess/rules.py`, список оповещения по ЕКП — `ml/classify/notification_list.py`. Разметка: `uv run python -m ml.scripts.build_labeled_operator112` (58 карточек) и `uv run python -m ml.scripts.eval_assessor --mode operator112` → `var/metrics.json[assessorOperator112]` (2026-09-22: согласие 1,0, Pearson 0,97, Spearman 0,83).
+- Схема БД изменилась (`attempts`: answered_at, aon, incident_number, state, events; новые `ticket_audio`, `streets`, `assignments`, `assignment_attempts`) — `uv run python -m app.seed.load --reset`.
+- Тесты: `tests/unit/test_assess_operator112.py` (5 карточек US2), `tests/unit/test_call_script_tts.py` (реплика, числа для Silero, список оповещения; синтез WAV при наличии модели), `tests/contract/test_v1_operator112.py` (полный цикл, экзамен, шлюз ИИ).
+
 ## Проверено 2026-09-22: quickstart §1–§6 на чистом окружении (T076)
 
 Свежий `git clone --depth 1` (коммит `a1bef24`), Windows 11 / Git Bash, Python 3.13 через `uv`, Node 24.19 / npm 11.17, SQLite. Ничего, кроме репозитория, не переносилось (модели и артефакты собраны заново).

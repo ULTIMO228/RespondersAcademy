@@ -27,7 +27,7 @@ cd backend && uv run python -m ml.scripts.prepare_models
 cd backend && uv run python -m ml.scripts.train_classifier
 ```
 
-`prepare_models` скачивает в `backend/models/` rubert-tiny2 (~120 МБ; `--only embedder dedup` добавит multilingual-e5-small, ~470 МБ — для демо не обязателен: на объявленных дублях сидов rubert-tiny2 даёт тот же результат). Словарь symspell и доменные слова лежат в репозитории (`backend/data/dict/`, `backend/data/domain_words.txt`), индекс собирается при первом обращении в `backend/var/symspell_ru.pkl`. `train_classifier` собирает артефакт классификатора `backend/models/ekp_group_lr.joblib` (вне git; без него — режим прототипов). Флаги `--tts`, `--stt`, `--llm` появятся в волне B (T110). Дальше сеть не нужна.
+`prepare_models` скачивает в `backend/models/` rubert-tiny2 (~120 МБ; `--only embedder dedup` добавит multilingual-e5-small, ~470 МБ — для демо не обязателен: на объявленных дублях сидов rubert-tiny2 даёт тот же результат; `--only tts` — Silero v4 ru, ~40 МБ, для аудиозаписей режима 112). Словарь symspell и доменные слова лежат в репозитории (`backend/data/dict/`, `backend/data/domain_words.txt`), индекс собирается при первом обращении в `backend/var/symspell_ru.pkl`. `train_classifier` собирает артефакт классификатора `backend/models/ekp_group_lr.joblib` (вне git; без него — режим прототипов). Флаги `--tts`, `--stt`, `--llm` появятся в волне B (T110). Дальше сеть не нужна.
 
 ## 2. База и сиды
 
@@ -121,13 +121,21 @@ cd backend && uv run pytest -q tests/unit/test_validator.py
 
 Ожидаемо: accuracy классификатора ≥ 0,80 на 96 задачах (SC-006); согласие оценщика ≥ 0,85 по типам ошибок и корреляция ≥ 0,8 на `backend/data/labeled/` (SC-003/004); валидатор — ≥ 90 % дефектных отклонено, ≥ 85 % корректных пропущено (SC-005) — в волне A это проверяет unit-тест на `backend/data/labeled/tickets/` (20 корректных + 20 дефектных); отдельный `ml/scripts/eval_validator.py` и `GET /api/v1/metrics/ml` — волна B (T087, T110). Результаты классификатора и оценщика пишутся в `backend/var/metrics.json`.
 
-## 7. Волна B (после появления эндпоинтов)
+## 7. Волна B: режим специалиста-112 (Phase 10)
+
+Сессия — как у фронта: `POST /api/mock/auth/login` → cookie `arm112_session` (JSON URL-encoded с `token`) либо `Authorization: Bearer <token>`. Демо-задания из сида: `asg-001` (тренировка, билеты c-010 и c-050) и `asg-002` (экзамен, c-071 и c-090) для `ivanov` / `petrova`.
 
 ```bash
-curl -s -X POST localhost:8000/api/v1/tickets/c-001/audio -H 'cookie: arm112_session=…' -d '{}'
+curl -s -X POST localhost:8000/api/v1/tickets/c-010/audio -H 'cookie: arm112_session=…' -H 'content-type: application/json' -d '{"voice":"auto"}'
 ```
 
-Ожидаемо: 202 и через ≤ 1 мин `GET /api/v1/tickets/c-001/audio` → `status: ready`, `transcript` содержит все факты билета. Далее: `POST /api/v1/assignments` (экзамен `operator112`, 2 билета) → `start` → `submit` → `evaluation` с `fieldDiff` и `passed`.
+Ожидаемо (преподаватель): 202, `transcript` со всеми фактами билета; через ≤ 1 мин `GET /api/v1/tickets/c-010/audio` → `status: ready`, `durationMs` (без модели Silero — `failed`, `emergency: true`, расшифровка остаётся).
+
+```bash
+curl -s -X POST localhost:8000/api/v1/operator112/attempts -H 'cookie: arm112_session=…' -H 'content-type: application/json' -d '{"assignmentId":"asg-001","cardId":"c-010"}'
+```
+
+Далее (курсант): `POST …/attempts/{id}/answer` → `POST …/events` (`signSelected`, `fieldChanged`, `replay`, `hintShown`) → `GET …/notification-list` → `POST …/submit` с `CardDraft` → `GET …/evaluation` с `fieldDiff`; `GET /api/v1/streets?q=Дуб` — подсказка улиц; `GET /api/v1/tickets?source=operator112` — карточки, сформированные курсантами. Экзамен (`asg-002`): билет и запись выдаются один раз, `evaluation.passed` по порогу 70. Проверка целиком — `uv run pytest -q tests/contract/test_v1_operator112.py`; метрики режима A — `uv run python -m ml.scripts.eval_assessor --mode operator112`. `POST /api/v1/assignments` — Phase 12.
 
 ## 8. Офлайн-приёмка
 

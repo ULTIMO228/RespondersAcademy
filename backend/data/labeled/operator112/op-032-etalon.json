@@ -1,0 +1,88 @@
+{
+ "id": "op-032",
+ "name": "etalon",
+ "note": "эталонная карточка: все факты, адрес по справочнику, тип и список оповещения по билету",
+ "attempt": {
+  "id": "op-032",
+  "cardId": "c-017",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T11:40:00+03:00",
+  "answeredAt": "2026-09-22T11:40:06+03:00",
+  "completedAt": "2026-09-22T11:42:45+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Иванов Павел Сергеевич",
+    "status": "пострадавший"
+   },
+   "phones": {
+    "aon": "+7 (916) 897-56-23",
+    "provided": "+7 (916) 897-56-23",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Красный Казанец, 19Б, напротив дома, на стоянке",
+    "street": "улица Красный Казанец",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777",
+    "signs": [
+     "Плохо"
+    ],
+    "finalType": "Плохо",
+    "classifierCode": "22360000",
+    "casualties": {
+     "injured": true,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777. мужчине 40 лет плохо.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-103",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-017",
+  "ticketNo": 6,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777",
+  "address": "Москва, ул. Красный Казанец, 19Б, напротив дома, на стоянке",
+  "caller": {
+   "name": "Иванов Павел Сергеевич",
+   "phone": "916 897 5623",
+   "status": "пострадавший"
+  },
+  "victims": {
+   "count": 1,
+   "note": "мужчине 40 лет плохо"
+  },
+  "expectedServices": [
+   "103 (главная)"
+  ],
+  "expectedTags": [
+   "Плохо"
+  ]
+ },
+ "expectedErrors": [],
+ "expectedGrammarErrors": 0,
+ "expertScore": 96
+}

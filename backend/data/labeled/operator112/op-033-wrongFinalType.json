@@ -1,0 +1,112 @@
+{
+ "id": "op-033",
+ "name": "wrongFinalType",
+ "note": "итоговый тип другой группы: «Неисправность газовового оборудования» вместо группы «Оказание медицинской скорой и неотложной помощи»",
+ "attempt": {
+  "id": "op-033",
+  "cardId": "c-017",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T11:45:00+03:00",
+  "answeredAt": "2026-09-22T11:45:06+03:00",
+  "completedAt": "2026-09-22T11:47:37+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Иванов Павел Сергеевич",
+    "status": "пострадавший"
+   },
+   "phones": {
+    "aon": "+7 (916) 897-56-23",
+    "provided": "+7 (916) 897-56-23",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Красный Казанец, 19Б, напротив дома, на стоянке",
+    "street": "улица Красный Казанец",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777",
+    "signs": [
+     "Нарушение работы газового оборудования",
+     "Прочая неисправность газового оборудования"
+    ],
+    "finalType": "Неисправность газовового оборудования",
+    "classifierCode": "13030400",
+    "casualties": {
+     "injured": true,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777. мужчине 40 лет плохо.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-104",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-moblgaz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cityenergo",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-017",
+  "ticketNo": 6,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Мужчине 40 лет плохо, в а/м Ford синий А284ТК 777",
+  "address": "Москва, ул. Красный Казанец, 19Б, напротив дома, на стоянке",
+  "caller": {
+   "name": "Иванов Павел Сергеевич",
+   "phone": "916 897 5623",
+   "status": "пострадавший"
+  },
+  "victims": {
+   "count": 1,
+   "note": "мужчине 40 лет плохо"
+  },
+  "expectedServices": [
+   "103 (главная)"
+  ],
+  "expectedTags": [
+   "Плохо"
+  ]
+ },
+ "expectedErrors": [
+  "wrongFinalType",
+  "missingSign"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 40
+}

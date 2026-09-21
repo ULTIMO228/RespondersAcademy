@@ -1,6 +1,7 @@
-"""Метрики оценщика режима B на размеченной выборке (принцип III): `uv run python -m ml.scripts.eval_assessor`.
+"""Метрики оценщика на размеченной выборке (принцип III): `uv run python -m ml.scripts.eval_assessor [--mode operator112]`.
 
-Считает по `backend/data/labeled/attempts/*.json`:
+Режим B — `backend/data/labeled/attempts/*.json` (раздел `assessor` в metrics.json), режим A — `backend/data/labeled/operator112/*.json`
+(`build_labeled_operator112`, раздел `assessorOperator112`; SC-004). Считает:
 - согласие по типам ошибок — доля совпадений «есть/нет» по словарю типов разметки (accuracy) и каппа Коэна;
 - корреляцию Пирсона и Спирмена между totalScore оценщика и expertScore;
 - MAE по баллу; список расхождений для разбора.
@@ -20,8 +21,10 @@ import numpy as np
 
 from app.config import get_settings
 from ml.assess import adapter, engine
+from ml.assess import operator112 as operator_assessor
 
 LABELED_DIR = Path(__file__).resolve().parents[2] / "data" / "labeled" / "attempts"
+LABELED_OPERATOR_DIR = Path(__file__).resolve().parents[2] / "data" / "labeled" / "operator112"
 AGREEMENT_MIN = 0.85
 CORRELATION_MIN = 0.80
 
@@ -72,16 +75,26 @@ def pearson(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.corrcoef(a, b)[0, 1])
 
 
-def evaluate(samples: list[dict[str, Any]], weights: dict[str, float] | None = None) -> dict[str, Any]:
+def classifier_entries() -> list[dict[str, Any]]:
+    path = get_settings().seed_dir / "spec" / "mocks" / "classifier.json"
+    with path.open(encoding="utf-8") as handle:
+        return list(json.load(handle).get("entries", []))
+
+
+def evaluate(samples: list[dict[str, Any]], weights: dict[str, float] | None = None, mode: str = "dds") -> dict[str, Any]:
     ref = reference()
+    entries = classifier_entries() if mode == "operator112" else []
     vocabulary = sorted({t for s in samples for t in s["expectedErrors"]})
     expected_matrix, found_matrix = [], []
     expert, predicted = [], []
     mismatches = []
     started = time.perf_counter()
     for doc in samples:
-        cards = {doc["card"]["id"]: doc["card"]}
-        result = engine.assess(doc["attempt"], doc["scenario"], cards, ref, weights=weights, session=doc.get("session"))
+        if mode == "operator112":
+            result = operator_assessor.assess(doc["attempt"], doc["ticket"], entries, ref, weights=weights)
+        else:
+            cards = {doc["card"]["id"]: doc["card"]}
+            result = engine.assess(doc["attempt"], doc["scenario"], cards, ref, weights=weights, session=doc.get("session"))
         evaluation = adapter.to_evaluation(result)
         found_types = {e["type"] for e in evaluation["errors"]}
         expected_types = set(doc["expectedErrors"])
@@ -108,7 +121,8 @@ def evaluate(samples: list[dict[str, Any]], weights: dict[str, float] | None = N
         per_type[name] = {"tp": tp, "fp": fp, "fn": fn, "precision": round(precision, 3), "recall": round(recall, 3)}
     return {
         "samples": len(samples),
-        "assessorVersion": engine.ASSESSOR_VERSION,
+        "assessorVersion": operator_assessor.ASSESSOR_VERSION if mode == "operator112" else engine.ASSESSOR_VERSION,
+        "mode": mode,
         "typeVocabulary": vocabulary,
         "agreement": round(float((exp == fnd).mean()), 4) if exp.size else 0.0,
         "kappa": round(cohen_kappa(exp.flatten(), fnd.flatten()), 4) if exp.size else 0.0,
@@ -137,12 +151,14 @@ def write_metrics(section: str, payload: dict[str, Any]) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Метрики оценщика на размеченной выборке")
-    parser.add_argument("--dir", type=Path, default=LABELED_DIR)
+    parser.add_argument("--dir", type=Path, default=None)
+    parser.add_argument("--mode", choices=("dds", "operator112"), default="dds", help="режим оценщика: B (dds) или A (operator112)")
     parser.add_argument("--weights", type=Path, default=None, help="JSON с весами компонентов (например, из calibrate.py)")
     args = parser.parse_args(argv)
     weights = json.loads(args.weights.read_text(encoding="utf-8")) if args.weights else None
-    metrics = evaluate(load_samples(args.dir), weights)
-    path = write_metrics("assessor", metrics)
+    directory = args.dir or (LABELED_OPERATOR_DIR if args.mode == "operator112" else LABELED_DIR)
+    metrics = evaluate(load_samples(directory), weights, mode=args.mode)
+    path = write_metrics("assessorOperator112" if args.mode == "operator112" else "assessor", metrics)
     print(f"samples={metrics['samples']} agreement={metrics['agreement']} kappa={metrics['kappa']} pearson={metrics['pearson']} spearman={metrics['spearman']} mae={metrics['mae']} sec/attempt={metrics['secondsPerAttempt']}")
     for row in metrics["mismatches"]:
         print(f"  {row['id']} {row['name']}: missed={row['missed']} extra={row['extra']} expert={row['expert']} predicted={row['predicted']}")

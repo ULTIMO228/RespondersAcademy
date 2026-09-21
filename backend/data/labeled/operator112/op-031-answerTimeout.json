@@ -1,0 +1,90 @@
+{
+ "id": "op-031",
+ "name": "answerTimeout",
+ "note": "вызов принят через 45 с (норматив 30 с)",
+ "attempt": {
+  "id": "op-031",
+  "cardId": "c-014",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T11:35:00+03:00",
+  "answeredAt": "2026-09-22T11:35:45+03:00",
+  "completedAt": "2026-09-22T11:38:29+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "супруг",
+    "status": "родственник"
+   },
+   "phones": {
+    "aon": "+7 (916) 897-56-23",
+    "provided": "+7 (916) 897-56-23",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, Коломенская наб., 18, кв. 142, под. 3, эт. 4, код 142",
+    "street": "Коломенская набережная",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Женщина выпила случайно не те лекарства, потеряла сознание. Иванова Ирина Петровна, д/р 10.03.1975",
+    "signs": [
+     "Отравление"
+    ],
+    "finalType": "Отравление",
+    "classifierCode": "22340000",
+    "casualties": {
+     "injured": true,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Женщина выпила случайно не те лекарства, потеряла сознание. Иванова Ирина Петровна, д/р 10.03.1975. отравление лекарствами, без сознания.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-103",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-014",
+  "ticketNo": 5,
+  "situationNo": 2,
+  "group": "Оказание медицинской скорой и неотложной помощи",
+  "summary": "Женщина выпила случайно не те лекарства, потеряла сознание. Иванова Ирина Петровна, д/р 10.03.1975",
+  "address": "Москва, Коломенская наб., 18, кв. 142, под. 3, эт. 4, код 142",
+  "caller": {
+   "name": "супруг",
+   "phone": "916 897 5623",
+   "status": "родственник"
+  },
+  "victims": {
+   "count": 1,
+   "note": "отравление лекарствами, без сознания"
+  },
+  "expectedServices": [
+   "103 (главная)"
+  ],
+  "expectedTags": [
+   "Отравление"
+  ]
+ },
+ "expectedErrors": [
+  "answerTimeout"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 86
+}

@@ -51,6 +51,12 @@ class Attempt(Base):
     calls: Mapped[list[dict[str, Any]]] = mapped_column(JSONVariant, default=list)
     seq: Mapped[int] = mapped_column(Integer, default=0)
     card_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONVariant, nullable=True)
+    # Режим A (волна B, US3): вызов и карточка с нуля; для попыток ДДС поля пусты.
+    answered_at: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    aon: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    incident_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    state: Mapped[str | None] = mapped_column(String(16), nullable=True)  # ringing | answered | submitted
+    events: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONVariant, nullable=True)
 
     def to_contract(self, evaluation: dict[str, Any] | None = None) -> dict[str, Any]:
         data: dict[str, Any] = {
@@ -68,6 +74,35 @@ class Attempt(Base):
         }
         if evaluation is not None:
             data["evaluation"] = evaluation
+        return data
+
+    def to_operator_contract(self, *, replays: int = 0, hints_shown: int = 0, hints: dict[str, Any] | None = None, assignment_id: str | None = None, audio: dict[str, Any] | None = None) -> dict[str, Any]:
+        """OperatorAttempt контракта v1 (contracts/v1-endpoints.md, «Режим специалиста-112»)."""
+        data: dict[str, Any] = {
+            "id": self.id,
+            "cardId": self.card_id,
+            "studentId": self.student_id,
+            "aon": self.aon or "",
+            "incidentNumber": self.incident_number or 0,
+            "createdAt": self.opened_at,
+            "openedAt": self.opened_at,  # поступление вызова — начало отсчёта времени ответа (оценщик режима A)
+            "state": self.state or "ringing",
+            "events": list(self.events or []),
+            "replays": replays,
+            "hintsShown": hints_shown,
+        }
+        if self.answered_at:
+            data["answeredAt"] = self.answered_at
+        if self.completed_at:
+            data["completedAt"] = self.completed_at
+        if assignment_id:
+            data["assignmentId"] = assignment_id
+        if hints is not None:
+            data["hints"] = hints
+        if audio is not None:
+            data["audio"] = audio
+        if self.card_snapshot:
+            data["cardSnapshot"] = dict(self.card_snapshot)
         return data
 
 
@@ -110,6 +145,8 @@ class Evaluation(Base):
         if self.components:
             data["components"] = dict(self.components.get("components") or {})
             data["warnings"] = list(self.components.get("warnings") or [])
+            if self.components.get("fieldDiff") is not None:
+                data["fieldDiff"] = list(self.components["fieldDiff"])  # режим A: «моя карточка ↔ эталон» (FR-040)
         if self.passed is not None:
             data["passed"] = self.passed
         return data

@@ -1,0 +1,96 @@
+{
+ "id": "op-055",
+ "name": "typos",
+ "note": "опечаток в описании: 2 (допустимо 1)",
+ "attempt": {
+  "id": "op-055",
+  "cardId": "c-064",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T13:35:00+03:00",
+  "answeredAt": "2026-09-22T13:35:03+03:00",
+  "completedAt": "2026-09-22T13:37:45+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Соколов Иван Петрович",
+    "status": "знакомый"
+   },
+   "phones": {
+    "aon": "+7 (916) 896-32-54",
+    "provided": "+7 (916) 896-32-54",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Маршала Василевского, 13 корп. 3, кв. 2, под. 1, эт. 1, код 2В",
+    "street": "улица Маршала Василевского",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Дерутся в квартире 2 мужчины, без пострадавших, без оружия",
+    "signs": [
+     "Драка",
+     "Квартира"
+    ],
+    "finalType": "Драка в квартире",
+    "classifierCode": "15060100",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Дерутся в квартере 2 мужчины, без пострадавшых, без оружия.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-rosgvardiya",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-064",
+  "ticketNo": 22,
+  "situationNo": 1,
+  "group": "Драка",
+  "summary": "Дерутся в квартире 2 мужчины, без пострадавших, без оружия",
+  "address": "Москва, ул. Маршала Василевского, 13 корп. 3, кв. 2, под. 1, эт. 1, код 2В",
+  "caller": {
+   "name": "Соколов Иван Петрович",
+   "phone": "916 896 3254",
+   "status": "знакомый"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Драка",
+   "Квартира"
+  ]
+ },
+ "expectedErrors": [
+  "grammarLimitExceeded"
+ ],
+ "expectedGrammarErrors": 2,
+ "expertScore": 80
+}

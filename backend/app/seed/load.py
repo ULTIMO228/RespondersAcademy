@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -20,6 +20,7 @@ from app.db.session import get_engine, get_sessionmaker, init_db
 from app.models import (
     Address,
     ArmCardFixture,
+    Assignment,
     Attempt,
     AuditLog,
     CardRuntime,
@@ -31,6 +32,7 @@ from app.models import (
     ReferenceEntry,
     Report,
     Scenario,
+    Street,
     SystemLog,
     SystemService,
     SystemSettings,
@@ -38,6 +40,7 @@ from app.models import (
     TrainingSession,
     User,
 )
+from app.seed.assignments_seed import ASSIGNMENTS_SEED
 from app.seed.profile_mapping_seed import PROFILE_MAPPING_SEED
 from app.services.security import hash_password
 from app.services.time import now_iso
@@ -431,6 +434,30 @@ async def seed_profile_mapping(db: AsyncSession) -> int:
     return len(PROFILE_MAPPING_SEED)
 
 
+STREETS_FILE = Path(__file__).resolve().parents[2] / "data" / "streets" / "moscow_streets.json"
+
+
+async def seed_streets(db: AsyncSession) -> int:
+    """Справочник улиц (волна B, FR-014) — один раз: таблица пуста → полная загрузка, иначе без изменений."""
+    if not STREETS_FILE.exists():
+        return 0
+    existing = (await db.execute(select(func.count()).select_from(Street))).scalar_one()
+    streets = read_json(STREETS_FILE).get("streets", [])
+    if existing >= len(streets):
+        return int(existing)
+    if existing:
+        await db.execute(delete(Street))
+    db.add_all(Street(name_norm=s["norm"], name=s["name"], type=s.get("type", ""), okrug=s.get("okrug"), raion=s.get("raion")) for s in streets)
+    await db.flush()
+    return len(streets)
+
+
+async def seed_assignments(db: AsyncSession) -> int:
+    for values in ASSIGNMENTS_SEED:
+        await _upsert(db, Assignment, "id", dict(values))
+    return len(ASSIGNMENTS_SEED)
+
+
 async def reset_all() -> None:
     engine = get_engine()
     async with engine.begin() as connection:
@@ -458,6 +485,8 @@ async def run_seed(seed_dir: Path | None = None, reset: bool = False) -> dict[st
         summary["reports"] = await seed_reports(db, paths)
         summary["addresses"] = await seed_addresses(db, paths)
         summary.update(await seed_admin(db, paths))
+        summary["streets"] = await seed_streets(db)
+        summary["assignments"] = await seed_assignments(db)
         await db.commit()
         return summary
 

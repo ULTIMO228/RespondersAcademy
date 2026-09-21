@@ -1,0 +1,98 @@
+{
+ "id": "op-044",
+ "name": "answerTimeout",
+ "note": "вызов принят через 48 с (норматив 30 с)",
+ "attempt": {
+  "id": "op-044",
+  "cardId": "c-021",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T12:40:00+03:00",
+  "answeredAt": "2026-09-22T12:40:48+03:00",
+  "completedAt": "2026-09-22T12:43:10+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Маркова Ирина Сергеевна",
+    "status": "родственник"
+   },
+   "phones": {
+    "aon": "+7 (916) 896-32-54",
+    "provided": "+7 (916) 896-32-54",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ул. Маршала Соколовского, 1, кв. 5, под. 1, эт. 2, код 5В",
+    "street": "улица Маршала Соколовского",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Марков Илья Кузьмич, 85 л., потеря памяти, ушёл в поликлинику 6 часов назад и не вернулся",
+    "signs": [
+     "Пропал / найден / похищен",
+     "Потерялся (пропал)",
+     "Недееспособный (пожилой, инвалид, потеря памяти)"
+    ],
+    "finalType": "Пропал человек (недееспособный)",
+    "classifierCode": "17020202",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Марков Илья Кузьмич, 85 л., потеря памяти, ушёл в поликлинику 6 часов назад и не вернулся.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-rosgvardiya",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-021",
+  "ticketNo": 7,
+  "situationNo": 3,
+  "group": "Пропал найден похищен человек",
+  "summary": "Марков Илья Кузьмич, 85 л., потеря памяти, ушёл в поликлинику 6 часов назад и не вернулся",
+  "address": "Москва, ул. Маршала Соколовского, 1, кв. 5, под. 1, эт. 2, код 5В",
+  "caller": {
+   "name": "Маркова Ирина Сергеевна",
+   "phone": "916 896 3254",
+   "status": "родственник"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Пропал / найден / похищен",
+   "Потерялся (пропал)",
+   "Недееспособный (пожилой, инвалид, потеря памяти)"
+  ]
+ },
+ "expectedErrors": [
+  "answerTimeout"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 86
+}

@@ -20,6 +20,7 @@ from app.seed.load import run_seed
 from app.services import reference as reference_service
 
 os.environ.setdefault("ML_WARMUP", "0")  # get_settings() ещё не вызывался: модели грузятся лениво там, где нужны тесту
+os.environ.setdefault("TTS_ENABLED", "0")  # аудио билетов в тестах не синтезируется (аварийный режим с расшифровкой)
 
 DEMO_USERS = {
     "student": {"login": "ivanov", "password": "student112", "armNumber": 1},

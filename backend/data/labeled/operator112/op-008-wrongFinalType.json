@@ -1,0 +1,88 @@
+{
+ "id": "op-008",
+ "name": "wrongFinalType",
+ "note": "итоговый тип другой группы: «Скандал» вместо группы «нарушение тишины»",
+ "attempt": {
+  "id": "op-008",
+  "cardId": "c-008",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T09:40:00+03:00",
+  "answeredAt": "2026-09-22T09:40:11+03:00",
+  "completedAt": "2026-09-22T09:42:25+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Соколов Иван Петрович",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 896-32-54",
+    "provided": "+7 (916) 896-32-54",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Бульвар Маршала Рокоссовского, 25, двор",
+    "street": "бульвар Маршала Рокоссовского",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Громко играет музыка во дворе",
+    "signs": [
+     "Скандал"
+    ],
+    "finalType": "Скандал",
+    "classifierCode": "15190000",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Громко играет музыка во дворе.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-008",
+  "ticketNo": 3,
+  "situationNo": 2,
+  "group": "нарушение тишины",
+  "summary": "Громко играет музыка во дворе",
+  "address": "Бульвар Маршала Рокоссовского, 25, двор",
+  "caller": {
+   "name": "Соколов Иван Петрович",
+   "phone": "916 896 3254",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "102 (главная)"
+  ],
+  "expectedTags": [
+   "Нарушение тишины - в неразрешенное время",
+   "Шум, музыка, ремонт, сигнализация автомашины"
+  ]
+ },
+ "expectedErrors": [
+  "wrongFinalType",
+  "missingSign"
+ ],
+ "expectedGrammarErrors": 0,
+ "expertScore": 40
+}

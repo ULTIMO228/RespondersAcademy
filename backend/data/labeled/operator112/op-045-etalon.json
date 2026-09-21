@@ -1,0 +1,154 @@
+{
+ "id": "op-045",
+ "name": "etalon",
+ "note": "эталонная карточка: все факты, адрес по справочнику, тип и список оповещения по билету",
+ "attempt": {
+  "id": "op-045",
+  "cardId": "c-025",
+  "studentId": "u-005",
+  "openedAt": "2026-09-22T12:45:00+03:00",
+  "answeredAt": "2026-09-22T12:45:16+03:00",
+  "completedAt": "2026-09-22T12:46:55+03:00",
+  "replays": 1,
+  "hintsShown": 0,
+  "events": [],
+  "cardSnapshot": {
+   "applicant": {
+    "name": "Тихий Олег Юрьевич",
+    "status": "очевидец"
+   },
+   "phones": {
+    "aon": "+7 (916) 123-98-78",
+    "provided": "+7 (916) 123-98-78",
+    "onSite": ""
+   },
+   "address": {
+    "formal": "Москва, ст. метро Арбатская",
+    "street": "Филёвская набережная",
+    "house": "",
+    "source": "directory",
+    "descriptive": ""
+   },
+   "what": {
+    "pollAnswers": "Задымление на платформе, пострадавших нет",
+    "signs": [
+     "метро",
+     "станция/вестибюль, тоннель / перегон, переход, платформа, эскалатор, прочее",
+     "дым"
+    ],
+    "finalType": "задымление: метро (станция, тоннель)",
+    "classifierCode": "1030202",
+    "casualties": {
+     "injured": false,
+     "ambulanceRefused": false,
+     "blocked": false
+    }
+   },
+   "description": "Со слов заявителя: Задымление на платформе, пострадавших нет.",
+   "emergency": {
+    "chs": false,
+    "chp": false
+   },
+   "notificationList": [
+    {
+     "serviceId": "svc-101",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-102",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-104",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zemp",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fsb",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-mgt",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gorhoz",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-metro",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-oek",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-zodd",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-apparat-mera",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-rosgvardiya",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-territorial-oiv-tinao",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-gku-ntu",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-fso",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-cukb-mo",
+     "addedBy": "auto"
+    },
+    {
+     "serviceId": "svc-orgperevozki",
+     "addedBy": "auto"
+    }
+   ]
+  }
+ },
+ "ticket": {
+  "id": "c-025",
+  "ticketNo": 9,
+  "situationNo": 1,
+  "group": "пожар в метро",
+  "summary": "Задымление на платформе, пострадавших нет",
+  "address": "Москва, ст. метро Арбатская",
+  "addressRefined": "Филёвская линия",
+  "caller": {
+   "name": "Тихий Олег Юрьевич",
+   "phone": "916-123-98-78",
+   "status": "очевидец"
+  },
+  "expectedServices": [
+   "101 (главная)",
+   "102"
+  ],
+  "expectedTags": [
+   "метро",
+   "станция/вестибюль, тоннель / перегон, переход, платформа, эскалатор, прочее",
+   "дым"
+  ]
+ },
+ "expectedErrors": [],
+ "expectedGrammarErrors": 0,
+ "expertScore": 96
+}
