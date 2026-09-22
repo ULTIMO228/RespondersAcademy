@@ -38,6 +38,7 @@ AUDIT_TYPE_BY_PREFIX = {
     "backup": "backup",
     "card": "card",
     "scenario": "content",
+    "ticket": "content",
     "material": "content",
     "profileMapping": "content",
 }
@@ -62,6 +63,7 @@ AUDIT_ACTION_TITLES = {
     "card.refused": "Переход в Отказ",
     "card.violationsFixed": "Нарушения исправлены",
     "scenario.create": "Создан сценарий",
+    "ticket.create": "Создан билет",
     "scenario.update": "Изменён сценарий",
     "scenario.delete": "Удалён сценарий",
     "scenario.generate": "Сгенерированы сценарии (ИИ)",

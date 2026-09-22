@@ -1,6 +1,6 @@
 """Билеты и аудио (`contracts/v1-endpoints.md`, «Билеты и аудио»; T084/T085):
 `GET /tickets`, `POST /tickets`, `POST|GET /tickets/{id}/audio`, `GET /tickets/{id}/audio/file`.
-`POST /tickets/{id}/validate` — Phase 11 (T087).
+`POST /tickets/{id}/validate` — в модуле validation (T087).
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ from app.models.ticket_audio import TicketAudio
 from app.schemas.scenarios import parse_body
 from app.schemas.v1.operator112 import TicketAudioRequest, TicketCreate
 from app.services import operator112_service, ticket_audio_service
+from app.services.audit import record
 from app.services.reference import read_reference
 from ml.classify import notification_list as nl
 
@@ -61,8 +62,12 @@ def ticket_contract(card: IncidentCard, scenarios: list[Scenario], audio: Ticket
     if summary is not None:
         data["audio"] = summary
     reports = [s.validation_report for s in scenarios if s.validation_report]
-    if reports:
-        data["validation"] = reports[0]
+    if "validation" not in extra:
+        for report in reports:
+            own_report = report.get("tickets", {}).get(card.id) if "tickets" in report else report
+            if own_report is not None:
+                data["validation"] = own_report
+                break
     return data
 
 
@@ -140,6 +145,7 @@ async def create_ticket(request: Request, db: AsyncSession = Depends(get_db), vi
     )
     db.add(card)
     await db.flush()
+    await record(db, action="ticket.create", user_id=viewer.user_id, role=viewer.role, card_id=card.id, details=f"Создан билет {card.id}: {group}")
     await db.commit()
     return JSONResponse(ticket_contract(card, [], None), status_code=201)
 

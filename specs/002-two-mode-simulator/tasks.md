@@ -244,8 +244,8 @@
 
 **Goal**: единый банк билетов с отчётом валидации и ручным созданием
 
-- [ ] T087 [US6] Create `backend/app/api/v1/validation.py` — `POST /tickets/{id}/validate` → `ValidationReport` (T060), сохранение в `scenarios.validation_report`/`incident_cards`; `backend/ml/scripts/eval_validator.py` (SC-005: 20 корректных + 20 дефектных из `backend/data/labeled/tickets/`) → `metrics.json`
-- [ ] T088 [US6] Extend `POST /api/v1/tickets` (T084) — ручное создание: эталон по `group` через классификатор (`expectedServices`, `expectedTags`), грамматика, `difficulty`; аудит `ticket.create`
+- [X] T087 [US6] Create `backend/app/api/v1/validation.py` — `POST /tickets/{id}/validate` → `ValidationReport` (T060), сохранение в `scenarios.validation_report`/`incident_cards`; `backend/ml/scripts/eval_validator.py` (SC-005: 20 корректных + 20 дефектных из `backend/data/labeled/tickets/`) → `metrics.json`
+- [X] T088 [US6] Extend `POST /api/v1/tickets` (T084) — ручное создание: эталон по `group` через классификатор (`expectedServices`, `expectedTags`), грамматика, `difficulty`; аудит `ticket.create`
 
 ---
 

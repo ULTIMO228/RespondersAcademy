@@ -17,9 +17,13 @@ from sqlalchemy import delete, select
 from app import ai_gateway
 from app.db.session import get_sessionmaker
 from app.models.assignment import AssignmentAttempt
+from app.models.audit import AuditLog
 from app.models.card import IncidentCard
+from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation
 from app.models.ticket_audio import TicketAudio
+from app.schemas.admin import resolve_audit_type
+from ml.generate import validator
 from tests.conftest import login_as
 
 TRAINING = "asg-001"  # c-010 (пожар в жилом доме), c-050 (СМП) — ivanov, petrova
@@ -99,7 +103,64 @@ async def test_ticket_create_by_teacher(v1: AsyncClient):
     ticket = created.json()
     assert ticket["id"].startswith("c-") and ticket["group"] == "Дерево" and ticket["difficulty"] == 2 and ticket["approved"] is False
     assert ticket["expectedServices"] and ticket["expectedTags"], ticket  # эталон достроен по классификатору
+    assert "grammarErrors" in ticket
+    async with get_sessionmaker()() as db:
+        audit = (await db.execute(select(AuditLog).where(AuditLog.action == "ticket.create", AuditLog.card_id == ticket["id"]))).scalar_one()
+        assert audit.role == "teacher" and audit.user_id == ticket["createdBy"]
+        assert resolve_audit_type(audit.action) == "content"
     assert (await v1.get("/tickets", params={"source": "manual"})).json()[-1]["id"] == ticket["id"]
+    validated = await v1.post(f"/tickets/{ticket['id']}/validate")
+    assert validated.status_code == 200, validated.text
+    assert [c["id"] for c in validated.json()["checks"]] == list(validator.CHECK_IDS)
+    saved = (await v1.get("/tickets", params={"q": ticket["id"]})).json()[0]
+    assert saved["validation"] == validated.json() and saved["approved"] is False
+
+
+async def test_ticket_validation_access_and_persistence(v1, monkeypatch):
+    assert (await v1.post("/tickets/c-010/validate")).status_code == 401
+    await login_as(v1, "student")
+    assert (await v1.post("/tickets/c-010/validate")).status_code == 403
+    await login_as(v1, "teacher")
+    assert (await v1.post("/tickets/c-999/validate")).status_code == 404
+    snapshots = []
+    async with get_sessionmaker()() as db:
+        card = await db.get(IncidentCard, "c-010")
+        old_extra = card.extra
+        scenarios = (await db.execute(select(Scenario))).scalars().all()
+        for row in scenarios:
+            if "c-010" in row.card_ids and not row.deleted:
+                snapshots.append((row.id, row.validation_report, row.validation_status))
+    assert snapshots
+    reports = []
+    def validate(ticket, existing, *, groups):
+        assert ticket["id"] == "c-010" and existing and ticket["group"] in groups
+        report = validator.ValidationReport([validator.Check(key, key != "grammar", "Проверка", needsReview=key == "category") for key in validator.CHECK_IDS])
+        reports.append(report.to_contract())
+        return report
+    monkeypatch.setattr(validator, "validate", validate)
+    try:
+        for role in ("teacher", "admin"):
+            await login_as(v1, role)
+            response = await v1.post("/tickets/c-010/validate")
+            assert response.status_code == 200, response.text
+            assert response.json() == reports[-1]
+        ticket = (await v1.get("/tickets", params={"q": "c-010"})).json()[0]
+        assert ticket["validation"] == reports[-1]
+        async with get_sessionmaker()() as db:
+            assert (await db.get(IncidentCard, "c-010")).extra["validation"] == reports[-1]
+            for key, old_report, status in snapshots:
+                row = await db.get(Scenario, key)
+                assert row.validation_status == status
+                assert row.validation_report["tickets"]["c-010"] == reports[-1]
+                for other, report in (old_report or {}).get("tickets", {}).items():
+                    if other != "c-010":
+                        assert row.validation_report["tickets"][other] == report
+    finally:
+        async with get_sessionmaker()() as db:
+            (await db.get(IncidentCard, "c-010")).extra = old_extra
+            for key, report, _ in snapshots:
+                (await db.get(Scenario, key)).validation_report = report
+            await db.commit()
 
 
 async def test_streets_suggest(v1: AsyncClient):
