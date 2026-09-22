@@ -1,0 +1,246 @@
+"""Создание, выдача и завершение заданий обоих режимов (T091)."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import Viewer
+from app.api.errors import conflict, forbidden, not_found, validation_failed
+from app.db.ids import PREFIX, next_id
+from app.models.assignment import Assignment, AssignmentAttempt
+from app.models.card import IncidentCard
+from app.models.scenario import Scenario
+from app.models.session import Attempt, Evaluation, TrainingSession
+from app.models.user import User
+from app.services import operator112_service
+from app.services.session_engine import filter_cards_for_student
+from app.services.time import now_iso, parse_iso_ms
+
+
+async def require_assignment(db: AsyncSession, assignment_id: str) -> Assignment:
+    row = await db.get(Assignment, assignment_id)
+    if row is None:
+        raise not_found(f"Задание «{assignment_id}» не найдено")
+    return row
+
+
+def _can_manage(row: Assignment, viewer: Viewer) -> bool:
+    return viewer.role == "admin" or (viewer.role == "teacher" and row.teacher_id == viewer.user_id)
+
+
+def _assert_visible(row: Assignment, viewer: Viewer) -> None:
+    if viewer.is_student and viewer.user_id not in (row.student_ids or []):
+        raise forbidden("Обучающемуся доступны только свои задания")
+    if viewer.role == "teacher" and row.teacher_id != viewer.user_id:
+        raise forbidden("Задание другого преподавателя")
+
+
+async def _cards(db: AsyncSession) -> list[IncidentCard]:
+    return list((await db.execute(select(IncidentCard).order_by(IncidentCard.id))).scalars().all())
+
+
+async def _approved_ids(db: AsyncSession) -> set[str]:
+    cards = await _cards(db)
+    scenarios = (await db.execute(select(Scenario).where(Scenario.deleted.is_(False)))).scalars().all()
+    linked = {card_id for scenario in scenarios for card_id in (scenario.card_ids or [])}
+    approved = {card.id for card in cards if card.mode_origin == "seed" and card.id not in linked}
+    approved.update(card_id for scenario in scenarios if scenario.validation_status == "approved" for card_id in (scenario.card_ids or []))
+    return approved
+
+
+def _difficulty(card: IncidentCard, scenarios: list[Scenario]) -> int:
+    values = [s.difficulty for s in scenarios if card.id in (s.card_ids or [])]
+    return max(values, default=int((card.extra or {}).get("difficulty") or 1))
+
+
+async def candidate_card_ids(db: AsyncSession, rule: dict[str, Any], student_ids: list[str], mode: str) -> list[str]:
+    cards = await _cards(db)
+    approved = await _approved_ids(db)
+    scenarios = list((await db.execute(select(Scenario).where(Scenario.deleted.is_(False)))).scalars().all())
+    groups = [str(v) for v in rule.get("groups") or []]
+    levels = {int(v) for v in rule.get("difficulty") or []}
+    pool = [c for c in cards if c.id in approved and (not levels or _difficulty(c, scenarios) in levels)]
+    docs = [{**c.to_contract(), "level": _difficulty(c, scenarios), "cardId": c.id} for c in pool]
+    if mode == "dds":
+        for student_id in student_ids:
+            allowed = {c["cardId"] for c in await filter_cards_for_student(db, docs, student_id, groups, mode)}
+            docs = [c for c in docs if c["cardId"] in allowed]
+    elif groups:
+        normalized = {g.casefold().replace("ё", "е") for g in groups}
+        docs = [c for c in docs if str(c["group"]).casefold().replace("ё", "е") in normalized]
+    count = int(rule.get("count") or 1)
+    if len(docs) < count:
+        raise validation_failed(f"По правилу найдено билетов: {len(docs)}, требуется: {count}")
+    return [c["cardId"] for c in docs[:count]]
+
+
+async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict[str, Any]:
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Задания создаёт преподаватель или администратор")
+    students = list((await db.execute(select(User).where(User.id.in_(body["studentIds"])))).scalars().all())
+    if len(students) != len(body["studentIds"]) or any(u.role != "student" or not u.is_active for u in students):
+        raise validation_failed("Все studentIds должны указывать на активных обучающихся")
+    selected = list(body.get("cardIds") or [])
+    if selected:
+        approved = await _approved_ids(db)
+        if any(card_id not in approved for card_id in selected):
+            raise validation_failed("В задание можно включать только существующие утверждённые билеты")
+        if body["trainingMode"] == "dds":
+            by_id = {card.id: card for card in await _cards(db)}
+            scenarios = list((await db.execute(select(Scenario).where(Scenario.deleted.is_(False)))).scalars().all())
+            docs = [{**by_id[card_id].to_contract(), "cardId": card_id, "level": _difficulty(by_id[card_id], scenarios)} for card_id in selected]
+            for student_id in body["studentIds"]:
+                allowed = {card["cardId"] for card in await filter_cards_for_student(db, docs, student_id, [], "dds")}
+                if allowed != set(selected):
+                    raise validation_failed(f"Часть билетов не соответствует профилю службы обучающегося {student_id}")
+    rule = body.get("randomRule")
+    if body["format"] == "exam" and rule:
+        selected = await candidate_card_ids(db, rule, body["studentIds"], body["trainingMode"])
+    row = Assignment(
+        id=await next_id(db, PREFIX["assignment"], Assignment.id), teacher_id=viewer.user_id,
+        student_ids=body["studentIds"], training_mode=body["trainingMode"], format=body["format"],
+        card_ids=selected, random_rule=rule, params=body.get("params") or {}, due_at=body.get("dueAt"),
+        state="active", created_at=now_iso(), title=body.get("title") or "",
+    )
+    db.add(row)
+    await db.flush()
+    return row.to_contract()
+
+
+async def _expire(db: AsyncSession, row: Assignment) -> None:
+    limit = (row.params or {}).get("timeLimitSec")
+    if row.format != "exam" or not isinstance(limit, int):
+        return
+    links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id))).scalars().all()
+    now = now_iso()
+    for link in links:
+        if link.state in ("submitted", "notCompleted"):
+            continue
+        attempt = await db.get(Attempt, link.attempt_id)
+        if attempt is None or parse_iso_ms(now) - parse_iso_ms(attempt.opened_at) <= limit * 1000:
+            continue
+        attempt.completed_at, link.state, link.passed = now, "notCompleted", False
+        attempt.full_processing_ms = limit * 1000
+        if attempt.mode == "operator112":
+            attempt.state = "submitted"
+        if await db.get(Evaluation, attempt.id) is None:
+            db.add(Evaluation(attempt_id=attempt.id, assessor_version="timeout-1.0.0", time_score=0, correctness_score=0, grammar_score=0, semantic_score=0, total_score=0, grammar_errors=[], errors=[{"type": "timeLimit", "message": "Истёк лимит времени", "source": "Параметры экзамена"}], ai_comment="Попытка завершена по лимиту времени", components={"components": {}, "warnings": []}, generated_at=now, passed=False, mode=attempt.mode))
+    await db.flush()
+
+
+async def list_rows(db: AsyncSession, viewer: Viewer, *, student_id: str | None = None, teacher_id: str | None = None, state: str | None = None) -> list[dict[str, Any]]:
+    rows = list((await db.execute(select(Assignment).order_by(Assignment.created_at.desc(), Assignment.id.desc()))).scalars().all())
+    if viewer.is_student:
+        if student_id and student_id != viewer.user_id:
+            raise forbidden("Обучающемуся доступны только свои задания")
+        rows = [r for r in rows if viewer.user_id in (r.student_ids or [])]
+    elif viewer.role == "teacher":
+        rows = [r for r in rows if r.teacher_id == viewer.user_id]
+    if student_id:
+        rows = [r for r in rows if student_id in (r.student_ids or [])]
+    if teacher_id:
+        rows = [r for r in rows if r.teacher_id == teacher_id]
+    if state:
+        rows = [r for r in rows if r.state == state]
+    for row in rows:
+        await _expire(db, row)
+    return [r.to_contract() for r in rows]
+
+
+async def detail(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[str, Any]:
+    row = await require_assignment(db, assignment_id)
+    _assert_visible(row, viewer)
+    await _expire(db, row)
+    links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id).order_by(AssignmentAttempt.id))).scalars().all()
+    progress = []
+    for link in links:
+        evaluation = await db.get(Evaluation, link.attempt_id)
+        item = {"studentId": link.student_id, "cardId": link.card_id, "attemptId": link.attempt_id, "state": link.state}
+        if evaluation is not None:
+            item["score"] = evaluation.total_score
+        if link.passed is not None:
+            item["passed"] = link.passed
+        progress.append(item)
+    return {**row.to_contract(), "progress": progress}
+
+
+def _student(viewer: Viewer, requested: str | None, row: Assignment) -> str:
+    if viewer.is_student:
+        if requested and requested != viewer.user_id:
+            raise forbidden("Обучающемуся доступны только свои задания")
+        student_id = viewer.user_id
+    elif requested:
+        student_id = requested
+    else:
+        raise validation_failed("Укажите studentId при запуске преподавателем или администратором")
+    if student_id not in (row.student_ids or []):
+        raise forbidden("Обучающийся не назначен на это задание")
+    return student_id
+
+
+async def _dds_start(db: AsyncSession, row: Assignment, student_id: str, card_id: str) -> dict[str, Any]:
+    sessions = (await db.execute(select(TrainingSession).where(TrainingSession.mode == f"assignment:{row.id}"))).scalars().all()
+    session = next((item for item in sessions if student_id in (item.student_ids or [])), None)
+    if session is None:
+        session = TrainingSession(id=await next_id(db, PREFIX["session"], TrainingSession.id), teacher_id=row.teacher_id, student_ids=[student_id], scenario_ids=[], mode=f"assignment:{row.id}", card_source="generated", card_flow=[], state="running", started_at=now_iso(), plan=row.params, paused_at=None, parked=[], training_mode="dds", format=row.format, exam={"passThreshold": (row.params or {}).get("passThreshold")} if row.format == "exam" else None)
+        db.add(session)
+        await db.flush()
+    attempt = Attempt(id=await next_id(db, PREFIX["attempt"], Attempt.id), session_id=session.id, card_id=card_id, student_id=student_id, mode="dds", opened_at=now_iso(), primary_reaction_ms=0, statuses=[], services_called=[], full_processing_ms=0, entered_text={}, calls=[], seq=len((await db.execute(select(Attempt.id).where(Attempt.session_id == session.id))).scalars().all()))
+    db.add(attempt)
+    await db.flush()
+    db.add(AssignmentAttempt(assignment_id=row.id, student_id=student_id, card_id=card_id, attempt_id=attempt.id, state="answered"))
+    await db.flush()
+    return {"sessionId": session.id, "attempt": attempt.to_contract(), "created": True}
+
+
+async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id: str | None, background: Any = None) -> dict[str, Any]:
+    row = await require_assignment(db, assignment_id)
+    _assert_visible(row, viewer)
+    if row.state != "active":
+        raise conflict("Задание завершено")
+    await _expire(db, row)
+    student = _student(viewer, student_id, row)
+    links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id, AssignmentAttempt.student_id == student).order_by(AssignmentAttempt.id))).scalars().all()
+    opened = next((link for link in links if link.state not in ("submitted", "notCompleted")), None)
+    if opened is not None:
+        attempt = await db.get(Attempt, opened.attempt_id)
+        if row.training_mode == "operator112":
+            return {"attempt": await operator112_service.contract_of(db, attempt, opened, row)}
+        return {"attempt": {"sessionId": attempt.session_id, "attempt": attempt.to_contract(), "created": False}}
+    card_ids = list(row.card_ids or [])
+    if not card_ids and row.random_rule:
+        card_ids = await candidate_card_ids(db, row.random_rule, [student], row.training_mode)
+    used = {link.card_id for link in links}
+    card_id = next((value for value in card_ids if value not in used), None)
+    if card_id is None:
+        raise conflict("Все билеты задания уже выполнены")
+    if row.training_mode == "chain":
+        raise conflict("Цепочка A → B будет доступна после Phase 15")
+    if row.training_mode == "operator112":
+        attempt, _ = await operator112_service.create_attempt(db, row.id, card_id, student, viewer, background)
+        return {"attempt": attempt}
+    return {"attempt": await _dds_start(db, row, student, card_id)}
+
+
+async def finish(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[str, Any]:
+    row = await require_assignment(db, assignment_id)
+    if not _can_manage(row, viewer):
+        raise forbidden("Задание завершает его преподаватель или администратор")
+    if row.state == "finished":
+        return row.to_contract()
+    links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id))).scalars().all()
+    now = now_iso()
+    for link in links:
+        if link.state not in ("submitted", "notCompleted"):
+            link.state, link.passed = "notCompleted", False if row.format == "exam" else None
+            attempt = await db.get(Attempt, link.attempt_id)
+            if attempt is not None and not attempt.completed_at:
+                attempt.completed_at = now
+                if attempt.mode == "operator112":
+                    attempt.state = "submitted"
+    row.state = "finished"
+    await db.flush()
+    return row.to_contract()

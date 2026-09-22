@@ -255,11 +255,11 @@
 
 **Independent Test**: экзамен `dds` из 5 случайных билетов категории «Водоснабжение» порог 70 для 2 обучаемых → 10 попыток, `passed` по каждому, повторный `start` по билету → 409, истечение `timeLimitSec` завершает попытку принудительно
 
-- [ ] T089 [P] [US5] Create models `backend/app/models/assignment.py` — `assignments` (teacher_id, student_ids JSON, training_mode dds/operator112/chain, format training/exam, card_ids JSON? | random_rule JSON?, params JSON {norms, hints, passThreshold?, timeLimitSec?}, due_at?, state assigned/in_progress/completed), `assignment_attempts` (assignment_id, student_id, card_id, attempt_id FK, replays int, hints_shown int, state, passed?)
-- [ ] T090 [P] [US5] Create schemas `backend/app/schemas/v1/assignments.py` — `AssignmentCreateRequest`, `Assignment`, `AssignmentProgress`, `StartResponse` per `contracts/v1-endpoints.md`
-- [ ] T091 [US5] Create `backend/app/services/assignment_service.py` — создание (случайный набор фиксируется при создании для экзамена; фильтр по профилю службы для `dds`), `start` (следующий билет в нужном режиме: `dds` → занятие практики + `attempts`, `operator112` → T083; экзамен: одна попытка на билет → 409, `replays` запрещены, подсказки выключены, таймер `timeLimitSec` — принудительное завершение при следующем обращении), `finish`, расчёт `passed` по `passThreshold` и запись `evaluations.passed`; аналитика экзаменов отдельно от тренировок
-- [ ] T092 [US5] Create `backend/app/api/v1/assignments.py` — `POST/GET /assignments`, `GET /assignments/{id}` (+ progress), `POST /assignments/{id}/start`, `POST /assignments/{id}/finish`; student видит только свои
-- [ ] T093 [US5] Create tests `backend/tests/contract/test_v1_assignments.py` и `backend/tests/integration/test_exam_flow.py`
+- [X] T089 [P] [US5] Create models `backend/app/models/assignment.py` — `assignments` (teacher_id, student_ids JSON, training_mode dds/operator112/chain, format training/exam, card_ids JSON? | random_rule JSON?, params JSON {norms, hints, passThreshold?, timeLimitSec?}, due_at?, state assigned/in_progress/completed), `assignment_attempts` (assignment_id, student_id, card_id, attempt_id FK, replays int, hints_shown int, state, passed?)
+- [X] T090 [P] [US5] Create schemas `backend/app/schemas/v1/assignments.py` — `AssignmentCreateRequest`, `Assignment`, `AssignmentProgress`, `StartResponse` per `contracts/v1-endpoints.md`
+- [X] T091 [US5] Create `backend/app/services/assignment_service.py` — создание (случайный набор фиксируется при создании для экзамена; фильтр по профилю службы для `dds`), `start` (следующий билет в нужном режиме: `dds` → занятие практики + `attempts`, `operator112` → T083; экзамен: одна попытка на билет → 409, `replays` запрещены, подсказки выключены, таймер `timeLimitSec` — принудительное завершение при следующем обращении), `finish`, расчёт `passed` по `passThreshold` и запись `evaluations.passed`; аналитика экзаменов отдельно от тренировок
+- [X] T092 [US5] Create `backend/app/api/v1/assignments.py` — `POST/GET /assignments`, `GET /assignments/{id}` (+ progress), `POST /assignments/{id}/start`, `POST /assignments/{id}/finish`; student видит только свои
+- [X] T093 [US5] Create tests `backend/tests/contract/test_v1_assignments.py` и `backend/tests/integration/test_exam_flow.py`
 
 ---
 

@@ -159,6 +159,14 @@ async def create_attempt(db: AsyncSession, assignment_id: str, card_id: str, stu
         raise conflict("Задание завершено")
     if assignment.card_ids and card_id not in assignment.card_ids:
         raise validation_failed(f"Билет «{card_id}» не входит в задание")
+    if not assignment.card_ids and assignment.random_rule:
+        # Тренировочный randomRule не фиксируется в БД, но прямой endpoint режима 112
+        # всё равно обязан ограничить билет тем же рассчитанным набором, что и /assignments/{id}/start.
+        from app.services.assignment_service import candidate_card_ids
+
+        allowed = await candidate_card_ids(db, assignment.random_rule, [student], assignment.training_mode)
+        if card_id not in allowed:
+            raise validation_failed(f"Билет «{card_id}» не входит в случайный набор задания")
     card = await db.get(IncidentCard, card_id)
     if card is None:
         raise not_found(f"Билет «{card_id}» не найден")

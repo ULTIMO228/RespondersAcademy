@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai_gateway import get_gateway
 from app.api.deps import Viewer, assert_own_attempt
 from app.api.errors import evaluation_pending, forbidden, not_found, validation_failed
+from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.card import IncidentCard
 from app.models.report import CalibrationSample
 from app.models.scenario import Scenario
@@ -81,6 +82,15 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
     )
     db.add(row)
     await db.flush()
+    link = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.attempt_id == attempt.id))).scalars().first()
+    if link is not None:
+        assignment = await db.get(Assignment, link.assignment_id)
+        threshold = (assignment.params or {}).get("passThreshold") if assignment else None
+        link.state = "submitted"
+        if assignment is not None and assignment.format == "exam" and isinstance(threshold, (int, float)):
+            row.passed = row.total_score >= threshold
+            link.passed = row.passed
+        await db.flush()
     return await evaluation_contract(db, attempt.id)
 
 

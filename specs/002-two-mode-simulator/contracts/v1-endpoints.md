@@ -29,11 +29,11 @@
 
 | Метод и путь | Вход | Ответ | Примечания |
 |---|---|---|---|
-| `POST /assignments` | `{ studentIds[], trainingMode: dds \| operator112 \| chain, format: training \| exam, cardIds? \| randomRule { groups[], difficulty[], count }, params { norms, hints, passThreshold?, timeLimitSec? }, dueAt? }` | `Assignment` (201) | экзамен фиксирует набор при создании |
-| `GET /assignments` | `studentId?`, `teacherId?`, `state?` | `Assignment[]` | S — только свои |
-| `GET /assignments/[id]` | — | `Assignment` + `progress: [{ studentId, cardId, state, score?, passed? }]` | |
-| `POST /assignments/[id]/start` | — | `{ attempt: OperatorAttempt \| CardAttemptResponse }` | выдаёт следующий билет в нужном режиме; экзамен: повтор по билету → 409 |
-| `POST /assignments/[id]/finish` | — | `Assignment` | преподаватель завершает; незавершённые → «не завершено» |
+| `POST /assignments` | `{ studentIds[], trainingMode: dds \| operator112 \| chain, format: training \| exam, cardIds? \| randomRule { groups[], difficulty[], count }, params { norms, hints, passThreshold?, timeLimitSec? }, dueAt?, title? }` | `Assignment` (201) | T/A; только активные обучающиеся и утверждённые билеты; ровно один источник `cardIds`/`randomRule`; экзамен фиксирует набор при создании и выключает подсказки; `dds` фильтруется по профилю службы |
+| `GET /assignments` | `studentId?`, `teacherId?`, `state?` | `Assignment[]` | S — только свои; T — только созданные им; A — все; при чтении применяется истёкший `timeLimitSec` |
+| `GET /assignments/[id]` | — | `Assignment` + `progress: [{ studentId, cardId, attemptId, state, score?, passed? }]` | 401/403/404; экзаменационная аналитика отделена полем `format` |
+| `POST /assignments/[id]/start` | `{ studentId? }` | `{ attempt: OperatorAttempt \| CardAttemptResponse }` | S запускает себя; T/A передаёт `studentId`; открытая попытка возвращается, затем выдаётся следующий билет; после всех билетов → 409; `chain` — Phase 15 |
+| `POST /assignments/[id]/finish` | — | `Assignment` | владелец-T/A завершает; незавершённые → `notCompleted`, экзамен → `passed: false`; повтор идемпотентен |
 
 ## Лобби (US4; FR-044–FR-047)
 

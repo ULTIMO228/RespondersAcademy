@@ -135,7 +135,11 @@ curl -s -X POST localhost:8000/api/v1/tickets/c-010/audio -H 'cookie: arm112_ses
 curl -s -X POST localhost:8000/api/v1/operator112/attempts -H 'cookie: arm112_session=…' -H 'content-type: application/json' -d '{"assignmentId":"asg-001","cardId":"c-010"}'
 ```
 
-Далее (курсант): `POST …/attempts/{id}/answer` → `POST …/events` (`signSelected`, `fieldChanged`, `replay`, `hintShown`) → `GET …/notification-list` → `POST …/submit` с `CardDraft` → `GET …/evaluation` с `fieldDiff`; `GET /api/v1/streets?q=Дуб` — подсказка улиц; `GET /api/v1/tickets?source=operator112` — карточки, сформированные курсантами. Экзамен (`asg-002`): билет и запись выдаются один раз, `evaluation.passed` по порогу 70. Проверка целиком — `uv run pytest -q tests/contract/test_v1_operator112.py`; метрики режима A — `uv run python -m ml.scripts.eval_assessor --mode operator112`. `POST /api/v1/assignments` — Phase 12.
+Далее (курсант): `POST …/attempts/{id}/answer` → `POST …/events` (`signSelected`, `fieldChanged`, `replay`, `hintShown`) → `GET …/notification-list` → `POST …/submit` с `CardDraft` → `GET …/evaluation` с `fieldDiff`; `GET /api/v1/streets?q=Дуб` — подсказка улиц; `GET /api/v1/tickets?source=operator112` — карточки, сформированные курсантами. Экзамен (`asg-002`): билет и запись выдаются один раз, `evaluation.passed` по порогу 70. Проверка целиком — `uv run pytest -q tests/contract/test_v1_operator112.py`; метрики режима A — `uv run python -m ml.scripts.eval_assessor --mode operator112`.
+
+Phase 12 добавляет `/api/v1/assignments`: преподаватель создаёт задание из выбранных билетов или `randomRule`; для экзамена случайный набор фиксируется сразу, подсказки выключаются. Обучающийся вызывает `POST /assignments/{id}/start`, получает следующий `OperatorAttempt` либо DDS `CardAttemptResponse`, а `GET /assignments/{id}` показывает `progress`. Истечение `timeLimitSec` фиксируется при следующем обращении к заданию с нулевой оценкой и `passed: false`. Завершает задание его преподаватель через `POST /assignments/{id}/finish`.
+
+Проверка Phase 12: `uv run pytest -q tests/contract/test_v1_assignments.py tests/integration/test_exam_flow.py tests/contract/test_v1_operator112.py`.
 
 ## 8. Офлайн-приёмка
 

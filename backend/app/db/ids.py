@@ -22,6 +22,7 @@ PREFIX = {
     "scenario": "s",
     "session": "ses",
     "attempt": "att",
+    "assignment": "asg",
     "call": "call",
     "card": "c",
 }
