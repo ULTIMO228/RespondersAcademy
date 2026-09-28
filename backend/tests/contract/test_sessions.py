@@ -85,6 +85,7 @@ async def test_session_validation_and_feed_access(client):
     created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-005", "u-006"], "scenarioIds": ["s-001"], "mode": "follow", "cardSource": "generated", "plan": plan})
     assert created.status_code == 201, created.text
     session_id = created.json()["id"]
+    await login_as(client, "teacher")
     control = await client.get(f"/sessions/{session_id}/control")
     assert control.json()["plan"]["paceSec"] == 60 and control.json()["paused"] is False
     started = await client.post(f"/sessions/{session_id}/start")
@@ -107,7 +108,9 @@ async def test_session_validation_and_feed_access(client):
     client.cookies.clear()
     stopped = await client.post(f"/sessions/{session_id}/stop")
     assert stopped.json()["state"] == "finished" and stopped.json()["finishedAt"]
+    await login_as(client, "teacher")
     assert (await client.post(f"/sessions/{session_id}/control", json={"action": "report"})).json()["session"]["state"] == "reported"
+    client.cookies.clear()
     anonymous = await client.get("/sessions", params={"studentId": "u-005"})
     assert anonymous.status_code == 401
 

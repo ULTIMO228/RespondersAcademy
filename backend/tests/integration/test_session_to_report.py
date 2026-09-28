@@ -69,6 +69,7 @@ async def test_session_to_report_flow(client):
 
     stopped = await client.post(f"/sessions/{session_id}/stop")
     assert stopped.status_code == 200 and stopped.json()["state"] == "finished"
+    await login_as(client, "teacher")
     reported = await client.post(f"/sessions/{session_id}/control", json={"action": "report"})
     assert reported.status_code == 200 and reported.json()["session"]["state"] == "reported"
 

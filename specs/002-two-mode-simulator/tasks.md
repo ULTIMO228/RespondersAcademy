@@ -319,7 +319,7 @@
 - [X] T111 [P] Write `backend/docs/architecture.md` (функциональная и компонентная архитектура, матрица доступа роль × ресурс, путь внедрения TLS/SIP/бэкапов по расписанию — принцип IV) и `backend/docs/ml-methods.md` (методы обработки данных, метрики, калибровка — требование платформы хакатона)
 - [ ] T112 [P] Offline acceptance per quickstart §8: запуск без сети, захват исходящих соединений, шаблонная генерация без Ollama; результат в `backend/docs/offline-check.md`
 - [ ] T113 Performance check: оценка попытки ≤ 5 с, отчёт 20 × 5 ≤ 30 с, feed ≤ 200 мс при 20 параллельных клиентах (скрипт `backend/scripts/perf_smoke.py` на httpx), фиксация в `backend/README.md`
-- [ ] T114 Security hardening: rate-limit `/auth/login`, `JWT_SECRET` обязателен вне dev, заголовки безопасности, тест матрицы доступа `backend/tests/contract/test_access_matrix.py` (SC-013: 0 утечек между обучаемыми)
+- [X] T114 Security hardening: rate-limit `/auth/login`, `JWT_SECRET` обязателен вне dev, заголовки безопасности, тест матрицы доступа `backend/tests/contract/test_access_matrix.py` (SC-013: 0 утечек между обучаемыми)
 - [X] T115 Update `specs/002-two-mode-simulator/quickstart.md` и `backend/README.md` по фактическим командам; синхронизировать `docs/mock-api.md` пометкой «реализовано бэкендом, см. backend/README.md» (без изменения контракта)
 
 ---

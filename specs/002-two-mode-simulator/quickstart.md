@@ -122,7 +122,7 @@ cd backend && uv run python -m ml.scripts.eval_assessor
 cd backend && uv run pytest -q tests/unit/test_validator.py
 ```
 
-Ожидаемо: accuracy классификатора ≥ 0,80 на 96 задачах (SC-006); согласие оценщика ≥ 0,85 по типам ошибок и корреляция ≥ 0,8 на `backend/data/labeled/` (SC-003/004); валидатор — ≥ 90 % дефектных отклонено, ≥ 85 % корректных пропущено (SC-005). Команда `uv run python -m ml.scripts.eval_validator` проверяет 20 корректных и 20 дефектных билетов. Результаты пишутся в `backend/var/metrics.json` и выдаются `GET /api/v1/metrics/ml`; подробности и ограничения выборки — `backend/docs/ml-methods.md`.
+Ожидаемо: accuracy классификатора ≥ 0,80 на 96 задачах (SC-006); согласие оценщика ≥ 0,85 по типам ошибок и корреляция ≥ 0,8 на `backend/data/labeled/` (SC-003/004); валидатор — ≥ 90 % дефектных отклонено, ≥ 85 % корректных пропущено (SC-005). Команда `uv run python -m ml.scripts.eval_validator` проверяет 20 корректных и 20 дефектных билетов. Результаты пишутся в `backend/var/metrics.json` и выдаются администратору через `GET /api/v1/metrics/ml`; подробности и ограничения выборки — `backend/docs/ml-methods.md`.
 
 ## 7. Волна B: режим специалиста-112 (Phase 10)
 
@@ -152,4 +152,4 @@ Phase 12 добавляет `/api/v1/assignments`: преподаватель с
 
 После входа преподавателя или администратора: `POST /api/v1/tickets` создаёт ручной билет с эталоном по ЕКП, difficulty (1–5), grammarErrors и аудитом `ticket.create` (тип `content`). `POST /api/v1/tickets/{id}/validate` без тела возвращает отчёт шести проверок; `GET /api/v1/tickets` возвращает сохранённый отчёт в `validation`. Проверка не утверждает билет автоматически. Для студента POST → 403, без сессии → 401, неизвестный билет → 404.
 
-Метрики SC-005: `cd backend` → `uv run python -m ml.scripts.eval_validator`. Результаты сохраняются в `var/metrics.json`, раздел `validator`: 20/20 корректных, 20/20 дефектных, 2 ручные проверки (22.09.2026). Это регрессионная выборка из банка билетов. API метрик реализован: `GET /api/v1/metrics/ml`.
+Метрики SC-005: `cd backend` → `uv run python -m ml.scripts.eval_validator`. Результаты сохраняются в `var/metrics.json`, раздел `validator`: 20/20 корректных, 20/20 дефектных, 2 ручные проверки (22.09.2026). Это регрессионная выборка из банка билетов. API метрик реализован: `GET /api/v1/metrics/ml` с сессией администратора.

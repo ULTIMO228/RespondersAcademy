@@ -78,7 +78,7 @@ uv run python -m ml.scripts.calibrate [--db]    # ridge-подбор весов 
   `data/labeled/` (размеченная выборка, `ml.scripts.build_labeled`, правила — `data/labeled/README.md`).
 - Индекс spellcheck кэшируется в `var/symspell_ru.pkl` (пересобирается при изменении словарей).
 - Подготовка сверяет SHA-256 фиксированных файлов и хеши Git/LFS для Hugging Face, затем пишет `.sha256.json` рядом с каждой моделью. `--only embedder` или `--only dedup` ограничивает загрузку. Словарь SymSpell в `models/symspell/` — проверенная копия; рантайм читает исходный `data/dict/ru_frequency.txt`.
-- `GET /api/v1/health` показывает `installed` (файлы есть) и `loaded` (модель уже в памяти) для пяти компонентов. `GET /api/v1/metrics/ml` возвращает `var/metrics.json` без преобразований; до генерации метрик возвращает 404.
+- `GET /api/v1/health` показывает `installed` (файлы есть) и `loaded` (модель уже в памяти) для пяти компонентов. `GET /api/v1/metrics/ml` доступен администратору, возвращает `var/metrics.json` без преобразований; до генерации метрик возвращает 404.
 
 ## Phase 5: профили и экспорт
 

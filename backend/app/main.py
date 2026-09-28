@@ -11,12 +11,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 
 from app.api.compat import build_router as build_compat_router
+from app.api.deps import Viewer, require_role
 from app.api.errors import install_error_handlers
 from app.config import get_settings
 from app.db.session import init_db
+
+admin_only = require_role("admin")
 
 log = logging.getLogger("uvicorn.error")
 
@@ -90,7 +93,7 @@ def create_app() -> FastAPI:
         return {"status": "ok", "db": "sqlite" if settings.sqlite else "postgresql", "version": app.version, "models": model_status(settings.models_dir)}
 
     @app.get("/api/v1/metrics/ml")
-    async def ml_metrics() -> dict[str, Any]:
+    async def ml_metrics(_viewer: Viewer = Depends(admin_only)) -> dict[str, Any]:
         path = settings.var_dir / "metrics.json"
         if not path.is_file():
             raise HTTPException(status_code=404, detail="ML metrics not generated")
