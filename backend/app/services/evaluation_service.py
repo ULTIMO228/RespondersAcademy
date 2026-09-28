@@ -82,6 +82,9 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
     )
     db.add(row)
     await db.flush()
+    from app.services.rating_service import sync as sync_rating
+
+    await sync_rating(db, attempt.student_id, attempt.mode)
     link = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.attempt_id == attempt.id))).scalars().first()
     if link is not None:
         assignment = await db.get(Assignment, link.assignment_id)

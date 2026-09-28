@@ -3,6 +3,7 @@ from app.models.audit import AuditLog
 from app.models.card import Address, ArmCardFixture, CardRuntime, IncidentCard
 from app.models.classifier import ClassifierEntry
 from app.models.kb import KbArticle
+from app.models.recommendation import Recommendation, StudentRating
 from app.models.reference import ReferenceEntry, SystemSettings
 from app.models.report import CalibrationSample, GroupReport, Report, ReportFeedback
 from app.models.scenario import Scenario
@@ -29,10 +30,12 @@ __all__ = [
     "KbArticle",
     "ProfileMappingRow",
     "ReferenceEntry",
+    "Recommendation",
     "Report",
     "ReportFeedback",
     "Scenario",
     "Street",
+    "StudentRating",
     "SystemLog",
     "SystemService",
     "SystemSettings",

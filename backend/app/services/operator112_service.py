@@ -392,6 +392,9 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     if link is not None:
         link.passed = passed
     await db.flush()
+    from app.services.rating_service import sync as sync_rating
+
+    await sync_rating(db, attempt.student_id, MODE)
     return {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
 
 

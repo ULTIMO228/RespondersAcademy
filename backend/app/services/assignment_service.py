@@ -215,6 +215,20 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
         card_ids = await candidate_card_ids(db, row.random_rule, [student], row.training_mode)
     used = {link.card_id for link in links}
     card_id = next((value for value in card_ids if value not in used), None)
+    if row.format == "training" and (row.params or {}).get("adaptive") and row.training_mode != "chain":
+        from app.services.rating_service import sync as sync_rating
+        from ml.insights.recommender import adaptive_order
+
+        rating = await sync_rating(db, student, row.training_mode)
+        scenarios = (await db.execute(select(Scenario).where(Scenario.deleted.is_(False)))).scalars().all()
+        available = {card.id: card for card in await _cards(db) if card.id in card_ids}
+        candidates = [{"cardId": cid, "group": available[cid].group, "level": _difficulty(available[cid], scenarios)}
+                      for cid in card_ids if cid not in used and cid in available]
+        last_card = available.get(links[-1].card_id) if links else None
+        last_level = _difficulty(last_card, scenarios) if last_card else None
+        ordered = adaptive_order(candidates, rating.rating, rating.weak_groups or {},
+                                 [int(item["score"]) for item in (rating.history or [])], last_level)
+        card_id = ordered[0]["cardId"] if ordered else None
     if card_id is None:
         raise conflict("Все билеты задания уже выполнены")
     if row.training_mode == "chain":

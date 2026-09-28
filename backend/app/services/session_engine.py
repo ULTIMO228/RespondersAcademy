@@ -161,7 +161,12 @@ def read_plan(plan: Any) -> dict[str, Any] | None:
     )
     if not valid:
         raise validation_failed("Некорректные настройки занятия (plan)")
-    return {k: plan[k] for k in ("categories", "issueOrder", "hints", "timeNorms", "maxGrammarErrors", "paceSec", "conveyor")}
+    if "adaptive" in plan and not isinstance(plan["adaptive"], bool):
+        raise validation_failed("Некорректное значение adaptive в настройках занятия")
+    result = {k: plan[k] for k in ("categories", "issueOrder", "hints", "timeNorms", "maxGrammarErrors", "paceSec", "conveyor")}
+    if "adaptive" in plan:
+        result["adaptive"] = plan["adaptive"]
+    return result
 
 
 async def create_session(db: AsyncSession, body: dict[str, Any]) -> dict[str, Any]:
@@ -413,7 +418,16 @@ async def build_planned_card_flow(db: AsyncSession, row: TrainingSession, plan: 
     flow = []
     for student_id in row.student_ids or []:
         score = await read_student_score(db, student_id, row.id)
-        queue = order_for_student(await filter_cards_for_student(db, pool, student_id, plan.get("categories", []), row.training_mode), plan.get("issueOrder", "adaptive"), score)
+        filtered = await filter_cards_for_student(db, pool, student_id, plan.get("categories", []), row.training_mode)
+        if plan.get("adaptive") and row.format == "training":
+            from app.services.rating_service import sync as sync_rating
+            from ml.insights.recommender import adaptive_order
+
+            rating = await sync_rating(db, student_id, row.training_mode)
+            queue = adaptive_order(filtered, rating.rating, rating.weak_groups or {},
+                                   [int(item["score"]) for item in rating.history or []])
+        else:
+            queue = order_for_student(filtered, plan.get("issueOrder", "adaptive"), score)
         flow.extend(schedule_for_student(queue, student_id, start_ms, pace_ms_for_student(plan, score), bool(plan.get("conveyor"))))
     return flow
 
@@ -421,6 +435,15 @@ async def build_planned_card_flow(db: AsyncSession, row: TrainingSession, plan: 
 async def next_card_for_student(db: AsyncSession, row: TrainingSession, plan: dict[str, Any], student_id: str) -> dict[str, Any] | None:
     issued = {item["cardId"] for item in (row.card_flow or []) if item.get("studentId") == student_id}
     queue = await filter_cards_for_student(db, await build_session_pool(db, row, plan), student_id, plan.get("categories", []), row.training_mode)
+    if plan.get("adaptive") and row.format == "training":
+        from app.services.rating_service import sync as sync_rating
+        from ml.insights.recommender import adaptive_order
+
+        rating = await sync_rating(db, student_id, row.training_mode)
+        previous = next((item for item in reversed(row.card_flow or []) if item.get("studentId") == student_id), None)
+        queue = adaptive_order(queue, rating.rating, rating.weak_groups or {},
+                               [int(item["score"]) for item in rating.history or []],
+                               int(previous["level"]) if previous else None)
     return next((c for c in queue if c["cardId"] not in issued), queue[0] if queue else None)
 
 
