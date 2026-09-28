@@ -362,6 +362,9 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     card = _card_from_draft(await next_id(db, PREFIX["card"], IncidentCard.id), draft, ticket, attempt, entries, reference)
     db.add(card)
     await db.flush()
+    from app.services.chain_service import issue_submitted_card
+
+    await issue_submitted_card(db, card, attempt, assignment)
     contract = attempt.to_operator_contract(replays=link.replays if link else 0, hints_shown=link.hints_shown if link else 0)
     params = dict((assignment.params if assignment else None) or {})
     weights = params.get("weights") if isinstance(params.get("weights"), dict) else None

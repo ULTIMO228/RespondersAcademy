@@ -51,6 +51,7 @@ def _register(rule: Rule) -> Rule:
 V1_NO_PRIMARY_STATUS = _register(Rule("v1", "noPrimaryStatus", "critical", f"{MEMO}, нарушение №1", "Отсутствует статус реагирования: по карточке не проставлено ни «Принята», ни «Не принята»"))
 V2_WRONG_DECISION = _register(Rule("v2", "wrongDecision", "critical", f"{MEMO}, нарушение №2", "Статус реагирования не соответствует заявке: проставлено «{actual}», ожидалось «{expected}»{hint}"))
 V2_TRAP_MISSED = _register(Rule("v2t", "wrongDecision", "critical", f"{MEMO}, нарушение №2", "Не распознана ловушка ({trap}): проставлено «{actual}», ожидалось «{expected}»{hint}"))
+TRAP_NOT_DETECTED = _register(Rule("tr1", "trapNotDetected", "critical", f"{ETALON}; {MEMO}, нарушение №2", "Не распознана ловушка ({trap}): проставлено «{actual}», ожидалось «{expected}»{hint}"))
 V3_REFUSED_PROFILE = _register(Rule("v3", "refusedProfile", "critical", f"{MEMO}, нарушение №3", "Отказ от реагирования на профильное происшествие: проставлено «{actual}», ожидалось «{expected}»"))
 V4_MISSING_COMMENT = _register(Rule("v4", "missingComment", "critical", f"{MEMO}, нарушение №4", "Нет комментария к статусу «{status}»: укажите причину и кому передана информация"))
 V5_INCOMPLETE_COMMENT = _register(Rule("v5", "incompleteComment", "major", f"{MEMO}, нарушение №5", "Неполный комментарий к статусу «{status}»: не указано {missing}"))

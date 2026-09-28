@@ -207,7 +207,7 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
     opened = next((link for link in links if link.state not in ("submitted", "notCompleted")), None)
     if opened is not None:
         attempt = await db.get(Attempt, opened.attempt_id)
-        if row.training_mode == "operator112":
+        if attempt.mode == "operator112":
             return {"attempt": await operator112_service.contract_of(db, attempt, opened, row)}
         return {"attempt": {"sessionId": attempt.session_id, "attempt": attempt.to_contract(), "created": False}}
     card_ids = list(row.card_ids or [])
@@ -231,9 +231,7 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
         card_id = ordered[0]["cardId"] if ordered else None
     if card_id is None:
         raise conflict("Все билеты задания уже выполнены")
-    if row.training_mode == "chain":
-        raise conflict("Цепочка A → B будет доступна после Phase 15")
-    if row.training_mode == "operator112":
+    if row.training_mode in ("operator112", "chain"):
         attempt, _ = await operator112_service.create_attempt(db, row.id, card_id, student, viewer, background)
         return {"attempt": attempt}
     return {"attempt": await _dds_start(db, row, student, card_id)}

@@ -37,7 +37,37 @@ PLACEHOLDER_PREFIX = "new:"
 DEFAULT_COUNT = 3
 MAX_COUNT = 5
 DEFAULT_TRAPS: tuple[str | None, ...] = (None, "foreignTerritory", "operatorMistake")
-TRAPS = ("foreignTerritory", "operatorMistake", "duplicate", "crossRegion")
+TRAPS = ("foreignTerritory", "operatorMistake", "duplicate", "crossRegion", "wrongType", "addressTypo", "outOfZone")
+
+
+def build_trap_from_source(base: dict[str, Any], trap: str, card_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Make an explicit DDS detection exercise from one source ticket."""
+    if trap not in ("wrongType", "addressTypo", "outOfZone", "duplicate"):
+        raise ValueError(f"Unknown trap: {trap}")
+    ticket = copy.deepcopy(base)
+    ticket["id"] = card_id
+    ticket["baseCardId"] = base["id"]
+    ticket["trap"] = trap
+    if trap == "wrongType":
+        ticket["group"] = "Ошибочный тип: " + str(base.get("group") or "")
+    elif trap == "addressTypo":
+        address = str(base.get("address") or "")
+        ticket["address"] = address[:-1] + "а" if address and address[-1].lower() != "а" else address + "а"
+    elif trap == "outOfZone":
+        ticket["address"] = str(base.get("address") or "") + ", вне зоны обслуживания"
+    else:
+        ticket["duplicateOf"] = base["id"]
+    target = str((base.get("expectedServices") or ["профильная служба"])[0])
+    phrase = {
+        "wrongType": "неверный тип",
+        "addressTypo": "ошибка адреса",
+        "outOfZone": "вне зоны обслуживания",
+        "duplicate": "дубль карточки",
+    }[trap]
+    etalon = {"expectedActions": [f"openCard:{card_id}", "status:notAccepted"],
+              "cards": {card_id: {"expectedDecision": "notAccepted", "expectedTransferTo": target,
+                                  "expectedCommentPhrases": [phrase], "trap": trap}}}
+    return ticket, etalon
 GENERATED_DIFFICULTIES = (3, 4, 5)  # вариации — уровень advanced (spec/05 §6, как в моке фронта)
 PRIMARY_REACTION_SEC = 30
 FULL_PROCESSING_SEC = 180
@@ -335,8 +365,14 @@ def generate_template(category: str, cards: list[dict[str, Any]], addresses: lis
             trap = None
         if trap == "crossRegion" and region_source is None:
             trap = None
-        ticket = build_ticket(base, address_entry, trap, category, fabula=fabula, region_source=region_source)
+        if trap in ("wrongType", "addressTypo", "outOfZone"):
+            ticket, trap_etalon = build_trap_from_source(base, trap, placeholder(0))
+            ticket.pop("id", None)
+        else:
+            ticket = build_ticket(base, address_entry, trap, category, fabula=fabula, region_source=region_source)
         scenario = build_scenario(index, category, ticket, base, trap, reference=reference, entries=entries, provider="template")
+        if trap in ("wrongType", "addressTypo", "outOfZone"):
+            scenario["etalon"] = trap_etalon
         results.append({"scenario": scenario, "cards": [ticket]})
     return results
 

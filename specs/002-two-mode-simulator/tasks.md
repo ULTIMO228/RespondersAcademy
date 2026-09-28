@@ -295,9 +295,9 @@
 
 **Independent Test**: обучаемый 1 (`operator112`) отправляет карточку «запах газа» с намеренно неверным типом → обучаемый 2 (Мосгаз, `dds`) получает её ≤ 5 с; эталон ожидает «Не принята, передано в Мосводоканал»; в отчёте попытки связаны; без адресата — «нет адресата» у преподавателя
 
-- [ ] T102 [US8] Create `backend/app/services/chain_service.py` — при `submit` в задании `chain`/занятии с `cardSource=studentCreated|mixed`: выбор обучаемого режима B, чья `users.service` есть в списке оповещения карточки → `card_flow_items` (`issued_by=chain`, признак «сформирована обучаемым» через `incident_cards.created_by_student_id`); нет адресата → пометка `noRecipient` в задании; эталон B из исходного билета (`source_attempt_id` → `incident_cards` оригинал): верная классификация → `accepted`, ошибочная → `notAccepted` + «не профильное, передано в <служба по билету>» (FR-028)
-- [ ] T103 [US8] Extend `POST /sessions/{id}/control {action:"issue"}` and `scenario_generator` traps — ловушки `wrongType/addressTypo/outOfZone/duplicate` (FR-029): генерация карточки-ловушки из исходной, эталон ожидает распознавание (правила `trapNotDetected` в `rules.py` с источником); `cardSource=studentCreated|mixed` в `build_card_flow` берёт пул `incident_cards.created_by_student_id`
-- [ ] T104 [US8] Create tests `backend/tests/integration/test_chain.py` (сценарий Independent Test) и `backend/tests/unit/test_traps.py`
+- [X] T102 [US8] Create `backend/app/services/chain_service.py` — при `submit` в задании `chain`/занятии с `cardSource=studentCreated|mixed`: выбор обучаемого режима B, чья `users.service` есть в списке оповещения карточки → `card_flow_items` (`issued_by=chain`, признак «сформирована обучаемым» через `incident_cards.created_by_student_id`); нет адресата → пометка `noRecipient` в задании; эталон B из исходного билета (`source_attempt_id` → `incident_cards` оригинал): верная классификация → `accepted`, ошибочная → `notAccepted` + «не профильное, передано в <служба по билету>» (FR-028)
+- [X] T103 [US8] Extend `POST /sessions/{id}/control {action:"issue"}` and `scenario_generator` traps — ловушки `wrongType/addressTypo/outOfZone/duplicate` (FR-029): генерация карточки-ловушки из исходной, эталон ожидает распознавание (правила `trapNotDetected` в `rules.py` с источником); `cardSource=studentCreated|mixed` в `build_card_flow` берёт пул `incident_cards.created_by_student_id`
+- [X] T104 [US8] Create tests `backend/tests/integration/test_chain.py` (сценарий Independent Test) и `backend/tests/unit/test_traps.py`
 
 ---
 

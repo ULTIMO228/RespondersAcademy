@@ -283,11 +283,8 @@ async def build_session_pool(db: AsyncSession, row: TrainingSession, plan: dict[
     def level_of(card_id: str) -> int:
         return next((c["level"] for c in generated if c["cardId"] == card_id), 1)
 
-    student_made_ids: list[str] = []
     made_rows = (await db.execute(select(IncidentCard.id).where(IncidentCard.created_by_student_id.is_not(None)))).scalars().all()
-    student_made_ids.extend(made_rows)
-    attempt_rows = (await db.execute(select(Attempt).where(Attempt.session_id != row.id))).scalars().all()
-    student_made_ids.extend(a.card_id for a in attempt_rows if a.entered_text)
+    student_made_ids = list(made_rows)
     seen: set[str] = set()
     student_made = []
     for card_id in student_made_ids:
@@ -456,8 +453,8 @@ async def start_session(db: AsyncSession, session_id: str) -> dict[str, Any]:
     started_at = now_iso()
     if row.card_flow:
         flow = list(row.card_flow)
-    elif row.plan:
-        flow = await build_planned_card_flow(db, row, row.plan, started_at)
+    elif row.plan or row.card_source in ("studentCreated", "mixed"):
+        flow = await build_planned_card_flow(db, row, row.plan or copy.deepcopy(DEFAULT_SESSION_PLAN), started_at)
     else:
         flow = await build_default_card_flow(db, row, started_at)
     row.state = "running"
@@ -555,7 +552,7 @@ async def _resume(row: TrainingSession) -> None:
     row.parked = []
 
 
-async def _issue(db: AsyncSession, row: TrainingSession, student_id: str | None, card_id: str | None) -> None:
+async def _issue(db: AsyncSession, row: TrainingSession, student_id: str | None, card_id: str | None, trap_type: str | None = None) -> None:
     if row.state != "running":
         raise validation_failed("Карточку можно выдать только во время занятия")
     if not student_id or student_id not in (row.student_ids or []):
@@ -568,11 +565,26 @@ async def _issue(db: AsyncSession, row: TrainingSession, student_id: str | None,
         planned = await next_card_for_student(db, row, plan, student_id)
     if planned is None:
         raise validation_failed("Для курсанта не осталось карточек выбранных категорий")
-    from app.services.cards import find_card
-
-    if await find_card(db, planned["cardId"]) is None:
+    source_card = await db.get(IncidentCard, planned["cardId"])
+    if source_card is None:
         raise validation_failed(f"Карточка «{planned['cardId']}» не найдена")
-    row.card_flow = [*(row.card_flow or []), {"cardId": planned["cardId"], "studentId": student_id, "issuedAt": now_iso(), "level": planned["level"]}]
+    issued_id = planned["cardId"]
+    if trap_type is not None:
+        from ml.generate.scenario_generator import build_trap_from_source
+
+        if trap_type not in ("wrongType", "addressTypo", "outOfZone", "duplicate"):
+            raise validation_failed("Неизвестная ловушка")
+        issued_id = await next_id(db, PREFIX["card"], IncidentCard.id)
+        ticket, etalon = build_trap_from_source(source_card.to_contract(), trap_type, issued_id)
+        db.add(IncidentCard(id=issued_id, ticket_no=source_card.ticket_no, situation_no=source_card.situation_no,
+                            group=ticket["group"], summary=ticket["summary"], address=ticket["address"],
+                            caller=ticket["caller"], victims=ticket.get("victims"), no_ambulance=ticket.get("noAmbulance"),
+                            expected_services=ticket.get("expectedServices") or [], expected_tags=ticket.get("expectedTags") or [],
+                            duplicate_of=ticket.get("duplicateOf"), mode_origin="generated",
+                            extra={"baseCardId": source_card.id, "trap": trap_type, "chainEtalon": etalon}))
+        await db.flush()
+    row.card_flow = [*(row.card_flow or []), {"cardId": issued_id, "studentId": student_id, "issuedAt": now_iso(),
+                                                   "level": planned["level"], **({"issuedBy": "trap", "trap": trap_type} if trap_type else {})}]
 
 
 def _read_optional_id(body: dict[str, Any], key: str) -> str | None:
@@ -594,7 +606,7 @@ async def post_control(db: AsyncSession, session_id: str, body: dict[str, Any], 
     elif action == "resume":
         await _resume(row)
     elif action == "issue":
-        await _issue(db, row, _read_optional_id(body, "studentId"), _read_optional_id(body, "cardId"))
+        await _issue(db, row, _read_optional_id(body, "studentId"), _read_optional_id(body, "cardId"), _read_optional_id(body, "trapType"))
     elif action == "report":
         assert_transition(row, "reported")
         row.state = "reported"

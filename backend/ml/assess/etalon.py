@@ -29,6 +29,9 @@ TRAP_TITLES = {
     "foreignTerritory": "чужая территория",
     "operatorMistake": "ошибка классификации оператора 112",
     "crossRegion": "происшествие в другом регионе",
+    "wrongType": "неверный тип происшествия",
+    "addressTypo": "ошибка в адресе",
+    "outOfZone": "вне зоны обслуживания",
 }
 
 

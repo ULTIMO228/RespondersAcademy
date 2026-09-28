@@ -55,7 +55,9 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
         return None  # оценка режима A появляется при отправке карточки (operator112_service.submit), эталон ДДС не применим
     session = await db.get(TrainingSession, attempt.session_id)
     scenario = await find_scenario_for_attempt(db, attempt, session)
-    if scenario is None:
+    chain_card = await db.get(IncidentCard, attempt.card_id)
+    chain_etalon = (chain_card.extra or {}).get("chainEtalon") if chain_card else None
+    if scenario is None and not isinstance(chain_etalon, dict):
         return None
     reference = await read_reference(db)
     cards = await _cards_index(db)
@@ -63,7 +65,12 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
     weights = (session.plan or {}).get("weights") if session and session.plan else None
     gateway = get_gateway()
     # Оценщик — CPU-bound (эмбеддер, spellcheck): выполняем вне event loop, БД в потоке не трогаем.
-    evaluation = await asyncio.to_thread(gateway.evaluate_attempt, attempt.to_contract(), scenario.to_contract(), cards, reference, session_doc, weights)
+    scenario_doc = scenario.to_contract() if scenario is not None else {
+        "id": f"chain:{attempt.card_id}", "cardIds": [attempt.card_id], "etalon": chain_etalon,
+        "timeNorms": {"primaryReactionSec": 30, "fullProcessingSec": 180},
+        "successCriteria": {"maxGrammarErrors": 1, "requiredFields": []},
+    }
+    evaluation = await asyncio.to_thread(gateway.evaluate_attempt, attempt.to_contract(), scenario_doc, cards, reference, session_doc, weights)
     row = Evaluation(
         attempt_id=attempt.id,
         assessor_version=str(evaluation.get("assessorVersion") or "unknown"),

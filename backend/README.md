@@ -25,6 +25,8 @@ uv run python -m app.seed.load
 
 Рекомендации и адаптивная сложность (Phase 14): `GET /api/v1/me/recommendations`, профиль и групповые инсайты преподавателя. Для адаптивного подбора в тренировочном задании задайте `params.adaptive: true`, в плане занятия — `adaptive: true`. Метрика SC-008 воспроизводится командой `uv run python -m ml.scripts.eval_recommender`.
 
+Цепочка A → B (Phase 15): создайте задание `trainingMode: "chain"` с исходным билетом и курсантами оператора 112 и ДДС. После отправки карточки адресат из списка оповещения получает её в `cardFlow` с `issuedBy: "chain"`; если адресата нет, в `params.noRecipient` задания появляется запись с `cardId`. Эталон ДДС сверяется с исходным билетом. В отчёте связи попыток доступны в `chainLinks`. Преподаватель может выдать ловушку через `POST /sessions/{id}/control` с `{"action":"issue","studentId":"...","cardId":"...","trapType":"wrongType"}`; доступны также `addressTypo`, `outOfZone`, `duplicate`.
+
 Фронт через бэкенд (без правок кода фронта, кроме rewrite в `next.config.ts`):
 
 ```bash

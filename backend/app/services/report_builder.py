@@ -92,7 +92,8 @@ async def _score_student_attempts(db: AsyncSession, session: TrainingSession, st
         evaluation = await evaluate_if_possible(db, attempt)
         if evaluation is None:
             continue
-        scored.append({"attempt": attempt.to_contract(), "evaluation": evaluation, "norms": await _norms_for(db, session, attempt, norms_cache), "score": effective_score(evaluation), "group": groups.get(attempt.card_id, ""), "errors": evaluation.get("errors", [])})
+        card = await db.get(IncidentCard, attempt.card_id)
+        scored.append({"attempt": attempt.to_contract(), "evaluation": evaluation, "norms": await _norms_for(db, session, attempt, norms_cache), "score": effective_score(evaluation), "group": groups.get(attempt.card_id, ""), "errors": evaluation.get("errors", []), "sourceAttemptId": card.source_attempt_id if card else None})
     return scored
 
 
@@ -128,6 +129,7 @@ def build_student_report(session: TrainingSession, student: User | None, student
         "timeMetrics": _time_metrics(scored),
         "grammarErrors": grammar_errors,
         "errors": errors,
+        "chainLinks": [{"sourceAttemptId": i["sourceAttemptId"], "ddsAttemptId": i["attempt"]["id"], "cardId": i["attempt"]["cardId"]} for i in scored if i.get("sourceAttemptId")],
         "score": average_floor([i["score"] for i in scored]),
         "charts": {
             "byStage": {"stages": list(STAGES), "normMs": [norms["primaryReactionMs"], norms["fullProcessingMs"]], "attempts": [{"attemptId": i["attempt"]["id"], "cardId": i["attempt"]["cardId"], "factMs": [i["attempt"]["primaryReactionMs"], i["attempt"]["fullProcessingMs"]]} for i in scored]},

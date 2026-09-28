@@ -58,9 +58,8 @@ def run(ctx: AssessContext) -> ComponentResult:
             hint = f", передано в {etalon.expected_transfer_to}" if etalon.expected_transfer_to else ""
             if etalon.expected_decision == "accepted":
                 result.errors.append(rules.V3_REFUSED_PROFILE.error(step=step, actual=actual_title, expected=expected_title))
-            elif etalon.trap == "duplicate":
-                original = (ctx.card or {}).get("duplicateOf") or "другой службы"
-                result.errors.append(rules.DUPLICATE_MISSED.error(step=step, original=original))
+            elif etalon.trap in ("wrongType", "addressTypo", "outOfZone", "duplicate"):
+                result.errors.append(rules.TRAP_NOT_DETECTED.error(step=step, trap=etalon.trap_title, actual=actual_title, expected=expected_title, hint=hint))
             elif etalon.trap:
                 result.errors.append(rules.V2_TRAP_MISSED.error(step=step, trap=etalon.trap_title, actual=actual_title, expected=expected_title, hint=hint))
             else:
