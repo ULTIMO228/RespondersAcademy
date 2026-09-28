@@ -482,9 +482,11 @@ async def reset_all() -> None:
 async def run_seed(seed_dir: Path | None = None, reset: bool = False) -> dict[str, int]:
     settings = get_settings()
     paths = SeedPaths(seed_dir or settings.seed_dir)
+    if reset and not settings.sqlite:
+        raise ValueError("PostgreSQL schema is managed by Alembic; --reset is only available for SQLite")
     if reset:
         await reset_all()
-    else:
+    elif settings.sqlite:
         await init_db()
     async with get_sessionmaker()() as db:
         summary: dict[str, int] = {}

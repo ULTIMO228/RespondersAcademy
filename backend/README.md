@@ -41,11 +41,11 @@ BACKEND_URL=http://localhost:8000 npm run dev
 
 ```bash
 uv sync --extra pg --group dev
+DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run alembic upgrade head
 DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run python -m app.seed.load
 ```
 
-Схему создаёт сид (`create_all`); миграции Alembic — задача T109 (Phase 17), пока `alembic/` пуст.
-Или `docker compose up` из `backend/` (профиль `llm` поднимает Ollama).
+Схемой PostgreSQL управляет Alembic; сиды её не создают. На новой SQLite-базе миграция и сиды проверяются командой `uv run pytest tests/integration/test_alembic.py`; `uv run alembic check` выявляет расхождения моделей и схемы. `docker compose up` из `backend/` выполняет миграцию и сиды перед запуском API (профиль `llm` поднимает Ollama). Для проверки на PostgreSQL 14 нужен доступный сервер и extra `pg`.
 
 ## Структура
 
