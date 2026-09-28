@@ -33,7 +33,7 @@ uv run python -m app.seed.load
 
 Аудиодоклад: установите `uv sync --extra stt` и положите локальную модель Vosk small-ru в `backend/models/vosk-model-small-ru-0.22/` (или задайте `MODELS_DIR`). `POST /api/v1/attempts/{id}/report-audio` принимает multipart WAV (моно PCM 16 бит, 8/16 кГц), сохраняет транскрипт и чек-лист в звонке попытки; `GET /api/v1/cards/{id}/recordings` возвращает записи. Без установленной модели эндпоинт возвращает 503 с причиной. Проверка чек-листа на 20 размеченных докладах: 95 из 100 пунктов.
 
-Фронт через бэкенд (без правок кода фронта, кроме rewrite в `next.config.ts`):
+Фронт через бэкенд (rewrite в `next.config.ts` направляет `/api/mock/*` и `/api/v1/*` на FastAPI):
 
 ```bash
 BACKEND_URL=http://localhost:8000 npm run dev
