@@ -1,6 +1,6 @@
 """Синтетика для классификатора групп ЕКП: `backend/data/labeled/synthetic_groups.json` (T059).
 
-Источник — строки классификатора `spec/mocks/classifier.json` (принцип V: эталоны выводятся из ЕКП, не
+Источник — строки классификатора `spec/000-фронт/mocks/classifier.json` (принцип V: эталоны выводятся из ЕКП, не
 придумываются). Для каждой строки — «фабула» из итогового типа и признаков опросной карты в двух формах
 (признаки через запятую и как связный текст); группы без строк получают только своё название.
 Детерминировано, без сети. Запуск: `uv run python -m ml.scripts.build_synthetic_groups`.
@@ -44,7 +44,7 @@ def build() -> list[dict[str, str]]:
 def main() -> int:
     samples = build()
     SYNTHETIC_FILE.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"source": "spec/mocks/classifier.json (v046.24)", "templates": list(TEMPLATES), "samples": samples}
+    payload = {"source": "spec/000-фронт/mocks/classifier.json (v046.24)", "templates": list(TEMPLATES), "samples": samples}
     SYNTHETIC_FILE.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"{SYNTHETIC_FILE}: {len(samples)} примеров, {len({s['group'] for s in samples})} групп")
     return 0

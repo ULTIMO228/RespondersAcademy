@@ -1,6 +1,6 @@
 /*
  * Маппинг имени службы классификатора (ClassifierEntry.notifications[].service) → ServiceRef (T1.2-07).
- * Правило — дословно spec/05-data-models.md §2.5 и reference.json → meta.servicesNote:
+ * Правило — дословно spec/000-фронт/05-data-models.md §2.5 и reference.json → meta.servicesNote:
  *   1) точная строка ServiceRef.classifierName;
  *   2) если classifierName не задан — совпадение с name, затем с shortName.
  * Самодельной нормализации регистра/пробелов нет: варианты написания нормализуются в данных, а не в коде

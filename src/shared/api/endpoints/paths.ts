@@ -1,5 +1,5 @@
 /*
- * Пути эндпоинтов мок-слоя относительно baseUrl (spec/03-architecture.md → «Мок-слой API»).
+ * Пути эндпоинтов мок-слоя относительно baseUrl (spec/000-фронт/03-architecture.md → «Мок-слой API»).
  * Корневые route handlers: app/api/mock/<путь>/route.ts. Id кодируются encodeURIComponent.
  */
 const segment = (id: string) => encodeURIComponent(id);

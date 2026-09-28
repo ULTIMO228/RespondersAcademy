@@ -1,5 +1,5 @@
 /*
- * Администрирование — spec/05-data-models.md §9. Сид сервисов и настроек создаёт in-memory store;
+ * Администрирование — spec/000-фронт/05-data-models.md §9. Сид сервисов и настроек создаёт in-memory store;
  * сид журнала аудита — мок уровня приложения `mocks/admin/audit-log.json` (T4.1-01).
  */
 import type { Role } from "./user";
@@ -84,7 +84,7 @@ export interface SystemSettings {
   /** Журналы ≥ 6 мес (ТЗ §9). */
   logging: { level: SystemLogLevel; retentionMonths: number };
   /** [расширение] Безопасность и политики доступа (21-admin-system.md §3; ТЗ §8, §9). */
-  security: { require2fa: boolean; minPasswordLength: number; lockAfterAttempts: number };
+  security: { minPasswordLength: number; lockAfterAttempts: number };
   /** [расширение] Производительность: ≥ 20 одновременных сессий (ТЗ §7), опрос ленты, буфер ввода. */
   performance: { sessionLimit: number; refreshIntervalSec: number; inputBufferRecords: number };
   /** [расширение] Автовосстановление сервисов после сбоев (ТЗ §9) — декларация для бэкенда. */

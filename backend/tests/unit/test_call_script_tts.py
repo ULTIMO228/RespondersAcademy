@@ -27,7 +27,7 @@ TICKET = {
 
 @pytest.fixture(scope="module")
 def reference():
-    with (get_settings().seed_dir / "spec" / "mocks" / "reference.json").open(encoding="utf-8") as handle:
+    with (get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "reference.json").open(encoding="utf-8") as handle:
         return json.load(handle)
 
 

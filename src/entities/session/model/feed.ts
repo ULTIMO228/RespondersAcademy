@@ -37,7 +37,7 @@ type AttemptBase = { studentId: string; cardId: string; attemptId: string };
 
 /**
  * Мок-оценка ИИ-модуля (T3.3-01): появляется в ленте в момент завершения попытки, помечена isAi —
- * UI обязан показать бейдж «ИИ» (spec/07-design-guidelines.md, Q&A в3). Без оценки события нет.
+ * UI обязан показать бейдж «ИИ» (spec/000-фронт/07-design-guidelines.md, Q&A в3). Без оценки события нет.
  */
 function evaluationEvents(attempt: CardEventContract, base: AttemptBase): SessionFeedEvent[] {
   const { evaluation, completedAt } = attempt;

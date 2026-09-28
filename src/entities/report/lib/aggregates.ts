@@ -1,5 +1,5 @@
 /*
- * Сводка прогресса курсанта (T2.5-02; spec/04-pages/04-arm-progress.md «Сводка»): интегральный балл за период,
+ * Сводка прогресса курсанта (T2.5-02; spec/000-фронт/04-pages/04-arm-progress.md «Сводка»): интегральный балл за период,
  * средние реакция/отработка (сравниваются с нормативами сценария), число отработанных карточек, доля без ошибок.
  * Расчёт — из попыток (CardEvent/Evaluation) и отчётов (Report.score) мок-слоя; баллы не пересчитываются.
  */
@@ -10,7 +10,7 @@ export type AttemptMetrics = {
   primaryReactionMs: number;
   fullProcessingMs: number;
   /** Балл попытки (правка преподавателя приоритетна) — запасной источник интегрального балла. */
-  score: number;
+  score: number | null;
   mistakeCount: number;
 };
 
@@ -27,7 +27,10 @@ function roundOrNull(value: number | null): number | null {
 
 /** Интегральный балл: среднее Report.score за период; нет отчётов (занятие не закрыто) — среднее баллов попыток. */
 function getIntegralScore(reportScores: number[], attempts: AttemptMetrics[]): number | null {
-  const scores = reportScores.length > 0 ? reportScores : attempts.map((attempt) => attempt.score);
+  const scores =
+    reportScores.length > 0
+      ? reportScores
+      : attempts.map((attempt) => attempt.score).filter((score): score is number => score !== null);
   return roundOrNull(average(scores));
 }
 

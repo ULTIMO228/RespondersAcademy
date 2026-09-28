@@ -1,5 +1,5 @@
 /*
- * Хранилище «ключ → строка» за интерфейсом (spec/10-code-rules.md §6): cookie браузера,
+ * Хранилище «ключ → строка» за интерфейсом (spec/000-фронт/10-code-rules.md §6): cookie браузера,
  * localStorage или память (тесты, SSR). Ошибки доступа (приватный режим, SSR) не пробрасываются.
  */
 export interface StorageWriteOptions {

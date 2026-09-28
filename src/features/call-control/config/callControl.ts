@@ -18,7 +18,7 @@ export const CALL_STATE_TITLES: Record<CallState, string> = {
 export const MIN_DIAL_LENGTH = 3;
 export const MAX_DIAL_LENGTH = 4;
 
-/** Сообщения панели набора (spec/04-pages/03-arm-softphone.md «Поведение»). */
+/** Сообщения панели набора (spec/000-фронт/04-pages/03-arm-softphone.md «Поведение»). */
 export const DIAL_MESSAGES = {
   format: "Внутренний номер — 3–4 цифры",
   notFound: "Абонент не найден",

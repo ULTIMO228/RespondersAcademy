@@ -8,7 +8,7 @@
  * Дизайн-токены АРМ-112 (ПОВ-112). Единственное место с hex-значениями в проекте.
  * Значения сняты пипеткой с референсов: hack/Фронт/images/p12_Image66.png, p23_Image108.png,
  * hack/Фронт/Источники/скриншоты_из_docx/ДДС_image1–20.png, КАРТОЧКА_image2–3.png.
- * Семантика статусов и цветокод служб — spec/07-design-guidelines.md («не менять значения»).
+ * Семантика статусов и цветокод служб — spec/000-фронт/07-design-guidelines.md («не менять значения»).
  */
 :root {
   /* ——— Акценты ПОВ-112 ——— */
@@ -51,7 +51,7 @@
   --color-login-house: #d9d9d9;
   --color-login-house-light: #f2f2f2;
   --color-login-button: #808080;
-  --color-login-button-hover: #fa5a18;
+  --color-login-button-hover: #6f6f6f;
   --color-login-link: #1f6fb5;
 
   /* ——— Статусная палитра (канон АРМ ЕДДС, spec/07 «Цветовая семантика») ——— */

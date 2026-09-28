@@ -1,6 +1,6 @@
 /*
  * Нормативы и метрики таймингов попытки (T1.2-02). Единицы — миллисекунды (суффикс Ms в именах).
- * Формулы совпадают с валидатором spec/mocks/_tools/validate_mocks.py (дублирование осознанное):
+ * Формулы совпадают с валидатором spec/000-фронт/mocks/_tools/validate_mocks.py (дублирование осознанное):
  *   primaryReactionMs = openedAt − issuedAt, fullProcessingMs = completedAt − openedAt.
  * Единый источник истины — ISO-метки времени; разница не зависит от TZ процесса (метки несут смещение +03:00).
  */
@@ -8,9 +8,9 @@ import type { ScenarioTimeNorms } from "@/shared/api";
 
 const MS_IN_SECOND = 1000;
 
-/** Норматив заказчика: первичная реакция 30 сек (spec/05-data-models.md §6 timeNorms; Q&A в6). */
+/** Норматив заказчика: первичная реакция 30 сек (spec/000-фронт/05-data-models.md §6 timeNorms; Q&A в6). */
 export const DEFAULT_PRIMARY_REACTION_MS = 30_000;
-/** Норматив заказчика: полная обработка карточки 3 мин (spec/05-data-models.md §6 timeNorms; Q&A в6). */
+/** Норматив заказчика: полная обработка карточки 3 мин (spec/000-фронт/05-data-models.md §6 timeNorms; Q&A в6). */
 export const DEFAULT_FULL_PROCESSING_MS = 180_000;
 
 export type TimeNormsMs = {
@@ -51,7 +51,7 @@ export function isNormExceeded(factMs: number, normMs: number): boolean {
 
 /**
  * Итоговые нормативы: дефолты заказчика ← Scenario.timeNorms (сек) ← переопределения занятия (мс).
- * Оба норматива настраиваются раздельно (spec/04-pages/12-teacher-session.md п. 6).
+ * Оба норматива настраиваются раздельно (spec/000-фронт/04-pages/12-teacher-session.md п. 6).
  */
 export function resolveTimeNorms(
   scenario?: { timeNorms?: ScenarioTimeNorms } | null,

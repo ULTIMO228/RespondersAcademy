@@ -1,4 +1,4 @@
-/* Public API контрактных типов мок-слоя (spec/05-data-models.md + транспорт /api/mock/*). */
+/* Public API контрактных типов мок-слоя (spec/000-фронт/05-data-models.md + транспорт /api/mock/*). */
 export type { AuthPolicy, AuthSession, PublicUser, Role, User } from "./user";
 export type { CallerStatus, CardStatus, CardStatusDef, ClassifierRowsRef, DdsStatus } from "./reference";
 export type { DdsStatusDef, District, InternalNumber, ReferenceData, ServiceKind } from "./reference";
@@ -9,6 +9,21 @@ export type { ArmCardAddress, ArmCardApplicant, ArmCardCasualties, ArmCardFixtur
 export type { ArmCardId, ArmCardPhones, ArmCardWhat, GeoPoint, NotificationAddedBy } from "./arm-card";
 export type { NotificationEntry, ServiceStatusEvent, WorkLine } from "./arm-card";
 export type { Difficulty, Etalon, Scenario, ScenarioHints, ScenarioLevel, ScenarioSource } from "./scenario";
+export type {
+  AIExpectedAction,
+  AIFieldDecision,
+  AIFieldDecisionInput,
+  AIFieldDecisionKind,
+  AIScenarioApproveRequest,
+  AIScenarioDraftRequest,
+  AIScenarioReviseRequest,
+  AIScenarioVersion,
+  AIValidationError,
+  AIWorkflowApproval,
+  AIWorkflowMode,
+  AIWorkflowSourceKind,
+  AIWorkflowValidation,
+} from "./scenario";
 export type { ScenarioTimeNorms, ScenarioValidation, ScenarioValidationStatus } from "./scenario";
 export type { SuccessCriteria } from "./scenario";
 export type { CardEvent, CardFlowItem, CardSource, CardStatusMark, ErrorSeverity } from "./session";
@@ -49,4 +64,26 @@ export type { CardStatusRef, ClassifierNotification, TrainingCard, UserRole } fr
 export type { CardSearchFilters } from "./card-search";
 export type { CallReply, CallReplyRequest, CallTurn, CallVoice, CardCallRequest } from "./calls";
 export type { CardCallResponse } from "./calls";
-export type { AttemptProgressRequest, CardAttemptRequest, CardAttemptResponse } from "./attempts";
+export type {
+  AssessmentAxes,
+  AssessmentResolveRequest,
+  AssessmentReviewResponse,
+  AssessmentStateResponse,
+  AttemptProgressRequest,
+  CardAttemptRequest,
+  CardAttemptResponse,
+  EvaluationStatus,
+  SemanticArbitrationDecision,
+  SemanticReviewItem,
+} from "./attempts";
+export type {
+  ErrorRecord,
+  ErrorRecordCategory,
+  ErrorRecordDetector,
+  PaginatedErrorRecordsResponse,
+  SessionAiReport,
+  SessionErrorSummaryResponse,
+  StudentAttemptErrorsItem,
+  StudentErrorsResponse,
+  TopMistakeItem,
+} from "./errors";

@@ -1,4 +1,4 @@
-/* Типы управления звонком софтфона (spec/04-pages/03-arm-softphone.md). */
+/* Типы управления звонком софтфона (spec/000-фронт/04-pages/03-arm-softphone.md). */
 import type { TelephonyStatus } from "@/entities/service";
 import type { CallReply, CallVoice, TranscriptLine } from "@/shared/api";
 

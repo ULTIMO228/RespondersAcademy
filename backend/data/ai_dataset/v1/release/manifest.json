@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "dataset-manifest/1",
+  "name": "ai-semantic-review",
+  "version": "v1",
+  "createdAt": "2026-09-28T20:33:05+00:00",
+  "task": "Смысловой разбор спорного случая → SemanticReviewV1 (spec/001-ai/contracts/semantic-review-v1.schema.json)",
+  "targetModel": "Qwen3.5-0.8B (QLoRA, обучение вне репозитория)",
+  "format": "chat JSONL: messages[system,user,assistant]; обучать только по токенам assistant",
+  "promptVersion": "semantic_review_v1",
+  "promptSha256": "a5cb903a16f702ed9a02c1a0f0f6f2fcb069966fd9476474ea27abbf52716998",
+  "outputSchemaSha256": "166bb495f0dbdf48cd404c9d87ea29e180db94024bba8e0ed8858a5a069d96e5",
+  "generator": "claude-haiku-4-5 (тексты и объяснения); часть неопределённых примеров написана Claude вручную; рецепты и метки — план ml.dataset.plan",
+  "planSeed": 112,
+  "counts": {
+    "total": 762,
+    "bySplit": {
+      "train": 531,
+      "validation": 121,
+      "holdout": 110
+    },
+    "byDecision": {
+      "different": 309,
+      "equivalent": 301,
+      "uncertain": 152
+    },
+    "byField": {
+      "refusalComment": 64,
+      "serviceReport": 157,
+      "description": 353,
+      "dispatcherAction": 188
+    },
+    "byMode": {
+      "dds": 409,
+      "operator112": 353
+    },
+    "byAuthor": {
+      "haiku": 720,
+      "claude": 42
+    },
+    "injection": 47,
+    "excluded": {
+      "ошибки валидатора": 8,
+      "не принят разбором Claude": 13
+    }
+  },
+  "sourceTickets": {
+    "train": [
+      "ticket-001",
+      "ticket-002",
+      "ticket-004",
+      "ticket-005",
+      "ticket-007",
+      "ticket-008",
+      "ticket-009",
+      "ticket-010",
+      "ticket-011",
+      "ticket-012",
+      "ticket-013",
+      "ticket-014",
+      "ticket-016",
+      "ticket-019",
+      "ticket-021",
+      "ticket-022",
+      "ticket-025",
+      "ticket-026",
+      "ticket-027",
+      "ticket-028",
+      "ticket-030",
+      "ticket-031"
+    ],
+    "validation": [
+      "ticket-003",
+      "ticket-006",
+      "ticket-015",
+      "ticket-029",
+      "ticket-032"
+    ],
+    "holdout": [
+      "ticket-017",
+      "ticket-018",
+      "ticket-020",
+      "ticket-023",
+      "ticket-024"
+    ]
+  },
+  "provenance": {
+    "sources": "синтетические обезличенные билеты spec/000-фронт/mocks (96 ситуаций, 32 билета); реальных ПДн нет",
+    "identities": "ФИО, даты рождения (год сохранён) и госномера заменены сгенерированными (ml.dataset.identities)",
+    "sanitizedGate": "backend/data/ai_dataset/sanitized_tickets.json, piiCheck=passed, утверждено человеком"
+  },
+  "verification": {
+    "deterministic": "схема SemanticReviewV1, ID фактов, ПДн вне плана, дубликаты, рецепт инъекции/заявителя",
+    "claudeReview": "смысловой разбор каждого примера (та же модельная семья, что и генератор — не независимый судья)",
+    "humanSample": 67,
+    "independentJudge": false
+  },
+  "warnings": [
+    "holdout не использовать для обучения и подбора гиперпараметров; открывать только для финальной оценки",
+    "независимого судьи другой модельной семьи нет (T042): выпуск помечается как проверенный детерминированно, Claude и выборкой человека"
+  ],
+  "files": {
+    "train.jsonl": {
+      "sha256": "d6551ebc039b0efaf42eacd17aaba9c2ae8c2da7cc4420e9e19908e70a8fbc28",
+      "lines": 531
+    },
+    "validation.jsonl": {
+      "sha256": "52f1dd945d897b0e7903be0a882bd9ba72e3c5b0bae4b069751c3dd31fbc8790",
+      "lines": 121
+    },
+    "holdout.jsonl": {
+      "sha256": "0957a3f6819df8f708c570569abcf095fb36453f5ba7636dd5abcdf4d76f994a",
+      "lines": 110
+    },
+    "metadata.jsonl": {
+      "sha256": "e7e8d0a8368cc6c7114cedc7d96ea1071922643a9a73942b2241b2fd3baa1e94",
+      "lines": 762
+    },
+    "system_prompt.md": {
+      "sha256": "a5cb903a16f702ed9a02c1a0f0f6f2fcb069966fd9476474ea27abbf52716998",
+      "lines": 16
+    }
+  }
+}

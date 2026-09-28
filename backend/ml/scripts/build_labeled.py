@@ -1,6 +1,6 @@
 """Генератор размеченной выборки режима B: `backend/data/labeled/attempts/*.json` (T038).
 
-Синтетика из `spec/mocks/scenarios.json` + `cards.json`: для карточек сценариев строится эталонная попытка,
+Синтетика из `spec/000-фронт/mocks/scenarios.json` + `cards.json`: для карточек сценариев строится эталонная попытка,
 затем намеренно испорченные варианты (опоздание, без комментария, отказ от профильного, неверная служба,
 опечатки, пропущенный статус, ловушки с расширенным эталоном). Разметка — `expectedErrors` (типы ошибок
 из типологии evaluation.schema.json) и `expertScore` по рубрике из README (независимо от оценщика).
@@ -197,7 +197,7 @@ def trap_scenario(scenario: dict[str, Any], card_id: str, trap: dict[str, str]) 
 
 
 def build() -> list[dict[str, Any]]:
-    root = get_settings().seed_dir / "spec" / "mocks"
+    root = get_settings().seed_dir / "spec" / "000-фронт" / "mocks"
     scenarios = read_json(root / "scenarios.json")["scenarios"]
     cards = {c["id"]: c for c in read_json(root / "cards.json")["cards"]}
     rng = random.Random(SEED)

@@ -26,7 +26,6 @@ vi.mock("@/shared/api", async (importOriginal) => ({
 
 const DEFAULT_PROPS = {
   isDemoMode: true,
-  isTwoFactorEnabled: true,
   returnUrl: null,
   isSessionExpired: false,
   demoRole: "student",
@@ -88,12 +87,12 @@ describe("LoginScreen (/login)", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Сессия истекла");
   });
 
-  it("демо: «ВОЙТИ» с предзаполненной учёткой (ответ мок-клиента 200) открывает шаг 2FA", async () => {
+  it("демо: «ВОЙТИ» с предзаполненной учёткой завершает парольный вход", async () => {
     render(<LoginScreen {...DEFAULT_PROPS} />);
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "ВОЙТИ" }));
     });
-    expect(screen.getByLabelText(/код из сообщения/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/код из сообщения/i)).not.toBeInTheDocument();
   });
 });
 

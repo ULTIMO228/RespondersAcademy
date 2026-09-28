@@ -1,5 +1,5 @@
 /*
- * Классификатор ЕКП v.046_24 — spec/05-data-models.md §3 (mocks/classifier.json, 1283 записи, 105 групп).
+ * Классификатор ЕКП v.046_24 — spec/000-фронт/05-data-models.md §3 (mocks/classifier.json, 1283 записи, 105 групп).
  * Поле responseScenario удалено из модели (в v.046_24 такой колонки нет) и не используется.
  */
 

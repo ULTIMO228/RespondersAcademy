@@ -37,7 +37,7 @@ describe("HotkeysReference", () => {
 
 /** Строки таблиц «Горячие клавиши АРМ-112» из спеки (п. 3.17) — для построчной сверки. */
 function readSpecHotkeyRows(): [string, string][] {
-  const spec = readFileSync(resolve(process.cwd(), "spec/04-pages/04-arm-progress.md"), "utf8");
+  const spec = readFileSync(resolve(process.cwd(), "spec/000-фронт/04-pages/04-arm-progress.md"), "utf8");
   const section = spec.slice(spec.indexOf("### Методический материал"), spec.indexOf("## Критерии приёмки"));
   return section
     .split("\n")

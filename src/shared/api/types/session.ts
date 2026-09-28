@@ -1,5 +1,5 @@
 /*
- * Занятие (групповой канон ТЗ §10) и события карточек — spec/05-data-models.md §7 (mocks/sessions.json).
+ * Занятие (групповой канон ТЗ §10) и события карточек — spec/000-фронт/05-data-models.md §7 (mocks/sessions.json).
  * Отдельного типа per-student Session нет: это проекция Session (cardEvents/cardFlow по studentId).
  */
 import type { DdsStatus } from "./reference";
@@ -60,6 +60,10 @@ export interface GrammarError {
   wrong: string;
   expected: string;
   type: GrammarErrorType;
+  /** US3: сценарий, к тексту которого относится замечание (только при проверке с привязкой). */
+  scenarioId?: string;
+  /** US3: текущая версия сценария на момент проверки (у сценария без AI-версий отсутствует). */
+  scenarioVersion?: number;
 }
 
 export interface EvaluationError {
@@ -77,6 +81,8 @@ export interface TeacherOverride {
 
 /** Оценка попытки. aiComment — ИИ-происхождение (мок), UI обязан показать бейдж «ИИ». */
 export interface Evaluation {
+  revision?: number;
+  status?: "pending" | "preliminary" | "review_required" | "final";
   timeScore: number;
   correctnessScore: number;
   grammarScore: number;
@@ -141,7 +147,9 @@ export type SessionFeedEvent =
       kind: "aiEvaluation";
       attemptId: string;
       isAi: true;
-      totalScore: number;
+      revision?: number;
+      status?: "pending" | "preliminary" | "review_required" | "final";
+      totalScore?: number;
       errorCount: number;
       aiComment: string;
     });

@@ -22,4 +22,5 @@ export type StudentMonitorView = {
   reference: MonitorReference;
   isOnline: boolean;
   norms: TimeNormsMs | null;
+  reload?: () => void;
 };

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import BigInteger, Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, JSONVariant
@@ -22,6 +22,7 @@ class User(Base):
     service: Mapped[str | None] = mapped_column(String(160), nullable=True)
     assigned_groups: Mapped[list[str] | None] = mapped_column(JSONVariant, nullable=True)
     failed_logins: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
     def to_public(self) -> dict[str, Any]:
         data: dict[str, Any] = {

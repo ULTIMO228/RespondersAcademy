@@ -29,7 +29,8 @@ nlp = ["sentence-transformers>=3.0", "torch>=2.2"]
 tts = ["torch>=2.2", "soundfile>=0.12"]
 stt = ["vosk>=0.3.45"]
 llm = ["ollama>=0.3"]
-dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5"]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5", "jsonschema[format-nongpl]>=4.26.0,<5"]
+pipeline = ["langgraph>=0.2", "langchain-core>=0.3"]
 
 [build-system]
 requires = ["hatchling"]
@@ -42,7 +43,9 @@ packages = ["app", "ml"]
 "data/fonts" = "app/data/fonts"
 
 [tool.uv]
-default-groups = []
+default-groups = ["dev", "pipeline"]
 
 [dependency-groups]
-dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5"]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5", "jsonschema[format-nongpl]>=4.26.0,<5"]
+pipeline = ["langgraph>=0.2", "langchain-core>=0.3"]
+

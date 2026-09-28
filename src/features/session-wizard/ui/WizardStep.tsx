@@ -9,7 +9,7 @@ type WizardStepProps = {
   children: ReactNode;
 };
 
-/** Секция мастера с номером шага (все шаги на одном экране, spec/04-pages/12). */
+/** Секция мастера с номером шага (все шаги на одном экране, spec/000-фронт/04-pages/12). */
 export function WizardStep({ index, title, hint, children }: WizardStepProps) {
   return (
     <section className={styles.wizard__step} aria-labelledby={`wizard-step-${index}`}>

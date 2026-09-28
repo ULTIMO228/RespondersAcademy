@@ -2,7 +2,7 @@
  * Ридеры коллекций мок-слоя (только сервер: route handlers и логика src/shared/api/mock/**).
  *
  * Способ импорта JSON на проект — один: resolveJsonModule + алиас @mocks/* (синхронизированная копия
- * spec/mocks → mocks/, `npm run mocks:sync`); к spec/mocks/ код приложения не обращается.
+ * spec/000-фронт/mocks → mocks/, `npm run mocks:sync`); к spec/000-фронт/mocks/ код приложения не обращается.
  * Мемоизация на процесс: копия JSON снимается и глубоко замораживается один раз при первом чтении.
  * Мутация данных ридеров ЗАПРЕЩЕНА (Object.freeze → TypeError в strict-режиме); изменяемое состояние —
  * только в in-memory store (store.ts), который сидируется глубокой копией.

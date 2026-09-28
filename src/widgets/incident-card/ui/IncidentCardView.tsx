@@ -14,7 +14,7 @@ import { WorkLines } from "./WorkLines";
 import styles from "./IncidentCardView.module.css";
 
 /**
- * Карточка происшествия в режиме диспетчера ДДС (spec/04-pages/02-arm-card.md, ДДС_image6, p23_Image108).
+ * Карточка происшествия в режиме диспетчера ДДС (spec/000-фронт/04-pages/02-arm-card.md, ДДС_image6, p23_Image108).
  * readOnly — просмотр преподавателем: контролы неактивны/скрыты, без смены статусов, ввода и запросов к API.
  * controls — живой режим обучающегося (данные и действия из pages/incident).
  */

@@ -1,7 +1,7 @@
 // @vitest-environment node
 /*
  * Контрактные тесты ВСЕХ route handlers мок-слоя (T1.3-02) — чек-лист полноты: таблица эндпоинтов
- * spec/03-architecture.md. Вызываются публичные экспорты корневых app/api/mock/** (route.ts) с Request;
+ * spec/000-фронт/03-architecture.md. Вызываются публичные экспорты корневых app/api/mock/** (route.ts) с Request;
  * каждый негативный кейс проверяет единый формат ошибки `{ error: { code, message } }`.
  * Изоляция: resetMockStore() в beforeEach, порядок кейсов перемешивается (shuffle) — тесты не зависят от него.
  */
@@ -1028,7 +1028,7 @@ const CASES: ContractCase[] = [
   },
 ];
 
-/** Эндпоинты таблицы spec/03-architecture.md (раскрыты составные строки GET/POST и start/stop/feed). */
+/** Эндпоинты таблицы spec/000-фронт/03-architecture.md (раскрыты составные строки GET/POST и start/stop/feed). */
 const ARCHITECTURE_ENDPOINTS = [
   "POST /auth/login",
   "GET /cards",

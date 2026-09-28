@@ -6,7 +6,7 @@ import { UsersRegistry } from "./UsersRegistry";
 import styles from "./AdminUsersPage.module.css";
 
 /**
- * `/admin/users` — «Пользователи и роли» (spec/04-pages/20-admin-users.md).
+ * `/admin/users` — «Пользователи и роли» (spec/000-фронт/04-pages/20-admin-users.md).
  * Серверный компонент: администратор — пользователь сессии (гвард — proxy + лэйаут раздела);
  * реестр и мутации экран берёт из мок-API через `@/shared/api`.
  */

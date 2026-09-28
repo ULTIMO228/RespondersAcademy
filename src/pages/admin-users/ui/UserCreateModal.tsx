@@ -23,7 +23,7 @@ type UserCreateModalProps = {
 
 const MODAL_WIDTH = 560;
 
-/** «Создание учётной записи» (spec/04-pages/20-admin-users.md): состав полей зависит от роли. */
+/** «Создание учётной записи» (spec/000-фронт/04-pages/20-admin-users.md): состав полей зависит от роли. */
 export function UserCreateModal({
   roleOptions,
   groups,

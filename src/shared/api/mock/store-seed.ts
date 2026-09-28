@@ -1,7 +1,7 @@
 /*
  * Сид in-memory store: глубокие копии ридеров + мок-состояния админки (журнал аудита — из
  * mocks/admin/audit-log.json, T4.1-01; сервисы, настройки и системные журналы — из mocks/admin/*.json,
- * T4.2-01, см. spec/05-data-models.md §9 и 21-admin-system.md §1/§3).
+ * T4.2-01, см. spec/000-фронт/05-data-models.md §9 и 21-admin-system.md §1/§3).
  */
 import { PROFILE_MAPPING_SEED } from "@/shared/config";
 

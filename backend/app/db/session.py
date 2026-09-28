@@ -40,10 +40,14 @@ def configure_engine(engine: AsyncEngine) -> None:
 async def init_db() -> None:
     """create_all — для SQLite и тестов; в PostgreSQL схему ведёт Alembic."""
     from app import models  # noqa: F401  # регистрация таблиц
+    from app.models.ai_assessment import install_ai_assessment_guards
+    from app.models.ai_scenario import install_ai_scenario_guards
 
     engine = get_engine()
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+        await connection.run_sync(install_ai_scenario_guards)
+        await connection.run_sync(install_ai_assessment_guards)
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:

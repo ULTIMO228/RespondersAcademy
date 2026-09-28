@@ -1,6 +1,6 @@
 """Обучение классификатора групп ЕКП (T059): rubert-tiny2 → LogisticRegression → `MODELS_DIR/ekp_group_lr.joblib`.
 
-Обучающая выборка: фабулы 96 карточек `spec/mocks/cards.json` + синтетика `data/labeled/synthetic_groups.json`
+Обучающая выборка: фабулы 96 карточек `spec/000-фронт/mocks/cards.json` + синтетика `data/labeled/synthetic_groups.json`
 (`build_synthetic_groups.py`). Классы — `reference.incidentGroups`; группы без примеров получают своё название
 как единственный пример. Детерминировано (lbfgs), без сети; ~20 с на CPU.
 Запуск: `uv run python -m ml.scripts.train_classifier [--exclude-cards]` (`--exclude-cards` — для кросс-валидации).

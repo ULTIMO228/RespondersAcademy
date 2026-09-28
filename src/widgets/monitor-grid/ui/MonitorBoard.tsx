@@ -15,7 +15,7 @@ type MonitorBoardProps = {
 
 /**
  * Дашборд класса: сетка плиток + лента событий + очередь выдачи. Все три блока строятся из одной ленты
- * занятия, поэтому расходятся не больше чем на один тик обновления (spec/04-pages/10 «Критерии приёмки»).
+ * занятия, поэтому расходятся не больше чем на один тик обновления (spec/000-фронт/04-pages/10 «Критерии приёмки»).
  */
 export function MonitorBoard({ tiles, feedItems, queueItems, isIssuePaused = false }: MonitorBoardProps) {
   const offlineCount = tiles.filter((tile) => tile.state === "offline").length;

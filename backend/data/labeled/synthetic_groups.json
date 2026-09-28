@@ -1,5 +1,5 @@
 {
- "source": "spec/mocks/classifier.json (v046.24)",
+ "source": "spec/000-фронт/mocks/classifier.json (v046.24)",
  "templates": [
   "{text}",
   "Сообщение заявителя: {final}. Признаки: {signs}"

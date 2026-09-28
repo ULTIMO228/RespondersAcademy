@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import secrets
 from collections.abc import AsyncIterator
 from urllib.parse import quote
 
@@ -14,8 +15,10 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import StaticPool
 
+os.environ.setdefault("JWT_SECRET", secrets.token_urlsafe(48))
+
 from app.config import get_settings
-from app.db.session import configure_engine
+from app.db.session import configure_engine, get_sessionmaker
 from app.seed.load import run_seed
 from app.services import reference as reference_service
 
@@ -68,9 +71,22 @@ def cookie_value(session: dict) -> str:
 
 async def login_as(client: AsyncClient, role: str) -> dict:
     """Вход демо-учёткой и установка cookie сессии на клиент; возвращает AuthSession."""
-    creds = {**DEMO_USERS[role], "twoFactorCode": "123456"}
+    creds = DEMO_USERS[role]
     response = await client.post("/auth/login", json=creds)
     assert response.status_code == 200, response.text
     session = response.json()
     client.cookies.set("arm112_session", cookie_value(session))
     return session
+
+
+async def token_for(user_id: str) -> str:
+    """Создаёт настоящую серверную сессию для проверки доступа без UI-входа."""
+    from app.models.user import User
+    from app.services.security import build_auth_session
+
+    async with get_sessionmaker()() as db:
+        user = await db.get(User, user_id)
+        assert user is not None and user.is_active
+        session = await build_auth_session(db, user)
+        await db.commit()
+        return str(session["token"])

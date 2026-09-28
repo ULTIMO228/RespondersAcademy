@@ -2,7 +2,7 @@
 /*
  * T4.1-01: сид журнала аудита mocks/admin/audit-log.json.
  * Проверяем схему AuditLogEntry (обязательные поля, ISO-метки со смещением +03:00, id-формат
- * spec/mocks/README.md), наличие примеров всех типов событий из 21-admin-system.md §4 и обезличенность.
+ * spec/000-фронт/mocks/README.md), наличие примеров всех типов событий из 21-admin-system.md §4 и обезличенность.
  */
 import { describe, expect, it } from "vitest";
 

@@ -17,7 +17,7 @@ type StepScenariosProps = {
 
 const ORDERS: IssueOrder[] = ["adaptive", "manual"];
 
-/** Шаг 4. Сценарии: только approved (spec/04-pages/11); порядок выдачи — ручной / adaptive (дефолт). */
+/** Шаг 4. Сценарии: только approved (spec/000-фронт/04-pages/11); порядок выдачи — ручной / adaptive (дефолт). */
 export function StepScenarios(props: StepScenariosProps) {
   const { scenarios, categories, selectedIds, order, onToggle, onMove, onOrderChange } = props;
   const eligible = getEligibleScenarios(scenarios, categories);

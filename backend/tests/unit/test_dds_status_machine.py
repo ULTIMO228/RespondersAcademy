@@ -7,7 +7,7 @@ from app.services.status_machine import StatusMachine, StatusTransitionError, dd
 
 
 def _defs():
-    reference = json.loads((get_settings().seed_dir / "spec" / "mocks" / "reference.json").read_text(encoding="utf-8"))
+    reference = json.loads((get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "reference.json").read_text(encoding="utf-8"))
     return reference["ddsStatuses"], reference["serviceStatuses"]
 
 

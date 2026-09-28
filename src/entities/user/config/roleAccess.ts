@@ -12,7 +12,7 @@ export type RoleAccessRow = {
 const YES: RoleAccess = { allowed: true };
 const NO: RoleAccess = { allowed: false };
 
-/** Матрица доступа к разделам — дословно по spec/02-roles.md (ТЗ §8, Q&A в14). */
+/** Матрица доступа к разделам — дословно по spec/000-фронт/02-roles.md (ТЗ §8, Q&A в14). */
 export const ROLE_ACCESS_ROWS: RoleAccessRow[] = [
   { route: "/login", title: "Вход", access: { student: YES, teacher: YES, admin: YES } },
   { route: "/arm", title: "Главный экран АРМ-112", access: { student: YES, teacher: NO, admin: NO } },

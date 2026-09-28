@@ -1,5 +1,5 @@
 /*
- * Пользователи и роли — spec/05-data-models.md §1 (mocks/users.json).
+ * Пользователи и роли — spec/000-фронт/05-data-models.md §1 (mocks/users.json).
  */
 
 export type Role = "student" | "teacher" | "admin";

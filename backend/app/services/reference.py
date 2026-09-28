@@ -40,10 +40,11 @@ async def read_system_settings(db: AsyncSession) -> dict[str, Any]:
     return dict(row.settings)
 
 
-DEFAULT_SECURITY = {"require2fa": True, "minPasswordLength": 8, "lockAfterAttempts": 5}
+DEFAULT_SECURITY = {"minPasswordLength": 8, "lockAfterAttempts": 5}
 
 
 async def read_security_policy(db: AsyncSession) -> dict[str, Any]:
     settings = await read_system_settings(db)
     security = {**DEFAULT_SECURITY, **(settings.get("security") or {})}
+    security.pop("require2fa", None)
     return security

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "mocks:sync": "node scripts/sync-mocks.mjs",
-    "mocks:validate": "python3 spec/mocks/_tools/validate_mocks.py",
+    "mocks:validate": "python3 spec/000-фронт/mocks/_tools/validate_mocks.py",
     "predev": "npm run mocks:sync",
     "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
     "prebuild": "npm run mocks:sync && npm run mocks:validate",

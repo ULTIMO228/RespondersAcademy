@@ -17,11 +17,11 @@ async def test_seed_summary(seeded_db):
 
 
 async def test_login_ok_and_shape(client):
-    response = await client.post("/auth/login", json={**DEMO_USERS["student"], "twoFactorCode": "123456"})
+    response = await client.post("/auth/login", json=DEMO_USERS["student"])
     assert response.status_code == 200
     body = response.json()
     assert set(body) == {"userId", "role", "token", "twoFactorUsed", "issuedAt"}
-    assert body["role"] == "student" and body["twoFactorUsed"] is True
+    assert body["role"] == "student" and body["twoFactorUsed"] is False
     assert body["issuedAt"].endswith("+03:00")
 
 

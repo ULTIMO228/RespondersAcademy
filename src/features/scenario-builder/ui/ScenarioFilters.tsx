@@ -21,7 +21,7 @@ type ScenarioFiltersProps = {
   onReset: () => void;
 };
 
-/** Фильтры списка сценариев (spec/04-pages/11 «Список»). */
+/** Фильтры списка сценариев (spec/000-фронт/04-pages/11 «Список»). */
 export function ScenarioFilters({ filter, incidentGroups, onChange, onReset }: ScenarioFiltersProps) {
   return (
     <div className={styles.catalog__filters} role="search" aria-label="Фильтры сценариев">

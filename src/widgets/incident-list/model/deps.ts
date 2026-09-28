@@ -21,7 +21,7 @@ import { createBeepPlayer } from "../lib/sound";
 import type { SoundPlayer } from "../lib/sound";
 
 /*
- * Зависимости ленты за интерфейсами (spec/10-code-rules.md §6): клиент мок-слоя, часы, хранилище, звук,
+ * Зависимости ленты за интерфейсами (spec/000-фронт/10-code-rules.md §6): клиент мок-слоя, часы, хранилище, звук,
  * prefers-reduced-motion. По умолчанию — боевые реализации; тесты подменяют через проп `deps` IncidentJournal.
  */
 

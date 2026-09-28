@@ -9,6 +9,7 @@ import {
   ApiError,
   getAttemptEvaluation,
   getCard,
+  getMyErrors,
   getStudentReports,
   listScenarios,
   listSessions,
@@ -23,6 +24,7 @@ import type {
   ScenarioListQuery,
   SessionContract,
   SessionListQuery,
+  StudentErrorsResponse,
 } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 
@@ -32,6 +34,7 @@ export type ProgressApi = {
   getAttemptEvaluation: (attemptId: string, signal?: AbortSignal) => Promise<Evaluation>;
   getCard: (cardId: string, signal?: AbortSignal) => Promise<CardDetails>;
   listScenarios: (query?: ScenarioListQuery, signal?: AbortSignal) => Promise<Scenario[]>;
+  getMyErrors?: (sessionId?: string, signal?: AbortSignal) => Promise<StudentErrorsResponse>;
 };
 
 export const defaultProgressApi: ProgressApi = {
@@ -40,6 +43,7 @@ export const defaultProgressApi: ProgressApi = {
   getAttemptEvaluation,
   getCard,
   listScenarios,
+  getMyErrors,
 };
 
 export type EvaluatedAttempt = CardEventContract & { evaluation: Evaluation };
@@ -55,6 +59,7 @@ export type StudentProgressData = {
   reports: ReportContract[];
   captions: Record<string, ProgressCardCaption>;
   scenarios: Scenario[];
+  studentErrors?: StudentErrorsResponse | null;
 };
 
 const EMPTY_CAPTION_TYPE = "—";
@@ -111,10 +116,15 @@ export async function loadStudentProgress(
   api: ProgressApi = defaultProgressApi,
   signal?: AbortSignal,
 ): Promise<StudentProgressData> {
-  const [reportsResponse, sessions, scenarios] = await Promise.all([
+  const studentErrorsPromise = api.getMyErrors
+    ? api.getMyErrors(undefined, signal).catch(() => null)
+    : Promise.resolve(null);
+
+  const [reportsResponse, sessions, scenarios, studentErrors] = await Promise.all([
     api.getStudentReports(studentId, signal),
     api.listSessions({ studentId }, signal),
     api.listScenarios(undefined, signal),
+    studentErrorsPromise,
   ]);
   const ownAttempts = collectOwnAttempts(sessions, studentId);
   const [evaluations, captions] = await Promise.all([
@@ -136,5 +146,6 @@ export async function loadStudentProgress(
     reports: reportsResponse.reports.filter((report) => report.student.studentId === studentId),
     captions,
     scenarios,
+    studentErrors,
   };
 }

@@ -1,6 +1,6 @@
 """Размеченные билеты для валидатора: `backend/data/labeled/tickets/*.json` (T056/T087, SC-005).
 
-20 корректных билетов — карточки `spec/mocks/cards.json` без объявленных дублей, чей адрес найден в справочнике
+20 корректных билетов — карточки `spec/000-фронт/mocks/cards.json` без объявленных дублей, чей адрес найден в справочнике
 улиц точно либо лежит в другом регионе (`crossRegion`); 20 дефектных — те же карточки с ровно одним внесённым
 дефектом по одному из шести критериев валидатора (по кругу): `wrongCategory` (группа другой службы),
 `unknownStreet` (несуществующая улица), `missingField` (пустой телефон заявителя / службы), `duplicate`
@@ -107,7 +107,7 @@ def make_defect(kind: str, card: dict[str, Any], pool: list[dict[str, Any]], ind
 
 
 def build() -> list[dict[str, Any]]:
-    cards = read_json(get_settings().seed_dir / "spec" / "mocks" / "cards.json")["cards"]
+    cards = read_json(get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "cards.json")["cards"]
     correct = correct_cards(cards)
     docs: list[dict[str, Any]] = []
     for index, card in enumerate(correct):

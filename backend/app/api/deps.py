@@ -4,16 +4,19 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import unquote
 
 from fastapi import Depends, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.errors import forbidden, unauthorized, validation_failed
 from app.db.session import get_db
+from app.models.auth_session import AuthSession
 from app.models.user import User
-from app.services.security import decode_token
+from app.services.security import decode_token, jti_hash
 
 SESSION_COOKIE = "arm112_session"
 OWN_DATA_ONLY_MESSAGE = "Обучающемуся доступны только собственные результаты"
@@ -25,6 +28,7 @@ ROLES = ("student", "teacher", "admin")
 class Viewer:
     user_id: str
     role: str
+    session_hash: str = ""
 
     @property
     def is_student(self) -> bool:
@@ -61,17 +65,35 @@ def viewer_from_request(request: Request) -> Viewer | None:
     user_id, role = payload.get("sub"), payload.get("role")
     if not isinstance(user_id, str) or role not in ROLES:
         return None
-    if session and session.get("userId") not in (None, user_id):
+    if session and (session.get("userId") not in (None, user_id) or session.get("role") not in (None, role)):
         return None
-    return Viewer(user_id=user_id, role=role)
+    return Viewer(user_id=user_id, role=role, session_hash=jti_hash(payload["jti"]))
 
 
-def get_viewer(request: Request) -> Viewer | None:
-    return viewer_from_request(request)
-
-
-def require_viewer(request: Request) -> Viewer:
+async def get_viewer(request: Request, db: AsyncSession = Depends(get_db)) -> Viewer | None:
+    """Проверяет подпись и действующую серверную сессию с текущей ролью пользователя."""
     viewer = viewer_from_request(request)
+    if viewer is None:
+        return None
+    row = (
+        await db.execute(
+            select(AuthSession, User)
+            .join(User, User.id == AuthSession.user_id)
+            .where(AuthSession.jti_hash == viewer.session_hash)
+        )
+    ).one_or_none()
+    if row is None:
+        return None
+    session, user = row
+    now = int(datetime.now(UTC).timestamp())
+    if session.revoked_at is not None or session.expires_at <= now or not user.is_active or user.role != viewer.role:
+        return None
+    if session.user_id != viewer.user_id:
+        return None
+    return viewer
+
+
+async def require_viewer(viewer: Viewer | None = Depends(get_viewer)) -> Viewer:
     if viewer is None:
         raise unauthorized(SESSION_REQUIRED_MESSAGE)
     return viewer
@@ -103,13 +125,12 @@ def assert_own_attempt(viewer: Viewer | None, attempt_student_id: str) -> None:
 
 
 async def require_admin_actor(db: AsyncSession, viewer: Viewer | None, admin_id: str | None) -> User:
-    """Совместимый режим мока: администратор — по viewer либо по adminId из тела (403 иначе)."""
-    actor_id = viewer.user_id if viewer is not None else admin_id
-    if viewer is not None and viewer.role != "admin":
+    """Администратор определяется только действующей серверной сессией."""
+    if viewer is None:
+        raise unauthorized(SESSION_REQUIRED_MESSAGE)
+    if viewer.role != "admin" or (admin_id is not None and admin_id != viewer.user_id):
         raise forbidden("Действие доступно только администратору")
-    if not actor_id:
-        raise forbidden("Действие доступно только администратору")
-    user = await db.get(User, actor_id)
+    user = await db.get(User, viewer.user_id)
     if user is None or user.role != "admin":
         raise forbidden("Действие доступно только администратору")
     return user
@@ -118,7 +139,7 @@ async def require_admin_actor(db: AsyncSession, viewer: Viewer | None, admin_id:
 async def require_teacher_actor(db: AsyncSession, viewer: Viewer | None, user_id: object, field: str) -> User:
     """Преподаватель-автор действия по id из тела/query (как в моке: 400, если это не преподаватель).
 
-    При наличии сессии (решение Phase 5): обучающийся → 403; преподаватель может действовать только от своего
+    При наличии сессии: обучающийся → 403; преподаватель может действовать только от своего
     имени → иначе 403; администратор — без ограничений.
     """
     if viewer is not None and viewer.role not in ("teacher", "admin"):

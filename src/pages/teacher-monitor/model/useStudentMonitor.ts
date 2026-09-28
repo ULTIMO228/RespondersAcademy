@@ -89,5 +89,6 @@ export function useStudentMonitor(teacherId: string, studentId: string): Student
     reference,
     isOnline: feed.isOnline,
     norms: live?.norms ?? null,
+    reload,
   };
 }

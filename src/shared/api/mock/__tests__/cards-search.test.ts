@@ -1,7 +1,7 @@
 // @vitest-environment node
 /*
  * GET /api/mock/cards — фильтры расширенного поиска главного экрана АРМ на полном датасете (T2.2-01, T2.2-13):
- * 8 обязательных фильтров критерия приёмки spec/04-pages/01-arm-main.md, их AND-комбинация, вид ленты
+ * 8 обязательных фильтров критерия приёмки spec/000-фронт/04-pages/01-arm-main.md, их AND-комбинация, вид ленты
  * «выберите что показать» (view) и пагинация после фильтров. Вызывается корневой route handler (с filterCards).
  */
 import { beforeEach, describe, expect, it } from "vitest";

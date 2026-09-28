@@ -6,7 +6,7 @@ import { useJournalDeps } from "./deps";
 import { toErrorMessage } from "./loadStatus";
 import { readStored, STORAGE_KEYS, writeStored } from "./storedValue";
 
-/** Повтор окна напоминания, закрытого без действий (spec/04-pages/01-arm-main.md, источник п. 3.13). */
+/** Повтор окна напоминания, закрытого без действий (spec/000-фронт/04-pages/01-arm-main.md, источник п. 3.13). */
 export const REMINDER_REPEAT_MS = 20_000;
 
 export type JournalReminder = {

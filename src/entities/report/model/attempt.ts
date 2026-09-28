@@ -42,7 +42,9 @@ export type AttemptView = {
   isReactionExceeded: boolean;
   processing: string;
   isProcessingExceeded: boolean;
-  score: number;
+  score: number | null;
+  status?: "pending" | "preliminary" | "review_required" | "final";
+  revision?: number;
   grammarErrorCount: number;
   criteria: CriterionScore[];
   mistakes: AttemptMistake[];

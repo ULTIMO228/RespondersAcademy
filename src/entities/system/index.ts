@@ -1,5 +1,5 @@
 /*
- * Сущность «Система» (spec/05-data-models.md §9): контрактные типы мок-слоя + словари состояний
+ * Сущность «Система» (spec/000-фронт/05-data-models.md §9): контрактные типы мок-слоя + словари состояний
  * и правила, общие для экрана администратора. Данные приходят через клиент `@/shared/api`.
  */
 export type { SystemIntegrity, SystemLogEntry, SystemLogLevel, SystemMonitoring } from "@/shared/api";

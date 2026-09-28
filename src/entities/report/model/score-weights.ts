@@ -1,6 +1,6 @@
 /*
  * Конфиг мок-оценки попытки (T1.2-08). Веса осей интегрального балла настраивает преподаватель;
- * дефолт — равные веса (spec/12-tasks.md T1.2-08). Остальные константы — параметры мок-модели ИИ.
+ * дефолт — равные веса (spec/000-фронт/12-tasks.md T1.2-08). Остальные константы — параметры мок-модели ИИ.
  */
 import type { Evaluation } from "@/shared/api";
 
@@ -23,7 +23,7 @@ export const DEFAULT_SCORE_WEIGHTS: Readonly<ScoreWeights> = {
 export const MIN_SCORE = 0;
 export const MAX_SCORE = 100;
 
-/** Порядок и подписи критериев расшифровки балла (spec/04-pages/13 п. 3). */
+/** Порядок и подписи критериев расшифровки балла (spec/000-фронт/04-pages/13 п. 3). */
 export const SCORE_AXES: readonly { key: ScoreAxis; title: string }[] = [
   { key: "timeScore", title: "Время" },
   { key: "correctnessScore", title: "Корректность" },

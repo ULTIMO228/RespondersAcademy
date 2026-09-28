@@ -86,6 +86,9 @@ export const SETTINGS_MESSAGES = {
 /** Ошибки полей патча настроек; пустой массив — патч допустим. */
 export function validateSettingsPatch(patch: SystemSettingsPatch): SettingsFieldError[] {
   const errors: SettingsFieldError[] = [];
+  if (patch.security && "require2fa" in patch.security) {
+    errors.push({ field: "security.require2fa", message: "2FA не поддерживается в локальном контуре" });
+  }
   checkHost(errors, "telephony.sipServer", patch.telephony?.sipServer, SETTINGS_MESSAGES.sipServer);
   checkHost(errors, "telephony.realm", patch.telephony?.realm, SETTINGS_MESSAGES.realm);
   checkInt(

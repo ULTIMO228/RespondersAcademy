@@ -1,4 +1,4 @@
-/* Группы справочника «Внутренние номера» (spec/04-pages/03-arm-softphone.md «Состав»). */
+/* Группы справочника «Внутренние номера» (spec/000-фронт/04-pages/03-arm-softphone.md «Состав»). */
 export type NumberGroup = {
   id: string;
   title: string;

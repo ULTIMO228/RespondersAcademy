@@ -39,7 +39,7 @@ function startReason(hasStudents: boolean, hasScenarios: boolean): string {
   return hasStudents ? START_REASONS.scenarios : START_REASONS.students;
 }
 
-/** Форма мастера: 8 шагов секциями на одном экране (spec/04-pages/12-teacher-session.md). */
+/** Форма мастера: 8 шагов секциями на одном экране (spec/000-фронт/04-pages/12-teacher-session.md). */
 function WizardForm({ teacherId, data }: { teacherId: string; data: WizardData }) {
   const state = useWizardState(data);
   const { status, message, start } = useSessionStart(teacherId, state);

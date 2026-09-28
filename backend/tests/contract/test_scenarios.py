@@ -10,8 +10,7 @@ from app.db.session import get_sessionmaker
 from app.models.audit import AuditLog
 from app.models.card import IncidentCard
 from app.models.scenario import Scenario
-from app.services.security import issue_token
-from tests.conftest import login_as
+from tests.conftest import login_as, token_for
 
 TEACHER_ID = "u-002"
 OTHER_TEACHER_ID = "u-003"
@@ -89,7 +88,7 @@ async def test_create_get_patch_delete(client):
     await login_as(client, "student")
     assert (await client.patch(f"/scenarios/{scenario_id}", json={"title": "x", "updatedBy": TEACHER_ID})).status_code == 403
     client.cookies.clear()
-    client.headers["Authorization"] = f"Bearer {issue_token(OTHER_TEACHER_ID, 'teacher')}"
+    client.headers["Authorization"] = f"Bearer {await token_for(OTHER_TEACHER_ID)}"
     assert (await client.patch(f"/scenarios/{scenario_id}", json={"title": "x", "updatedBy": TEACHER_ID})).status_code == 403
     client.headers.pop("Authorization")
     await login_as(client, "admin")

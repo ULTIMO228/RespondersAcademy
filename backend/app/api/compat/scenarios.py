@@ -17,13 +17,13 @@ router = APIRouter()
 
 
 @router.get("/scenarios")
-async def get_scenarios(request: Request, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
-    return await scenario_service.list_scenarios(db, request.query_params)
+async def get_scenarios(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> list[dict[str, Any]]:
+    return await scenario_service.list_scenarios(db, request.query_params, viewer)
 
 
 @router.post("/scenarios", status_code=201)
-async def post_scenario(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
-    return await scenario_service.create_scenario(db, await read_body(request))
+async def post_scenario(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
+    return await scenario_service.create_scenario(db, await read_body(request), viewer)
 
 
 @router.post("/scenarios/generate", status_code=201)
@@ -32,8 +32,10 @@ async def post_generate(request: Request, db: AsyncSession = Depends(get_db), vi
 
 
 @router.get("/scenarios/{scenario_id}")
-async def get_scenario(scenario_id: str, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
-    return scenario_service.scenario_contract(await scenario_service.require_scenario(db, scenario_id))
+async def get_scenario(scenario_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
+    row = await scenario_service.require_scenario(db, scenario_id)
+    await scenario_service.require_scenario_access(db, row, viewer)
+    return scenario_service.scenario_contract(row)
 
 
 @router.patch("/scenarios/{scenario_id}")

@@ -77,7 +77,7 @@ def attempt_with(draft: dict[str, Any], *, answer_sec: int = 5, submit_sec: int 
 
 @pytest.fixture(scope="module")
 def reference() -> dict[str, Any]:
-    with (get_settings().seed_dir / "spec" / "mocks" / "reference.json").open(encoding="utf-8") as handle:
+    with (get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "reference.json").open(encoding="utf-8") as handle:
         return json.load(handle)
 
 

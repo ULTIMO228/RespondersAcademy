@@ -13,6 +13,7 @@ import { buildActionDictionary } from "../lib/buildActionDictionary";
 import { useEtalon } from "../model/useEtalon";
 import { useStudentMonitor } from "../model/useStudentMonitor";
 import { AccessDenied } from "./AccessDenied";
+import { AIAssessmentPanel } from "./AIAssessmentPanel";
 import { CallTranscript } from "./CallTranscript";
 import { StudentMirror } from "./StudentMirror";
 
@@ -25,7 +26,7 @@ type MonitorScreenProps = {
 
 const BACK_LABEL = "Вернуться к классу";
 
-/** `/teacher/monitor/[studentId]` — живое зеркало экрана курсанта, только просмотр (spec/04-pages/10). */
+/** `/teacher/monitor/[studentId]` — живое зеркало экрана курсанта, только просмотр (spec/000-фронт/04-pages/10). */
 export function MonitorScreen({ teacherId, studentId }: MonitorScreenProps) {
   const view = useStudentMonitor(teacherId, studentId);
   const etalon = useEtalon(view.current?.cardId ?? null, view.session?.scenarioIds ?? []);
@@ -76,6 +77,12 @@ export function MonitorScreen({ teacherId, studentId }: MonitorScreenProps) {
           <p className={styles.monitor__empty}>Курсант ещё не открыл выданную карточку — зеркало пустое.</p>
         )}
         <div className={styles.monitor__side}>
+          <AIAssessmentPanel
+            attemptId={attempt?.id ?? current?.attempt?.attemptId ?? null}
+            cardCompleted={current?.state === "finished" || Boolean(attempt?.completedAt)}
+            initialEvaluation={attempt?.evaluation}
+            onEvaluationResolved={view.reload}
+          />
           <StudentActions rows={rows} caption={`Эталон: ${etalon.scenarioTitle} (карточка ${cardNumber})`} />
           <CallTranscript calls={attempt?.calls ?? []} internalNumbers={reference.internalNumbers} />
         </div>

@@ -1,5 +1,5 @@
 /*
- * Auth-сессия пользователя (spec/05-data-models.md §1 AuthSession; spec/04-pages/00-auth.md).
+ * Auth-сессия пользователя (spec/000-фронт/05-data-models.md §1 AuthSession; spec/000-фронт/04-pages/00-auth.md).
  * Хранится в cookie SESSION_COOKIE — одно значение видят proxy, серверные лэйауты и клиентский стор.
  */
 import type { AuthSession, Role } from "@/shared/api";

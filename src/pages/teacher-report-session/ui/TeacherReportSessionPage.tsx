@@ -7,7 +7,7 @@ type TeacherReportSessionPageProps = {
 };
 
 /**
- * `/teacher/reports/[sessionId]` — отчёт о практическом занятии (spec/04-pages/13, п. 1–7).
+ * `/teacher/reports/[sessionId]` — отчёт о практическом занятии (spec/000-фронт/04-pages/13, п. 1–7).
  * Серверная обёртка: преподаватель — пользователь сессии (гвард — proxy + лэйаут), данные грузит клиент.
  */
 export async function TeacherReportSessionPage({ params }: TeacherReportSessionPageProps) {

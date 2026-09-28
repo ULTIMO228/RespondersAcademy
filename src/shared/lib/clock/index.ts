@@ -1,5 +1,5 @@
 /*
- * Часы приложения за интерфейсом (spec/10-code-rules.md §6): «сейчас» и таймеры.
+ * Часы приложения за интерфейсом (spec/000-фронт/10-code-rules.md §6): «сейчас» и таймеры.
  * В тестах подменяются (vi.useFakeTimers() или собственная реализация Clock).
  */
 export type TimerHandle = ReturnType<typeof setTimeout>;

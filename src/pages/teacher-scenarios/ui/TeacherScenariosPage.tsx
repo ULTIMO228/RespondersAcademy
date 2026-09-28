@@ -8,7 +8,7 @@ import { TeacherScenariosScreen } from "./TeacherScenariosScreen";
 import styles from "./TeacherScenariosPage.module.css";
 
 /**
- * `/teacher/scenarios` — сценарии и эталоны (spec/04-pages/11-teacher-scenarios.md).
+ * `/teacher/scenarios` — сценарии и эталоны (spec/000-фронт/04-pages/11-teacher-scenarios.md).
  * Серверный компонент: преподаватель — пользователь сессии (гвард — proxy + лэйаут раздела).
  * Здесь же считается выжимка по учебным карточкам (сам classifier.json — 3,5 МБ — в браузер не уезжает);
  * изменяемые данные (сценарии, материалы, привязка) экран грузит из мок-API.

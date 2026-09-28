@@ -1,7 +1,7 @@
 /*
  * Per-student проекция занятия (T1.2-06). Каноническая групповая Session хранится целиком
  * (mocks/sessions.json), представление курсанта строится на лету — отдельной сущности
- * «per-student Session» нет (spec/05-data-models.md §7, примечание о проекции).
+ * «per-student Session» нет (spec/000-фронт/05-data-models.md §7, примечание о проекции).
  */
 import type { SessionContract } from "@/shared/api";
 

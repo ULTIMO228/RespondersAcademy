@@ -18,6 +18,7 @@ ApiErrorCode = Literal[
     "conflict",
     "invalidTransition",
     "evaluationPending",
+    "rateLimited",
     "internal",
 ]
 
@@ -50,6 +51,10 @@ def unauthorized(message: str) -> ApiError:
 
 def account_blocked(message: str) -> ApiError:
     return ApiError(403, "accountBlocked", message)
+
+
+def rate_limited(message: str) -> ApiError:
+    return ApiError(429, "rateLimited", message)
 
 
 def forbidden(message: str) -> ApiError:

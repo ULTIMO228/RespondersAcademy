@@ -164,9 +164,8 @@ def split_chunks(text: str, limit: int = MAX_CHUNK_CHARS) -> list[str]:
 
 def synthesize(text: str, voice: str, out_path: Path) -> Synthesis:
     """Текст → WAV 24 кГц mono int16 по `out_path`; возвращает путь, длительность и голос Silero."""
-    import torch
-
     model = _load()
+    import torch
     speaker = SPEAKERS.get(voice, SPEAKERS["male"])
     pieces: list[np.ndarray] = []
     for chunk in split_chunks(prepare_text(text)):

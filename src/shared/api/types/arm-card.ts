@@ -1,5 +1,5 @@
 /*
- * Рабочая карточка ПОВ-112 (UI-фикстура) — spec/05-data-models.md §5 (mocks/fixtures/arm-cards.json, 12 шт.).
+ * Рабочая карточка ПОВ-112 (UI-фикстура) — spec/000-фронт/05-data-models.md §5 (mocks/fixtures/arm-cards.json, 12 шт.).
  * Пространство id: "card-NNNNNN". НЕ путать с учебной IncidentCard ("c-NNN").
  */
 import type { CardStatus, ServiceStatus } from "./reference";

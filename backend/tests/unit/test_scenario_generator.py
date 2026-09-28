@@ -22,7 +22,7 @@ def _read(relative: str) -> Any:
 
 @pytest.fixture(scope="module")
 def cards() -> list[dict[str, Any]]:
-    return _read("spec/mocks/cards.json")["cards"]
+    return _read("spec/000-фронт/mocks/cards.json")["cards"]
 
 
 @pytest.fixture(scope="module")

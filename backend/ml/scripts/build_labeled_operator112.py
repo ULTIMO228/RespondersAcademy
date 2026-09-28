@@ -1,6 +1,6 @@
 """Размеченная выборка оценщика режима A (T078, SC-004): `uv run python -m ml.scripts.build_labeled_operator112`.
 
-Детерминированно (seed 112) из московских билетов `spec/mocks/cards.json` строит карточки специалиста-112 в вариантах:
+Детерминированно (seed 112) из московских билетов `spec/000-фронт/mocks/cards.json` строит карточки специалиста-112 в вариантах:
 `etalon`, `wrongFinalType`, `lostFact`, `addressLookalike`, `missingSign`, `phoneMismatch`, `answerTimeout`, `typos`.
 Каждый файл `data/labeled/operator112/op-NNN-<variant>.json`: `attempt` (OperatorAttempt с `cardSnapshot`), `ticket`
 (IncidentCard), `expectedErrors` (типы), `expectedGrammarErrors`, `expertScore` по рубрике README.
@@ -39,7 +39,7 @@ def _read(path: Path) -> Any:
 
 
 def load_inputs() -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
-    root = get_settings().seed_dir / "spec" / "mocks"
+    root = get_settings().seed_dir / "spec" / "000-фронт" / "mocks"
     cards = _read(root / "cards.json")["cards"]
     entries = _read(root / "classifier.json")["entries"]
     reference = _read(root / "reference.json")

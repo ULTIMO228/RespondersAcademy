@@ -1,8 +1,8 @@
 # Мок-слой API `/api/mock/*`
 
 > Мок учебного контура: заменяется реальным бэкендом **без смены контрактов** (типы — `src/shared/api/types/*`,
-> по `spec/05-data-models.md`; клиент — `@/shared/api`, базовый URL — `NEXT_PUBLIC_MOCK_API_BASE_URL`,
-> по умолчанию `/api/mock`). Внешней сети нет, данные — только из `mocks/`: копия `spec/mocks/` (`npm run mocks:sync`)
+> по `spec/000-фронт/05-data-models.md`; клиент — `@/shared/api`, базовый URL — `NEXT_PUBLIC_MOCK_API_BASE_URL`,
+> по умолчанию `/api/mock`). Внешней сети нет, данные — только из `mocks/`: копия `spec/000-фронт/mocks/` (`npm run mocks:sync`)
 > плюс моки уровня приложения `mocks/local/` (адреса, T2.3-06) и `mocks/admin/` (журнал аудита и состояния
 > раздела «Система», T4.1-01 / T4.2-01) — их `mocks:sync` не удаляет, а `validate_mocks.py` не проверяет.
 
@@ -43,7 +43,7 @@
 
 ## Эндпоинты
 
-Потребители — экраны карты роутов `spec/03-architecture.md`.
+Потребители — экраны карты роутов `spec/000-фронт/03-architecture.md`.
 
 | Метод, путь | Вход (query / тело) | Источник данных | Ответ | Коды | Экран |
 |---|---|---|---|---|---|
@@ -117,7 +117,7 @@
 
 ### Расширенный поиск `GET /cards`
 
-Поля — `CardSearchFilters` (`spec/04-pages/01-arm-main.md` → «Расширенный поиск»), логика — `filterCards`
+Поля — `CardSearchFilters` (`spec/000-фронт/04-pages/01-arm-main.md` → «Расширенный поиск»), логика — `filterCards`
 (`src/entities/incident/model/filters.ts`): AND между полями, OR внутри множественного, регистр и «ё/е»
 не различаются.
 
@@ -270,7 +270,7 @@
 
 После входа (и 2FA) клиент кладёт `AuthSession` в cookie `arm112_session` (JSON, URL-кодирован, `Path=/`,
 `SameSite=Lax`, `Max-Age` до истечения 24 ч от `issuedAt`) — стор `sessionStore` из `@/entities/user`.
-Проверку делает `proxy.ts` (Next 16, бывший middleware) по матрице `spec/02-roles.md` для `/arm/*`, `/teacher/*`,
+Проверку делает `proxy.ts` (Next 16, бывший middleware) по матрице `spec/000-фронт/02-roles.md` для `/arm/*`, `/teacher/*`,
 `/admin/*`: нет сессии → `307 /login?returnUrl=…`; старше 24 ч → `307 /login?returnUrl=…&reason=expired` + удаление
 cookie; чужая роль → `403` (rewrite на `/forbidden`). Серверные лэйауты разделов повторяют проверку
 (`requireSessionUser`). Эндпоинты `/api/mock/*` cookie не проверяют.

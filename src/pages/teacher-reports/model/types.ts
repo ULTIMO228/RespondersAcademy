@@ -1,6 +1,6 @@
 import type { ReportJournalFilters, ReportJournalRow } from "@/shared/api";
 
-/** Значения фильтров журнала: период (даты), группа, курсант, категория (spec/04-pages/13). */
+/** Значения фильтров журнала: период (даты), группа, курсант, категория (spec/000-фронт/04-pages/13). */
 export type JournalFilter = {
   from: string;
   to: string;

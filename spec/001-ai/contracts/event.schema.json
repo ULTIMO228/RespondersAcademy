@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AttemptEvent",
+  "description": "Полный конверт нового события обучающегося; старый CardEvent API остаётся совместимым.",
+  "allOf": [
+    {
+      "$ref": "#/$defs/eventExtension"
+    },
+    {
+      "type": "object",
+      "required": [
+        "payload",
+        "cardVersion"
+      ],
+      "properties": {
+        "payload": {
+          "type": "object"
+        },
+        "cardVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourceScenarioVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "operator112",
+        "dds"
+      ]
+    },
+    "eventExtension": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "id",
+        "attemptId",
+        "seq",
+        "mode",
+        "kind",
+        "occurredAt"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "ai-workflow/1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attemptId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "$ref": "#/$defs/mode"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "payload": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

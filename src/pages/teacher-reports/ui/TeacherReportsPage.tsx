@@ -5,7 +5,7 @@ import { ReportsJournal } from "./ReportsJournal";
 import styles from "./TeacherReportsPage.module.css";
 
 /**
- * `/teacher/reports` — журнал отчётов (spec/04-pages/13-teacher-reports.md). Серверный компонент:
+ * `/teacher/reports` — журнал отчётов (spec/000-фронт/04-pages/13-teacher-reports.md). Серверный компонент:
  * преподаватель — пользователь сессии (гвард — proxy + лэйаут), данные грузит клиент из мок-API.
  */
 export async function TeacherReportsPage() {

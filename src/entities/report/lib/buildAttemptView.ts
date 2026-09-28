@@ -17,11 +17,13 @@ type AttemptCard = {
 
 /** Оценка попытки в объёме разбора (контрактная Evaluation и прототипная совместимы структурно). */
 export type AttemptEvaluationView = {
+  revision?: number;
+  status?: "pending" | "preliminary" | "review_required" | "final";
   timeScore: number;
   correctnessScore: number;
   grammarScore: number;
   semanticScore: number;
-  totalScore: number;
+  totalScore?: number | null;
   errors: { type: string; severity: string; message: string }[];
   grammarErrors: { fragment: string; wrong: string; expected: string }[];
   aiComment: string;
@@ -39,9 +41,15 @@ export type AttemptSource = {
 
 const DEFAULT_NORMS: ProgressNorms = { reactionMs: REACTION_NORM_MS, processingMs: PROCESSING_NORM_MS };
 
-/** Балл попытки: правка преподавателя приоритетна (Q&A в3); в UI не пересчитывается. */
-export function getAttemptScore(evaluation: Pick<AttemptEvaluationView, "totalScore" | "teacherOverride">) {
-  return evaluation.teacherOverride?.score ?? evaluation.totalScore;
+/** Балл попытки: правка преподавателя приоритетна (Q&A в3); при review_required и pending балл не выставляется. */
+export function getAttemptScore(
+  evaluation: Pick<AttemptEvaluationView, "totalScore" | "teacherOverride"> & {
+    status?: "pending" | "preliminary" | "review_required" | "final";
+  },
+): number | null {
+  if (evaluation.teacherOverride) return evaluation.teacherOverride.score;
+  if (evaluation.status === "review_required" || evaluation.status === "pending") return null;
+  return evaluation.totalScore ?? null;
 }
 
 /** CardEvent + Evaluation → строка истории попыток с разбором оценки; нормативы — из сценария. */
@@ -51,6 +59,7 @@ export function buildAttemptView(
   norms: ProgressNorms = DEFAULT_NORMS,
 ): AttemptView {
   const { evaluation } = event;
+  const status = evaluation.status ?? (evaluation.teacherOverride ? "final" : "preliminary");
   return {
     id: event.id,
     openedAt: formatDateTime(event.openedAt),
@@ -59,9 +68,11 @@ export function buildAttemptView(
     isReactionExceeded: event.primaryReactionMs > norms.reactionMs,
     processing: formatDuration(event.fullProcessingMs),
     isProcessingExceeded: event.fullProcessingMs > norms.processingMs,
-    score: getAttemptScore(evaluation),
+    score: getAttemptScore({ ...evaluation, status }),
+    status,
+    revision: evaluation.revision,
     grammarErrorCount: evaluation.grammarErrors.length,
-    criteria: EVALUATION_CRITERIA.map(({ key, title }) => ({ key, title, score: evaluation[key] })),
+    criteria: EVALUATION_CRITERIA.map(({ key, title }) => ({ key, title, score: evaluation[key] ?? 0 })),
     mistakes: evaluation.errors.map((error) => ({
       category: getMistakeCategory(error.type),
       severity: toMistakeSeverity(error.severity),

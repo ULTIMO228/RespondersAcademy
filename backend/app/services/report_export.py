@@ -57,8 +57,8 @@ async def export_data(db: AsyncSession, report_id: str, viewer: Viewer) -> dict[
         evaluation = await evaluation_contract(db, attempt.id)
         score = effective_score(evaluation)
         norms = await _norms_for(db, session, attempt, norms_cache)
-        errors = Counter(e.get("type", "unknown") for e in (evaluation or {}).get("errors", []))
-        errors.update(e.get("type", "unknown") for e in (evaluation or {}).get("grammarErrors", []))
+        errors = Counter((e.get("type") or e.get("ruleId") or "unknown") for e in (evaluation or {}).get("errors", []))
+        errors.update((e.get("type") or e.get("ruleId") or "unknown") for e in (evaluation or {}).get("grammarErrors", []))
         threshold = (session.exam or {}).get("passThreshold")
         passed = ""
         if session.format == "exam" and score is not None and isinstance(threshold, (int, float)) and not isinstance(threshold, bool):

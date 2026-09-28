@@ -5,7 +5,7 @@
 Роли: обучающийся (диспетчер ДДС), преподаватель, администратор.
 
 > **Учебная система. Не является рабочей системой-112.** Все данные синтетические и обезличенные
-> (`spec/08-qa-decisions.md` в10): 96 учебных ситуаций из 32 билетов, 36 сценариев, классификатор ЕКП
+> (`spec/000-фронт/08-qa-decisions.md` в10): 96 учебных ситуаций из 32 билетов, 36 сценариев, классификатор ЕКП
 > на 1283 записи, 24 учебные учётные записи.
 
 Стек: Next.js (App Router) + React + TypeScript strict, архитектура Feature-Sliced Design в `src/`,
@@ -41,7 +41,7 @@
 
 ```bash
 npm ci                 # установка строго по package-lock.json
-npm run mocks:sync     # spec/mocks → mocks/, icons → public/icons (выполняется и автоматически в predev/prebuild)
+npm run mocks:sync     # spec/000-фронт/mocks → mocks/, icons → public/icons (выполняется и автоматически в predev/prebuild)
 npm run dev            # режим разработки: http://localhost:3000
 ```
 
@@ -84,7 +84,7 @@ npm run format:check   # Prettier
 npm run steiger        # FSD-гейт (Feature-Sliced Design) по src/
 npm run typecheck      # TypeScript strict
 npm run test           # Vitest + React Testing Library (юнит, компонентные и контрактные тесты мок-API)
-npm run mocks:validate # валидатор моков spec/mocks/_tools/validate_mocks.py
+npm run mocks:validate # валидатор моков spec/000-фронт/mocks/_tools/validate_mocks.py
 npm run check          # lint + format:check + steiger + typecheck + build
 ```
 
@@ -117,7 +117,7 @@ scripts/e2e-admin.sh         # администратор: пользовате�
 app/            роутинг Next.js (App Router) — тонкие обёртки над src/pages; app/api/mock/** — Route Handlers мок-API
 proxy.ts        middleware сессии (cookie arm112_session) и гварды ролей
 docs/           артефакты сдачи и документация (см. раздел «Документация»)
-mocks/          рабочая копия мок-данных: генерируется из spec/mocks (mocks:sync)
+mocks/          рабочая копия мок-данных: генерируется из spec/000-фронт/mocks (mocks:sync)
                 + mocks/local (справочник адресов) и mocks/admin (аудит, состояние раздела «Система»)
 icons/          20 восстановленных SVG-иконок АРМ-112 (копируются в public/icons)
 scripts/        sync-mocks.mjs и сквозные скрипты e2e-*.sh
@@ -135,25 +135,25 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
                 lib (ru-форматтеры, хранилище, сеть, грамматика), config (роуты, окружение, словари)
 ```
 
-Тесты лежат рядом с кодом (`*.test.ts(x)`, `spec/10-code-rules.md` §6).
+Тесты лежат рядом с кодом (`*.test.ts(x)`, `spec/000-фронт/10-code-rules.md` §6).
 
 ## Документация
 
 | Документ | О чём |
 |---|---|
-| [`spec/00-overview.md`](spec/00-overview.md) | назначение продукта, границы и ограничения решения |
-| [`spec/01-requirements-map.md`](spec/01-requirements-map.md) | матрица трассировки: пункт ТЗ → где закрыт в спеках |
-| [`spec/02-roles.md`](spec/02-roles.md) | роли, матрица доступа, 403 |
-| [`spec/03-architecture.md`](spec/03-architecture.md) | функциональная и компонентная архитектура, карта роутов, слои данных |
-| [`spec/04-pages/`](spec/04-pages) | 11 экранов: состав, поведение, состояния, критерии приёмки |
-| [`spec/05-data-models.md`](spec/05-data-models.md) | модели данных и контракты API |
-| [`spec/06-user-flows.md`](spec/06-user-flows.md) | пользовательские сценарии ТЗ §10 и демо-путь ≤ 5 мин |
-| [`spec/07-design-guidelines.md`](spec/07-design-guidelines.md) | дизайн-токены и HARD-правило аутентичности ПОВ-112 |
-| [`spec/08-qa-decisions.md`](spec/08-qa-decisions.md) | решения по итогам Q&A с заказчиком (в1–в16) |
-| [`spec/09-glossary.md`](spec/09-glossary.md) | глоссарий терминов |
-| [`spec/10-code-rules.md`](spec/10-code-rules.md) | нормы кода: FSD, SOLID, тесты, гейты |
-| [`spec/11-implementation-plan.md`](spec/11-implementation-plan.md) | план реализации, тестовая стратегия, критерии завершения |
-| [`spec/12-tasks.md`](spec/12-tasks.md) | план задач по волнам 0–5 и отметки выполнения |
+| [`spec/000-фронт/00-overview.md`](spec/000-фронт/00-overview.md) | назначение продукта, границы и ограничения решения |
+| [`spec/000-фронт/01-requirements-map.md`](spec/000-фронт/01-requirements-map.md) | матрица трассировки: пункт ТЗ → где закрыт в спеках |
+| [`spec/000-фронт/02-roles.md`](spec/000-фронт/02-roles.md) | роли, матрица доступа, 403 |
+| [`spec/000-фронт/03-architecture.md`](spec/000-фронт/03-architecture.md) | функциональная и компонентная архитектура, карта роутов, слои данных |
+| [`spec/000-фронт/04-pages/`](spec/000-фронт/04-pages) | 11 экранов: состав, поведение, состояния, критерии приёмки |
+| [`spec/000-фронт/05-data-models.md`](spec/000-фронт/05-data-models.md) | модели данных и контракты API |
+| [`spec/000-фронт/06-user-flows.md`](spec/000-фронт/06-user-flows.md) | пользовательские сценарии ТЗ §10 и демо-путь ≤ 5 мин |
+| [`spec/000-фронт/07-design-guidelines.md`](spec/000-фронт/07-design-guidelines.md) | дизайн-токены и HARD-правило аутентичности ПОВ-112 |
+| [`spec/000-фронт/08-qa-decisions.md`](spec/000-фронт/08-qa-decisions.md) | решения по итогам Q&A с заказчиком (в1–в16) |
+| [`spec/000-фронт/09-glossary.md`](spec/000-фронт/09-glossary.md) | глоссарий терминов |
+| [`spec/000-фронт/10-code-rules.md`](spec/000-фронт/10-code-rules.md) | нормы кода: FSD, SOLID, тесты, гейты |
+| [`spec/000-фронт/11-implementation-plan.md`](spec/000-фронт/11-implementation-plan.md) | план реализации, тестовая стратегия, критерии завершения |
+| [`spec/000-фронт/12-tasks.md`](spec/000-фронт/12-tasks.md) | план задач по волнам 0–5 и отметки выполнения |
 | [`docs/mock-api.md`](docs/mock-api.md) | мок-API `/api/mock/*`: эндпоинты, коды ошибок, соглашения |
 | [`docs/LIBRARIES.md`](docs/LIBRARIES.md) | перечень библиотек с версиями, лицензиями и назначением (ТЗ §13) |
 | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | сверка с ТЗ: требование → статус → где смотреть |
@@ -163,31 +163,31 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
 | [`docs/offline-check.md`](docs/offline-check.md) | протокол офлайн-приёмки на чистой машине |
 | [`docs/FINAL-GATE.md`](docs/FINAL-GATE.md) | финальный гейт проекта: критерии и доказательства |
 
-Правила кода — `spec/10-code-rules.md` и `hack/Фронт/ПРАВИЛА-КОДА-ФРОНТ.md`;
-дизайн — `spec/07-design-guidelines.md` (цвета — только токены `src/shared/ui/styles/vars.css`).
+Правила кода — `spec/000-фронт/10-code-rules.md` и `hack/Фронт/ПРАВИЛА-КОДА-ФРОНТ.md`;
+дизайн — `spec/000-фронт/07-design-guidelines.md` (цвета — только токены `src/shared/ui/styles/vars.css`).
 
 ## Честные ограничения
 
-Что это **не** и чего в решении нет — намеренно, по договорённостям Q&A (`spec/08-qa-decisions.md`)
-и границам тестового фронта (`spec/00-overview.md`). Построчная сверка — [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
+Что это **не** и чего в решении нет — намеренно, по договорённостям Q&A (`spec/000-фронт/08-qa-decisions.md`)
+и границам тестового фронта (`spec/000-фронт/00-overview.md`). Построчная сверка — [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
 
 **Мок-контур вместо бэкенда.**
 
 - Бэкенда и БД нет: данные — JSON из `mocks/`, мутации — in-memory store процесса Next.js, перезапуск сервера
-  сбрасывает состояние. Контракты (`src/shared/api/types/*`, `spec/05-data-models.md`) рассчитаны на замену
-  мок-слоя реальным сервисом **без смены интерфейсов** — меняется только data-access (`spec/03-architecture.md`).
+  сбрасывает состояние. Контракты (`src/shared/api/types/*`, `spec/000-фронт/05-data-models.md`) рассчитаны на замену
+  мок-слоя реальным сервисом **без смены интерфейсов** — меняется только data-access (`spec/000-фронт/03-architecture.md`).
 - PostgreSQL, SQL-миграции, XML-конфигурации, репликация, кластеризация и нагрузочные характеристики ТЗ §7/§9
   (отклик ≤ 2 с, ≥ 100 оп/с, ≥ 20 сессий, VoIP ≤ 150 мс) — декларации уровня бэкенда; во фронте показаны
   как мок-индикация в разделе «Система».
 - TLS и защита каналов передачи — свойство контура развёртывания, в тестовом фронте не реализуются
-  (`spec/01-requirements-map.md` §5).
+  (`spec/000-фронт/01-requirements-map.md` §5).
 
 **ИИ имитируется.**
 
 - Все «ИИ-функции» (генерация сценариев, разбор грамматики, оценка попытки, реплики абонента, рекомендации)
   выдаёт мок-шлюз `src/shared/api/ai-gateway.ts` — адаптер с фиксированным контрактом `AiResponse`,
   рассчитанный на подмену реальным сервисом (пометка «ИИ-модуль: заменить на реальный сервис»,
-  `spec/03-architecture.md`). Везде, где ответ пришёл «от ИИ», в интерфейсе стоит бейдж «ИИ» (в1, в5).
+  `spec/000-фронт/03-architecture.md`). Везде, где ответ пришёл «от ИИ», в интерфейсе стоит бейдж «ИИ» (в1, в5).
 - Моделей, GPU и STT/TTS в прототипе нет: по в1 всё должно работать на CPU, поэтому тяжёлых клиентских
   вычислений в спеках и коде не закладывалось.
 
@@ -202,7 +202,7 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
 **Этап 2 (в прототип не входит).**
 
 - Мобильная адаптация: интерфейс десктопный, планшеты — десктопная версия. Адаптив опционален по ТЗ §6;
-  конфликт §6 ↔ §8/§15 разобран в `spec/01-requirements-map.md`.
+  конфликт §6 ↔ §8/§15 разобран в `spec/000-фронт/01-requirements-map.md`.
 - Экспорт XLSX (есть CSV и PDF-печать), расширенная аналитика сверх `byStage` / `byErrorType` / `dynamics`,
   сертификаты (реализована PDF-заглушка через canvas, без шаблона заказчика и юридической силы).
 - Звуковое сопровождение ограничено сигналом поступления карточки; речевого синтеза нет.

@@ -1,6 +1,6 @@
 // @vitest-environment node
 /*
- * T4.1-11: сквозная проверка матрицы доступа (spec/02-roles.md) на реальном гварде разделов —
+ * T4.1-11: сквозная проверка матрицы доступа (spec/000-фронт/02-roles.md) на реальном гварде разделов —
  * Next Proxy `authProxy` (proxy.ts вызывает его для /arm, /teacher, /admin).
  *
  * ОТКЛОНЕНИЕ ОТ ПЛАНА: в задаче указан `e2e/admin-access.spec.ts` (Playwright), но Playwright в проекте
@@ -66,7 +66,7 @@ const MATRIX = (["student", "teacher", "admin"] as const).flatMap((role) =>
   ROUTES_UNDER_TEST.map((pathname) => ({ role, pathname, allowed: isAllowed(role, pathname) })),
 );
 
-describe("матрица доступа: роль × раздел (spec/02-roles.md)", () => {
+describe("матрица доступа: роль × раздел (spec/000-фронт/02-roles.md)", () => {
   it.each(MATRIX.map((item) => [`${item.role} → ${item.pathname}`, item] as const))(
     "%s",
     (_title, { role, pathname, allowed }) => {

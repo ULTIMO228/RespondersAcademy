@@ -1,5 +1,5 @@
 /*
- * Учебная карточка (входная задача курсанта) — spec/05-data-models.md §4 (mocks/cards.json).
+ * Учебная карточка (входная задача курсанта) — spec/000-фронт/05-data-models.md §4 (mocks/cards.json).
  * Пространство id: "c-001" … "c-096" (порядок = билет.ситуация). НЕ путать с ArmCardFixture ("card-*").
  */
 import type { CallerStatus } from "./reference";

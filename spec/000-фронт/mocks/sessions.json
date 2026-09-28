@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "title": "Учебные занятия (мок)",
+    "model": "hack/Фронт/МОКИ-ДАННЫЕ.md п. 1.5 (Session/CardEvent) + spec/000-фронт/05-data-models.md → Evaluation, PhoneCall. Занятие групповое (ТЗ §10): нормативная per-student Session из п. 1.5 реализуется проекцией cardEvents по studentId.",
+    "note": "Миграция id выполнена 2026-09-18: пользователи u-teacher-01→u-002, u-student-01→u-005, u-student-02→u-006, u-student-03→u-007; карточки card-36814850→c-095 (32.2 «ДТП: пострадавшие + утечка топлива»), card-36814851→c-093 (31.3 «газ: свист трубы»), card-36814852→c-063 (21.3 «ребёнок заперт в машине» — ближайший аналог «заблокирован», лифтов в билетах нет), card-36814845→c-013 (5.1), card-36814853→c-081 (27.3), card-36814854→c-082 (28.1); сценарии scn-01→s-032, scn-02→s-005, scn-03→s-031, scn-04→s-021, scn-05→s-027, scn-06→s-028. Поле level в cardFlow — прежний difficulty. Сервисный статус «Получена службой» из statuses исключён: он фиксируется openedAt (МОКИ-ДАННЫЕ п. 2.1–2.2). ИИ-оценка имитируется (бейдж «ИИ» в UI)."
+  },
+  "sessions": [
+    {
+      "id": "ses-2026-09-16-01",
+      "teacherId": "u-002",
+      "studentIds": ["u-005", "u-006", "u-007"],
+      "scenarioIds": ["s-032", "s-021", "s-031"],
+      "mode": "practice",
+      "cardSource": "generated",
+      "cardFlow": [
+        { "cardId": "c-063", "studentId": "u-005", "issuedAt": "2026-09-16T10:02:00+03:00", "level": 1 },
+        { "cardId": "c-063", "studentId": "u-006", "issuedAt": "2026-09-16T10:02:00+03:00", "level": 1 },
+        { "cardId": "c-063", "studentId": "u-007", "issuedAt": "2026-09-16T10:02:00+03:00", "level": 1 },
+        { "cardId": "c-093", "studentId": "u-005", "issuedAt": "2026-09-16T10:06:30+03:00", "level": 2 },
+        { "cardId": "c-093", "studentId": "u-006", "issuedAt": "2026-09-16T10:06:30+03:00", "level": 2 },
+        { "cardId": "c-095", "studentId": "u-007", "issuedAt": "2026-09-16T10:08:00+03:00", "level": 2 },
+        { "cardId": "c-095", "studentId": "u-005", "issuedAt": "2026-09-16T10:12:00+03:00", "level": 3 },
+        { "cardId": "c-095", "studentId": "u-006", "issuedAt": "2026-09-16T10:12:00+03:00", "level": 2 }
+      ],
+      "state": "finished",
+      "startedAt": "2026-09-16T10:00:00+03:00",
+      "finishedAt": "2026-09-16T10:35:00+03:00",
+      "cardEvents": [
+        {
+          "id": "att-01",
+          "cardId": "c-063",
+          "studentId": "u-005",
+          "openedAt": "2026-09-16T10:02:14+03:00",
+          "primaryReactionMs": 14000,
+          "statuses": [
+            { "ddsStatus": "accepted", "at": "2026-09-16T10:02:31+03:00", "dutyNumber": "5" },
+            { "ddsStatus": "workDone", "at": "2026-09-16T10:05:12+03:00", "comment": "Пассажиры освобождены" }
+          ],
+          "servicesCalled": ["301"],
+          "completedAt": "2026-09-16T10:05:12+03:00",
+          "fullProcessingMs": 178000,
+          "enteredText": { "dispatcherAction": "Сообщение принято, механик лифтовой службы направлен на место", "outfitNumber": "5" },
+          "calls": [
+            {
+              "toNumber": "301", "startedAt": "2026-09-16T10:03:00+03:00", "endedAt": "2026-09-16T10:03:48+03:00",
+              "transcript": [
+                { "speaker": "ai", "text": "Слушаю вас", "at": "2026-09-16T10:03:02+03:00" },
+                { "speaker": "dispatcher", "text": "Застревание в лифте, Балаклавский проспект, 5, двое в кабине, медицинская помощь не требуется", "at": "2026-09-16T10:03:15+03:00" },
+                { "speaker": "ai", "text": "Я вас понял, информация принята", "at": "2026-09-16T10:03:40+03:00" }
+              ]
+            }
+          ],
+          "evaluation": {
+            "timeScore": 100, "correctnessScore": 95, "grammarScore": 100, "semanticScore": 96, "totalScore": 98,
+            "grammarErrors": [],
+            "errors": [],
+            "aiComment": "Нормативы соблюдены. Реакция 14 с (норма 30 с), отработка 178 с (норма 180 с). Формулировка соответствует эталону. Рекомендуется переход на следующий уровень сложности."
+          }
+        },
+        {
+          "id": "att-02",
+          "cardId": "c-093",
+          "studentId": "u-005",
+          "openedAt": "2026-09-16T10:06:52+03:00",
+          "primaryReactionMs": 22000,
+          "statuses": [
+            { "ddsStatus": "accepted", "at": "2026-09-16T10:07:10+03:00", "dutyNumber": "12" },
+            { "ddsStatus": "responseStarted", "at": "2026-09-16T10:08:00+03:00", "comment": "Бригада выехала" },
+            { "ddsStatus": "arrived", "at": "2026-09-16T10:09:20+03:00" },
+            { "ddsStatus": "workDone", "at": "2026-09-16T10:10:44+03:00", "comment": "Газ перекрыт, опасности нет" }
+          ],
+          "servicesCalled": ["302"],
+          "completedAt": "2026-09-16T10:10:44+03:00",
+          "fullProcessingMs": 232000,
+          "enteredText": { "dispatcherAction": "Заявка принята, аварийная бригада газовой службы выехала по адресу", "outfitNumber": "12" },
+          "calls": [
+            {
+              "toNumber": "302", "startedAt": "2026-09-16T10:07:30+03:00", "endedAt": "2026-09-16T10:08:05+03:00",
+              "transcript": [
+                { "speaker": "ai", "text": "Слушаю вас", "at": "2026-09-16T10:07:32+03:00" },
+                { "speaker": "dispatcher", "text": "Запах газа в квартире, Севастопольский проспект, 24, кв. 45", "at": "2026-09-16T10:07:44+03:00" },
+                { "speaker": "ai", "text": "Понял, бригада выезжает", "at": "2026-09-16T10:08:01+03:00" }
+              ]
+            }
+          ],
+          "evaluation": {
+            "timeScore": 96, "correctnessScore": 92, "grammarScore": 100, "semanticScore": 94, "totalScore": 95,
+            "grammarErrors": [],
+            "errors": [],
+            "aiComment": "Все этапы пройдены с комментариями. Небольшая пауза перед звонком — в пределах нормы."
+          }
+        },
+        {
+          "id": "att-03",
+          "cardId": "c-063",
+          "studentId": "u-006",
+          "openedAt": "2026-09-16T10:02:48+03:00",
+          "primaryReactionMs": 48000,
+          "statuses": [
+            { "ddsStatus": "accepted", "at": "2026-09-16T10:03:20+03:00", "dutyNumber": "5" },
+            { "ddsStatus": "workDone", "at": "2026-09-16T10:07:58+03:00" }
+          ],
+          "servicesCalled": [],
+          "completedAt": "2026-09-16T10:07:58+03:00",
+          "fullProcessingMs": 310000,
+          "enteredText": { "dispatcherAction": "Сообщение пренято, механик напрален", "outfitNumber": "5" },
+          "calls": [],
+          "evaluation": {
+            "timeScore": 62, "correctnessScore": 80, "grammarScore": 40, "semanticScore": 85, "totalScore": 66,
+            "grammarErrors": [
+              { "field": "dispatcherAction", "fragment": "Сообщение пренято", "wrong": "пренято", "expected": "принято", "type": "spelling" },
+              { "field": "dispatcherAction", "fragment": "механик напрален", "wrong": "напрален", "expected": "направлен", "type": "spelling" }
+            ],
+            "errors": [
+              { "type": "timeReactionExceeded", "severity": "major", "message": "Превышен норматив реакции: 48 с (норма 30 с)" },
+              { "type": "timeProcessingExceeded", "severity": "major", "message": "Превышено время отработки: 310 с (норма 180 с)" },
+              { "type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок руководителю смены (301)" }
+            ],
+            "aiComment": "Две орфографические ошибки в ключевом поле — риск искажения смысла. Рекомендуется повторная отработка карточки базового уровня и тренировка ручного ввода."
+          }
+        },
+        {
+          "id": "att-04",
+          "cardId": "c-095",
+          "studentId": "u-007",
+          "openedAt": "2026-09-16T10:08:19+03:00",
+          "primaryReactionMs": 19000,
+          "statuses": [
+            { "ddsStatus": "accepted", "at": "2026-09-16T10:08:35+03:00", "dutyNumber": "23" },
+            { "ddsStatus": "responseStarted", "at": "2026-09-16T10:09:10+03:00" },
+            { "ddsStatus": "workDone", "at": "2026-09-16T10:12:02+03:00", "comment": "Место оцеплено, ГС устранено" }
+          ],
+          "servicesCalled": ["301"],
+          "completedAt": "2026-09-16T10:12:02+03:00",
+          "fullProcessingMs": 223000,
+          "enteredText": { "dispatcherAction": "Сообщение принято, дежурная бригада направлена на место происшествия", "outfitNumber": "23" },
+          "calls": [
+            {
+              "toNumber": "301", "startedAt": "2026-09-16T10:08:50+03:00", "endedAt": "2026-09-16T10:09:30+03:00",
+              "transcript": [
+                { "speaker": "ai", "text": "Слушаю вас", "at": "2026-09-16T10:08:52+03:00" },
+                { "speaker": "dispatcher", "text": "ДТП с пострадавшими, Варшавское шоссе, 120, разлив топлива", "at": "2026-09-16T10:09:05+03:00" },
+                { "speaker": "ai", "text": "Я вас понял, информация принята", "at": "2026-09-16T10:09:25+03:00" }
+              ]
+            }
+          ],
+          "evaluation": {
+            "timeScore": 90, "correctnessScore": 93, "grammarScore": 100, "semanticScore": 97, "totalScore": 94,
+            "grammarErrors": [],
+            "errors": [],
+            "aiComment": "Хорошая отработка. Отработка 223 с — немного за нормативом 180 с, но в пределах допуска для сложности 2."
+          }
+        }
+      ]
+    },
+    {
+      "id": "ses-2026-09-17-demo",
+      "teacherId": "u-002",
+      "studentIds": ["u-005", "u-006", "u-007"],
+      "scenarioIds": ["s-032", "s-005", "s-031", "s-021", "s-027", "s-028"],
+      "mode": "demo",
+      "cardSource": "mixed",
+      "cardFlow": [
+        { "cardId": "c-095", "studentId": "u-005", "issuedAt": "2026-09-17T11:20:00+03:00", "level": 2 },
+        { "cardId": "c-013", "studentId": "u-006", "issuedAt": "2026-09-17T11:20:00+03:00", "level": 3 },
+        { "cardId": "c-063", "studentId": "u-007", "issuedAt": "2026-09-17T11:20:00+03:00", "level": 1 },
+        { "cardId": "c-093", "studentId": "u-005", "issuedAt": "2026-09-17T11:24:00+03:00", "level": 2 },
+        { "cardId": "c-081", "studentId": "u-006", "issuedAt": "2026-09-17T11:24:00+03:00", "level": 3 },
+        { "cardId": "c-082", "studentId": "u-007", "issuedAt": "2026-09-17T11:26:00+03:00", "level": 4 }
+      ],
+      "state": "running",
+      "startedAt": "2026-09-17T11:20:00+03:00",
+      "finishedAt": null,
+      "cardEvents": []
+    }
+  ]
+}

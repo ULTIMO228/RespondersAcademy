@@ -1,6 +1,114 @@
 {
  "source": "src/shared/api/types",
  "types": {
+  "AIExpectedAction": {
+   "file": "scenario.ts",
+   "required": [
+    "action",
+    "sourceRef"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AIFieldDecision": {
+   "file": "scenario.ts",
+   "required": [
+    "fieldPath",
+    "decision",
+    "teacherId",
+    "at"
+   ],
+   "optional": [
+    "value",
+    "comment"
+   ],
+   "extends": []
+  },
+  "AIFieldDecisionInput": {
+   "file": "scenario.ts",
+   "required": [
+    "fieldPath",
+    "decision"
+   ],
+   "optional": [
+    "value"
+   ],
+   "extends": []
+  },
+  "AIScenarioApproveRequest": {
+   "file": "scenario.ts",
+   "required": [
+    "version",
+    "requestId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AIScenarioDraftRequest": {
+   "file": "scenario.ts",
+   "required": [
+    "mode",
+    "sourceTicketId",
+    "category",
+    "count",
+    "requestId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AIScenarioReviseRequest": {
+   "file": "scenario.ts",
+   "required": [
+    "baseVersion",
+    "comment",
+    "acceptedFields",
+    "requestId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AIScenarioVersion": {
+   "file": "scenario.ts",
+   "required": [
+    "schemaVersion",
+    "scenarioId",
+    "version",
+    "mode",
+    "sourceTicketId",
+    "sourceSituationNo",
+    "sourceKind",
+    "sourceHash",
+    "validation",
+    "validationErrors",
+    "approval",
+    "cardSnapshot",
+    "etalonVersion",
+    "ruleSourceIds",
+    "semanticFacts",
+    "classifierVersion",
+    "etalon",
+    "fieldDecisions"
+   ],
+   "optional": [
+    "sourceAttemptId",
+    "sourceCardId",
+    "sourceCardVersion",
+    "parentVersion",
+    "teacherComment",
+    "approvedBy"
+   ],
+   "extends": []
+  },
+  "AIValidationError": {
+   "file": "scenario.ts",
+   "required": [
+    "fieldPath",
+    "code",
+    "message"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "AdminUserActionRequest": {
    "file": "requests.ts",
    "required": [
@@ -164,6 +272,69 @@
    "optional": [
     "visKlass",
     "classifierCode"
+   ],
+   "extends": []
+  },
+  "AssessmentAxes": {
+   "file": "attempts.ts",
+   "required": [
+    "timeScore",
+    "correctnessScore",
+    "grammarScore",
+    "semanticScore"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AssessmentResolveRequest": {
+   "file": "attempts.ts",
+   "required": [
+    "expectedRevision",
+    "score",
+    "comment",
+    "requestId"
+   ],
+   "optional": [
+    "semanticDecisions"
+   ],
+   "extends": []
+  },
+  "AssessmentReviewResponse": {
+   "file": "attempts.ts",
+   "required": [
+    "attemptId",
+    "mode",
+    "status",
+    "revision",
+    "availableAxes",
+    "axes",
+    "etalonVersion",
+    "assessorVersion",
+    "semanticReviews",
+    "errorRecords",
+    "updatedAt"
+   ],
+   "optional": [
+    "totalScore",
+    "modelReleaseId",
+    "teacherOverride"
+   ],
+   "extends": []
+  },
+  "AssessmentStateResponse": {
+   "file": "attempts.ts",
+   "required": [
+    "attemptId",
+    "mode",
+    "status",
+    "revision",
+    "availableAxes",
+    "axes",
+    "updatedAt"
+   ],
+   "optional": [
+    "totalScore",
+    "reasonCode"
    ],
    "extends": []
   },
@@ -594,6 +765,31 @@
    "optional": [],
    "extends": []
   },
+  "ErrorRecord": {
+   "file": "errors.ts",
+   "required": [
+    "id",
+    "attemptId",
+    "ruleId",
+    "severity",
+    "message",
+    "sourceRef",
+    "detector",
+    "category",
+    "fixed",
+    "etalonVersion",
+    "createdAt"
+   ],
+   "optional": [
+    "fieldPath",
+    "observed",
+    "expected",
+    "eventId",
+    "assessorVersion",
+    "teacherId"
+   ],
+   "extends": []
+  },
   "Etalon": {
    "file": "scenario.ts",
    "required": [
@@ -619,6 +815,8 @@
     "aiComment"
    ],
    "optional": [
+    "revision",
+    "status",
     "teacherOverride"
    ],
    "extends": []
@@ -660,7 +858,9 @@
     "text"
    ],
    "optional": [
-    "field"
+    "field",
+    "scenarioId",
+    "scenarioVersion"
    ],
    "extends": []
   },
@@ -673,7 +873,10 @@
     "expected",
     "type"
    ],
-   "optional": [],
+   "optional": [
+    "scenarioId",
+    "scenarioVersion"
+   ],
    "extends": []
   },
   "GroupReport": {
@@ -769,9 +972,7 @@
     "password",
     "armNumber"
    ],
-   "optional": [
-    "twoFactorCode"
-   ],
+   "optional": [],
    "extends": []
   },
   "MaterialUploadRequest": {
@@ -811,6 +1012,17 @@
     "total",
     "page",
     "perPage"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PaginatedErrorRecordsResponse": {
+   "file": "errors.ts",
+   "required": [
+    "items",
+    "total",
+    "page",
+    "pageSize"
    ],
    "optional": [],
    "extends": []
@@ -1171,6 +1383,36 @@
    ],
    "extends": []
   },
+  "SemanticArbitrationDecision": {
+   "file": "attempts.ts",
+   "required": [
+    "reviewId",
+    "decision"
+   ],
+   "optional": [
+    "comment"
+   ],
+   "extends": []
+  },
+  "SemanticReviewItem": {
+   "file": "attempts.ts",
+   "required": [
+    "id",
+    "attemptId",
+    "fieldPath",
+    "referenceFactIds",
+    "reason",
+    "thresholdVersion",
+    "decision",
+    "explanation"
+   ],
+   "optional": [
+    "baseSimilarity",
+    "modelReleaseId",
+    "validatedAt"
+   ],
+   "extends": []
+  },
   "ServiceNotification": {
    "file": "classifier.ts",
    "required": [
@@ -1238,6 +1480,21 @@
    ],
    "extends": []
   },
+  "SessionAiReport": {
+   "file": "errors.ts",
+   "required": [
+    "id",
+    "sessionId",
+    "generatedAt",
+    "totalAttempts",
+    "evaluatedAttempts",
+    "averageScore",
+    "errorSummary",
+    "topMistakes"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "SessionControlRequest": {
    "file": "requests.ts",
    "required": [
@@ -1275,6 +1532,22 @@
     "timeNorms",
     "plan"
    ],
+   "extends": []
+  },
+  "SessionErrorSummaryResponse": {
+   "file": "errors.ts",
+   "required": [
+    "sessionId",
+    "totalErrors",
+    "critical",
+    "major",
+    "minor",
+    "byCategory",
+    "byRule",
+    "byDetector",
+    "byStudent"
+   ],
+   "optional": [],
    "extends": []
   },
   "SessionFeedQuery": {
@@ -1319,6 +1592,33 @@
     "conveyor"
    ],
    "optional": [],
+   "extends": []
+  },
+  "StudentAttemptErrorsItem": {
+   "file": "errors.ts",
+   "required": [
+    "attemptId",
+    "cardId",
+    "mode",
+    "totalErrors",
+    "errors"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentErrorsResponse": {
+   "file": "errors.ts",
+   "required": [
+    "studentId",
+    "totalErrors",
+    "critical",
+    "major",
+    "minor",
+    "attempts"
+   ],
+   "optional": [
+    "sessionId"
+   ],
    "extends": []
   },
   "SuccessCriteria": {
@@ -1449,6 +1749,17 @@
    "file": "requests.ts",
    "required": [
     "adminId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "TopMistakeItem": {
+   "file": "errors.ts",
+   "required": [
+    "ruleId",
+    "category",
+    "count",
+    "message"
    ],
    "optional": [],
    "extends": []

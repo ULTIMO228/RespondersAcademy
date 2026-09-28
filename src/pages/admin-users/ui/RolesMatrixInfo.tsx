@@ -7,7 +7,7 @@ import styles from "./RolesMatrixInfo.module.css";
 
 /**
  * Справочная плашка «Что может роль» (T4.1-10) — read-only, без интерактива.
- * Матрица доступа к разделам и формулировки «может / не может» — дословно по spec/02-roles.md.
+ * Матрица доступа к разделам и формулировки «может / не может» — дословно по spec/000-фронт/02-roles.md.
  */
 export function RolesMatrixInfo() {
   return (

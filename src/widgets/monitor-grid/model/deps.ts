@@ -8,7 +8,7 @@ import { systemClock } from "@/shared/lib";
 import type { Clock, RealtimeDeps } from "@/shared/lib";
 
 /*
- * Зависимости мониторинга за интерфейсами (spec/10-code-rules.md §6): клиент мок-слоя, часы и транспорт
+ * Зависимости мониторинга за интерфейсами (spec/000-фронт/10-code-rules.md §6): клиент мок-слоя, часы и транспорт
  * подписки. По умолчанию — боевые реализации; тесты подменяют их через MonitorDepsContext.
  */
 

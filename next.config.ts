@@ -11,7 +11,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async rewrites() {
     return {
-      beforeFiles: backendUrl ? [{ source: "/api/mock/:path*", destination: `${backendUrl}/api/mock/:path*` }] : [],
+      beforeFiles: backendUrl
+        ? [{ source: "/api/mock/:path*", destination: `${backendUrl}/api/mock/:path*` }]
+        : [],
       afterFiles: [],
       fallback: [],
     };

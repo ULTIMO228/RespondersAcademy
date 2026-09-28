@@ -302,12 +302,29 @@ class ProfileMappingSaveRequest(ApiModel):
 class GrammarCheckRequest(ApiModel):
     text: str
     field: str | None = None
+    # US3: необязательная привязка замечаний к сценарию и его текущей версии (прежние вызовы без неё не меняются).
+    scenario_id: str | None = None
+    scenario_version: int | None = None
 
     @field_validator("text", mode="before")
     @classmethod
     def _text(cls, value: Any) -> Any:
         if not isinstance(value, str):
             raise ValueError("Передайте текст для проверки грамматики")
+        return value
+
+    @field_validator("scenario_id", mode="before")
+    @classmethod
+    def _scenario_id(cls, value: Any) -> Any:
+        if value is not None and (not isinstance(value, str) or not value.strip()):
+            raise ValueError("scenarioId — идентификатор сценария")
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("scenario_version", mode="before")
+    @classmethod
+    def _scenario_version(cls, value: Any) -> Any:
+        if value is not None and (isinstance(value, bool) or not isinstance(value, int) or value < 1):
+            raise ValueError("scenarioVersion — целое число от 1")
         return value
 
 
@@ -317,6 +334,8 @@ class GrammarError(ApiModel):
     wrong: str
     expected: str
     type: Literal["spelling", "syntax"]
+    scenario_id: str | None = None
+    scenario_version: int | None = None
 
 
 class ValidationCheck(ApiModel):

@@ -12,12 +12,12 @@ from ml.insights import call_responder as responder
 
 @pytest.fixture(scope="module")
 def reference() -> dict:
-    return json.loads((get_settings().seed_dir / "spec" / "mocks" / "reference.json").read_text(encoding="utf-8"))
+    return json.loads((get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "reference.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")
 def cards() -> dict[str, dict]:
-    data = json.loads((get_settings().seed_dir / "spec" / "mocks" / "cards.json").read_text(encoding="utf-8"))
+    data = json.loads((get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "cards.json").read_text(encoding="utf-8"))
     return {card["id"]: card for card in data["cards"]}
 
 

@@ -1,4 +1,4 @@
-/* Подписи и шкалы графиков отчёта (spec/04-pages/13, п. 7). */
+/* Подписи и шкалы графиков отчёта (spec/000-фронт/04-pages/13, п. 7). */
 export const REACTION_STAGE_INDEX = 0;
 export const PROCESSING_STAGE_INDEX = 1;
 

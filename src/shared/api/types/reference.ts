@@ -1,5 +1,5 @@
 /*
- * Справочники — spec/05-data-models.md §2 (mocks/reference.json, 11 коллекций).
+ * Справочники — spec/000-фронт/05-data-models.md §2 (mocks/reference.json, 11 коллекций).
  */
 
 /** Статусы ДДС — жизненный цикл карточки у диспетчера (§2.1). Граф переходов — в DdsStatusDef.next. */

@@ -1,18 +1,26 @@
+import { aiApiClient } from "../ai-client";
 import { apiClient } from "../client";
 import type {
+  AssessmentResolveRequest,
+  AssessmentReviewResponse,
+  AssessmentStateResponse,
   Evaluation,
+  PaginatedErrorRecordsResponse,
   ReportsResponse,
   Scenario,
   ScenarioCreateRequest,
   ScenarioListQuery,
   ScenarioValidateRequest,
   Session,
+  SessionAiReport,
   SessionControlRequest,
   SessionControlResponse,
   SessionCreateRequest,
+  SessionErrorSummaryResponse,
   SessionFeedQuery,
   SessionFeedResponse,
   SessionListQuery,
+  StudentErrorsResponse,
 } from "../types";
 import { API_PATHS } from "./paths";
 
@@ -87,4 +95,76 @@ export function getStudentReports(studentId: string, signal?: AbortSignal): Prom
 /** GET /attempts/[id]/evaluation — 404 evaluationPending, если оценки ещё нет. */
 export function getAttemptEvaluation(attemptId: string, signal?: AbortSignal): Promise<Evaluation> {
   return apiClient.get<Evaluation>(API_PATHS.attemptEvaluation(attemptId), undefined, signal);
+}
+
+const attemptPath = (attemptId: string) => `/attempts/${encodeURIComponent(attemptId)}`;
+
+/** GET /api/v1/ai/attempts/[id]/assessment-state — текущая ревизия, 4 оси и статус оценки. */
+export function getAssessmentState(
+  attemptId: string,
+  signal?: AbortSignal,
+): Promise<AssessmentStateResponse> {
+  return aiApiClient.get<AssessmentStateResponse>(
+    `${attemptPath(attemptId)}/assessment-state`,
+    undefined,
+    signal,
+  );
+}
+
+/** GET /api/v1/ai/attempts/[id]/review — данные для арбитража преподавателем спорной семантики (403 для курсанта). */
+export function getAssessmentReview(
+  attemptId: string,
+  signal?: AbortSignal,
+): Promise<AssessmentReviewResponse> {
+  return aiApiClient.get<AssessmentReviewResponse>(`${attemptPath(attemptId)}/review`, undefined, signal);
+}
+
+/** POST /api/v1/ai/attempts/[id]/resolve — разрешение спора преподавателем (TeacherOverride + CalibrationSample). */
+export function resolveAssessment(
+  attemptId: string,
+  body: AssessmentResolveRequest,
+): Promise<{ status: string; revision: number; totalScore: number }> {
+  return aiApiClient.post<{ status: string; revision: number; totalScore: number }>(
+    `${attemptPath(attemptId)}/resolve`,
+    body,
+  );
+}
+
+/** GET /api/v1/ai/sessions/[id]/errors — постраничный реестр ErrorRecord сессии. */
+export function getSessionErrors(
+  sessionId: string,
+  params?: { studentId?: string; detector?: string; severity?: string; page?: number; pageSize?: number },
+  signal?: AbortSignal,
+): Promise<PaginatedErrorRecordsResponse> {
+  return aiApiClient.get<PaginatedErrorRecordsResponse>(
+    `/sessions/${encodeURIComponent(sessionId)}/errors`,
+    params,
+    signal,
+  );
+}
+
+/** GET /api/v1/ai/sessions/[id]/error-summary — агрегированная сводка ошибок по осям. */
+export function getSessionErrorSummary(
+  sessionId: string,
+  signal?: AbortSignal,
+): Promise<SessionErrorSummaryResponse> {
+  return aiApiClient.get<SessionErrorSummaryResponse>(
+    `/sessions/${encodeURIComponent(sessionId)}/error-summary`,
+    undefined,
+    signal,
+  );
+}
+
+/** GET /api/v1/ai/me/errors — доказанные ошибки текущего курсанта с группировкой по попыткам. */
+export function getMyErrors(sessionId?: string, signal?: AbortSignal): Promise<StudentErrorsResponse> {
+  return aiApiClient.get<StudentErrorsResponse>("/me/errors", sessionId ? { sessionId } : undefined, signal);
+}
+
+/** GET /api/v1/ai/sessions/[id]/report — воспроизводимый агрегированный отчёт сессии. */
+export function getSessionAiReport(sessionId: string, signal?: AbortSignal): Promise<SessionAiReport> {
+  return aiApiClient.get<SessionAiReport>(
+    `/sessions/${encodeURIComponent(sessionId)}/report`,
+    undefined,
+    signal,
+  );
 }

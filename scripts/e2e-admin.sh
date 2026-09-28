@@ -335,7 +335,7 @@ PY
 # login <логин> <пароль> <АРМ> <роль> — кладёт cookie в $SESSION_COOKIE, id — в $LOGGED_USER_ID.
 login() {
   anon_req POST /auth/login \
-    "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3,\"twoFactorCode\":\"$TWO_FACTOR\"}"
+    "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3}"
   check "вход $1 / АРМ $3 / 2FA" 200 "\"role\":\"$4\"" || return 1
   LOGGED_USER_ID="$(jget userId)"
   SESSION_COOKIE="$(python3 "$WORK_DIR/tools.py" urlencode-cookie <"$WORK_DIR/body")"
@@ -349,7 +349,7 @@ login() {
 # try_login <логин> <пароль> <АРМ> — только HTTP-код в $HTTP_CODE (сессия не меняется).
 try_login() {
   anon_req POST /auth/login \
-    "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3,\"twoFactorCode\":\"$TWO_FACTOR\"}"
+    "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3}"
 }
 
 now_iso() {

@@ -20,9 +20,7 @@ export function DemoAccessPanel({ accounts, roleTitles, returnUrl }: DemoAccessP
   const returnQuery = returnUrl ? { [LOGIN_QUERY.returnUrl]: returnUrl } : {};
   return (
     <details className={styles["login__demo"]}>
-      <summary className={styles["login__demo-title"]}>
-        Тестовые учётные записи (демо-режим):
-      </summary>
+      <summary className={styles["login__demo-title"]}>Тестовые учётные записи (демо-режим):</summary>
       <ul className={styles["login__demo-list"]}>
         {accounts.map((account) => (
           <li key={account.login}>

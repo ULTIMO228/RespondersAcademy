@@ -53,7 +53,7 @@ VAR_SUBDIRS = ("backups", "recordings")
 
 
 def _assert_admin(viewer: Viewer | None) -> None:
-    if viewer is not None and viewer.role != "admin":
+    if viewer is None or viewer.role != "admin":
         raise forbidden(ADMIN_ONLY_MESSAGE)
 
 
@@ -157,7 +157,9 @@ async def _settings_row(db: AsyncSession) -> SystemSettings:
 @router.get("/admin/system/settings")
 async def get_system_settings(db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
     _assert_admin(viewer)
-    return dict((await _settings_row(db)).settings)
+    settings = dict((await _settings_row(db)).settings)
+    settings["security"] = {key: value for key, value in settings.get("security", {}).items() if key != "require2fa"}
+    return settings
 
 
 def _describe_patch(patch: dict[str, dict[str, Any]]) -> str:
@@ -195,6 +197,7 @@ async def patch_system_settings(request: Request, db: AsyncSession = Depends(get
         await _append_log(db, "INFO", "svc-web", f"Изменены настройки — {changed}")
         await audit.record(db, action="settings.update", user_id=user_id, role="admin", details=f"Изменены настройки системы — {changed}")
     await db.commit()
+    merged["security"] = {key: value for key, value in merged.get("security", {}).items() if key != "require2fa"}
     return dict(merged)
 
 

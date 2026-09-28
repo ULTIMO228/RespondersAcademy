@@ -37,7 +37,7 @@
 | `@vitejs/plugin-react` | `^6.1.1` | 6.1.1 | MIT | JSX-трансформ для Vitest (`vitest.config.mts`) — без него компонентные тесты не собираются. |
 | `eslint` | `^9.39.5` | 9.39.5 | MIT | Линтер (`npm run lint`), конфиг `eslint.config.mjs`. |
 | `eslint-config-next` | `^16.3.5` | 16.3.5 | MIT | Правила ESLint для Next.js (App Router, серверные/клиентские границы). |
-| `eslint-plugin-react-hooks` | `^7.1.1` | 7.1.1 | MIT | Правила `rules-of-hooks` и `exhaustive-deps` (обязательны по `spec/10-code-rules.md` §4). |
+| `eslint-plugin-react-hooks` | `^7.1.1` | 7.1.1 | MIT | Правила `rules-of-hooks` и `exhaustive-deps` (обязательны по `spec/000-фронт/10-code-rules.md` §4). |
 | `jsdom` | `^30.1.0` | 30.1.0 | MIT | DOM-окружение для Vitest (браузерных зависимостей у юнит/компонентных тестов нет). |
 | `prettier` | `^3.9.8` | 3.9.8 | MIT | Единое форматирование (`npm run format:check`), конфиг `.prettierrc`. |
 | `steiger` | `^0.6.0` | 0.6.0 | MIT | Запуск FSD-линтера по `src/` — обязательный гейт архитектуры. |
@@ -45,9 +45,17 @@
 | `typescript-eslint` | `^8.70.0` | 8.70.0 | MIT | Парсер и правила ESLint для TypeScript. |
 | `vitest` | `^5.0.1` | 5.0.1 | MIT | Раннер юнит- и компонентных тестов (`npm run test`). |
 
+## Контрактные тесты backend
+
+В `backend` для проверок JSON Schema добавлена одна прямая dev-зависимость; она не входит в runtime backend и frontend.
+
+| Пакет | Диапазон в `backend/pyproject.toml` | Зафиксированная версия (`backend/uv.lock`) | Лицензия | Для чего используется |
+|---|---|---|---|---|
+| `jsonschema[format-nongpl]` | `>=4.26.0,<5` | 4.26.0 | MIT | Контрактные тесты четырёх схем Draft 2020-12 и legacy `Evaluation`; extra включает проверку `date-time` без GPL-зависимостей. |
+
 ## Что написано без библиотек (осознанные решения)
 
-Требование локального контура (`spec/08-qa-decisions.md` в11) и запрет лишних зависимостей — поэтому
+Требование локального контура (`spec/000-фронт/08-qa-decisions.md` в11) и запрет лишних зависимостей — поэтому
 следующие вещи реализованы средствами платформы, а не пакетами:
 
 | Возможность | Чем сделано | Где |
@@ -58,7 +66,7 @@
 | Сертификат PDF (заглушка) | `canvas` → JPEG → минимальный PDF 1.4 вручную | `src/pages/progress/lib/certificate-pdf.ts` |
 | Состояние и данные | React-хуки + клиент `@/shared/api` поверх `fetch` | `src/shared/api`, слайсы `src/**/model` |
 | Форматирование дат и чисел | `Intl` браузера, локаль `ru-RU`, 24-часовое время | `src/shared/lib` |
-| Валидатор мок-данных | Python 3 (только стандартная библиотека: `json`, `os`, `re`, `sys`, `datetime`) | `spec/mocks/_tools/validate_mocks.py` |
+| Валидатор мок-данных | Python 3 (только стандартная библиотека: `json`, `os`, `re`, `sys`, `datetime`) | `spec/000-фронт/mocks/_tools/validate_mocks.py` |
 | Сквозные проверки по HTTP | Bash + `curl` (без npm-зависимостей) | `scripts/e2e-*.sh` |
 
 ## Внешние требования окружения (не npm-пакеты)

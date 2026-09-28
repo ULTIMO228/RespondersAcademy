@@ -4,7 +4,7 @@ import { clampToViewport } from "../model/useDraggable";
 import { ADDRESS_DIRECTORY, findNearestAddress, formatAddress, searchAddresses } from "./addressDirectory";
 import { buildSmsPolygon, projectGeoToMap, unprojectMapPoint } from "./mapPoint";
 
-/* Валидность локального справочника mocks/local/addresses.json (spec/mocks и validate_mocks.py не расширяются). */
+/* Валидность локального справочника mocks/local/addresses.json (spec/000-фронт/mocks и validate_mocks.py не расширяются). */
 describe("локальный справочник адресов (T2.3-06)", () => {
   it("записи валидны: уникальные id, обязательные поля, координаты в границах карты Москвы", () => {
     const ids = new Set(ADDRESS_DIRECTORY.map((entry) => entry.id));

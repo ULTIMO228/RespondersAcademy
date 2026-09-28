@@ -222,3 +222,61 @@ def validate(ticket: dict[str, Any], existing: list[dict[str, Any]] | None = Non
         check_consistency(ticket),
     ]
     return ValidationReport(checks=checks)
+
+
+def validate_ai_scenario(
+    ticket: dict[str, Any],
+    actions: list[dict[str, Any]],
+    *,
+    mode: str,
+    classifier_entries: list[dict[str, Any]],
+    profile_groups: set[str],
+    rule_source_ids: list[str],
+    address_allowlist: set[str] | None = None,
+) -> list[dict[str, str]]:
+    """Структурные проверки AI-версии; каждое нарушение возвращается с точным полем."""
+    errors: list[dict[str, str]] = []
+    group = _text(ticket.get("group"))
+    code = _text(ticket.get("classifierCode"))
+    entry = next((item for item in classifier_entries if item.get("code") == code), None)
+    if not code or entry is None:
+        errors.append({"fieldPath": "classifierCode", "code": "unknown_classifier_code", "message": f"Код ЕКП «{code or 'не указан'}» отсутствует в справочнике"})
+    elif entry.get("group") != group:
+        errors.append({"fieldPath": "group", "code": "classifier_group_mismatch", "message": f"Код ЕКП «{code}» относится к группе «{entry.get('group')}», а не «{group}»"})
+
+    address = _text(ticket.get("address"))
+    address_match = address_nlp.match(address) if address else None
+    normalized_address = " ".join(address.casefold().replace("ё", "е").split())
+    if (
+        address_match is None
+        or not address_match.exact
+        or (address_allowlist is not None and normalized_address not in address_allowlist)
+    ):
+        errors.append({"fieldPath": "address", "code": "address_not_in_directory", "message": f"Адрес «{address or 'не указан'}» не подтверждён локальным справочником"})
+
+    action_names = [item.get("action") for item in actions if isinstance(item, dict)]
+    if len(action_names) != len(actions) or any(not isinstance(item, str) or not item.strip() for item in action_names):
+        errors.append({"fieldPath": "etalon.expectedActions", "code": "invalid_action", "message": "Каждое обязательное действие должно иметь непустое имя"})
+    rule_ids = {str(value) for value in rule_source_ids}
+    for index, item in enumerate(actions):
+        if not isinstance(item, dict) or not (set(item.get("sourceRef") or []) & rule_ids):
+            errors.append({"fieldPath": f"etalon.expectedActions.{index}.sourceRef", "code": "missing_action_source", "message": f"Действие №{index + 1} не ссылается на разрешённое правило"})
+
+    if mode == "dds":
+        if group not in profile_groups:
+            errors.append({"fieldPath": "group", "code": "dds_profile_not_allowed", "message": f"Группа «{group}» не входит в допустимый профиль ДДС"})
+        accepted = next((i for i, action in enumerate(action_names) if action == "status:accepted"), None)
+        finished = next((i for i, action in enumerate(action_names) if action == "status:workDone"), None)
+        if accepted is None or finished is None or accepted >= finished:
+            errors.append({"fieldPath": "etalon.expectedActions", "code": "invalid_action_order", "message": "Для режима ДДС обязательны status:accepted перед status:workDone"})
+        if not action_names or not str(action_names[0]).startswith("openCard:"):
+            errors.append({"fieldPath": "etalon.expectedActions", "code": "missing_open_card", "message": "Первым действием ДДС должно быть открытие карточки"})
+    elif mode == "operator112":
+        required = ("captureCaller", "captureAddress", "classify", "submit")
+        positions = [action_names.index(action) if action in action_names else None for action in required]
+        if any(position is None for position in positions) or positions != sorted(positions, key=lambda item: -1 if item is None else item):
+            errors.append({"fieldPath": "etalon.expectedActions", "code": "invalid_operator_action_order", "message": "В режиме 112 обязательны captureCaller → captureAddress → classify → submit"})
+    else:
+        errors.append({"fieldPath": "mode", "code": "unknown_mode", "message": f"Режим «{mode}» не поддерживается"})
+
+    return errors

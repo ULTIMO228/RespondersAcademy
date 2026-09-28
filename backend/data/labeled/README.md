@@ -1,7 +1,7 @@
 # Размеченная выборка оценщика (режим B — диспетчер ДДС)
 
 `attempts/*.json` — синтетические попытки с разметкой; генерируются детерминированно
-(`uv run python -m ml.scripts.build_labeled`, seed 112) из билетов и эталонов `spec/mocks/`.
+(`uv run python -m ml.scripts.build_labeled`, seed 112) из билетов и эталонов `spec/000-фронт/mocks/`.
 Метрики: `uv run python -m ml.scripts.eval_assessor` → `backend/var/metrics.json`;
 калибровка весов: `uv run python -m ml.scripts.calibrate`.
 
@@ -53,7 +53,7 @@
 ## `operator112/` — выборка оценщика режима A (T078, SC-004)
 
 58 файлов `op-NNN-<variant>.json`, детерминированно (`uv run python -m ml.scripts.build_labeled_operator112`, seed 112)
-из московских билетов `spec/mocks/cards.json` с улицей справочника и ФИО заявителя. Поля: `attempt` (OperatorAttempt с
+из московских билетов `spec/000-фронт/mocks/cards.json` с улицей справочника и ФИО заявителя. Поля: `attempt` (OperatorAttempt с
 `cardSnapshot` = `CardDraft`), `ticket` (`IncidentCard` — эталон режима A), `expectedErrors`, `expectedGrammarErrors`,
 `expertScore`, `note`. Метрики: `uv run python -m ml.scripts.eval_assessor --mode operator112` → `metrics.json[assessorOperator112]`.
 
@@ -74,7 +74,7 @@
 ## `tickets/` — приёмка валидатора билетов (T056/T060, SC-005)
 
 40 файлов `tk-NNN-<kind>.json`, генерируются детерминированно `uv run python -m ml.scripts.build_labeled_tickets`
-из карточек `spec/mocks/cards.json`: 20 корректных (`tk-001…020-correct`) и 20 дефектных
+из карточек `spec/000-фронт/mocks/cards.json`: 20 корректных (`tk-001…020-correct`) и 20 дефектных
 (`tk-021…040-<defect>`), по одному внесённому дефекту на файл.
 
 | Поле | Значение |
@@ -100,7 +100,7 @@
 
 ## `synthetic_groups.json` — обучающая выборка классификатора групп ЕКП (T059)
 
-Собирается `uv run python -m ml.scripts.build_synthetic_groups` из строк `spec/mocks/classifier.json` (v046.24):
+Собирается `uv run python -m ml.scripts.build_synthetic_groups` из строк `spec/000-фронт/mocks/classifier.json` (v046.24):
 для каждой строки — текст «тип: подтип, признаки» и фраза «Сообщение заявителя: {итог}. Признаки: {признаки}»
 (поле `templates`); 2671 образец `{ text, group }`, `group` — группа из `reference.incidentGroups`.
 Используется `ml.scripts.train_classifier` вместе с 96 карточками (вес карточек 5); метрики —

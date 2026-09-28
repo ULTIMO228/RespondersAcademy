@@ -17,10 +17,36 @@ export { postCardReminder, postCardSms, postCardStatus, postCardWorkline } from 
 export { API_PATHS } from "./paths";
 export { getClassifier, getReference } from "./reference";
 export { getReportJournal, postAttemptEvaluation, postReportFeedback } from "./reports";
-export { createScenario, createSession, getAttemptEvaluation, getReports, getSessionFeed } from "./training";
-export { listScenarios, listSessions, startSession, stopSession, validateScenario } from "./training";
-export { getSessionControl, getStudentReports, postSessionControl } from "./training";
+export {
+  createScenario,
+  createSession,
+  getAssessmentReview,
+  getAssessmentState,
+  getAttemptEvaluation,
+  getMyErrors,
+  getReports,
+  getSessionAiReport,
+  getSessionControl,
+  getSessionErrors,
+  getSessionErrorSummary,
+  getSessionFeed,
+  getStudentReports,
+  listScenarios,
+  listSessions,
+  postSessionControl,
+  resolveAssessment,
+  startSession,
+  stopSession,
+  validateScenario,
+} from "./training";
 export { listUsers } from "./users";
 export { checkGrammar, deleteScenario, generateScenarios, getProfileMapping } from "./teacher";
 export { getScenario, listMaterials, listTrainingCards, saveProfileMapping } from "./teacher";
 export { updateScenario, uploadMaterial } from "./teacher";
+export type { GrammarCheckBinding } from "./teacher";
+export {
+  approveAIScenario,
+  createAIScenarioDrafts,
+  listAIScenarioVersions,
+  reviseAIScenario,
+} from "./scenarios";

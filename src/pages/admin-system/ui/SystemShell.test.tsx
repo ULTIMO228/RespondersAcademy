@@ -264,7 +264,7 @@ describe("настройки (T4.2-15…T4.2-21)", () => {
 
   it("безопасность: сохранение только после подтверждения прав", async () => {
     await openSettings();
-    fireEvent.click(screen.getByRole("switch", { name: "Требовать 2FA при входе" }));
+    fireEvent.change(screen.getByLabelText("Минимальная длина пароля"), { target: { value: "10" } });
     expect(requested.some((entry) => entry.startsWith("PATCH"))).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Сохранить настройки безопасности" }));
     const dialog = screen.getByRole("dialog");

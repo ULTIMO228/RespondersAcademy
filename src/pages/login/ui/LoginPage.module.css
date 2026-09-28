@@ -49,7 +49,6 @@
   align-items: center;
   gap: 16px;
   margin: 0 0 32px;
-  color: var(--color-white);
   font-weight: var(--font-weight-regular);
 }
 

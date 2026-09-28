@@ -10,6 +10,7 @@ import type {
   ReportContract,
   ReportJournalRow,
   SessionContract,
+  SessionErrorSummaryResponse,
 } from "@/shared/api";
 
 import { defaultReportApi } from "./reportApi";
@@ -28,6 +29,7 @@ export type SessionReportData = {
   attempts: EvaluatedAttempt[];
   captions: Record<string, CardCaption>;
   ddsStatuses: DdsStatusDef[];
+  errorSummary?: SessionErrorSummaryResponse | null;
 };
 
 const UNKNOWN_TYPE = "—";
@@ -76,11 +78,16 @@ export async function loadSessionReport(
   api: ReportApi = defaultReportApi,
   signal?: AbortSignal,
 ): Promise<SessionReportData> {
-  const [reportsResponse, journal, sessions, reference] = await Promise.all([
+  const errorSummaryPromise = api.getSessionErrorSummary
+    ? api.getSessionErrorSummary(sessionId, signal).catch(() => null)
+    : Promise.resolve(null);
+
+  const [reportsResponse, journal, sessions, reference, errorSummary] = await Promise.all([
     api.getReports(sessionId, signal),
     api.getReportJournal({ teacherId: undefined }, signal),
     api.listSessions(undefined, signal),
     api.getReference(signal),
+    errorSummaryPromise,
   ]);
   const session = findSession(sessions, sessionId);
   const cardEvents = session?.cardEvents ?? [];
@@ -103,5 +110,6 @@ export async function loadSessionReport(
     }),
     captions,
     ddsStatuses: reference.ddsStatuses,
+    errorSummary,
   };
 }

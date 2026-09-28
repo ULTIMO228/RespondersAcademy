@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "prompt-manifest/1",
+  "status": "draft",
+  "approvedBy": null,
+  "evalRunId": null,
+  "chatTemplateHash": null,
+  "reasoningProfileId": null,
+  "prompts": {
+    "semanticReview": {
+      "version": "semantic_review_v1",
+      "path": "backend/ml/prompts/semantic_review_v1.md",
+      "sha256": "a5cb903a16f702ed9a02c1a0f0f6f2fcb069966fd9476474ea27abbf52716998",
+      "outputSchema": "spec/001-ai/contracts/semantic-review-v1.schema.json",
+      "outputSchemaSha256": "166bb495f0dbdf48cd404c9d87ea29e180db94024bba8e0ed8858a5a069d96e5"
+    },
+    "judge": {
+      "version": "judge_v1",
+      "path": "backend/ml/prompts/judge_v1.md",
+      "sha256": "88dca49e613141cc7e7815d0be045187b788f564c642bb8b5d7ad2f15adb5bdb",
+      "outputSchema": "spec/001-ai/contracts/judge-review-v1.schema.json",
+      "outputSchemaSha256": "ed171cf8306447a4b8af84494af9eef2ebca6f05eaa6d3101f79ce50ecbba2dd"
+    }
+  }
+}

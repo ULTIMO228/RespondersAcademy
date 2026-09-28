@@ -2,7 +2,7 @@
  * Машина состояний занятия (T3.2-02): draft → configured → running → finished → reported.
  * Единственный источник правил переходов для всех эндпоинтов /sessions (start, stop, control).
  * draft — черновик мастера на клиенте: POST /sessions создаёт занятие сразу в `configured`.
- * Недопустимый переход → 409 invalidTransition (spec/03-architecture.md «Сессия занятия (состояния)»).
+ * Недопустимый переход → 409 invalidTransition (spec/000-фронт/03-architecture.md «Сессия занятия (состояния)»).
  */
 import type { Session, SessionState } from "../types";
 import { HTTP_STATUS, MockApiError } from "./respond";

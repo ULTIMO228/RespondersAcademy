@@ -9,7 +9,7 @@ Python 3.11+ / FastAPI / SQLAlchemy 2 (async) / PostgreSQL (для разраб�
 ```bash
 cd backend
 uv sync --group dev
-uv run python -m app.seed.load          # сиды из spec/mocks, mocks/local, mocks/admin
+uv run python -m app.seed.load          # сиды из spec/000-фронт/mocks, mocks/local, mocks/admin
 uv run uvicorn app.main:app --port 8000 # http://localhost:8000/api/docs
 uv run pytest -q
 ```

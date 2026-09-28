@@ -12,7 +12,7 @@ function sessionOf(role: UserRole): AuthSession {
   return { userId: "u-x", role, token: "t", twoFactorUsed: true, issuedAt: ISSUED_AT };
 }
 
-/** Матрица spec/02-roles.md: путь → роли с доступом. */
+/** Матрица spec/000-фронт/02-roles.md: путь → роли с доступом. */
 const MATRIX: [string, UserRole[]][] = [
   ["/arm", ["student"]],
   ["/arm/card/card-881412", ["student"]],

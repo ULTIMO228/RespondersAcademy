@@ -74,13 +74,9 @@ describe("POST /api/mock/auth/login", () => {
     expect((await login(valid)).status).toBe(403);
   });
 
-  it("2FA: 6 цифр принят (twoFactorUsed), 5 цифр → 400", async () => {
-    const ok = await login({ ...valid, twoFactorCode: "123456" });
-    expect(ok.status).toBe(200);
-    expect(((await ok.json()) as AuthSession).twoFactorUsed).toBe(true);
-    const bad = await login({ ...valid, twoFactorCode: "12345" });
-    expect(bad.status).toBe(400);
-    expect((await readError(bad)).code).toBe("validationFailed");
+  it("поле 2FA отклоняется при любом значении", async () => {
+    expect((await login({ ...valid, twoFactorCode: "123456" })).status).toBe(400);
+    expect((await login({ ...valid, twoFactorCode: null })).status).toBe(400);
   });
 
   it("пустые поля → 400", async () => {
@@ -102,29 +98,21 @@ describe("GET /api/mock/auth/policy — политика входа (T4.2-17)", 
 
   it("отдаёт блок security настроек системы", async () => {
     expect(await policy()).toEqual({
-      twoFactorRequired: true,
+      twoFactorRequired: false,
       minPasswordLength: expect.any(Number),
       lockAfterAttempts: expect.any(Number),
     });
   });
 
-  it("администратор выключает «Требовать 2FA» → политика меняется для /login", async () => {
-    expect((await patchSecurity({ require2fa: false })).status).toBe(200);
+  it("попытка включить несуществующую 2FA отклоняется", async () => {
+    expect((await patchSecurity({ require2fa: true })).status).toBe(422);
     expect((await policy()).twoFactorRequired).toBe(false);
   });
 
-  it("завершённый вход пишется в журнал аудита, незавершённый шаг 2FA — нет", async () => {
+  it("успешный парольный вход пишется в журнал аудита", async () => {
     await login(valid);
-    expect((await listAudit("login")).length).toBe(0);
-    await login({ ...valid, twoFactorCode: "123456" });
     const entries = await listAudit("login");
     expect(entries[0]).toMatchObject({ userId: "u-001", role: "admin", action: "auth.login" });
     expect(entries[0].operatorArm).toBe(24);
-  });
-
-  it("при выключенной 2FA вход пишется в аудит сразу", async () => {
-    await patchSecurity({ require2fa: false });
-    await login(valid);
-    expect((await listAudit("login"))[0]).toMatchObject({ action: "auth.login", userId: "u-001" });
   });
 });

@@ -64,6 +64,41 @@
   text-align: right;
 }
 
+.row__scoreValue {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
+.row__status {
+  display: inline-block;
+  padding: 1px var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  background: var(--color-gray-100);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.row__status[data-status="review_required"] {
+  background: var(--color-ai-badge-bg);
+  color: var(--color-accent-blue);
+  border: var(--border-width) solid var(--color-ai-badge-border);
+}
+
+.row__statusLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-ink-muted);
+}
+
+.row__statusLabelFinal {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-status-accepted);
+}
+
 .row__count {
   text-align: right;
 }

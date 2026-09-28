@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "semantic-review-v1",
+  "title": "SemanticReviewV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision", "referenceFactIds", "explanation"],
+  "properties": {
+    "decision": { "enum": ["equivalent", "different", "uncertain"] },
+    "referenceFactIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 }, "maxItems": 12 },
+    "missingFactIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 }, "maxItems": 12 },
+    "explanation": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

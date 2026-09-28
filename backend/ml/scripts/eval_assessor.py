@@ -38,7 +38,7 @@ def load_samples(directory: Path = LABELED_DIR) -> list[dict[str, Any]]:
 
 
 def reference() -> dict[str, Any]:
-    path = get_settings().seed_dir / "spec" / "mocks" / "reference.json"
+    path = get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "reference.json"
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
 
@@ -76,7 +76,7 @@ def pearson(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def classifier_entries() -> list[dict[str, Any]]:
-    path = get_settings().seed_dir / "spec" / "mocks" / "classifier.json"
+    path = get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "classifier.json"
     with path.open(encoding="utf-8") as handle:
         return list(json.load(handle).get("entries", []))
 

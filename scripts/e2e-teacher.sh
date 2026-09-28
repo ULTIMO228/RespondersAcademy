@@ -240,7 +240,7 @@ PY
 
 # login <логин> <пароль> <АРМ> <роль> — кладёт cookie в $SESSION_COOKIE, id — в $LOGGED_USER_ID.
 login() {
-  req POST /auth/login "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3,\"twoFactorCode\":\"$TWO_FACTOR\"}"
+  req POST /auth/login "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3}"
   check "вход $1 / АРМ $3 / 2FA" 200 "\"role\":\"$4\"" || return 1
   LOGGED_USER_ID="$(jget userId)"
   SESSION_COOKIE="$(python3 "$WORK_DIR/tools.py" urlencode-cookie <"$WORK_DIR/body")"

@@ -1,0 +1,3437 @@
+{
+ "checked": 783,
+ "completed": 783,
+ "failed": 8,
+ "flagged": 87,
+ "fileErrors": [],
+ "results": {
+  "sr-0001": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0002": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0003": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0004": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/2"
+   ]
+  },
+  "sr-0005": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/1"
+   ]
+  },
+  "sr-0006": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0007": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0008": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0009": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0010": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0011": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0012": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0013": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0014": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0015": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0016": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0017": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0018": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0019": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0020": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0021": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/4"
+   ]
+  },
+  "sr-0022": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0023": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0024": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0025": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0026": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0027": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0028": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0029": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0030": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0031": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0032": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0033": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0034": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0035": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0036": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0037": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0038": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0039": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0040": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0041": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0042": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0043": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0044": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0045": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0046": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0047": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0048": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0049": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0050": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0051": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0052": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0053": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0054": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0055": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0056": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0057": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0058": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0059": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0060": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0061": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0062": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0063": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0064": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0065": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0066": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0067": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0068": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0069": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0070": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0071": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0072": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0073": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0074": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0075": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0076": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0077": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0078": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0079": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0080": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0081": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0082": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0083": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0084": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0085": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0086": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0087": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0088": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0089": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0090": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0091": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0092": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0093": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0094": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0095": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0096": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0097": {
+   "errors": [
+    "идентификатор из факта потерян: Григорьев Константин"
+   ],
+   "flags": []
+  },
+  "sr-0098": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0099": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0100": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0101": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0102": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0103": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0104": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0105": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0106": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0107": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0108": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0109": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0110": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0111": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0112": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0113": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0114": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0115": {
+   "errors": [
+    "swapIncident: в действии диспетчера есть «принято/получено»"
+   ],
+   "flags": []
+  },
+  "sr-0116": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0117": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0118": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0119": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0120": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0121": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0122": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0123": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0124": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0125": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0101"
+   ]
+  },
+  "sr-0126": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0127": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0128": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0129": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0130": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0131": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0132": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0133": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0134": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0135": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0136": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0137": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0138": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0139": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0140": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0141": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0142": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0143": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0144": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0145": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0023"
+   ]
+  },
+  "sr-0146": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0147": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0148": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0149": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0150": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0151": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0152": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0153": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0154": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0155": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0156": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0157": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0158": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0159": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0160": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0161": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0162": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0163": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0164": {
+   "errors": [
+    "ФИО вне плана: Щарова Галина Константиновна",
+    "идентификатор из факта потерян: Шарова Галина Константиновна"
+   ],
+   "flags": []
+  },
+  "sr-0165": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0166": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0167": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0168": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0169": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0170": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0171": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0172": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0173": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (2)"
+   ]
+  },
+  "sr-0174": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 3/3"
+   ]
+  },
+  "sr-0175": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0176": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0177": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0178": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0179": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0180": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0181": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0182": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0183": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0184": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0185": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0186": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0187": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0188": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/3"
+   ]
+  },
+  "sr-0189": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0190": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0191": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0192": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0193": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0194": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0195": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0196": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0197": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0198": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0199": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0200": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0201": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0202": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0203": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0204": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0205": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0206": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0207": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0208": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0209": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0210": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0211": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0212": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0213": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0214": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4",
+    "близок к sr-0002"
+   ]
+  },
+  "sr-0215": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0216": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0217": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0218": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0219": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0220": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0221": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0222": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0223": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0224": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0225": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0226": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0227": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0228": {
+   "errors": [
+    "swapIncident: в действии диспетчера есть «принято/получено»"
+   ],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0229": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0230": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0231": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0232": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0233": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0234": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0235": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0236": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0237": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0238": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0239": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0240": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0241": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0242": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0243": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0244": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0245": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0246": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0247": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0248": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0140"
+   ]
+  },
+  "sr-0249": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/4"
+   ]
+  },
+  "sr-0250": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0251": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0252": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0253": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0254": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0255": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0256": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0257": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0258": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0259": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0260": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0261": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0262": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0263": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0264": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0265": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0266": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0267": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0268": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0269": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0270": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0271": {
+   "errors": [
+    "идентификатор из факта потерян: Комарова Надежда Алексеевна"
+   ],
+   "flags": []
+  },
+  "sr-0272": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0273": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0274": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0275": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0276": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0277": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0278": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0279": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0280": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0281": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0282": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0283": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0284": {
+   "errors": [
+    "идентификатор из факта потерян: Комарова Надежда Алексеевна"
+   ],
+   "flags": []
+  },
+  "sr-0285": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0286": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/1"
+   ]
+  },
+  "sr-0287": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0288": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0289": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0290": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0291": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0292": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0293": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0294": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0295": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0296": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0297": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0298": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0299": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/3"
+   ]
+  },
+  "sr-0300": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0301": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0302": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0303": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0304": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0305": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0306": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0307": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0308": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0309": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0310": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0311": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0312": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0313": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0314": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0315": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0316": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0317": {
+   "errors": [
+    "swapIncident: в действии диспетчера есть «принято/получено»"
+   ],
+   "flags": []
+  },
+  "sr-0318": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0319": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0320": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0321": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0322": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0323": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0324": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0325": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0326": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0327": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0328": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0329": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0330": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0331": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0332": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0333": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0334": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0335": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0336": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0337": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0338": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0339": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0340": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0341": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0342": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0343": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0344": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0345": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0346": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0347": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0348": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0349": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0350": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0351": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0352": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0353": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0354": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0355": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0258"
+   ]
+  },
+  "sr-0357": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0358": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0359": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0360": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0361": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0362": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0363": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0364": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0365": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0366": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0367": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0368": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0369": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0370": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0371": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0372": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0373": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0374": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0375": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/4"
+   ]
+  },
+  "sr-0376": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0377": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0378": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0379": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0380": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0381": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0382": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0383": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0384": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0385": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0386": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0387": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0388": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0389": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0390": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0391": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0392": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0393": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0394": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0130"
+   ]
+  },
+  "sr-0395": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0396": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0397": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0398": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0399": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0400": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0401": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0402": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0403": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости",
+    "близок к sr-0145"
+   ]
+  },
+  "sr-0404": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0405": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0406": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0407": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0408": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0409": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0410": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0411": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0412": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0413": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0414": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0415": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0416": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0417": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0418": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0419": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0420": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0421": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0422": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0423": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0424": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0425": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0426": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0427": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0212"
+   ]
+  },
+  "sr-0428": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0429": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0430": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0431": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0432": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0433": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0434": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0435": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0436": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0437": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0438": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0439": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0440": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0441": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0442": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0443": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0444": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0445": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0446": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0447": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0448": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0449": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0450": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0451": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0452": {
+   "errors": [
+    "идентификатор из факта потерян: Григорьев Константин"
+   ],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0453": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0454": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0455": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0456": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0457": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0458": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0459": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0460": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0461": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0462": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0463": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0464": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0465": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0466": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0467": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0468": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0469": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0470": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0471": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0472": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0473": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0474": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0475": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0476": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0477": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0478": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0479": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0480": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0481": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0482": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0483": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0484": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0485": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0486": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0487": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0488": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0489": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0490": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0491": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0492": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0493": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0066"
+   ]
+  },
+  "sr-0494": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0495": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0496": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0497": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0498": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0499": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0500": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0398"
+   ]
+  },
+  "sr-0501": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0502": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0503": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/2"
+   ]
+  },
+  "sr-0504": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0505": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0506": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0245"
+   ]
+  },
+  "sr-0507": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0508": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0509": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0274"
+   ]
+  },
+  "sr-0510": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0511": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0512": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0513": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0514": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0515": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0516": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0517": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0518": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0519": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0520": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0521": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0522": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0523": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0524": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0525": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0526": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0527": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0528": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0529": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0530": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0531": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0532": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0533": {
+   "errors": [],
+   "flags": [
+    "uncertain: в объяснении нет причины неопределённости"
+   ]
+  },
+  "sr-0534": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0535": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0536": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0537": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0538": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0539": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0540": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0541": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0542": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0543": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0544": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0545": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0546": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0547": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0548": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0549": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0550": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0551": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0552": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0553": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0554": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0555": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0556": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0557": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0558": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0559": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0560": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0561": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0562": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0563": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0564": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0565": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0566": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0567": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0568": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0569": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0570": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0558"
+   ]
+  },
+  "sr-0571": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0572": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0573": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0574": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0575": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0576": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0577": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0578": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0579": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0580": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/3"
+   ]
+  },
+  "sr-0581": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0582": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0583": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0584": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0585": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0586": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0587": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0588": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0589": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0590": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0591": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0592": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0593": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0594": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0595": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0596": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0597": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0598": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0599": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0600": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0601": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0602": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0598"
+   ]
+  },
+  "sr-0603": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0604": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0605": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0606": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0607": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0608": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0609": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0610": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0611": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0612": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0613": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0614": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0615": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0616": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0617": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0618": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0619": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0620": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0621": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0622": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0623": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0624": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0625": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0626": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0627": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0629": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0630": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0631": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0632": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0633": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0634": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0635": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0636": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0637": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0638": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0639": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0640": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0641": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0642": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0643": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0644": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0645": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0646": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0648": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0649": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0650": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0651": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0652": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0653": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0654": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0655": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0656": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0657": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0658": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0659": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0660": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0661": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0662": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0663": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0664": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0665": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0666": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0667": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0668": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0669": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0670": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0671": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0672": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0673": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0674": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0675": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 2/4"
+   ]
+  },
+  "sr-0676": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0677": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0678": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0679": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0680": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0681": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0682": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0683": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0684": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0685": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0686": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0687": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0688": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0689": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0690": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0691": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0692": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0693": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0694": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0695": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0696": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0698": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0699": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0700": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0701": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0702": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0703": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0704": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0705": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0706": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0707": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0708": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0709": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/1"
+   ]
+  },
+  "sr-0710": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0711": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0712": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0713": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0714": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0715": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0716": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0717": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0718": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0719": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/3"
+   ]
+  },
+  "sr-0720": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0721": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0722": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0723": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0724": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0725": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0726": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0685"
+   ]
+  },
+  "sr-0727": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0728": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0729": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0730": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0731": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0732": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0733": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0734": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0735": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0736": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0735"
+   ]
+  },
+  "sr-0737": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0738": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0739": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0740": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0741": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0742": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0743": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0744": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0745": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0746": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0747": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0748": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0749": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0750": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0751": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0752": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0753": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0754": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0755": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0756": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0757": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0758": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0725"
+   ]
+  },
+  "sr-0759": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0752"
+   ]
+  },
+  "sr-0760": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0761": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0762": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/1"
+   ]
+  },
+  "sr-0763": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0764": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0765": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0766": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0767": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0768": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0769": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0770": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0771": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/1"
+   ]
+  },
+  "sr-0772": {
+   "errors": [],
+   "flags": [
+    "swapIncident: лексическое совпадение с фактом эталона (1)"
+   ]
+  },
+  "sr-0773": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0774": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/2"
+   ]
+  },
+  "sr-0775": {
+   "errors": [],
+   "flags": [
+    "equivalent: слабое лексическое покрытие фактов 1/4"
+   ]
+  },
+  "sr-0776": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0777": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0778": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0779": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0780": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0781": {
+   "errors": [],
+   "flags": [
+    "близок к sr-0686"
+   ]
+  },
+  "sr-0782": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0783": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0784": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0785": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0786": {
+   "errors": [],
+   "flags": []
+  },
+  "sr-0787": {
+   "errors": [],
+   "flags": []
+  }
+ },
+ "failedIds": [
+  "sr-0097",
+  "sr-0115",
+  "sr-0164",
+  "sr-0228",
+  "sr-0271",
+  "sr-0284",
+  "sr-0317",
+  "sr-0452"
+ ],
+ "flaggedIds": [
+  "sr-0004",
+  "sr-0005",
+  "sr-0007",
+  "sr-0021",
+  "sr-0030",
+  "sr-0033",
+  "sr-0053",
+  "sr-0063",
+  "sr-0073",
+  "sr-0074",
+  "sr-0092",
+  "sr-0125",
+  "sr-0127",
+  "sr-0137",
+  "sr-0145",
+  "sr-0173",
+  "sr-0174",
+  "sr-0183",
+  "sr-0188",
+  "sr-0213",
+  "sr-0214",
+  "sr-0224",
+  "sr-0229",
+  "sr-0248",
+  "sr-0249",
+  "sr-0286",
+  "sr-0299",
+  "sr-0314",
+  "sr-0319",
+  "sr-0336",
+  "sr-0338",
+  "sr-0342",
+  "sr-0355",
+  "sr-0366",
+  "sr-0369",
+  "sr-0375",
+  "sr-0388",
+  "sr-0394",
+  "sr-0403",
+  "sr-0427",
+  "sr-0433",
+  "sr-0444",
+  "sr-0457",
+  "sr-0472",
+  "sr-0491",
+  "sr-0493",
+  "sr-0500",
+  "sr-0503",
+  "sr-0506",
+  "sr-0509",
+  "sr-0532",
+  "sr-0533",
+  "sr-0557",
+  "sr-0570",
+  "sr-0579",
+  "sr-0580",
+  "sr-0581",
+  "sr-0589",
+  "sr-0602",
+  "sr-0607",
+  "sr-0611",
+  "sr-0613",
+  "sr-0614",
+  "sr-0622",
+  "sr-0637",
+  "sr-0641",
+  "sr-0646",
+  "sr-0675",
+  "sr-0700",
+  "sr-0705",
+  "sr-0709",
+  "sr-0713",
+  "sr-0719",
+  "sr-0726",
+  "sr-0729",
+  "sr-0736",
+  "sr-0738",
+  "sr-0758",
+  "sr-0759",
+  "sr-0761",
+  "sr-0762",
+  "sr-0765",
+  "sr-0771",
+  "sr-0772",
+  "sr-0774",
+  "sr-0775",
+  "sr-0781"
+ ]
+}

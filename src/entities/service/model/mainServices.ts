@@ -1,7 +1,7 @@
 /*
  * Коды «главной службы» классификатора (classifier.json → mainService, колонка 12 xlsx) → id службы
  * из reference.services. Основные службы типа происшествия в панели «Службы:» подчёркнуты двойной
- * линией (spec/04-pages/02-arm-card.md п. 6). Коды без службы в справочнике не отображаются.
+ * линией (spec/000-фронт/04-pages/02-arm-card.md п. 6). Коды без службы в справочнике не отображаются.
  */
 export const MAIN_SERVICE_CODE_TO_ID: Record<string, string> = {
   MCHS: "svc-101",

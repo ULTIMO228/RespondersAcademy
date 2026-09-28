@@ -1,4 +1,4 @@
-/* Управление занятием на /teacher (spec/04-pages/12 «Управление во время занятия»); токены — vars.css. */
+/* Управление занятием на /teacher (spec/000-фронт/04-pages/12 «Управление во время занятия»); токены — vars.css. */
 .control {
   display: flex;
   flex-wrap: wrap;

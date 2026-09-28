@@ -1,4 +1,4 @@
-"""Идемпотентная загрузка сидов фронта (spec/mocks, mocks/local, mocks/admin) в БД.
+"""Идемпотентная загрузка сидов фронта (spec/000-фронт/mocks, mocks/local, mocks/admin) в БД.
 
 Запуск: `python -m app.seed.load [--reset]`. Повторный запуск ничего не дублирует (upsert по id).
 """
@@ -21,6 +21,7 @@ from app.models import (
     Address,
     ArmCardFixture,
     Assignment,
+    AssignmentStudent,
     Attempt,
     AuditLog,
     CardRuntime,
@@ -86,7 +87,7 @@ def read_json(path: Path) -> Any:
 class SeedPaths:
     def __init__(self, root: Path) -> None:
         self.root = root
-        self.mocks = root / "spec" / "mocks"
+        self.mocks = root / "spec" / "000-фронт" / "mocks"
         self.local = root / "mocks" / "local"
         self.admin = root / "mocks" / "admin"
 
@@ -456,6 +457,12 @@ async def seed_streets(db: AsyncSession) -> int:
 async def seed_assignments(db: AsyncSession) -> int:
     for values in ASSIGNMENTS_SEED:
         await _upsert(db, Assignment, "id", dict(values))
+    await db.flush()
+    for values in ASSIGNMENTS_SEED:
+        for student_id in values["student_ids"]:
+            key = (values["id"], student_id)
+            if await db.get(AssignmentStudent, key) is None:
+                db.add(AssignmentStudent(assignment_id=values["id"], student_id=student_id))
     return len(ASSIGNMENTS_SEED)
 
 

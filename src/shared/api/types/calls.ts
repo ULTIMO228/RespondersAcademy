@@ -1,5 +1,5 @@
 /*
- * Софтфон учебного контура B→C (spec/04-pages/03-arm-softphone.md, T2.4-04/05): реплики ИИ-абонента
+ * Софтфон учебного контура B→C (spec/000-фронт/04-pages/03-arm-softphone.md, T2.4-04/05): реплики ИИ-абонента
  * точки C и запись завершённого вызова в CardEvent.calls попытки.
  */
 import type { PhoneCall, TranscriptLine } from "./session";

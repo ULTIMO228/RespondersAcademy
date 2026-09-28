@@ -22,7 +22,7 @@ const EMPTY_TEXT = "Пользователи не найдены";
 /**
  * Таблица реестра (T4.1-05): ФИО, логин, роль-бейдж, № АРМ, группа, служба, состояние, действия.
  * Колонка «создана» не выводится — поле `User.createdAt` удалено из модели (05-data-models.md,
- * приложение волны B); зафиксированное расхождение №4 spec/12-tasks.md.
+ * приложение волны B); зафиксированное расхождение №4 spec/000-фронт/12-tasks.md.
  */
 export function UsersTable({ users, renderActions, emptyText = EMPTY_TEXT }: UsersTableProps) {
   return (

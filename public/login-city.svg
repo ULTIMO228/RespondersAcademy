@@ -100,12 +100,12 @@
   <path d="M533 264 L592 275 V389 L533 386 Z" fill="url(#blueLight)"/>
   <path d="M474 394 L533 386 V520 L474 522 Z" fill="url(#blueDark)"/>
   <path d="M533 386 L596 392 V519 L533 520 Z" fill="url(#blueLight2)"/>
-  <path d="M474 522 L533 520 V649 L474 652 Z" fill="url(#blueDark)"/>
-  <path d="M533 520 L596 519 V645 L533 649 Z" fill="url(#blueLight2)"/>
-  <path d="M474 652 L533 649 V819 H474 Z" fill="url(#blueDark)"/>
+  <path d="M475 522 L533 520 V649 L475 652 Z" fill="url(#blueDark)"/>
+  <path d="M533 520 L597 519 V645 L533 649 Z" fill="url(#blueLight2)"/>
+  <path d="M482 652 L533 649 V819 H482 Z" fill="url(#blueDark)"/>
   <path d="M533 649 L596 645 V819 H533 Z" fill="url(#blueLight2)"/>
   <path d="M472 394 L594 389" stroke="#3f6887" stroke-width="2" opacity=".55"/>
-  <path d="M474 522 L596 519" stroke="#3f6887" stroke-width="2" opacity=".50"/>
+  <path d="M473 522 L596 519" stroke="#3f6887" stroke-width="2" opacity=".50"/>
   <path d="M474 652 L596 645" stroke="#3f6887" stroke-width="2" opacity=".46"/>
 </g>
 
@@ -115,12 +115,12 @@
   <path d="M674 335 L716 342 V367 L674 362 Z" fill="url(#blueLight)"/>
   <path d="M620 373 L674 362 V519 L620 522 Z" fill="url(#blueDark)"/>
   <path d="M674 362 L730 372 V518 L674 519 Z" fill="url(#blueLight2)"/>
-  <path d="M620 522 L674 519 V647 L620 650 Z" fill="url(#blueDark)"/>
-  <path d="M674 519 L730 518 V644 L674 647 Z" fill="url(#blueLight2)"/>
-  <path d="M620 650 L674 647 V819 H620 Z" fill="url(#blueDark)"/>
-  <path d="M674 647 L730 644 V819 H674 Z" fill="url(#blueLight2)"/>
+  <path d="M621 522 L674 519 V647 L621 650 Z" fill="url(#blueDark)"/>
+  <path d="M674 519 L731 518 V644 L674 647 Z" fill="url(#blueLight2)"/>
+  <path d="M626 650 L674 647 V819 H626 Z" fill="url(#blueDark)"/>
+  <path d="M674 647 L731 644 V819 H674 Z" fill="url(#blueLight2)"/>
   <path d="M620 522 L730 518" stroke="#3f6887" stroke-width="2" opacity=".55"/>
-  <path d="M620 650 L730 644" stroke="#3f6887" stroke-width="2" opacity=".48"/>
+  <path d="M621 650 L731 644" stroke="#3f6887" stroke-width="2" opacity=".48"/>
 </g>
 
 <!-- 07. Rounded tower -->

@@ -1,0 +1,1233 @@
+[
+ {
+  "caseId": "sr-0225",
+  "split": "train",
+  "sourceTicketId": "ticket-021",
+  "situationNo": 1,
+  "cardId": "c-061",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Драка: Дерутся 10–15 человек, 5 пострадавших, палки и железные прутья. Адрес: Москва, рядом с посольством Азербайджана на тротуаре (Леонтьевский пер., 16, стр. 1). Признаки: Драка, Улица общественное место, Массовая (от 10 человек), Пострадавшие.",
+  "applicant": {
+   "name": "Тарасова Ольга Евгеньевна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-021:1:d1",
+    "text": "Дерутся 10–15 человек"
+   },
+   {
+    "id": "fact:ticket-021:1:d2",
+    "text": "5 пострадавших"
+   },
+   {
+    "id": "fact:ticket-021:1:d3",
+    "text": "палки и железные прутья"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-021:1:d1",
+    "fact:ticket-021:1:d2",
+    "fact:ticket-021:1:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0228",
+  "split": "train",
+  "sourceTicketId": "ticket-011",
+  "situationNo": 3,
+  "cardId": "c-033",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Пропал найден похищен человек: Гусева Полина Павловна, 63 г., заблудилась, собирала грибы, заряд телефона 10%, 03 не требуется. Адрес: Владимирская обл., Кольчугинский р-н, дер. Барыкино, лес за деревней. Признаки: Пропал / найден / похищен, Заблудился в лесу в большом парке, Взрослый.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-011:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-011:3:a2",
+    "text": "вызов переведён в ЦУС Владимирской области"
+   },
+   {
+    "id": "fact:ticket-011:3:a3",
+    "text": "направлены силы МЧС региона (101)"
+   },
+   {
+    "id": "fact:ticket-011:3:a4",
+    "text": "направлен наряд полиции региона (102)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-011:3:a1",
+    "fact:ticket-011:3:a2",
+    "fact:ticket-011:3:a3",
+    "fact:ticket-011:3:a4"
+   ],
+   "missingFactIds": [
+    "fact:ticket-011:3:a1",
+    "fact:ticket-011:3:a2",
+    "fact:ticket-011:3:a3",
+    "fact:ticket-011:3:a4"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "swapIncident",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null,
+   "foreignFacts": [
+    "направлен наряд полиции (102)",
+    "направлена бригада СМП (103)"
+   ]
+  }
+ },
+ {
+  "caseId": "sr-0229",
+  "split": "train",
+  "sourceTicketId": "ticket-002",
+  "situationNo": 3,
+  "cardId": "c-006",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Тонет, на льдине: Падение автомашины в воду. Адрес: Москва, набережная Яузы, в область, напротив Большого Нижнего пруда. Признаки: Человек в воде, на льдине, Падение автомашины в воду.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-002:3:r1",
+    "text": "адрес: Москва, набережная Яузы, в область, напротив Большого Нижнего пруда"
+   },
+   {
+    "id": "fact:ticket-002:3:r2",
+    "text": "суть происшествия: Падение автомашины в воду"
+   },
+   {
+    "id": "fact:ticket-002:3:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-002:3:r4",
+    "text": "номер карточки: 2070"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-002:3:r1",
+    "fact:ticket-002:3:r2",
+    "fact:ticket-002:3:r3",
+    "fact:ticket-002:3:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-002:3:r1",
+    "fact:ticket-002:3:r2",
+    "fact:ticket-002:3:r3",
+    "fact:ticket-002:3:r4"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0230",
+  "split": "train",
+  "sourceTicketId": "ticket-010",
+  "situationNo": 1,
+  "cardId": "c-028",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "пожар-опасный объект: Горит помещение кассы, открытый огонь. Кассир Абрамова Валентина Леонидовна, 45 л., ожог лица и рук. Адрес: Москва, ж/д ст. Текстильщики, платформа в сторону обл., подъезд для служб со стороны ул. Люблинская. Признаки: объект, общестенное место, открытое пламя, Пострадавшие.",
+  "applicant": {
+   "name": "Голубева Галина Михайловна",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-010:1:d1",
+    "text": "Горит помещение кассы"
+   },
+   {
+    "id": "fact:ticket-010:1:d2",
+    "text": "открытый огонь"
+   },
+   {
+    "id": "fact:ticket-010:1:d3",
+    "text": "Кассир Абрамова Валентина Леонидовна, 45 л."
+   },
+   {
+    "id": "fact:ticket-010:1:d4",
+    "text": "ожог лица и рук"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-010:1:d1",
+    "fact:ticket-010:1:d2",
+    "fact:ticket-010:1:d3",
+    "fact:ticket-010:1:d4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "с канцеляризмами диспетчера",
+   "injection": true,
+   "injectionStyle": 4
+  }
+ },
+ {
+  "caseId": "sr-0244",
+  "split": "train",
+  "sourceTicketId": "ticket-021",
+  "situationNo": 2,
+  "cardId": "c-062",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Климова Мария Константиновна, д/р 08.01.1956, рубила дрова, случайно ударила топором по руке, кровотечение. Адрес: дорога от Клина в сторону Лотошино, не доезжая Теряевских прудов повернуть к церкви, дом напротив остановки. Признаки: Травма, Кровотечение.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-021:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-021:2:a2",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-021:2:a1",
+    "fact:ticket-021:2:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-021:2:a1",
+    "fact:ticket-021:2:a2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "typos",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0249",
+  "split": "train",
+  "sourceTicketId": "ticket-005",
+  "situationNo": 2,
+  "cardId": "c-014",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Женщина выпила случайно не те лекарства, потеряла сознание. Данилова Евгения Васильевна, д/р 04.06.1975. Адрес: Москва, Коломенская наб., 18, кв. 142, под. 3, эт. 4, код 142. Признаки: Отравление.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-005:2:r1",
+    "text": "адрес: Москва, Коломенская наб., 18, кв. 142, под. 3, эт. 4, код 142"
+   },
+   {
+    "id": "fact:ticket-005:2:r2",
+    "text": "суть происшествия: Женщина выпила случайно не те лекарства"
+   },
+   {
+    "id": "fact:ticket-005:2:r3",
+    "text": "пострадавших: 1 (отравление лекарствами, без сознания)"
+   },
+   {
+    "id": "fact:ticket-005:2:r4",
+    "text": "номер карточки: 6136"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-005:2:r1",
+    "fact:ticket-005:2:r2",
+    "fact:ticket-005:2:r3",
+    "fact:ticket-005:2:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-005:2:r1",
+    "fact:ticket-005:2:r2",
+    "fact:ticket-005:2:r3",
+    "fact:ticket-005:2:r4"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0252",
+  "split": "train",
+  "sourceTicketId": "ticket-010",
+  "situationNo": 1,
+  "cardId": "c-028",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "пожар-опасный объект: Горит помещение кассы, открытый огонь. Кассир Абрамова Валентина Леонидовна, 45 л., ожог лица и рук. Адрес: Москва, ж/д ст. Текстильщики, платформа в сторону обл., подъезд для служб со стороны ул. Люблинская. Признаки: объект, общестенное место, открытое пламя, Пострадавшие.",
+  "applicant": {
+   "name": "Голубева Галина Михайловна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-010:1:d1",
+    "text": "Горит помещение кассы"
+   },
+   {
+    "id": "fact:ticket-010:1:d2",
+    "text": "открытый огонь"
+   },
+   {
+    "id": "fact:ticket-010:1:d3",
+    "text": "Кассир Абрамова Валентина Леонидовна, 45 л."
+   },
+   {
+    "id": "fact:ticket-010:1:d4",
+    "text": "ожог лица и рук"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-010:1:d1",
+    "fact:ticket-010:1:d2",
+    "fact:ticket-010:1:d3",
+    "fact:ticket-010:1:d4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-010:1:d1",
+    "fact:ticket-010:1:d2",
+    "fact:ticket-010:1:d3",
+    "fact:ticket-010:1:d4"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0253",
+  "split": "train",
+  "sourceTicketId": "ticket-013",
+  "situationNo": 1,
+  "cardId": "c-037",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "пожар на улице: Горят деревья, площадь 10×10 м, пострадавших нет. Адрес: Москва, Кусковский лесопарк. Признаки: на улице, Парк, открытое пламя.",
+  "applicant": {
+   "name": "Шаров Тимофей Романович",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-013:1:d1",
+    "text": "Горят деревья, площадь 10×10 м"
+   },
+   {
+    "id": "fact:ticket-013:1:d2",
+    "text": "пострадавших нет"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-013:1:d1",
+    "fact:ticket-013:1:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-013:1:d1",
+    "fact:ticket-013:1:d2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0259",
+  "split": "train",
+  "sourceTicketId": "ticket-011",
+  "situationNo": 1,
+  "cardId": "c-031",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "горит транспорт: Горит кабина автобуса, маршрут 63, бортовой № 15477, пострадавших нет. Адрес: Москва, Дмитровское ш. в обл., рядом с остановкой «Лианозовский электро-механический завод». Признаки: транспорт, общественный транспорт, открытое пламя.",
+  "applicant": {
+   "name": "Колесников Максим Павлович",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-011:1:d1",
+    "text": "Горит кабина автобуса, маршрут 63"
+   },
+   {
+    "id": "fact:ticket-011:1:d2",
+    "text": "бортовой № 15477"
+   },
+   {
+    "id": "fact:ticket-011:1:d3",
+    "text": "пострадавших нет"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "answerTimeout",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-011:1:d1",
+    "fact:ticket-011:1:d2",
+    "fact:ticket-011:1:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0261",
+  "split": "train",
+  "sourceTicketId": "ticket-002",
+  "situationNo": 1,
+  "cardId": "c-004",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "пожар в жилом доме: Задымление мусоропровода, дом 17 эт., заявитель на 7-м, пламени нет, пострадавших нет. Адрес: Москва, ул. Берзарина, 21, корп. 1, под. 3, домофон 68. Признаки: жилой дом, мусоропровод, дым.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-002:1:r1",
+    "text": "адрес: Москва, ул. Берзарина, 21, корп. 1, под. 3, домофон 68"
+   },
+   {
+    "id": "fact:ticket-002:1:r2",
+    "text": "суть происшествия: Задымление мусоропровода, дом 17 эт."
+   },
+   {
+    "id": "fact:ticket-002:1:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-002:1:r4",
+    "text": "номер карточки: 4174"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-002:1:r1",
+    "fact:ticket-002:1:r2",
+    "fact:ticket-002:1:r3",
+    "fact:ticket-002:1:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0268",
+  "split": "train",
+  "sourceTicketId": "ticket-027",
+  "situationNo": 2,
+  "cardId": "c-080",
+  "mode": "dds",
+  "field": "refusalComment",
+  "situation": "Дорожно-транспортные происшествия без пострадавших: ДТП без пострадавших и без раненых, легковой + фольксваген. Адрес: Москва, Садовое кольцо, от проспекта Мира, после ул. Малая Дмитровка, въезд в тоннель. Признаки: ДТП.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-027:2:c1",
+    "text": "причина: дубль карточки c-074"
+   },
+   {
+    "id": "fact:ticket-027:2:c2",
+    "text": "кому передано: информация принята по основной карточке"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-027:2:c1",
+    "fact:ticket-027:2:c2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-027:2:c1",
+    "fact:ticket-027:2:c2"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "typos",
+   "style": "разговорный",
+   "injection": true,
+   "injectionStyle": 4
+  }
+ },
+ {
+  "caseId": "sr-0269",
+  "split": "train",
+  "sourceTicketId": "ticket-030",
+  "situationNo": 1,
+  "cardId": "c-088",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Угон транспорта: Угнан Toyota синяя Е819ОХ 77, видели в последний раз вчера вечером. Адрес: Москва, ул. Ташкентская, 25 корп. 1, двор от 7 подъезда. Признаки: Угон транспорта, Транспорт автомашина, Свыше 30 мин.",
+  "applicant": {
+   "name": "Тарасова Татьяна Васильевна",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-030:1:d1",
+    "text": "Угнан Toyota синяя Е819ОХ 77"
+   },
+   {
+    "id": "fact:ticket-030:1:d2",
+    "text": "видели в последний раз вчера вечером"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-030:1:d1",
+    "fact:ticket-030:1:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-030:1:d1",
+    "fact:ticket-030:1:d2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0271",
+  "split": "train",
+  "sourceTicketId": "ticket-016",
+  "situationNo": 3,
+  "cardId": "c-048",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Комарова Надежда Алексеевна, 35 л., выпила упаковку «Донормила». Адрес: Москва, ул. Знаменские Садки, 7 корп. 2, кв. 216, под. 4, эт. 4, код 216. Признаки: Отравление.",
+  "applicant": {
+   "name": "Гусев Павел Евгеньевич",
+   "status": "родственник",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-016:3:d1",
+    "text": "Комарова Надежда Алексеевна, 35 л."
+   },
+   {
+    "id": "fact:ticket-016:3:d2",
+    "text": "выпила упаковку «Донормила»"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-016:3:d1",
+    "fact:ticket-016:3:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-016:3:d1",
+    "fact:ticket-016:3:d2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0272",
+  "split": "train",
+  "sourceTicketId": "ticket-002",
+  "situationNo": 2,
+  "cardId": "c-005",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Скандал: Поругался с продавцом «Мегафон», бросил трубку. Адрес: Москва, Сущевский Вал, 5, стр.1. Признаки: Скандал.",
+  "applicant": {
+   "name": "Виноградова Татьяна Михайловна",
+   "status": "участник",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-002:2:d1",
+    "text": "Поругался с продавцом «Мегафон», бросил трубку"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-002:2:d1"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-002:2:d1"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0275",
+  "split": "train",
+  "sourceTicketId": "ticket-007",
+  "situationNo": 1,
+  "cardId": "c-019",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "горит транспорт: Горит а/м Toyota бежевый, Х831АН 99. Водитель Шаров Владимир Михайлович, 54 г., ожог рук. Адрес: Москва, ст. метро Отрадное, рядом с ТК «Золотой Вавилон», на проезжей части. Признаки: транспорт, автомашина, открытое пламя, Пострадавшие.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-007:1:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-007:1:a2",
+    "text": "направлен расчёт МЧС (101)"
+   },
+   {
+    "id": "fact:ticket-007:1:a3",
+    "text": "направлена бригада СМП (103)"
+   },
+   {
+    "id": "fact:ticket-007:1:a4",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-007:1:a1",
+    "fact:ticket-007:1:a2",
+    "fact:ticket-007:1:a3",
+    "fact:ticket-007:1:a4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-007:1:a1",
+    "fact:ticket-007:1:a2",
+    "fact:ticket-007:1:a3",
+    "fact:ticket-007:1:a4"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0281",
+  "split": "train",
+  "sourceTicketId": "ticket-008",
+  "situationNo": 3,
+  "cardId": "c-024",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Тонет, на льдине: Тонет человек, мужчина кричит о помощи. Адрес: Москва, озеро Круглое, на пляже, рядом дом ул. Таманская, 75 корп. 2. Признаки: Человек в воде, на льдине, Человек тонет (в настоящее время).",
+  "applicant": {
+   "name": "Комаров Николай Станиславович",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-008:3:d1",
+    "text": "Тонет человек, мужчина кричит о помощи"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-008:3:d1"
+   ],
+   "missingFactIds": [
+    "fact:ticket-008:3:d1"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.75
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0283",
+  "split": "train",
+  "sourceTicketId": "ticket-019",
+  "situationNo": 1,
+  "cardId": "c-055",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "пожар на улице: Горит поле, пострадавших нет. Адрес: Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки. Признаки: на улице, Трава, открытое пламя.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-019:1:r1",
+    "text": "адрес: Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки"
+   },
+   {
+    "id": "fact:ticket-019:1:r2",
+    "text": "суть происшествия: Горит поле, пострадавших нет"
+   },
+   {
+    "id": "fact:ticket-019:1:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-019:1:r4",
+    "text": "номер карточки: 6912"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-019:1:r1",
+    "fact:ticket-019:1:r2",
+    "fact:ticket-019:1:r3",
+    "fact:ticket-019:1:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0284",
+  "split": "train",
+  "sourceTicketId": "ticket-016",
+  "situationNo": 3,
+  "cardId": "c-048",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Комарова Надежда Алексеевна, 35 л., выпила упаковку «Донормила». Адрес: Москва, ул. Знаменские Садки, 7 корп. 2, кв. 216, под. 4, эт. 4, код 216. Признаки: Отравление.",
+  "applicant": {
+   "name": "Гусев Павел Евгеньевич",
+   "status": "родственник",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-016:3:d1",
+    "text": "Комарова Надежда Алексеевна, 35 л."
+   },
+   {
+    "id": "fact:ticket-016:3:d2",
+    "text": "выпила упаковку «Донормила»"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-016:3:d1",
+    "fact:ticket-016:3:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-016:3:d1",
+    "fact:ticket-016:3:d2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0285",
+  "split": "train",
+  "sourceTicketId": "ticket-016",
+  "situationNo": 2,
+  "cardId": "c-047",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Ребёнок 11 лет, Васильчиков Александр, упал с велосипеда, отёк руки и ноги. Адрес: Волгоградская обл., г. Волжский, ул. Карла Маркса, около Волжского Молсыркомбината. Признаки: Ребёнок, Травма.",
+  "applicant": {
+   "name": "Зайцева Нина Константиновна",
+   "status": "родственник",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-016:2:d1",
+    "text": "Ребёнок 11 лет"
+   },
+   {
+    "id": "fact:ticket-016:2:d2",
+    "text": "Васильчиков Александр"
+   },
+   {
+    "id": "fact:ticket-016:2:d3",
+    "text": "упал с велосипеда"
+   },
+   {
+    "id": "fact:ticket-016:2:d4",
+    "text": "отёк руки и ноги"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-016:2:d1",
+    "fact:ticket-016:2:d2",
+    "fact:ticket-016:2:d3",
+    "fact:ticket-016:2:d4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0287",
+  "split": "train",
+  "sourceTicketId": "ticket-007",
+  "situationNo": 2,
+  "cardId": "c-020",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Сильная головная боль, А/Д 150/80. Белкин Максим Андреевич, д/р 11.08.2001. Адрес: Рязань, ул. Вишнёвая, 15, ч/дом. Признаки: Головная боль, Повышенное АД.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-007:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-007:2:a2",
+    "text": "вызов переведён в ЦУС Рязанской области"
+   },
+   {
+    "id": "fact:ticket-007:2:a3",
+    "text": "направлена бригада СМП региона"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-007:2:a1",
+    "fact:ticket-007:2:a2",
+    "fact:ticket-007:2:a3"
+   ],
+   "missingFactIds": [
+    "fact:ticket-007:2:a1",
+    "fact:ticket-007:2:a3"
+   ],
+   "presentFactIds": [
+    "fact:ticket-007:2:a2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "omitMany",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0288",
+  "split": "train",
+  "sourceTicketId": "ticket-019",
+  "situationNo": 2,
+  "cardId": "c-056",
+  "mode": "dds",
+  "field": "refusalComment",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Прихожанина укусила змея, в сознании; мужчина 60 л., Шаров Максим Викторович. Адрес: Рязанская обл., Свято-Иоанно-Богословский мужской монастырь, у входа. Признаки: Травма.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-019:2:c1",
+    "text": "причина: вызов из другого региона (Рязанской области)"
+   },
+   {
+    "id": "fact:ticket-019:2:c2",
+    "text": "кому передано: ЦУС Рязанской области"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-019:2:c1",
+    "fact:ticket-019:2:c2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0289",
+  "split": "train",
+  "sourceTicketId": "ticket-025",
+  "situationNo": 1,
+  "cardId": "c-073",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Хулиганство: Нетрезвый мужчина на остановке ругается, хватает прохожих за руки. Адрес: Москва, ул. Фабрициуса, остановка 62 автобуса «ул. Штурвальная» (сторона ул. Фабрициуса, 18). Признаки: Хулиганство, Пьяный в общественном месте.",
+  "applicant": {
+   "name": "Кириллов Вадим Александрович",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-025:1:d1",
+    "text": "Нетрезвый мужчина на остановке ругается"
+   },
+   {
+    "id": "fact:ticket-025:1:d2",
+    "text": "хватает прохожих за руки"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-025:1:d1",
+    "fact:ticket-025:1:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-025:1:d1",
+    "fact:ticket-025:1:d2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0291",
+  "split": "train",
+  "sourceTicketId": "ticket-009",
+  "situationNo": 2,
+  "cardId": "c-026",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Данилова Яна Геннадьевна, 36 л., 39 недель, отошли воды. Адрес: дорога от Носовихинского ш., от ж/д ст. Купавна в сторону Горьковского ш. (М7), напротив Бисерово озера, остановка «Кафе». Признаки: Роды.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-009:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-009:2:a2",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-009:2:a1",
+    "fact:ticket-009:2:a2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-009:2:a2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-009:2:a1"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0294",
+  "split": "train",
+  "sourceTicketId": "ticket-016",
+  "situationNo": 3,
+  "cardId": "c-048",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Комарова Надежда Алексеевна, 35 л., выпила упаковку «Донормила». Адрес: Москва, ул. Знаменские Садки, 7 корп. 2, кв. 216, под. 4, эт. 4, код 216. Признаки: Отравление.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-016:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-016:3:a2",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-016:3:a1",
+    "fact:ticket-016:3:a2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-016:3:a1",
+    "fact:ticket-016:3:a2"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "swapIncident",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null,
+   "foreignFacts": [
+    "направлен наряд полиции (102)"
+   ]
+  }
+ },
+ {
+  "caseId": "sr-0295",
+  "split": "train",
+  "sourceTicketId": "ticket-010",
+  "situationNo": 1,
+  "cardId": "c-028",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "пожар-опасный объект: Горит помещение кассы, открытый огонь. Кассир Абрамова Валентина Леонидовна, 45 л., ожог лица и рук. Адрес: Москва, ж/д ст. Текстильщики, платформа в сторону обл., подъезд для служб со стороны ул. Люблинская. Признаки: объект, общестенное место, открытое пламя, Пострадавшие.",
+  "applicant": {
+   "name": "Голубева Галина Михайловна",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-010:1:d1",
+    "text": "Горит помещение кассы"
+   },
+   {
+    "id": "fact:ticket-010:1:d2",
+    "text": "открытый огонь"
+   },
+   {
+    "id": "fact:ticket-010:1:d3",
+    "text": "Кассир Абрамова Валентина Леонидовна, 45 л."
+   },
+   {
+    "id": "fact:ticket-010:1:d4",
+    "text": "ожог лица и рук"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-010:1:d1",
+    "fact:ticket-010:1:d2",
+    "fact:ticket-010:1:d3",
+    "fact:ticket-010:1:d4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ }
+]

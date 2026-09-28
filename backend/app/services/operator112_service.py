@@ -374,6 +374,42 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     if assignment is not None and assignment.format == "exam" and isinstance(threshold, (int, float)):
         passed = round(100 * result.total) >= threshold
     evaluation = adapter.to_evaluation(result, passed=passed)
+
+    from app.services.ai_assessment import create_evaluation_revision
+
+    axes = {
+        "timeScore": int(evaluation["timeScore"]),
+        "correctnessScore": int(evaluation["correctnessScore"]),
+        "grammarScore": int(evaluation["grammarScore"]),
+        "semanticScore": int(evaluation["semanticScore"]),
+    }
+    available_axes = [k for k, v in axes.items() if v is not None]
+
+    from app.services.ai_error_registry import save_error_records
+
+    err_records_payload = adapter.to_error_records(
+        result=result,
+        attempt_id=attempt.id,
+        etalon_version=str(ticket.id),
+        assessor_version=str(evaluation["assessorVersion"]),
+        mode=MODE,
+    )
+    saved_error_records = await save_error_records(db, err_records_payload)
+    contract_errors = [r.to_contract() for r in saved_error_records]
+
+    await create_evaluation_revision(
+        db=db,
+        attempt_id=attempt.id,
+        mode=MODE,
+        status="preliminary",
+        available_axes=available_axes,
+        axes=axes,
+        total_score=int(evaluation["totalScore"]),
+        etalon_version=str(ticket.id),
+        assessor_version=str(evaluation["assessorVersion"]),
+        errors=contract_errors,
+    )
+
     db.add(
         Evaluation(
             attempt_id=attempt.id,
@@ -398,7 +434,27 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     from app.services.rating_service import sync as sync_rating
 
     await sync_rating(db, attempt.student_id, MODE)
-    return {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
+    response: dict[str, Any] = {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
+    if assignment is not None and assignment.training_mode == "chain":
+        from app.services.assignment_service import register_chain_submission
+
+        response["chainReview"] = await register_chain_submission(db, assignment, attempt)
+    return response
+
+
+async def saved_card_for_attempt(db: AsyncSession, attempt_id: str) -> IncidentCard:
+    """Возвращает только фактически созданную при submit карточку обучающегося."""
+    row = (
+        await db.execute(
+            select(IncidentCard).where(
+                IncidentCard.source_attempt_id == attempt_id,
+                IncidentCard.mode_origin == MODE,
+            )
+        )
+    ).scalars().one_or_none()
+    if row is None:
+        raise not_found(f"Для попытки «{attempt_id}» нет сохранённой карточки обучающегося")
+    return row
 
 
 async def evaluation(db: AsyncSession, attempt_id: str, viewer: Viewer) -> dict[str, Any]:

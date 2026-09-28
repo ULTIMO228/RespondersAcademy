@@ -17,7 +17,7 @@ import usersJson from "@mocks/users.json";
 import type { ArmCardFixture, Report, Session } from "./prototype-types";
 import type { ClassifierEntry, GroupReport, IncidentCard, ReferenceData, Scenario, User } from "./types";
 
-/* JSON приводится к контрактным типам spec/05-data-models.md; соответствие проверяют readers.test.ts. */
+/* JSON приводится к контрактным типам spec/000-фронт/05-data-models.md; соответствие проверяют readers.test.ts. */
 export const users = usersJson.users as User[];
 export const reference = referenceJson as ReferenceData;
 export const classifier = classifierJson.entries as ClassifierEntry[];

@@ -35,9 +35,10 @@ describe("login() против handler'а /auth/login", () => {
     expect(Number.isNaN(Date.parse(session.issuedAt))).toBe(false);
   });
 
-  it("2FA-код → twoFactorUsed = true", async () => {
+  it("неподдерживаемый код 2FA отклоняется", async () => {
     const credentials = { login: "ivanov", password: "student112", armNumber: 1, twoFactorCode: "000000" };
-    expect((await login(credentials, handlerClient)).twoFactorUsed).toBe(true);
+    const error = await captureError(login(credentials, handlerClient));
+    expect((error as ApiError).status).toBe(400);
   });
 
   it("неверный пароль → 401 и единое сообщение", async () => {

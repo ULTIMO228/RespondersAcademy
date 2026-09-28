@@ -16,7 +16,7 @@ import { JournalFilters } from "./JournalFilters";
 import styles from "./TeacherReportsPage.module.css";
 
 type ReportsJournalProps = {
-  /** Преподаватель сессии: в журнале — только его занятия (spec/02-roles.md). */
+  /** Преподаватель сессии: в журнале — только его занятия (spec/000-фронт/02-roles.md). */
   teacherId: string;
   /** Подмена клиента данных в тестах. */
   api?: JournalApi;

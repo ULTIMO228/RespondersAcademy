@@ -22,7 +22,7 @@ def load(name: str) -> dict:
 
 @pytest.fixture(scope="module")
 def reference() -> dict:
-    return json.loads((get_settings().seed_dir / "spec" / "mocks" / "reference.json").read_text(encoding="utf-8"))
+    return json.loads((get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "reference.json").read_text(encoding="utf-8"))
 
 
 def evaluate(doc: dict, reference: dict) -> dict:

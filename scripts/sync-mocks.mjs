@@ -3,13 +3,13 @@ import { cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = process.cwd();
-const MOCKS_SRC = join(ROOT, "spec", "mocks");
+const MOCKS_SRC = join(ROOT, "spec", "000-фронт", "mocks");
 const MOCKS_DST = join(ROOT, "mocks");
 const ICONS_SRC = join(ROOT, "icons");
 const ICONS_DST = join(ROOT, "public", "icons");
 const SKIPPED_ENTRIES = new Set(["_tools", "README.md"]);
 /*
- * Моки уровня приложения (не из spec/mocks, validate_mocks.py их не проверяет) — не удаляются:
+ * Моки уровня приложения (не из spec/000-фронт/mocks, validate_mocks.py их не проверяет) — не удаляются:
  *   local/ — справочник адресов карточки (T2.3-06); admin/ — сид журнала аудита (T4.1-01).
  */
 const APP_LOCAL_DIRS = new Set(["local", "admin"]);

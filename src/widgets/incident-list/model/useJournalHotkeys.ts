@@ -2,7 +2,7 @@
 
 import { useEffect, useEffectEvent } from "react";
 
-/* Горячие клавиши списка (spec/04-pages/01-arm-main.md «Действия», 07 «Горячие клавиши»). */
+/* Горячие клавиши списка (spec/000-фронт/04-pages/01-arm-main.md «Действия», 07 «Горячие клавиши»). */
 
 const EDITABLE_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 

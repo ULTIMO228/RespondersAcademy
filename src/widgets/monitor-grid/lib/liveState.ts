@@ -18,6 +18,8 @@ export type AttemptLive = {
   /** Ошибки мок-оценки ИИ по этой попытке (errors + grammarErrors). */
   errorCount: number;
   totalScore: number | null;
+  status?: "pending" | "preliminary" | "review_required" | "final";
+  revision?: number;
 };
 
 export type StudentLive = {
@@ -64,7 +66,9 @@ function applyEvent(live: StudentLive, event: SessionFeedEvent): void {
   }
   if (event.kind === "aiEvaluation") {
     attempt.errorCount = event.errorCount;
-    attempt.totalScore = event.totalScore;
+    attempt.totalScore = event.totalScore ?? null;
+    attempt.status = event.status;
+    attempt.revision = event.revision;
   }
 }
 

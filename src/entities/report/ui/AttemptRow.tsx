@@ -53,7 +53,37 @@ export function AttemptRow({ attempt, columnCount }: AttemptRowProps) {
             caption="отработка"
           />
         </td>
-        <td className={styles.row__score}>{attempt.score}</td>
+        <td className={styles.row__score}>
+          {attempt.status === "review_required" ? (
+            <span
+              className={styles.row__status}
+              data-status="review_required"
+              title="Требуется проверка преподавателем"
+            >
+              На проверке
+            </span>
+          ) : attempt.status === "pending" || attempt.score === null || attempt.score === undefined ? (
+            <span className={styles.row__status} data-status="pending" title="Оценка формируется">
+              Ожидание
+            </span>
+          ) : (
+            <span className={styles.row__scoreValue}>
+              {attempt.score}
+              {attempt.status === "preliminary" ? (
+                <span className={styles.row__statusLabel} title="Предварительная оценка ИИ">
+                  {" "}
+                  (Предварительно)
+                </span>
+              ) : null}
+              {attempt.status === "final" ? (
+                <span className={styles.row__statusLabelFinal} title="Итоговая оценка">
+                  {" "}
+                  (Итоговая)
+                </span>
+              ) : null}
+            </span>
+          )}
+        </td>
         <td className={styles.row__count}>{attempt.grammarErrorCount}</td>
       </tr>
       {isExpanded ? (

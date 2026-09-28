@@ -20,12 +20,11 @@ import type {
 } from "./session";
 import type { PublicUser, Role } from "./user";
 
-/** POST /api/mock/auth/login. twoFactorCode — любой 6-значный (заглушка 2FA). */
+/** POST /api/mock/auth/login. */
 export interface LoginRequest {
   login: string;
   password: string;
   armNumber: number;
-  twoFactorCode?: string;
 }
 
 /**
@@ -86,7 +85,7 @@ export type SessionIssueOrder = "manual" | "adaptive";
 
 /**
  * Настройки мастера занятия, по которым мок-слой строит расписание выдачи (T3.2-02, T3.2-09).
- * В контракте `Session` этих полей нет (spec/05-data-models.md §7) — план хранит мок-слой рядом с занятием
+ * В контракте `Session` этих полей нет (spec/000-фронт/05-data-models.md §7) — план хранит мок-слой рядом с занятием
  * и отдаёт через `GET /api/mock/sessions/[id]/control`.
  */
 export interface SessionPlan {
@@ -119,7 +118,7 @@ export interface SessionCreateRequest {
   plan?: SessionPlan;
 }
 
-/** Действия управления занятием (spec/04-pages/12 «Управление во время занятия»). */
+/** Действия управления занятием (spec/000-фронт/04-pages/12 «Управление во время занятия»). */
 export type SessionControlAction = "pause" | "resume" | "issue" | "report";
 
 /** POST /api/mock/sessions/[id]/control — пауза выдачи, внеочередная карточка, отчёт. */

@@ -152,7 +152,7 @@ globals()[sys.argv[1].replace("-", "_")]()
 PY
 
 step_login() {
-  req POST /auth/login "{\"login\":\"$LOGIN\",\"password\":\"$PASSWORD\",\"armNumber\":$ARM_NUMBER,\"twoFactorCode\":\"$TWO_FACTOR\"}"
+  req POST /auth/login "{\"login\":\"$LOGIN\",\"password\":\"$PASSWORD\",\"armNumber\":$ARM_NUMBER}"
   check "вход $LOGIN / АРМ $ARM_NUMBER / 2FA $TWO_FACTOR" 200 '"role":"student"' || return 1
   STUDENT_ID="$(jget userId)"
   SESSION_COOKIE="$(python3 "$WORK_DIR/tools.py" urlencode-cookie <"$WORK_DIR/body")"

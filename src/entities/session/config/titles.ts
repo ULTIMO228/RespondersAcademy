@@ -15,7 +15,7 @@ export const MODE_TITLES: Record<SessionMode, string> = {
   practice: "самостоятельная",
 };
 
-/** Категория вопросов Session.cardSource — дословно по ТЗ §10 / spec/04-pages/12. */
+/** Категория вопросов Session.cardSource — дословно по ТЗ §10 / spec/000-фронт/04-pages/12. */
 export const CARD_SOURCE_TITLES: Record<CardSource, string> = {
   generated: "сгенерированные системой",
   studentCreated: "сформированные обучающимися",

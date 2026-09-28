@@ -1,4 +1,4 @@
-/* Методические материалы справочной базы (заглушки PDF/DOCX — ТЗ §12; spec/04-pages/04-arm-progress.md). */
+/* Методические материалы справочной базы (заглушки PDF/DOCX — ТЗ §12; spec/000-фронт/04-pages/04-arm-progress.md). */
 export type MaterialFormat = "PDF" | "DOCX" | "Справка";
 
 export type HelpMaterial = {

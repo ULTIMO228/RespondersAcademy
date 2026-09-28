@@ -16,7 +16,7 @@ export type MockAiGatewayDeps = {
   groupReports: readonly GroupReport[];
 };
 
-/** Нормативы заказчика в секундах (spec/05-data-models.md §6: timeNorms 30 / 180). */
+/** Нормативы заказчика в секундах (spec/000-фронт/05-data-models.md §6: timeNorms 30 / 180). */
 const GENERATED_PRIMARY_REACTION_SEC = 30;
 const GENERATED_FULL_PROCESSING_SEC = 180;
 /** Базовое число вариаций и разброс (итого 2–3 сценария на категорию). */

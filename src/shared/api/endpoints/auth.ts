@@ -11,7 +11,7 @@ export interface LoginFailure {
   message: string;
 }
 
-/** Тексты отказов входа дословно по spec/04-pages/00-auth.md «Поведение». */
+/** Тексты отказов входа дословно по spec/000-фронт/04-pages/00-auth.md «Поведение». */
 export const LOGIN_FAILURE_MESSAGES = {
   invalid: "Неверный логин или пароль",
   blocked: "Учётная запись заблокирована. Обратитесь к администратору",
@@ -32,8 +32,7 @@ export function login(credentials: LoginRequest, client: ApiClient = apiClient):
 }
 
 /**
- * GET /auth/policy → политика входа (2FA, длина пароля, порог блокировки). Форма `/login` читает
- * её, чтобы уважать настройку администратора «Требовать 2FA» (T4.2-17).
+ * GET /auth/policy → политика парольного входа (длина пароля, порог блокировки).
  */
 export function getAuthPolicy(client: ApiClient = apiClient, signal?: AbortSignal): Promise<AuthPolicy> {
   return client.get<AuthPolicy>(API_PATHS.authPolicy, undefined, signal);

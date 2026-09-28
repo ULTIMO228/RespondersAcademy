@@ -59,11 +59,32 @@ ReportBuilder = Callable[[AsyncSession, str], Coroutine[Any, Any, None]]
 
 
 async def evaluation_contract(db: AsyncSession, attempt_id: str) -> dict[str, Any] | None:
+    from sqlalchemy import desc
+
+    from app.models.ai_assessment import EvaluationRevision
+
+    latest_rev = (
+        await db.execute(
+            select(EvaluationRevision)
+            .where(EvaluationRevision.attempt_id == attempt_id)
+            .order_by(desc(EvaluationRevision.revision))
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+
+    if latest_rev is not None and latest_rev.status in ("pending", "review_required"):
+        # По контракту v1: готовый Evaluation отдается только при preliminary|final
+        return None
+
     evaluation = await db.get(Evaluation, attempt_id)
     if evaluation is None:
         return None
     override = (await db.execute(select(TeacherOverride).where(TeacherOverride.attempt_id == attempt_id).order_by(TeacherOverride.id.desc()))).scalars().first()
-    return evaluation.to_contract(override.to_contract() if override else None)
+    data = evaluation.to_contract(override.to_contract() if override else None)
+    if latest_rev is not None:
+        data["revision"] = latest_rev.revision
+        data["status"] = latest_rev.status
+    return data
 
 
 async def attempts_of(db: AsyncSession, session_id: str) -> list[Attempt]:
@@ -494,7 +515,21 @@ def build_feed(session: dict[str, Any], since: str | None, at: str) -> list[dict
             events.append({**base, "kind": "cardCompleted", "at": attempt["completedAt"], "fullProcessingMs": attempt.get("fullProcessingMs", 0)})
             evaluation = attempt.get("evaluation")
             if evaluation:
-                events.append({**base, "kind": "aiEvaluation", "at": attempt["completedAt"], "isAi": True, "totalScore": evaluation["totalScore"], "errorCount": len(evaluation.get("errors", [])) + len(evaluation.get("grammarErrors", [])), "aiComment": evaluation.get("aiComment", "")})
+                rev_num = evaluation.get("revision", 1)
+                rev_status = evaluation.get("status", "final" if evaluation.get("teacherOverride") else "preliminary")
+                ev_payload: dict[str, Any] = {
+                    **base,
+                    "kind": "aiEvaluation",
+                    "at": attempt["completedAt"],
+                    "isAi": True,
+                    "revision": rev_num,
+                    "status": rev_status,
+                    "errorCount": len(evaluation.get("errors", [])) + len(evaluation.get("grammarErrors", [])),
+                    "aiComment": evaluation.get("aiComment", ""),
+                }
+                if rev_status in ("preliminary", "final"):
+                    ev_payload["totalScore"] = evaluation.get("totalScore")
+                events.append(ev_payload)
     at_ms = parse_iso_ms(at)
     since_ms = parse_iso_ms(since) if since else None
     ranked = [(parse_iso_ms(e["at"]), seq, e) for seq, e in enumerate(events)]

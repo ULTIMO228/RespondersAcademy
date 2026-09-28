@@ -1,5 +1,5 @@
 /*
- * Отчёты — spec/05-data-models.md §8 (mocks/reports.json).
+ * Отчёты — spec/000-фронт/05-data-models.md §8 (mocks/reports.json).
  * Графики типизированы по факту мока (в спеке — unknown). aiComment/groupInsights — ИИ-происхождение (бейдж «ИИ» в UI).
  */
 import type { CardSource, ErrorSeverity, GrammarErrorType, ScenarioMode } from "./session";
@@ -48,7 +48,7 @@ export interface ReportCharts {
   dynamics: { labels: string[]; scores: number[] };
 }
 
-/** Обратная связь преподавателя курсанту (spec/04-pages/13 п. 5) — видна в `/arm/progress`. */
+/** Обратная связь преподавателя курсанту (spec/000-фронт/04-pages/13 п. 5) — видна в `/arm/progress`. */
 export interface ReportFeedback {
   reportId: string;
   sessionId: string;
@@ -99,7 +99,7 @@ export interface ReportJournalStudent {
   fullName: string;
 }
 
-/** Строка журнала отчётов `/teacher/reports` (spec/04-pages/13 → «Журнал отчётов»). */
+/** Строка журнала отчётов `/teacher/reports` (spec/000-фронт/04-pages/13 → «Журнал отчётов»). */
 export interface ReportJournalRow {
   sessionId: string;
   teacherId: string;

@@ -78,6 +78,83 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
 
     attempt_doc["workMessages"] = [{**row.to_contract(), "delivered": parse_iso_ms(row.at) <= parse_iso_ms(cutoff)} for row in messages]
     evaluation = await asyncio.to_thread(gateway.evaluate_attempt, attempt_doc, scenario_doc, cards, reference, session_doc, weights)
+
+    from app.services.ai_assessment import create_evaluation_revision
+
+    axes = {
+        "timeScore": int(evaluation["timeScore"]),
+        "correctnessScore": int(evaluation["correctnessScore"]),
+        "grammarScore": int(evaluation["grammarScore"]),
+        "semanticScore": int(evaluation["semanticScore"]),
+    }
+    available_axes = [k for k, v in axes.items() if v is not None]
+
+    status = "preliminary"
+    total_score = int(evaluation["totalScore"])
+
+    from app.services.ai_error_registry import save_error_records
+
+    etalon_ver = str(scenario.id) if scenario is not None else f"chain:{attempt.card_id}"
+    assessor_ver = str(evaluation.get("assessorVersion") or "unknown")
+    mode_val = str(evaluation.get("mode") or attempt.mode or "dds")
+
+    err_records_payload = []
+    for err in evaluation.get("errors") or []:
+        rule_id = str(err.get("ruleId", "custom"))
+        err_records_payload.append({
+            "attempt_id": attempt.id,
+            "mode": mode_val,
+            "rule_id": rule_id,
+            "type": str(err.get("type", "unknown")),
+            "severity": str(err.get("severity", "major")),
+            "evidence_key": f"event:{err['step']}" if err.get("step") else f"rule:{rule_id}",
+            "field_path": None,
+            "event_id": err.get("step"),
+            "observed": str(err.get("message", "")).split(" — ")[0],
+            "expected": None,
+            "source_ref": str(err.get("message", "")).split(" — ")[1] if " — " in str(err.get("message", "")) else "правило",
+            "detector": "rule",
+            "etalon_version": etalon_ver,
+            "assessor_version": assessor_ver,
+            "fixed": bool(err.get("fixed", False)),
+        })
+
+    for index, g_err in enumerate(evaluation.get("grammarErrors") or []):
+        wrong = str(g_err.get("wrong", ""))
+        fragment = str(g_err.get("fragment", ""))
+        err_records_payload.append({
+            "attempt_id": attempt.id,
+            "mode": mode_val,
+            "rule_id": "g1",
+            "type": "grammarLimitExceeded",
+            "severity": "minor",
+            "evidence_key": f"grammar:{index}:{wrong or fragment[:20]}",
+            "field_path": "enteredText",
+            "event_id": None,
+            "observed": wrong or fragment,
+            "expected": str(g_err.get("expected", "")) or None,
+            "source_ref": "проверка грамматики",
+            "detector": "ml",
+            "etalon_version": etalon_ver,
+            "assessor_version": assessor_ver,
+            "fixed": False,
+        })
+
+    saved_error_records = await save_error_records(db, err_records_payload)
+    contract_errors = [r.to_contract() for r in saved_error_records]
+
+    await create_evaluation_revision(
+        db=db,
+        attempt_id=attempt.id,
+        mode=mode_val,
+        status=status,
+        available_axes=available_axes,
+        axes=axes,
+        total_score=total_score,
+        etalon_version=etalon_ver,
+        assessor_version=assessor_ver,
+        errors=contract_errors,
+    )
     row = Evaluation(
         attempt_id=attempt.id,
         assessor_version=str(evaluation.get("assessorVersion") or "unknown"),

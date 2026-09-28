@@ -5,7 +5,7 @@ import { createContext, useContext } from "react";
 import { getSessionControl, postSessionControl, stopSession } from "@/shared/api";
 
 /*
- * Зависимости управления занятием за интерфейсом (spec/10-code-rules.md §6): клиент мок-слоя /api/mock.
+ * Зависимости управления занятием за интерфейсом (spec/000-фронт/10-code-rules.md §6): клиент мок-слоя /api/mock.
  * Тесты подменяют через проп `api` компонента SessionControl.
  */
 export type SessionControlApi = {

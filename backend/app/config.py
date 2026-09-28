@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", env_file_encoding="utf-8", extra="ignore")
 
     database_url: str = Field(default="sqlite+aiosqlite:///./var/dev.db", alias="DATABASE_URL")
-    jwt_secret: str = Field(default="dev-secret-change-me", alias="JWT_SECRET")
+    jwt_secret: SecretStr = Field(alias="JWT_SECRET")
     jwt_ttl_hours: int = Field(default=24, alias="JWT_TTL_HOURS")
     tz_offset: str = Field(default="+03:00", alias="TZ_OFFSET")
     models_dir: Path = Field(default=BACKEND_DIR / "models", alias="MODELS_DIR")
@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     ml_warmup: bool = Field(default=True, alias="ML_WARMUP")  # прогрев моделей при старте (в тестах выключен)
     tts_enabled: bool = Field(default=True, alias="TTS_ENABLED")  # синтез аудио билетов (Silero); 0 — только расшифровка
     app_env: str = Field(default="dev", alias="APP_ENV")
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _strong_jwt_secret(cls, value: SecretStr) -> SecretStr:
+        secret = value.get_secret_value()
+        if len(secret.encode("utf-8")) < 32 or secret in {"dev-secret-change-me", "change-me-in-production"}:
+            raise ValueError("JWT_SECRET должен содержать не менее 32 байт случайного секрета")
+        return value
 
     @property
     def sqlite(self) -> bool:

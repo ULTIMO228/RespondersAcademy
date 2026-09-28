@@ -16,14 +16,15 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.datastructures import QueryParams
 
 from app.ai_gateway import get_gateway
 from app.api.deps import Viewer, actor_role, require_teacher_actor
-from app.api.errors import conflict, invalid_transition, not_found, validation_failed
+from app.api.errors import conflict, forbidden, invalid_transition, not_found, unauthorized, validation_failed
 from app.db.ids import PREFIX, next_id
+from app.models.ai_scenario import ScenarioVersion
 from app.models.card import Address, IncidentCard
 from app.models.scenario import Scenario
 from app.models.session import TrainingSession
@@ -75,6 +76,27 @@ async def require_scenario(db: AsyncSession, scenario_id: str) -> Scenario:
     return row
 
 
+async def require_scenario_access(db: AsyncSession, row: Scenario, viewer: Viewer | None) -> None:
+    if viewer is None or viewer.role == "admin":
+        return
+    if viewer.role == "teacher":
+        if row.source == "template" or row.created_by in (None, viewer.user_id):
+            return
+    if viewer.role == "student":
+        sessions = (await db.execute(select(TrainingSession.scenario_ids).where(TrainingSession.student_ids.contains([viewer.user_id])))).scalars().all()
+        if any(row.id in ids for ids in sessions):
+            return
+    raise forbidden("Сценарий недоступен пользователю")
+
+
+def require_scenario_editor(row: Scenario, viewer: Viewer | None) -> None:
+    if viewer is None or viewer.role == "admin":
+        return
+    if viewer.role == "teacher" and (row.created_by in (None, viewer.user_id) or row.source == "template"):
+        return
+    raise forbidden("Правка сценария доступна только его автору")
+
+
 # ─── Список ───────────────────────────────────────────────────────────────────────────────────────
 
 
@@ -94,7 +116,7 @@ def _read_difficulties(params: QueryParams) -> list[int]:
     return values
 
 
-async def list_scenarios(db: AsyncSession, params: QueryParams) -> list[dict[str, Any]]:
+async def list_scenarios(db: AsyncSession, params: QueryParams, viewer: Viewer) -> list[dict[str, Any]]:
     groups = read_list(params, "group")
     difficulties = _read_difficulties(params)
     source = _read_enum(params, "source", SOURCES)
@@ -105,6 +127,10 @@ async def list_scenarios(db: AsyncSession, params: QueryParams) -> list[dict[str
         card_groups = dict((await db.execute(select(IncidentCard.id, IncidentCard.group))).all())
     result: list[dict[str, Any]] = []
     for row in rows:
+        try:
+            await require_scenario_access(db, row, viewer)
+        except Exception:
+            continue
         if difficulties and row.difficulty not in difficulties:
             continue
         if source and row.source != source:
@@ -127,14 +153,17 @@ async def _assert_card_ids(db: AsyncSession, card_ids: list[str]) -> None:
         raise validation_failed(f"Карточка «{unknown}» не найдена")
 
 
-async def create_scenario(db: AsyncSession, body: dict[str, Any]) -> dict[str, Any]:
+async def create_scenario(db: AsyncSession, body: dict[str, Any], viewer: Viewer | None = None) -> dict[str, Any]:
+    if viewer is not None and viewer.role not in ("teacher", "admin"):
+        raise forbidden("Создание сценария доступно преподавателю")
     request: ScenarioCreateRequest = parse_body(ScenarioCreateRequest, body)
     await _assert_card_ids(db, request.card_ids)
     doc = request.dump()
     if request.call_target is not None and not request.call_target.strip():
         doc.pop("callTarget", None)
     doc["validation"] = {"status": "draft"}
-    row = Scenario(id=await next_id(db, PREFIX["scenario"], Scenario.id), doc=doc, title="", level="", difficulty=1, source="", validation_status="", history=[])
+    creator_id = viewer.user_id if viewer is not None else None
+    row = Scenario(id=await next_id(db, PREFIX["scenario"], Scenario.id), doc=doc, title="", level="", difficulty=1, source="", validation_status="", history=[], created_by=creator_id)
     doc["id"] = row.id
     row.sync_columns()
     db.add(row)
@@ -146,6 +175,7 @@ async def update_scenario(db: AsyncSession, scenario_id: str, body: dict[str, An
     row = await require_scenario(db, scenario_id)
     request: ScenarioUpdateRequest = parse_body(ScenarioUpdateRequest, body)
     teacher = await require_teacher_actor(db, viewer, request.updated_by, "updatedBy")
+    require_scenario_editor(row, viewer)
     doc = dict(row.doc)
     provided = request.model_fields_set
     changed: list[str] = []
@@ -200,6 +230,7 @@ async def delete_block(db: AsyncSession, row: Scenario) -> str | None:
 async def delete_scenario(db: AsyncSession, scenario_id: str, params: QueryParams, viewer: Viewer | None) -> dict[str, Any]:
     row = await require_scenario(db, scenario_id)
     teacher = await require_teacher_actor(db, viewer, read_string(params, "deletedBy"), "deletedBy")
+    require_scenario_editor(row, viewer)
     block = await delete_block(db, row)
     if block:
         raise conflict(DELETE_BLOCK_MESSAGES[block])
@@ -218,6 +249,7 @@ async def validate_scenario(db: AsyncSession, scenario_id: str, body: dict[str, 
     row = await require_scenario(db, scenario_id)
     request: ScenarioValidateRequest = parse_body(ScenarioValidateRequest, body)
     reviewer = await require_teacher_actor(db, viewer, request.reviewed_by, "reviewedBy")
+    require_scenario_editor(row, viewer)
     if reviewer.role != "teacher":
         raise validation_failed("Проверяющий должен быть преподавателем")
     fields = request.fields
@@ -303,7 +335,7 @@ async def generate_scenarios(db: AsyncSession, body: dict[str, Any], viewer: Vie
     gateway = get_gateway()
     produced = await asyncio.to_thread(gateway.generate_scenario, category, all_cards, addresses, count=GENERATED_COUNT)
     existing = (await db.execute(select(Scenario).where(Scenario.deleted.is_(False), Scenario.source == "generated"))).scalars().all()
-    by_title = {row.title: row for row in existing}
+    by_title = {row.title: row for row in existing if row.created_by == teacher.id}
     saved: list[Scenario] = []
     created = 0
     for item in produced:
@@ -336,7 +368,7 @@ async def generate_scenarios(db: AsyncSession, body: dict[str, Any], viewer: Vie
                     reports[card_id] = await asyncio.to_thread(validator.validate, contract, all_cards)
         doc["validation"] = {"status": "pending"}
         doc["source"] = "generated"
-        scenario_row = Scenario(id=await next_id(db, PREFIX["scenario"], Scenario.id), doc=doc, title="", level="", difficulty=1, source="", validation_status="", history=[])
+        scenario_row = Scenario(id=await next_id(db, PREFIX["scenario"], Scenario.id), doc=doc, title="", level="", difficulty=1, source="", validation_status="", history=[], created_by=teacher.id)
         doc["id"] = scenario_row.id
         scenario_row.validation_report = _aggregate_report(reports) if reports else None
         scenario_row.updated_by, scenario_row.updated_at = teacher.id, now_iso()
@@ -350,3 +382,38 @@ async def generate_scenarios(db: AsyncSession, body: dict[str, Any], viewer: Vie
     await record(db, action="scenario.generate", user_id=teacher.id, role=actor_role(viewer), details=f"Сгенерировано сценариев (ИИ{', ' + provider if provider else ''}): {created} новых из {len(saved)} по категории «{category}»")
     await db.commit()
     return [scenario_contract(row) for row in saved]
+
+
+async def create_ai_drafts(db: AsyncSession, body: Any, viewer: Viewer) -> list[dict[str, Any]]:
+    """Новый версионируемый workflow остаётся за сервисным API сценариев."""
+    from app.services.ai_scenario_service import create_drafts
+
+    return await create_drafts(db, body, viewer)
+
+
+async def bind_text_check(db: AsyncSession, scenario_id: str, scenario_version: int | None, viewer: Viewer | None) -> dict[str, Any]:
+    """US3: привязка замечаний проверки текста к сценарию и его **текущей** версии (T054).
+
+    Только преподаватель с доступом к сценарию (или администратор). Версия — последняя `ai_scenario_versions`;
+    переданная `scenarioVersion` должна совпадать с ней (проверка устаревшего текста → 409, как `baseVersion` в revise).
+    У сценария без AI-версий привязка — только к `scenarioId`; запрошенная версия тогда → 404.
+    """
+    from app.services.ai_scenario_service import require_scenario_access as require_ai_scenario_access
+
+    if viewer is None:
+        raise unauthorized("Проверка текста сценария доступна после входа преподавателя")
+    await require_ai_scenario_access(db, scenario_id, viewer)
+    current = await db.scalar(select(func.max(ScenarioVersion.version)).where(ScenarioVersion.scenario_id == scenario_id))
+    if current is None:
+        if scenario_version is not None:
+            raise not_found(f"Версия {scenario_version} сценария «{scenario_id}» не найдена")
+        return {"scenarioId": scenario_id}
+    if scenario_version is not None and scenario_version != current:
+        raise conflict(f"Текст относится к версии {scenario_version}, текущая версия сценария — {current}; повторите проверку")
+    return {"scenarioId": scenario_id, "scenarioVersion": int(current)}
+
+
+async def create_chain_dds_input(db: AsyncSession, attempt: Any, assignment: Any) -> dict[str, Any]:
+    from app.services.ai_scenario_service import create_chain_dds_draft
+
+    return await create_chain_dds_draft(db, attempt=attempt, assignment=assignment)

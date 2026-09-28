@@ -84,17 +84,17 @@ async def test_admin_users_journey(client: AsyncClient):
 
     # Вход созданным пользователем: старый пароль после сброса не работает, временный — работает.
     client.cookies.clear()
-    old = await client.post("/auth/login", json={"login": NEW_LOGIN, "password": "Temp-1234", "armNumber": 33, "twoFactorCode": "123456"})
+    old = await client.post("/auth/login", json={"login": NEW_LOGIN, "password": "Temp-1234", "armNumber": 33})
     assert old.status_code == 401
-    fresh = await client.post("/auth/login", json={"login": NEW_LOGIN, "password": temporary, "armNumber": 33, "twoFactorCode": "123456"})
+    fresh = await client.post("/auth/login", json={"login": NEW_LOGIN, "password": temporary, "armNumber": 33})
     assert fresh.status_code == 200 and fresh.json()["role"] == "teacher", fresh.text
 
 
 async def test_admin_users_requires_admin_actor(client: AsyncClient):
     client.cookies.clear()
     payload = {"fullName": "Без админа", "login": "no.admin", "password": "x", "role": "student", "armNumber": 5}
-    assert (await client.post("/admin/users", json=payload)).status_code == 400
-    assert (await client.post("/admin/users", json={**payload, "adminId": "u-002"})).status_code == 403
+    assert (await client.post("/admin/users", json=payload)).status_code == 401
+    assert (await client.post("/admin/users", json={**payload, "adminId": ADMIN_ID})).status_code == 401
     await login_as(client, "teacher")
     assert (await client.post("/admin/users", json={**payload, "adminId": ADMIN_ID})).status_code == 403
 
@@ -142,11 +142,10 @@ async def test_system_settings_norms_and_backup(client: AsyncClient):
     assert (await client.get("/admin/settings")).json() == current.json()
     db_host = current.json()["database"]["host"]
 
-    off = await client.patch("/admin/system/settings", json={"security": {"require2fa": False}, "adminId": ADMIN_ID})
-    assert off.status_code == 200 and off.json()["security"]["require2fa"] is False
+    assert "require2fa" not in current.json()["security"]
     assert (await client.get("/auth/policy")).json()["twoFactorRequired"] is False
     on = await client.patch("/admin/system/settings", json={"security": {"require2fa": True}, "adminId": ADMIN_ID})
-    assert on.json()["security"]["require2fa"] is True
+    assert on.status_code == 422
 
     for patch, needle in (
         ({"backup": {"periodHours": 48}}, "не реже 1 раза в сутки"),

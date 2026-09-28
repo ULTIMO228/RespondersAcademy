@@ -11,6 +11,7 @@ export default tseslint.config(
       "hack/**",
       "research/**",
       "public/**",
+      "backend/**",
       "test-results/**",
       "playwright-report/**",
       "next-env.d.ts",

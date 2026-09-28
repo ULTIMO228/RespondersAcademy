@@ -1,7 +1,7 @@
-/* Карта роутов приложения (spec/03-architecture.md «Карта роутов»). */
+/* Карта роутов приложения (spec/000-фронт/03-architecture.md «Карта роутов»). */
 export const ROUTES = {
   login: "/login",
-  /** Страница 403 «Доступ запрещён» (гварды ролей, spec/02-roles.md). */
+  /** Страница 403 «Доступ запрещён» (гварды ролей, spec/000-фронт/02-roles.md). */
   forbidden: "/forbidden",
   arm: "/arm",
   armCard: (cardId: string) => `/arm/card/${cardId}`,

@@ -19,7 +19,7 @@ type UserFormFieldsProps = {
 };
 
 /**
- * Поля учётной записи (spec/04-pages/20-admin-users.md): общие для создания и редактирования.
+ * Поля учётной записи (spec/000-фронт/04-pages/20-admin-users.md): общие для создания и редактирования.
  * № АРМ обязателен для всех ролей — в реальном АРМ-112 вход выполняется с номером АРМ (02-roles.md).
  */
 export function UserFormFields({ values, errors, groups, roleOptions, mode, onChange }: UserFormFieldsProps) {

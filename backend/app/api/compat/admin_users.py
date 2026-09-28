@@ -32,21 +32,19 @@ from app.schemas.admin import (
 from app.schemas.common import read_string
 from app.schemas.scenarios import parse_body
 from app.services import audit
-from app.services.security import hash_password, temporary_password
+from app.services.security import hash_password, revoke_user_sessions, temporary_password
 
 router = APIRouter()
 
 
 def _assert_admin_viewer(viewer: Viewer | None) -> None:
-    if viewer is not None and viewer.role != "admin":
+    if viewer is None or viewer.role != "admin":
         raise forbidden(ADMIN_ONLY_MESSAGE)
 
 
 async def _actor(db: AsyncSession, viewer: Viewer | None, raw: dict[str, Any]) -> User:
     """Администратор-инициатор: viewer либо `adminId` тела; без обоих — 400 «Укажите adminId» (как мок)."""
     admin_id = raw.get("adminId")
-    if viewer is None and (not isinstance(admin_id, str) or not admin_id.strip()):
-        raise validation_failed("Укажите «adminId»")
     return await require_admin_actor(db, viewer, admin_id.strip() if isinstance(admin_id, str) else None)
 
 
@@ -164,6 +162,7 @@ async def update_admin_user(user_id: str, request: Request, db: AsyncSession = D
     _apply_role_fields(user, next_role, body.group, body.service, body.assigned_groups)
     await db.flush()
     if next_role != before["role"]:
+        await revoke_user_sessions(db, user.id)
         await _audit(db, admin, "user.roleChange", f"Изменена роль учётной записи {_describe(user)}: «{ROLE_TITLE[before['role']]}» → «{ROLE_TITLE[next_role]}»")
     changes = _collect_changes(before, user)
     if changes:
@@ -181,8 +180,10 @@ async def _set_active(db: AsyncSession, admin: User, user_id: str, is_active: bo
         raise conflict(SELF_BLOCK_MESSAGE)
     user = await _require_user(db, user_id)
     user.is_active = is_active
+    await revoke_user_sessions(db, user.id)
     if is_active:
         user.failed_logins = 0
+        user.locked_until = None
     await db.flush()
     await _audit(db, admin, "user.unblock" if is_active else "user.block", f"{'Разблокирован' if is_active else 'Заблокирован'} пользователь {_describe(user)}")
     await db.commit()
@@ -214,7 +215,9 @@ async def reset_user_password(user_id: str, request: Request, db: AsyncSession =
     user = await _require_user(db, user_id)
     password = temporary_password()
     user.password_hash = hash_password(password)
+    await revoke_user_sessions(db, user.id)
     user.failed_logins = 0
+    user.locked_until = None
     await db.flush()
     await _audit(db, admin, "user.passwordReset", f"Сброшен пароль учётной записи {_describe(user)}; выдан временный пароль")
     await db.commit()

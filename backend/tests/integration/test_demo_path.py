@@ -33,7 +33,7 @@ def _now(offset_seconds: int = 0) -> str:
 
 async def _as_user(client: AsyncClient, login: str, password: str, arm: int) -> dict:
     client.cookies.clear()
-    response = await client.post("/auth/login", json={"login": login, "password": password, "armNumber": arm, "twoFactorCode": "123456"})
+    response = await client.post("/auth/login", json={"login": login, "password": password, "armNumber": arm})
     assert response.status_code == 200, response.text
     client.cookies.set("arm112_session", cookie_value(response.json()))
     return response.json()

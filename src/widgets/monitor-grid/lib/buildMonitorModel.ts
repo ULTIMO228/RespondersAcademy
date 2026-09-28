@@ -1,6 +1,6 @@
 /*
  * Плитки курсантов и очередь выдачи (T3.3-04, T3.3-06). Источник — занятие (cardFlow) и свёртка ленты;
- * второго источника истины нет. Формат таймеров — «м:сс» (spec/07-design-guidelines.md).
+ * второго источника истины нет. Формат таймеров — «м:сс» (spec/000-фронт/07-design-guidelines.md).
  */
 import { formatDuration, formatHourMinute } from "@/shared/lib";
 
@@ -35,7 +35,7 @@ function buildTile(studentId: string, source: MonitorSource): StudentTileModel {
   };
 }
 
-/** Плитки — по одной на каждого курсанта занятия (все видны одновременно, spec/04-pages/10). */
+/** Плитки — по одной на каждого курсанта занятия (все видны одновременно, spec/000-фронт/04-pages/10). */
 export function buildStudentTiles(source: MonitorSource): StudentTileModel[] {
   return source.session.studentIds.map((studentId) => buildTile(studentId, source));
 }

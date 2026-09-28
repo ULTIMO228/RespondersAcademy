@@ -21,7 +21,7 @@ function AccessCell({ access }: { access: RoleAccess }) {
   );
 }
 
-/** Справочная матрица «что может роль» (spec/02-roles.md) — только чтение. */
+/** Справочная матрица «что может роль» (spec/000-фронт/02-roles.md) — только чтение. */
 export function RoleMatrix() {
   return (
     <table className={styles.matrix} aria-label="Матрица доступа ролей к разделам">

@@ -1,0 +1,47 @@
+[
+ {
+  "caseId": "sr-0551",
+  "split": "train",
+  "sourceTicketId": "ticket-009",
+  "situationNo": 3,
+  "cardId": "c-027",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Тонет, на льдине: Мужчина упал с моста в воду, не умеет плавать. Адрес: Москва, Бережковский мост, ТТК внутр., середина моста. Признаки: Человек в воде, на льдине, Падение с моста прыгнул с моста.",
+  "applicant": {
+   "name": "Зайцев Геннадий Игоревич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-009:3:d1",
+    "text": "Мужчина упал с моста в воду"
+   },
+   {
+    "id": "fact:ticket-009:3:d2",
+    "text": "не умеет плавать"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-009:3:d1",
+    "fact:ticket-009:3:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-009:3:d1",
+    "fact:ticket-009:3:d2"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ }
+]

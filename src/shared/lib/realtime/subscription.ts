@@ -17,7 +17,7 @@ export type FeedSubscriptionOptions<TEvent> = {
   fetchPage: (since: string | undefined, signal: AbortSignal) => Promise<FeedPage<TEvent>>;
   onEvents: (page: FeedPage<TEvent>) => void;
   onStateChange?: (state: FeedConnectionState) => void;
-  /** Шаг опроса, 2000–5000 мс (spec/03-architecture.md «Реальное время»). */
+  /** Шаг опроса, 2000–5000 мс (spec/000-фронт/03-architecture.md «Реальное время»). */
   tickMs?: number;
   /** Адрес SSE-потока для фабрики (реальный бэкенд); мок-слой соединений не держит. */
   streamUrl?: string;

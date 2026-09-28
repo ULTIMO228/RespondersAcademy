@@ -17,7 +17,7 @@ export function JournalScreen({ student, nowMs, deps }: JournalScreenProps) {
 }
 
 /**
- * `/arm` — главный экран АРМ «Поиск происшествий» (spec/04-pages/01-arm-main.md).
+ * `/arm` — главный экран АРМ «Поиск происшествий» (spec/000-фронт/04-pages/01-arm-main.md).
  * Серверный компонент: оператор — пользователь сессии (гвард раздела — proxy + лэйаут); getSessionUser
  * читает cookie, поэтому рендер динамический и Date.now() — время запроса.
  */

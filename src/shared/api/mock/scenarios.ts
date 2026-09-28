@@ -262,7 +262,7 @@ export async function updateScenario(scenarioId: string, httpRequest: Request): 
 export type ScenarioDeleteBlock = "system" | "inSession";
 
 /**
- * Правило удаления (ТЗ §8, spec/02-roles.md): преподаватель удаляет только неактуальные собственные
+ * Правило удаления (ТЗ §8, spec/000-фронт/02-roles.md): преподаватель удаляет только неактуальные собственные
  * сценарии. Системные — 32 билета-шаблона (`source: 'template'`); используемые — попавшие в `Session.scenarioIds`.
  * null — удалять можно.
  */

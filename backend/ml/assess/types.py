@@ -112,6 +112,12 @@ class AssessError:
     message: str  # «<пояснение> — <правило-источник>»
     step: str | None = None  # id события таймлайна (статус/звонок)
     fixed: bool = False
+    evidence_key: str | None = None
+    field_path: str | None = None
+    observed: str | None = None
+    expected: str | None = None
+    source_ref: str | None = None
+    detector: str = "rule"
 
     def to_contract(self) -> dict[str, Any]:
         data: dict[str, Any] = {"type": self.type, "severity": self.severity, "message": self.message, "ruleId": self.rule_id}

@@ -323,6 +323,8 @@ def validate_settings_patch(patch: dict[str, dict[str, Any]]) -> list[dict[str, 
     errors: list[dict[str, str]] = []
     telephony, backup, logging = patch.get("telephony", {}), patch.get("backup", {}), patch.get("logging", {})
     security, performance, recovery = patch.get("security", {}), patch.get("performance", {}), patch.get("autoRecovery", {})
+    if "require2fa" in security:
+        errors.append({"field": "security.require2fa", "message": "2FA не поддерживается в локальном контуре"})
     _check_host(errors, "telephony.sipServer", telephony.get("sipServer"), SETTINGS_MESSAGES["sipServer"])
     _check_host(errors, "telephony.realm", telephony.get("realm"), SETTINGS_MESSAGES["realm"])
     _check_int(errors, "backup.periodHours", backup.get("periodHours"), LIMITS["backupMinPeriodHours"], NORMS["backupMaxPeriodHours"], SETTINGS_MESSAGES["backupPeriod"])

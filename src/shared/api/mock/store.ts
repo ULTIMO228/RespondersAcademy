@@ -29,7 +29,7 @@ import { createSeedCollections } from "./store-seed";
 
 /**
  * Настройки мастера и состояние выдачи занятия (T3.2-02, T3.2-11). Рядом с Session, а не внутри:
- * контракт Session (spec/05-data-models.md §7) этих полей не содержит.
+ * контракт Session (spec/000-фронт/05-data-models.md §7) этих полей не содержит.
  */
 export interface StoredSessionPlan {
   plan: SessionPlan;

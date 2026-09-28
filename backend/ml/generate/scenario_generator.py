@@ -123,9 +123,12 @@ def placeholder(index: int) -> str:
 def _reference() -> dict[str, Any]:
     from app.config import get_settings
 
-    path: Path = get_settings().seed_dir / "spec" / "mocks" / "reference.json"
-    if not path.exists():
-        return {}
+    return load_reference(get_settings().seed_dir)
+
+
+def load_reference(root: Path) -> dict[str, Any]:
+    """Читать канонический справочник; отсутствующий сид — ошибка конфигурации."""
+    path = root / "spec" / "000-фронт" / "mocks" / "reference.json"
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
 

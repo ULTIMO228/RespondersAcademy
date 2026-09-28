@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import delete, select
 
 from app.db.session import get_sessionmaker
-from app.models.assignment import Assignment, AssignmentAttempt
+from app.models.assignment import Assignment, AssignmentAttempt, AssignmentScenarioVersion, AssignmentStudent
 from app.models.session import Attempt, Evaluation, TrainingSession
 from app.services import evaluation_service
 from app.services.time import ms_to_iso, now_iso, parse_iso_ms
@@ -40,6 +40,8 @@ async def cleanup_exam() -> AsyncIterator[None]:
             await db.execute(delete(Attempt).where(Attempt.id.in_(attempt_ids)))
         if session_ids:
             await db.execute(delete(TrainingSession).where(TrainingSession.id.in_(session_ids)))
+        await db.execute(delete(AssignmentScenarioVersion).where(AssignmentScenarioVersion.assignment_id.in_(ids)))
+        await db.execute(delete(AssignmentStudent).where(AssignmentStudent.assignment_id.in_(ids)))
         await db.execute(delete(Assignment).where(Assignment.id.in_(ids)))
         await db.commit()
 

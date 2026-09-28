@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Boolean, ForeignKey, ForeignKeyConstraint, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, JSONVariant
@@ -63,3 +63,31 @@ class AssignmentAttempt(Base):
     hints_shown: Mapped[int] = mapped_column(Integer, default=0)
     state: Mapped[str] = mapped_column(String(16), default="ringing")
     passed: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+
+
+class AssignmentStudent(Base):
+    """Индексируемое назначение курсанта без поиска по JSON-массиву."""
+
+    __tablename__ = "assignment_students"
+
+    assignment_id: Mapped[str] = mapped_column(String(16), ForeignKey("assignments.id", ondelete="CASCADE"), primary_key=True)
+    student_id: Mapped[str] = mapped_column(String(16), ForeignKey("users.id"), primary_key=True, index=True)
+
+
+class AssignmentScenarioVersion(Base):
+    """Точная версия AI-сценария, выданная через задание."""
+
+    __tablename__ = "assignment_scenario_versions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["scenario_id", "version"],
+            ["ai_scenario_versions.scenario_id", "ai_scenario_versions.version"],
+            ondelete="RESTRICT",
+        ),
+    )
+
+    assignment_id: Mapped[str] = mapped_column(String(16), ForeignKey("assignments.id", ondelete="CASCADE"), primary_key=True)
+    scenario_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    card_id: Mapped[str] = mapped_column(String(32), index=True)
+    mode: Mapped[str] = mapped_column(String(16))

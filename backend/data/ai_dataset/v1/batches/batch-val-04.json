@@ -1,0 +1,1171 @@
+[
+ {
+  "caseId": "sr-0627",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 3,
+  "cardId": "c-087",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Угрозы взрывов и террористических актов: Муж угрожает взорвать квартиру бывшей супруги. Адрес: Москва, проезд Шокальского, 67 корп. 1, кв. 3, под. 1, эт. 1, код 67. Признаки: Угроза взрыва, Дом многоквартирный.",
+  "applicant": {
+   "name": "Данилов Георгий Григорьевич",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:3:d1",
+    "text": "Муж угрожает взорвать квартиру бывшей супруги"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "answerTimeout",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-029:3:d1"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0628",
+  "split": "validation",
+  "sourceTicketId": "ticket-006",
+  "situationNo": 1,
+  "cardId": "c-016",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "горит транспорт: Горит а/м Volkswagen красный, К909ЕА 777, пострадавших нет. Адрес: МКАД внутр. сторона, 1 км не доезжая до съезда на ул. Ген. Дорохова (МКАД, 49 км). Признаки: транспорт, автомашина, открытое пламя.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-006:1:a4",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-006:1:a3",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-006:1:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-006:1:a2",
+    "text": "направлен расчёт МЧС (101)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-006:1:a4",
+    "fact:ticket-006:1:a3",
+    "fact:ticket-006:1:a1",
+    "fact:ticket-006:1:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "foreignFact",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0629",
+  "split": "validation",
+  "sourceTicketId": "ticket-006",
+  "situationNo": 1,
+  "cardId": "c-016",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "горит транспорт: Горит а/м Volkswagen красный, К909ЕА 777, пострадавших нет. Адрес: МКАД внутр. сторона, 1 км не доезжая до съезда на ул. Ген. Дорохова (МКАД, 49 км). Признаки: транспорт, автомашина, открытое пламя.",
+  "applicant": {
+   "name": "Абрамова Надежда Романовна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-006:1:d1",
+    "text": "Горит а/м Volkswagen красный, К909ЕА 777"
+   },
+   {
+    "id": "fact:ticket-006:1:d2",
+    "text": "пострадавших нет"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-006:1:d1",
+    "fact:ticket-006:1:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-006:1:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-006:1:d1"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0630",
+  "split": "validation",
+  "sourceTicketId": "ticket-003",
+  "situationNo": 2,
+  "cardId": "c-008",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "нарушение тишины: Громко играет музыка во дворе. Адрес: Бульвар Маршала Рокоссовского, 25, двор. Признаки: Нарушение тишины - в неразрешенное время, Шум, музыка, ремонт, сигнализация автомашины.",
+  "applicant": {
+   "name": "Гусева Камилла Александровна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-003:2:d1",
+    "text": "Громко играет музыка во дворе"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-003:2:d1"
+   ],
+   "missingFactIds": [
+    "fact:ticket-003:2:d1"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0631",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 2,
+  "cardId": "c-086",
+  "mode": "dds",
+  "field": "refusalComment",
+  "situation": "Дорожно-транспортные происшествия без пострадавших: ДТП без пострадавших и раненых, драка между водителями, без оружия. Адрес: Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки. Признаки: ДТП, Драка.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:2:c1",
+    "text": "причина: вызов из другого региона (Тульской области)"
+   },
+   {
+    "id": "fact:ticket-029:2:c2",
+    "text": "кому передано: ЦУС Тульской области"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-029:2:c1",
+    "fact:ticket-029:2:c2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-029:2:c1",
+    "fact:ticket-029:2:c2"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0632",
+  "split": "validation",
+  "sourceTicketId": "ticket-032",
+  "situationNo": 3,
+  "cardId": "c-096",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Провода электрические: На МКАД (внутр. и внешн. сторона) от Ленинградского до Волоколамского ш. горит уличное освещение. Адрес: МКАД между 74 и 68 км. Признаки: Провода электрические, Мачта освещения, Горит.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-032:3:r1",
+    "text": "адрес: МКАД между 74 и 68 км"
+   },
+   {
+    "id": "fact:ticket-032:3:r2",
+    "text": "суть происшествия: На МКАД (внутр. и внешн. сторона) от Ленинградского до Волоколамского ш"
+   },
+   {
+    "id": "fact:ticket-032:3:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-032:3:r4",
+    "text": "номер карточки: 4468"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-032:3:r1",
+    "fact:ticket-032:3:r2",
+    "fact:ticket-032:3:r3",
+    "fact:ticket-032:3:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-032:3:r1",
+    "fact:ticket-032:3:r2",
+    "fact:ticket-032:3:r3",
+    "fact:ticket-032:3:r4"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0633",
+  "split": "validation",
+  "sourceTicketId": "ticket-003",
+  "situationNo": 1,
+  "cardId": "c-007",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "пожар в жилом доме: Горит крыша частного дома, пострадавших нет, дом не газифицирован. Адрес: ул. Станционная, 28. Признаки: жилой дом, частный дом, открытое пламя.",
+  "applicant": {
+   "name": "Голубев Геннадий Андреевич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-003:1:d1",
+    "text": "Горит крыша частного дома"
+   },
+   {
+    "id": "fact:ticket-003:1:d2",
+    "text": "пострадавших нет"
+   },
+   {
+    "id": "fact:ticket-003:1:d3",
+    "text": "дом не газифицирован"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "answerTimeout",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-003:1:d1",
+    "fact:ticket-003:1:d2",
+    "fact:ticket-003:1:d3"
+   ],
+   "missingFactIds": [
+    "fact:ticket-003:1:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-003:1:d1",
+    "fact:ticket-003:1:d3"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0634",
+  "split": "validation",
+  "sourceTicketId": "ticket-015",
+  "situationNo": 3,
+  "cardId": "c-045",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "ранение: Сожитель ударил ножом в ногу, кровотечение. Адрес: Москва, ул. Зверенецкая, 22, кв. 7, под. 1, эт. 2, код 7В. Признаки: Человек ранен, Ранение ножевое.",
+  "applicant": {
+   "name": "Денисова Яна Евгеньевна",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-015:3:d1",
+    "text": "Сожитель ударил ножом в ногу, кровотечение"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-015:3:d1"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-015:3:d1"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0635",
+  "split": "validation",
+  "sourceTicketId": "ticket-006",
+  "situationNo": 3,
+  "cardId": "c-018",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Тонет, на льдине: Трое мужчин плывут на льдине. Адрес: МО, Раменский г.о., р. Быковка, СНТ Малаховский городок (дер. Михнево). Признаки: Человек в воде, на льдине, Человек на льдине.",
+  "applicant": {
+   "name": "Быкова Людмила Павловна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-006:3:d1",
+    "text": "Трое мужчин плывут на льдине"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-006:3:d1"
+   ],
+   "missingFactIds": [
+    "fact:ticket-006:3:d1"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0636",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 2,
+  "cardId": "c-086",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Дорожно-транспортные происшествия без пострадавших: ДТП без пострадавших и раненых, драка между водителями, без оружия. Адрес: Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки. Признаки: ДТП, Драка.",
+  "applicant": {
+   "name": "Рябов Станислав Николаевич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:2:d1",
+    "text": "ДТП без пострадавших и раненых"
+   },
+   {
+    "id": "fact:ticket-029:2:d2",
+    "text": "драка между водителями, без оружия"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "answerTimeout",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-029:2:d1",
+    "fact:ticket-029:2:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-029:2:d1",
+    "fact:ticket-029:2:d2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0637",
+  "split": "validation",
+  "sourceTicketId": "ticket-003",
+  "situationNo": 2,
+  "cardId": "c-008",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "нарушение тишины: Громко играет музыка во дворе. Адрес: Бульвар Маршала Рокоссовского, 25, двор. Признаки: Нарушение тишины - в неразрешенное время, Шум, музыка, ремонт, сигнализация автомашины.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-003:2:r1",
+    "text": "адрес: Бульвар Маршала Рокоссовского, 25, двор"
+   },
+   {
+    "id": "fact:ticket-003:2:r2",
+    "text": "суть происшествия: Громко играет музыка во дворе"
+   },
+   {
+    "id": "fact:ticket-003:2:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-003:2:r4",
+    "text": "номер карточки: 2427"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-003:2:r1",
+    "fact:ticket-003:2:r2",
+    "fact:ticket-003:2:r3",
+    "fact:ticket-003:2:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-003:2:r1",
+    "fact:ticket-003:2:r2",
+    "fact:ticket-003:2:r3",
+    "fact:ticket-003:2:r4"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "официально-деловой",
+   "injection": true,
+   "injectionStyle": 5
+  }
+ },
+ {
+  "caseId": "sr-0638",
+  "split": "validation",
+  "sourceTicketId": "ticket-006",
+  "situationNo": 2,
+  "cardId": "c-017",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Мужчине 40 лет плохо, в а/м Ford синий В193ХМ 197. Адрес: Москва, ул. Красный Казанец, 19Б, напротив дома, на стоянке. Признаки: Плохо.",
+  "applicant": {
+   "name": "Артемьева Екатерина Михайловна",
+   "status": "пострадавший",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-006:2:d1",
+    "text": "Мужчине 40 лет плохо"
+   },
+   {
+    "id": "fact:ticket-006:2:d2",
+    "text": "в а/м Ford синий В193ХМ 197"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-006:2:d1",
+    "fact:ticket-006:2:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-006:2:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-006:2:d1"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0639",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 2,
+  "cardId": "c-086",
+  "mode": "dds",
+  "field": "refusalComment",
+  "situation": "Дорожно-транспортные происшествия без пострадавших: ДТП без пострадавших и раненых, драка между водителями, без оружия. Адрес: Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки. Признаки: ДТП, Драка.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:2:c1",
+    "text": "причина: вызов из другого региона (Тульской области)"
+   },
+   {
+    "id": "fact:ticket-029:2:c2",
+    "text": "кому передано: ЦУС Тульской области"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-029:2:c1",
+    "fact:ticket-029:2:c2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-029:2:c1",
+    "fact:ticket-029:2:c2"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.75
+  },
+  "recipe": {
+   "perturbation": "swapIncident",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null,
+   "foreignFacts": [
+    "причина: дубль карточки c-002",
+    "кому передано: информация принята по основной карточке"
+   ]
+  }
+ },
+ {
+  "caseId": "sr-0640",
+  "split": "validation",
+  "sourceTicketId": "ticket-006",
+  "situationNo": 1,
+  "cardId": "c-016",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "горит транспорт: Горит а/м Volkswagen красный, К909ЕА 777, пострадавших нет. Адрес: МКАД внутр. сторона, 1 км не доезжая до съезда на ул. Ген. Дорохова (МКАД, 49 км). Признаки: транспорт, автомашина, открытое пламя.",
+  "applicant": {
+   "name": "Абрамова Надежда Романовна",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-006:1:d1",
+    "text": "Горит а/м Volkswagen красный, К909ЕА 777"
+   },
+   {
+    "id": "fact:ticket-006:1:d2",
+    "text": "пострадавших нет"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-006:1:d1",
+    "fact:ticket-006:1:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-006:1:d1"
+   ],
+   "presentFactIds": [
+    "fact:ticket-006:1:d2"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0641",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 1,
+  "cardId": "c-085",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Обнаружение подозрительных предметов и транспортных средств: В парке на дорожке большая коробка, замотана скотчем, внутри что-то тикает. Адрес: Москва, парк «Лосиный остров», вход от ул. Красной Сосны, по дорожке до скамеек. Признаки: Подозрительный предмет, транспорт, боебприпасы, оружие, Подозрительный предмет (коробка, сумка, мешок и т.д.).",
+  "applicant": {
+   "name": "Логинов Павел Денисович",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:1:d1",
+    "text": "В парке на дорожке большая коробка"
+   },
+   {
+    "id": "fact:ticket-029:1:d2",
+    "text": "замотана скотчем"
+   },
+   {
+    "id": "fact:ticket-029:1:d3",
+    "text": "внутри что-то тикает"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-029:1:d1",
+    "fact:ticket-029:1:d2",
+    "fact:ticket-029:1:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-029:1:d1",
+    "fact:ticket-029:1:d2",
+    "fact:ticket-029:1:d3"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0642",
+  "split": "validation",
+  "sourceTicketId": "ticket-032",
+  "situationNo": 1,
+  "cardId": "c-094",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Дорожное движение помеха: Проезд перегорожен брошенным ВАЗ-2115 чёрным (заваление); уехали на Mercedes чёрный О524ОС 197 в сторону Ходынского бульвара. Адрес: Москва, ул. Маргелова, перед перекрёстком с ул. Гризодубовой. Признаки: Автомашина аварийная, Помеха, перекрыто движение.",
+  "applicant": {
+   "name": "Михеева Екатерина Станиславовна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-032:1:d1",
+    "text": "Проезд перегорожен брошенным ВАЗ-2115 чёрным (заваление)"
+   },
+   {
+    "id": "fact:ticket-032:1:d2",
+    "text": "уехали на Mercedes чёрный О524ОС 197 в сторону Ходынского бульвара"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "answerTimeout",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-032:1:d1",
+    "fact:ticket-032:1:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0643",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 2,
+  "cardId": "c-086",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Дорожно-транспортные происшествия без пострадавших: ДТП без пострадавших и раненых, драка между водителями, без оружия. Адрес: Тульская обл., дорога от г. Киреевск в сторону пос. Октябрьский, между заводом ЗОК и ж/д путями, 500 м от остановки. Признаки: ДТП, Драка.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-029:2:a2",
+    "text": "вызов переведён в ЦУС Тульской области"
+   },
+   {
+    "id": "fact:ticket-029:2:a3",
+    "text": "направлен наряд полиции региона (102)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-029:2:a1",
+    "fact:ticket-029:2:a2",
+    "fact:ticket-029:2:a3"
+   ],
+   "missingFactIds": [
+    "fact:ticket-029:2:a1"
+   ],
+   "presentFactIds": [
+    "fact:ticket-029:2:a2",
+    "fact:ticket-029:2:a3"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0644",
+  "split": "validation",
+  "sourceTicketId": "ticket-015",
+  "situationNo": 1,
+  "cardId": "c-043",
+  "mode": "dds",
+  "field": "refusalComment",
+  "situation": "пожар на улице: Горит лес за деревней Варварино, пострадавших нет. Адрес: МО, Дмитровский г.о., за деревней Варварино. Признаки: на улице, Лес, открытое пламя.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-015:1:c1",
+    "text": "причина: вызов из другого региона (Московской области)"
+   },
+   {
+    "id": "fact:ticket-015:1:c2",
+    "text": "кому передано: ЦУС Московской области"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-015:1:c1",
+    "fact:ticket-015:1:c2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-015:1:c1",
+    "fact:ticket-015:1:c2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "typos",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0645",
+  "split": "validation",
+  "sourceTicketId": "ticket-032",
+  "situationNo": 2,
+  "cardId": "c-095",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Дорожно-транспортные происшествия с пострадавшими: ДТП, 3 пострадавших в троллейбусе (маршрут 27, борт. № 11458), не блокированы + ВАЗ-2115, течёт бензин. Адрес: Москва, Волгоградский проспект в сторону области, остановка «Завод Спецэлектрод». Признаки: ДТП пострадавшие, Транспорт общественный, Разлив топлива.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-032:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-032:2:a2",
+    "text": "направлена бригада СМП (103)"
+   },
+   {
+    "id": "fact:ticket-032:2:a3",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-032:2:a4",
+    "text": "направлен расчёт МЧС (101)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-032:2:a1",
+    "fact:ticket-032:2:a2",
+    "fact:ticket-032:2:a3",
+    "fact:ticket-032:2:a4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0646",
+  "split": "validation",
+  "sourceTicketId": "ticket-015",
+  "situationNo": 2,
+  "cardId": "c-044",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Мужчина 30 л. нырнул, ударился о камень, рассечение головы, кровотечение, в сознании. Адрес: МО, Одинцовский р-н, дер. Сколково, 17, пруд справа от дома. Признаки: Травма.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-015:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-015:2:a2",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-015:2:a1",
+    "fact:ticket-015:2:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-015:2:a1",
+    "fact:ticket-015:2:a2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0647",
+  "split": "validation",
+  "sourceTicketId": "ticket-015",
+  "situationNo": 3,
+  "cardId": "c-045",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "ранение: Сожитель ударил ножом в ногу, кровотечение. Адрес: Москва, ул. Зверенецкая, 22, кв. 7, под. 1, эт. 2, код 7В. Признаки: Человек ранен, Ранение ножевое.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-015:3:a3",
+    "text": "направлена бригада СМП (103)"
+   },
+   {
+    "id": "fact:ticket-015:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-015:3:a4",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-015:3:a2",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-015:3:a3",
+    "fact:ticket-015:3:a1",
+    "fact:ticket-015:3:a4",
+    "fact:ticket-015:3:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "foreignFact",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0648",
+  "split": "validation",
+  "sourceTicketId": "ticket-029",
+  "situationNo": 3,
+  "cardId": "c-087",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Угрозы взрывов и террористических актов: Муж угрожает взорвать квартиру бывшей супруги. Адрес: Москва, проезд Шокальского, 67 корп. 1, кв. 3, под. 1, эт. 1, код 67. Признаки: Угроза взрыва, Дом многоквартирный.",
+  "applicant": {
+   "name": "Данилов Георгий Григорьевич",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-029:3:d1",
+    "text": "Муж угрожает взорвать квартиру бывшей супруги"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-029:3:d1"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-029:3:d1"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0649",
+  "split": "validation",
+  "sourceTicketId": "ticket-006",
+  "situationNo": 1,
+  "cardId": "c-016",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "горит транспорт: Горит а/м Volkswagen красный, К909ЕА 777, пострадавших нет. Адрес: МКАД внутр. сторона, 1 км не доезжая до съезда на ул. Ген. Дорохова (МКАД, 49 км). Признаки: транспорт, автомашина, открытое пламя.",
+  "applicant": {
+   "name": "Абрамова Надежда Романовна",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-006:1:d1",
+    "text": "Горит а/м Volkswagen красный, К909ЕА 777"
+   },
+   {
+    "id": "fact:ticket-006:1:d2",
+    "text": "пострадавших нет"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-006:1:d1",
+    "fact:ticket-006:1:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0650",
+  "split": "validation",
+  "sourceTicketId": "ticket-003",
+  "situationNo": 2,
+  "cardId": "c-008",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "нарушение тишины: Громко играет музыка во дворе. Адрес: Бульвар Маршала Рокоссовского, 25, двор. Признаки: Нарушение тишины - в неразрешенное время, Шум, музыка, ремонт, сигнализация автомашины.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-003:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-003:2:a2",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-003:2:a1",
+    "fact:ticket-003:2:a2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-003:2:a1"
+   ],
+   "presentFactIds": [
+    "fact:ticket-003:2:a2"
+   ],
+   "confidence": 0.75
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0651",
+  "split": "validation",
+  "sourceTicketId": "ticket-032",
+  "situationNo": 3,
+  "cardId": "c-096",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Провода электрические: На МКАД (внутр. и внешн. сторона) от Ленинградского до Волоколамского ш. горит уличное освещение. Адрес: МКАД между 74 и 68 км. Признаки: Провода электрические, Мачта освещения, Горит.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-032:3:r1",
+    "text": "адрес: МКАД между 74 и 68 км"
+   },
+   {
+    "id": "fact:ticket-032:3:r2",
+    "text": "суть происшествия: На МКАД (внутр. и внешн. сторона) от Ленинградского до Волоколамского ш"
+   },
+   {
+    "id": "fact:ticket-032:3:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-032:3:r4",
+    "text": "номер карточки: 4468"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-032:3:r1",
+    "fact:ticket-032:3:r2",
+    "fact:ticket-032:3:r3",
+    "fact:ticket-032:3:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ }
+]

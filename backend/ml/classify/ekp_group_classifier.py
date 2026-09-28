@@ -41,7 +41,7 @@ _artifact_failed = False
 def _seed_root() -> Path:
     from app.config import get_settings
 
-    return get_settings().seed_dir / "spec" / "mocks"
+    return get_settings().seed_dir / "spec" / "000-фронт" / "mocks"
 
 
 def artifact_path() -> Path:

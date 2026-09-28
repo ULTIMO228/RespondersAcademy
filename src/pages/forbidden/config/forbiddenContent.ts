@@ -1,4 +1,4 @@
-/* Тексты страницы 403 (spec/02-roles.md «Матрица доступа», spec/03-architecture.md «Гварды»). */
+/* Тексты страницы 403 (spec/000-фронт/02-roles.md «Матрица доступа», spec/000-фронт/03-architecture.md «Гварды»). */
 export const FORBIDDEN_TEXT = {
   title: "Доступ запрещён",
   code: "Ошибка 403",

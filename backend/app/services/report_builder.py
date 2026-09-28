@@ -355,3 +355,89 @@ async def save_feedback(db: AsyncSession, viewer: Viewer | None, body: dict[str,
             setattr(row, key, value)
     await db.flush()
     return row.to_contract()
+
+
+async def build_ai_session_report(db: AsyncSession, session_id: str) -> Any:
+    """Формирует канонический SessionReport строго из сохраненных ErrorRecord и EvaluationRevision (T031)."""
+    from app.models.ai_assessment import ErrorRecord, EvaluationRevision
+    from app.schemas.v1.ai import ModeBreakdown
+    from app.schemas.v1.ai import SessionReport as SessionReportSchema
+
+    stmt = select(Attempt).where(Attempt.session_id == session_id).order_by(Attempt.seq, Attempt.id)
+    attempts = list((await db.execute(stmt)).scalars().all())
+
+    if not attempts:
+        return SessionReportSchema(
+            schema_version="ai-workflow/1",
+            session_id=session_id,
+            generated_at=now_iso(),
+            attempt_ids=[],
+            error_counts={},
+            review_pending_count=0,
+            mode_breakdown=ModeBreakdown(operator112=0, dds=0),
+            effective_scores={},
+            error_record_ids=[],
+        )
+
+    attempt_ids = [a.id for a in attempts]
+
+    # Подсчет режимов
+    mode_counts = {"operator112": 0, "dds": 0}
+    for a in attempts:
+        m = a.mode or "dds"
+        if m in mode_counts:
+            mode_counts[m] += 1
+
+    # Подсчет баллов и незавершенных/ожидающих проверок
+    effective_scores: dict[str, int] = {}
+    review_pending_count = 0
+
+    for a in attempts:
+        # Ищем последнюю ревизию оценки
+        rev_stmt = (
+            select(EvaluationRevision)
+            .where(EvaluationRevision.attempt_id == a.id)
+            .order_by(EvaluationRevision.revision.desc())
+            .limit(1)
+        )
+        rev = (await db.execute(rev_stmt)).scalar_one_or_none()
+
+        if rev is not None:
+            if rev.status in ("pending", "review_required"):
+                review_pending_count += 1
+            if rev.total_score is not None:
+                effective_scores[a.id] = rev.total_score
+        else:
+            # Проверяем старый Evaluation если нет ревизии
+            eval_doc = await evaluation_contract(db, a.id)
+            score = effective_score(eval_doc)
+            if score is not None:
+                effective_scores[a.id] = score
+            else:
+                review_pending_count += 1
+
+    # Читаем ErrorRecord для всех попыток занятия
+    err_stmt = select(ErrorRecord).where(ErrorRecord.attempt_id.in_(attempt_ids)).order_by(ErrorRecord.id)
+    records = list((await db.execute(err_stmt)).scalars().all())
+
+    error_counts: dict[str, int] = {}
+    for r in records:
+        error_counts[r.type] = error_counts.get(r.type, 0) + 1
+
+    error_record_ids = [r.id for r in records]
+
+    return SessionReportSchema(
+        schema_version="ai-workflow/1",
+        session_id=session_id,
+        generated_at=now_iso(),
+        attempt_ids=attempt_ids,
+        error_counts=error_counts,
+        review_pending_count=review_pending_count,
+        mode_breakdown=ModeBreakdown(
+            operator112=mode_counts["operator112"],
+            dds=mode_counts["dds"],
+        ),
+        effective_scores=effective_scores,
+        error_record_ids=error_record_ids,
+    )
+

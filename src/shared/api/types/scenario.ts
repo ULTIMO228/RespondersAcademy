@@ -1,5 +1,5 @@
 /*
- * Учебные сценарии и эталоны — spec/05-data-models.md §6 (mocks/scenarios.json, 36 шт.).
+ * Учебные сценарии и эталоны — spec/000-фронт/05-data-models.md §6 (mocks/scenarios.json, 36 шт.).
  */
 import type { ScenarioMode } from "./session";
 
@@ -70,8 +70,93 @@ export interface Scenario {
   successCriteria: SuccessCriteria;
   source: ScenarioSource;
   /**
-   * [расширение] Режим отработки по умолчанию (spec/04-pages/11, редактор п. 1: demo/follow/practice).
+   * [расширение] Режим отработки по умолчанию (spec/000-фронт/04-pages/11, редактор п. 1: demo/follow/practice).
    * В spec/05 §6 поля нет — в mocks/scenarios.json оно отсутствует; мастер занятия задаёт Session.mode.
    */
   mode?: ScenarioMode;
+}
+
+export type AIWorkflowMode = "operator112" | "dds";
+export type AIWorkflowSourceKind = "ticket" | "template" | "llm" | "student_card";
+export type AIWorkflowApproval = "draft" | "validation_failed" | "pending_review" | "approved" | "rejected";
+export type AIWorkflowValidation = "pending" | "passed" | "failed";
+export type AIFieldDecisionKind = "accepted" | "edited" | "rejected";
+
+export interface AIValidationError {
+  fieldPath: string;
+  code: string;
+  message: string;
+}
+
+export interface AIFieldDecision {
+  fieldPath: string;
+  decision: AIFieldDecisionKind;
+  value?: unknown;
+  teacherId: string;
+  at: string;
+  comment?: string;
+}
+
+export interface AIExpectedAction {
+  action: string;
+  sourceRef: string[];
+}
+
+export interface AIScenarioVersion {
+  schemaVersion: "ai-workflow/1";
+  scenarioId: string;
+  version: number;
+  mode: AIWorkflowMode;
+  sourceTicketId: string;
+  sourceSituationNo: number;
+  sourceKind: AIWorkflowSourceKind;
+  sourceHash: string;
+  sourceAttemptId?: string;
+  sourceCardId?: string;
+  sourceCardVersion?: number;
+  parentVersion?: number;
+  teacherComment?: string;
+  validation: AIWorkflowValidation;
+  validationErrors: AIValidationError[];
+  approval: AIWorkflowApproval;
+  cardSnapshot: { id: string; fields: Record<string, unknown> };
+  etalonVersion: string;
+  ruleSourceIds: string[];
+  semanticFacts: Record<string, unknown>[];
+  classifierVersion: string;
+  etalon: {
+    expectedFields: Record<string, unknown>;
+    expectedActions: AIExpectedAction[];
+    semanticFacts: Record<string, unknown>[];
+    ruleSourceIds: string[];
+    classifierVersion: string;
+  };
+  fieldDecisions: AIFieldDecision[];
+  approvedBy?: string;
+}
+
+export interface AIScenarioDraftRequest {
+  mode: AIWorkflowMode;
+  sourceTicketId: string;
+  category: string;
+  count: number;
+  requestId: string;
+}
+
+export interface AIFieldDecisionInput {
+  fieldPath: string;
+  decision: AIFieldDecisionKind;
+  value?: unknown;
+}
+
+export interface AIScenarioReviseRequest {
+  baseVersion: number;
+  comment: string;
+  acceptedFields: AIFieldDecisionInput[];
+  requestId: string;
+}
+
+export interface AIScenarioApproveRequest {
+  version: number;
+  requestId: string;
 }

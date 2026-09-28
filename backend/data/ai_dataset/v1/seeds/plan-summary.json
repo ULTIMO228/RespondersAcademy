@@ -1,0 +1,109 @@
+{
+ "total": 787,
+ "bySplit": {
+  "holdout": 112,
+  "train": 551,
+  "validation": 124
+ },
+ "byField": {
+  "description": 360,
+  "dispatcherAction": 200,
+  "refusalComment": 67,
+  "serviceReport": 160
+ },
+ "byDecision": {
+  "different": 315,
+  "equivalent": 316,
+  "uncertain": 156
+ },
+ "byPerturbation": {
+  "abbreviated": 49,
+  "ambiguousText": 73,
+  "colloquial": 66,
+  "contradict": 116,
+  "emptyReference": 16,
+  "foreignFact": 20,
+  "offTopic": 47,
+  "omitMany": 22,
+  "omitOne": 111,
+  "paraphrase": 94,
+  "swapIncident": 66,
+  "typos": 48,
+  "verbose": 59
+ },
+ "tickets": {
+  "train": [
+   "ticket-001",
+   "ticket-002",
+   "ticket-004",
+   "ticket-005",
+   "ticket-007",
+   "ticket-008",
+   "ticket-009",
+   "ticket-010",
+   "ticket-011",
+   "ticket-012",
+   "ticket-013",
+   "ticket-014",
+   "ticket-016",
+   "ticket-019",
+   "ticket-021",
+   "ticket-022",
+   "ticket-025",
+   "ticket-026",
+   "ticket-027",
+   "ticket-028",
+   "ticket-030",
+   "ticket-031"
+  ],
+  "validation": [
+   "ticket-003",
+   "ticket-006",
+   "ticket-015",
+   "ticket-029",
+   "ticket-032"
+  ],
+  "holdout": [
+   "ticket-017",
+   "ticket-018",
+   "ticket-020",
+   "ticket-023",
+   "ticket-024"
+  ]
+ },
+ "batches": [
+  "batch-tra-01.json",
+  "batch-tra-02.json",
+  "batch-tra-03.json",
+  "batch-tra-04.json",
+  "batch-tra-05.json",
+  "batch-tra-06.json",
+  "batch-tra-07.json",
+  "batch-tra-08.json",
+  "batch-tra-09.json",
+  "batch-tra-10.json",
+  "batch-tra-11.json",
+  "batch-tra-12.json",
+  "batch-tra-13.json",
+  "batch-tra-14.json",
+  "batch-tra-15.json",
+  "batch-tra-16.json",
+  "batch-tra-17.json",
+  "batch-tra-18.json",
+  "batch-tra-19.json",
+  "batch-tra-20.json",
+  "batch-tra-21.json",
+  "batch-tra-22.json",
+  "batch-tra-23.json",
+  "batch-val-01.json",
+  "batch-val-02.json",
+  "batch-val-03.json",
+  "batch-val-04.json",
+  "batch-val-05.json",
+  "batch-hol-01.json",
+  "batch-hol-02.json",
+  "batch-hol-03.json",
+  "batch-hol-04.json",
+  "batch-hol-05.json"
+ ]
+}

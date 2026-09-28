@@ -5,7 +5,7 @@ import { ArmIcon } from "@/shared/ui";
 import type { LoadStatus } from "../model/types";
 import styles from "./IncidentTable.module.css";
 
-/** Колонки по реальному экрану ДДС (spec/04-pages/01-arm-main.md); null — служебная ячейка-иконка без подписи. */
+/** Колонки по реальному экрану ДДС (spec/000-фронт/04-pages/01-arm-main.md); null — служебная ячейка-иконка без подписи. */
 export const JOURNAL_COLUMNS: Array<string | null> = [
   null,
   "Связи",

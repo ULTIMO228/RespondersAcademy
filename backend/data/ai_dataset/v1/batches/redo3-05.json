@@ -1,0 +1,588 @@
+[
+ {
+  "caseId": "sr-0776",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 3,
+  "cardId": "c-069",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Ребенок в опасности: Потерялся Блинов Евгений, 5 л., 30 мин назад; синяя куртка, жёлтая шапка, шарф и варежки, синие брюки, чёрные ботинки; гулял с бабушкой. Адрес: Москва, ул. Домодедовская, 34 корп. 1, двор у 3 подъезда. Признаки: Потерялся (пропал): В городской среде.",
+  "applicant": {
+   "name": "Абрамов Василий Леонидович",
+   "status": "родственник",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:3:d1",
+    "text": "Потерялся Блинов Евгений, 5 л., 30 мин назад, синяя куртка, жёлтая шапка"
+   },
+   {
+    "id": "fact:ticket-023:3:d2",
+    "text": "шарф и варежки, синие брюки"
+   },
+   {
+    "id": "fact:ticket-023:3:d3",
+    "text": "чёрные ботинки"
+   },
+   {
+    "id": "fact:ticket-023:3:d4",
+    "text": "гулял с бабушкой"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-023:3:d1",
+    "fact:ticket-023:3:d2",
+    "fact:ticket-023:3:d3",
+    "fact:ticket-023:3:d4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-023:3:d1",
+    "fact:ticket-023:3:d2",
+    "fact:ticket-023:3:d3",
+    "fact:ticket-023:3:d4"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0777",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 1,
+  "cardId": "c-058",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Драка: Дерутся 3 человека, без пострадавших, без оружия. Адрес: Москва, Олонецкий проезд, 4, за домом, дорожка в сторону кладбища. Признаки: Драка, Улица общественное место, До 10 человек.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:1:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-020:1:a2",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-020:1:a1",
+    "fact:ticket-020:1:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-020:1:a1",
+    "fact:ticket-020:1:a2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0778",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 1,
+  "cardId": "c-049",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "пожар в жилом доме: Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет. Адрес: Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215. Признаки: жилой дом, сигнализация.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:1:r1",
+    "text": "адрес: Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215"
+   },
+   {
+    "id": "fact:ticket-017:1:r2",
+    "text": "суть происшествия: Сработала пожарная сигнализация в жилом доме"
+   },
+   {
+    "id": "fact:ticket-017:1:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-017:1:r4",
+    "text": "номер карточки: 8390"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-017:1:r1",
+    "fact:ticket-017:1:r2",
+    "fact:ticket-017:1:r3",
+    "fact:ticket-017:1:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-017:1:r1",
+    "fact:ticket-017:1:r2",
+    "fact:ticket-017:1:r3",
+    "fact:ticket-017:1:r4"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0779",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 2,
+  "cardId": "c-068",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Артемьева Татьяна Романовна, 14.07.1977 г.р., чистила ухо, повредила барабанную перепонку, кровотечение. Адрес: Москва, ул. Лесная, 5. Признаки: Боль в ухе, нарушение слуха, Кровотечение.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-023:2:a2",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-023:2:a1",
+    "fact:ticket-023:2:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-023:2:a1",
+    "fact:ticket-023:2:a2"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0780",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 2,
+  "cardId": "c-050",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: У покупателя в магазине судороги, пена изо рта, при падении разбил голову; мужчина 40–45 л.. Адрес: Москва, ул. Твардовского, вл2к1,2, магазин «Лента», у касс. Признаки: Судороги.",
+  "applicant": {
+   "name": "Абрамов Георгий Олегович",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:2:d1",
+    "text": "У покупателя в магазине судороги, пена изо рта"
+   },
+   {
+    "id": "fact:ticket-017:2:d2",
+    "text": "при падении разбил голову"
+   },
+   {
+    "id": "fact:ticket-017:2:d3",
+    "text": "мужчина 40–45 л"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-017:2:d1",
+    "fact:ticket-017:2:d2",
+    "fact:ticket-017:2:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0781",
+  "split": "holdout",
+  "sourceTicketId": "ticket-024",
+  "situationNo": 3,
+  "cardId": "c-072",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Хулиганство: Женщина с младенцем попрошайничает, пристаёт к гражданам; у ребёнка окровавленное лицо. Адрес: Москва, ул. Красная Пресня, напротив метро «1905 года». Признаки: Хулиганство, Попрошайки.",
+  "applicant": {
+   "name": "Зайцев Николай Игоревич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-024:3:d1",
+    "text": "Женщина с младенцем попрошайничает"
+   },
+   {
+    "id": "fact:ticket-024:3:d2",
+    "text": "пристаёт к гражданам"
+   },
+   {
+    "id": "fact:ticket-024:3:d3",
+    "text": "у ребёнка окровавленное лицо"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-024:3:d1",
+    "fact:ticket-024:3:d2",
+    "fact:ticket-024:3:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-024:3:d1",
+    "fact:ticket-024:3:d2",
+    "fact:ticket-024:3:d3"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0782",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 3,
+  "cardId": "c-060",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Человек в опасности: Изнасиловали женщину ~30 л., травмы, просит полицию. Адрес: Москва, ул. Кастанаевская, 42 корп. 2, во дворе. Признаки: Человек в опасности, Изнасилование.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:3:r1",
+    "text": "адрес: Москва, ул. Кастанаевская, 42 корп. 2, во дворе"
+   },
+   {
+    "id": "fact:ticket-020:3:r2",
+    "text": "суть происшествия: Изнасиловали женщину ~30 л., травмы"
+   },
+   {
+    "id": "fact:ticket-020:3:r3",
+    "text": "пострадавших: 1 (травмы)"
+   },
+   {
+    "id": "fact:ticket-020:3:r4",
+    "text": "номер карточки: 7302"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-020:3:r1",
+    "fact:ticket-020:3:r2",
+    "fact:ticket-020:3:r3",
+    "fact:ticket-020:3:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-020:3:r1",
+    "fact:ticket-020:3:r2",
+    "fact:ticket-020:3:r3",
+    "fact:ticket-020:3:r4"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0783",
+  "split": "holdout",
+  "sourceTicketId": "ticket-018",
+  "situationNo": 3,
+  "cardId": "c-054",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Человек в опасности: С улицы слышны крики о помощи, кричит мужчина. Адрес: Москва, Огородный проезд, 12, во дворе. Признаки: Человек в опасности, Человек кричит о помощи.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-018:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-018:3:a2",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-018:3:a3",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-018:3:a1",
+    "fact:ticket-018:3:a2",
+    "fact:ticket-018:3:a3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-018:3:a1",
+    "fact:ticket-018:3:a2",
+    "fact:ticket-018:3:a3"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "typos",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0784",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 3,
+  "cardId": "c-069",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Ребенок в опасности: Потерялся Блинов Евгений, 5 л., 30 мин назад; синяя куртка, жёлтая шапка, шарф и варежки, синие брюки, чёрные ботинки; гулял с бабушкой. Адрес: Москва, ул. Домодедовская, 34 корп. 1, двор у 3 подъезда. Признаки: Потерялся (пропал): В городской среде.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-023:3:a2",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-023:3:a1",
+    "fact:ticket-023:3:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-023:3:a1",
+    "fact:ticket-023:3:a2"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0785",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 1,
+  "cardId": "c-058",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Драка: Дерутся 3 человека, без пострадавших, без оружия. Адрес: Москва, Олонецкий проезд, 4, за домом, дорожка в сторону кладбища. Признаки: Драка, Улица общественное место, До 10 человек.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:1:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-020:1:a2",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-020:1:a1",
+    "fact:ticket-020:1:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-020:1:a1",
+    "fact:ticket-020:1:a2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0786",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 1,
+  "cardId": "c-049",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "пожар в жилом доме: Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет. Адрес: Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215. Признаки: жилой дом, сигнализация.",
+  "applicant": {
+   "name": "Данилов Артём Александрович",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:1:d1",
+    "text": "Сработала пожарная сигнализация в жилом доме"
+   },
+   {
+    "id": "fact:ticket-017:1:d2",
+    "text": "дыма и возгорания нет"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-017:1:d1",
+    "fact:ticket-017:1:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-017:1:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-017:1:d1"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0787",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 3,
+  "cardId": "c-051",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Человек в опасности: Избита неизвестная женщина ~30 л., травма головы, кровотечение. Адрес: Москва, Дмитровское ш., 155 корп. 1, около магазина «Пятёрочка». Признаки: Человек в опасности, Человек избит, нанесение телесных повреждений.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-017:3:a2",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-017:3:a3",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-017:3:a1",
+    "fact:ticket-017:3:a2",
+    "fact:ticket-017:3:a3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ }
+]

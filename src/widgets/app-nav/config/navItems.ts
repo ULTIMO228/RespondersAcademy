@@ -6,7 +6,7 @@ export type NavItem = {
   title: string;
 };
 
-/* Разделы по ролям (spec/02-roles.md «Матрица доступа к разделам»). */
+/* Разделы по ролям (spec/000-фронт/02-roles.md «Матрица доступа к разделам»). */
 export const NAV_ITEMS: Record<UserRole, NavItem[]> = {
   student: [
     { href: ROUTES.arm, title: "журнал" },

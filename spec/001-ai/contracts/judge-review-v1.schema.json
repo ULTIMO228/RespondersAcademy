@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "judge-review-v1",
+  "title": "JudgeReviewV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["baseline", "candidate", "needsHuman", "disagreementReason"],
+  "properties": {
+    "baseline": { "$ref": "#/$defs/verdict" },
+    "candidate": { "$ref": "#/$defs/verdict" },
+    "needsHuman": { "type": "boolean" },
+    "disagreementReason": { "type": ["string", "null"], "maxLength": 400 }
+  },
+  "$defs": {
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "criticalErrorIds", "evidenceFactIds", "rationale", "confidence"],
+      "properties": {
+        "decision": { "enum": ["correct", "incorrect", "uncertain"] },
+        "criticalErrorIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 }, "maxItems": 12 },
+        "evidenceFactIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 }, "maxItems": 12 },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /*
- * Конфигурация e2e (spec/11-implementation-plan.md §6 «Тестовая стратегия», e2e — Ф6).
+ * Конфигурация e2e (spec/000-фронт/11-implementation-plan.md §6 «Тестовая стратегия», e2e — Ф6).
  *
  * Локальный контур: webServer поднимает production-сборку из этого же репозитория,
  * внешних хостов нет; браузеры Playwright — dev-only зависимость, в прод-сборку не попадают.

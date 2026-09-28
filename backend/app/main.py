@@ -46,12 +46,9 @@ def create_app() -> FastAPI:
     compat = build_compat_router()
     for prefix in settings.api_prefixes:
         app.include_router(compat, prefix=prefix)
-    try:
-        from app.api.v1 import build_router as build_v1_router
+    from app.api.v1 import build_router as build_v1_router
 
-        app.include_router(build_v1_router(), prefix="/api/v1")
-    except ImportError:
-        pass
+    app.include_router(build_v1_router(), prefix="/api/v1")
 
     @app.get("/api/v1/health")
     async def health() -> dict[str, Any]:

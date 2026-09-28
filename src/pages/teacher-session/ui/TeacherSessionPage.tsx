@@ -25,7 +25,7 @@ export function TeacherSessionScreen({ teacher, api }: TeacherSessionScreenProps
 }
 
 /**
- * `/teacher/session` — мастер настройки занятия (spec/04-pages/12-teacher-session.md).
+ * `/teacher/session` — мастер настройки занятия (spec/000-фронт/04-pages/12-teacher-session.md).
  * Серверный компонент: преподаватель — пользователь сессии (гвард роли — proxy + лэйаут раздела).
  */
 export async function TeacherSessionPage() {

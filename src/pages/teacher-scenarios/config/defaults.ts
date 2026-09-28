@@ -1,4 +1,4 @@
-/* Значения по умолчанию конструктора сценариев (spec/04-pages/11, spec/05-data-models.md §6). */
+/* Значения по умолчанию конструктора сценариев (spec/000-фронт/04-pages/11, spec/000-фронт/05-data-models.md §6). */
 import { PROCESSING_NORM_SEC, REACTION_NORM_SEC } from "@/entities/session";
 import type { ScenarioCreateRequest } from "@/shared/api";
 

@@ -22,6 +22,7 @@ import { GroupInsights } from "./GroupInsights";
 import { ReportHeader } from "./ReportHeader";
 import { ReportSummaryTable } from "./ReportSummaryTable";
 import { ScoreWeights } from "./ScoreWeights";
+import { SessionErrorSummaryPanel } from "./SessionErrorSummaryPanel";
 import { StudentFeedback } from "./StudentFeedback";
 import type { FeedbackDraft } from "./StudentFeedback";
 
@@ -37,7 +38,7 @@ export type ReportSessionScreenProps = {
   printer?: Printer;
 };
 
-/** `/teacher/reports/[sessionId]` — отчёт о занятии на данных мок-API (spec/04-pages/13, п. 1–7). */
+/** `/teacher/reports/[sessionId]` — отчёт о занятии на данных мок-API (spec/000-фронт/04-pages/13, п. 1–7). */
 export function ReportSessionScreen({
   sessionId,
   teacher,
@@ -118,6 +119,7 @@ export function ReportSessionScreen({
       {hasData ? (
         <>
           <ReportSummaryTable rows={summaryRows} />
+          <SessionErrorSummaryPanel summary={state.data.errorSummary} attempts={attempts} />
           <ScoreWeights
             weights={weights}
             sum={sum}

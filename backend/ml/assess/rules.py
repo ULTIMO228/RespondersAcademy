@@ -31,9 +31,44 @@ class Rule:
     source: str
     text: str  # шаблон пояснения (str.format по именованным полям)
 
-    def error(self, step: str | None = None, fixed: bool = False, **fields: object) -> AssessError:
-        text = self.text.format(**fields) if fields else self.text
-        return AssessError(rule_id=self.id, type=self.error_type, severity=self.severity, message=f"{text} — {self.source}", step=step, fixed=fixed)
+    def error(
+        self,
+        step: str | None = None,
+        fixed: bool = False,
+        field_path: str | None = None,
+        evidence_key: str | None = None,
+        observed: str | None = None,
+        expected: str | None = None,
+        detector: str = "rule",
+        **fields: object,
+    ) -> AssessError:
+        format_kwargs = dict(fields)
+        if expected is not None:
+            format_kwargs.setdefault("expected", expected)
+        try:
+            text = self.text.format(**format_kwargs) if format_kwargs else self.text
+        except KeyError:
+            # Если каких-то полей нет, дополняем дефолтами
+            import collections
+            text = collections.defaultdict(str, format_kwargs)
+            text = self.text.format_map(collections.defaultdict(lambda: "—", format_kwargs))
+        ev_key = evidence_key or (f"event:{step}" if step else (f"field:{field_path}" if field_path else f"rule:{self.id}"))
+        obs = observed or text
+        exp = expected or (str(fields.get("expected")) if "expected" in fields else None)
+        return AssessError(
+            rule_id=self.id,
+            type=self.error_type,
+            severity=self.severity,
+            message=f"{text} — {self.source}",
+            step=step,
+            fixed=fixed,
+            evidence_key=ev_key,
+            field_path=field_path,
+            observed=obs,
+            expected=exp,
+            source_ref=self.source,
+            detector=detector,
+        )
 
 
 RULES: dict[str, Rule] = {}

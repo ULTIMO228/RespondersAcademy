@@ -6,6 +6,7 @@
 import type { AiResponse } from "../ai-gateway";
 import { apiClient } from "../client";
 import type {
+  GrammarCheckRequest,
   GrammarError,
   IncidentCard,
   MaterialUploadRequest,
@@ -61,7 +62,15 @@ export function saveProfileMapping(body: ProfileMappingSaveRequest): Promise<Pro
   return apiClient.put<ProfileMappingRow[]>(API_PATHS.profileMapping, body);
 }
 
+/** Привязка проверки текста к сценарию и его версии (US3). */
+export type GrammarCheckBinding = Pick<GrammarCheckRequest, "scenarioId" | "scenarioVersion">;
+
 /** POST /grammar-check — «Проверить грамматику»: ответ несёт маркер ИИ (UI показывает бейдж «ИИ»). */
-export function checkGrammar(text: string, field?: string): Promise<AiResponse<GrammarError[]>> {
-  return apiClient.post<AiResponse<GrammarError[]>>(API_PATHS.grammarCheck, { text, field });
+export function checkGrammar(
+  text: string,
+  field?: string,
+  binding?: GrammarCheckBinding,
+): Promise<AiResponse<GrammarError[]>> {
+  const body: GrammarCheckRequest = { text, field, ...binding };
+  return apiClient.post<AiResponse<GrammarError[]>>(API_PATHS.grammarCheck, body);
 }

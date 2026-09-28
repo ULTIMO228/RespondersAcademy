@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvaluationRevision",
+  "description": "Полное состояние новой оценки, включая pending/review_required. Старый готовый Evaluation валидируется отдельной схемой.",
+  "allOf": [
+    {
+      "$ref": "#/$defs/evaluationExtension"
+    },
+    {
+      "type": "object",
+      "required": [
+        "axes",
+        "modelReleaseId",
+        "createdAt"
+      ],
+      "properties": {
+        "axes": {
+          "type": "object",
+          "required": [
+            "timeScore",
+            "correctnessScore",
+            "grammarScore",
+            "semanticScore"
+          ],
+          "properties": {
+            "timeScore": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "correctnessScore": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "grammarScore": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "semanticScore": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "additionalProperties": false
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reasonCode": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "operator112",
+        "dds"
+      ]
+    },
+    "errorRecord": {
+      "type": "object",
+      "required": [
+        "id",
+        "attemptId",
+        "mode",
+        "ruleId",
+        "type",
+        "severity",
+        "evidenceKey",
+        "observed",
+        "sourceRef",
+        "detector",
+        "etalonVersion",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attemptId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "$ref": "#/$defs/mode"
+        },
+        "ruleId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "major",
+            "minor"
+          ]
+        },
+        "evidenceKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fieldPath": {
+          "type": "string"
+        },
+        "eventId": {
+          "type": "string"
+        },
+        "observed": {
+          "type": "string"
+        },
+        "expected": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detector": {
+          "type": "string",
+          "enum": [
+            "rule",
+            "ml",
+            "llm_confirmed",
+            "teacher"
+          ]
+        },
+        "etalonVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assessorVersion": {
+          "type": "string"
+        },
+        "fixed": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "teacherId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "evaluationExtension": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "attemptId",
+        "mode",
+        "status",
+        "revision",
+        "availableAxes",
+        "etalonVersion",
+        "assessorVersion",
+        "errors"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "ai-workflow/1"
+        },
+        "attemptId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "$ref": "#/$defs/mode"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "preliminary",
+            "review_required",
+            "final"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "availableAxes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "timeScore",
+              "correctnessScore",
+              "grammarScore",
+              "semanticScore"
+            ]
+          }
+        },
+        "totalScore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "etalonVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assessorVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modelReleaseId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/errorRecord"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "pending",
+                  "review_required"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "totalScore"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "preliminary",
+                  "final"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "totalScore"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    }
+  }
+}

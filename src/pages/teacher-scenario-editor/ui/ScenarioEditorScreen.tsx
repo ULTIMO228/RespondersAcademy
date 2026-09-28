@@ -15,10 +15,12 @@ import { ROUTES } from "@/shared/config";
 import { AiBadge, Panel, StatusChip } from "@/shared/ui";
 
 import type { ScenarioEditorApi } from "../api/editorApi";
+import { defaultScenarioEditorApi } from "../api/editorApi";
 import type { ScenarioEditorContext } from "../lib/buildEditorData";
 import { buildEditorModel } from "../lib/buildEditorModel";
 import { useScenarioEditor } from "../model/useScenarioEditor";
 import { CardBasePreview } from "./CardBasePreview";
+import { AIScenarioWorkflowPanel } from "./AIScenarioWorkflowPanel";
 
 import styles from "./TeacherScenarioEditorPage.module.css";
 
@@ -31,7 +33,10 @@ type ScenarioEditorScreenProps = {
   api?: ScenarioEditorApi;
 };
 
-/** Экран `/teacher/scenarios/[id]`: живой сценарий мок-слоя + правки, коррекция и валидация. */
+/**
+ * Экран `/teacher/scenarios/[id]`: живой сценарий мок-слоя + правки, коррекция и валидация; в панели версий —
+ * повторная проверка ручного текста версии после правки преподавателя (US3, `ScenarioTextCheck`).
+ */
 export function ScenarioEditorScreen({
   scenarioId,
   teacherId,
@@ -39,19 +44,27 @@ export function ScenarioEditorScreen({
   context,
   api,
 }: ScenarioEditorScreenProps) {
-  const editor = useScenarioEditor({ scenarioId, teacherId, api });
+  const editorApi = api ?? defaultScenarioEditorApi;
+  const editor = useScenarioEditor({ scenarioId, teacherId, api: editorApi });
   const backLink = (
     <Link href={ROUTES.teacherScenarios} className={styles.editor__back}>
       К списку сценариев
     </Link>
   );
-  if (editor.state.status !== "ready") {
+  if (editor.state.status === "loading") {
     return (
       <div className={styles.editor__empty}>
-        <p role={editor.state.status === "error" ? "alert" : "status"}>
-          {editor.state.status === "loading" ? "Загрузка сценария…" : editor.state.message}
-        </p>
+        <p role="status">Загрузка сценария…</p>
         {backLink}
+      </div>
+    );
+  }
+  if (editor.state.status === "error") {
+    return (
+      <div className={styles.editor__empty}>
+        <p role="alert">{editor.state.message}</p>
+        {backLink}
+        <AIScenarioWorkflowPanel scenarioId={scenarioId} category="" api={editorApi} />
       </div>
     );
   }
@@ -100,6 +113,7 @@ export function ScenarioEditorScreen({
             onDecide={editor.decide}
             onRegenerate={() => editor.regenerate(category ?? scenario.title)}
           />
+          <AIScenarioWorkflowPanel scenarioId={scenarioId} category={category ?? ""} api={editorApi} />
           <SuccessCriteria
             criteria={scenario.successCriteria}
             onSave={(successCriteria) => editor.save({ successCriteria }, "Критерии успешности сохранены")}

@@ -32,11 +32,19 @@ class RandomRule(ApiModel):
         return value
 
 
+class ScenarioVersionSelection(ApiModel):
+    scenario_id: str = Field(min_length=1)
+    version: int = Field(ge=1)
+    card_id: str = Field(min_length=1)
+
+
 class AssignmentCreateRequest(ApiModel):
     student_ids: list[str]
+    teacher_id: str | None = None
     training_mode: TrainingMode
     format: AssignmentFormat
     card_ids: list[str] = Field(default_factory=list)
+    scenario_versions: list[ScenarioVersionSelection] = Field(default_factory=list)
     random_rule: RandomRule | None = None
     params: dict[str, Any] = Field(default_factory=dict)
     due_at: str | None = None
@@ -50,6 +58,13 @@ class AssignmentCreateRequest(ApiModel):
             raise ValueError("Выберите хотя бы одного обучающегося")
         if bool(self.card_ids) == bool(self.random_rule):
             raise ValueError("Укажите либо cardIds, либо randomRule")
+        if self.scenario_versions and (
+            self.random_rule is not None
+            or {item.card_id for item in self.scenario_versions} != set(self.card_ids)
+            or len({(item.scenario_id, item.version, item.card_id) for item in self.scenario_versions})
+            != len(self.scenario_versions)
+        ):
+            raise ValueError("scenarioVersions должны точно соответствовать выбранным cardIds")
         threshold = self.params.get("passThreshold")
         if threshold is not None and (isinstance(threshold, bool) or not isinstance(threshold, (int, float)) or not 0 <= threshold <= 100):
             raise ValueError("Порог экзамена — число от 0 до 100")
@@ -76,6 +91,13 @@ class Assignment(ApiModel):
     due_at: str | None = None
 
 
+class ChainReview(ApiModel):
+    scenario_id: str
+    version: int
+    approval: str
+    validation: str
+
+
 class AssignmentProgress(ApiModel):
     student_id: str
     card_id: str
@@ -83,6 +105,7 @@ class AssignmentProgress(ApiModel):
     attempt_id: str
     score: int | None = None
     passed: bool | None = None
+    chain_review: ChainReview | None = None
 
 
 class AssignmentDetail(Assignment):

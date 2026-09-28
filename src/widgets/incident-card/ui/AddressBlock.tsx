@@ -20,7 +20,7 @@ type AddressBlockProps = {
   showPolygon?: boolean;
 };
 
-/* Поля блока «Адрес» — подписи дословно по спеке (spec/04-pages/02-arm-card.md п. 3). */
+/* Поля блока «Адрес» — подписи дословно по спеке (spec/000-фронт/04-pages/02-arm-card.md п. 3). */
 const ADDRESS_FIELDS: { key: keyof AddressFields; label: string; wide?: boolean }[] = [
   { key: "country", label: "Страна" },
   { key: "subject", label: "Субъект" },

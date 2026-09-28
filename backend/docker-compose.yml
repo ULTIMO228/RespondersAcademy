@@ -21,11 +21,11 @@ services:
       dockerfile: backend/Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://arm112:arm112@postgres:5432/arm112
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set to a unique random secret}
       SEED_DIR: /repo
       MODELS_DIR: /models
     volumes:
-      - ../spec/mocks:/repo/spec/mocks:ro
+      - ../spec/000-фронт/mocks:/repo/spec/000-фронт/mocks:ro
       - ../mocks:/repo/mocks:ro
       - models:/models
       - var:/app/backend/var

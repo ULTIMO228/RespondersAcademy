@@ -114,6 +114,36 @@ function buildSummary(data: StudentProgressData): ProgressSummaryData {
   );
 }
 
+function buildMistakeSources(data: StudentProgressData) {
+  if (data.studentErrors && data.studentErrors.attempts.length > 0) {
+    return data.studentErrors.attempts.map((item) => ({
+      attemptId: item.attemptId,
+      cardNumber: getCaption(data.captions, item.cardId).number,
+      evaluation: {
+        errors: item.errors
+          .filter((e) => e.category !== "grammar")
+          .map((e) => ({
+            type: e.ruleId,
+            severity: e.severity,
+            message: e.message,
+          })),
+        grammarErrors: item.errors
+          .filter((e) => e.category === "grammar")
+          .map((e) => ({
+            fragment: String(e.observed ?? e.message),
+            wrong: String(e.observed ?? e.message),
+            expected: String(e.expected ?? ""),
+          })),
+      },
+    }));
+  }
+  return data.attempts.map((attempt) => ({
+    attemptId: attempt.id,
+    cardNumber: getCaption(data.captions, attempt.cardId).number,
+    evaluation: attempt.evaluation,
+  }));
+}
+
 /** Только данные курсанта сессии: выборка уже ограничена мок-API и клиентом по studentId (ТЗ §8). */
 export function selectStudentProgress(data: StudentProgressData): StudentProgress {
   const reports = [...data.reports].sort((left, right) => left.generatedAt.localeCompare(right.generatedAt));
@@ -121,13 +151,7 @@ export function selectStudentProgress(data: StudentProgressData): StudentProgres
     summary: buildSummary(data),
     attempts: data.attempts.map((attempt) => toAttemptView(attempt, data)),
     pendingCount: data.pendingCount,
-    mistakeGroups: groupMistakes(
-      data.attempts.map((attempt) => ({
-        attemptId: attempt.id,
-        cardNumber: getCaption(data.captions, attempt.cardId).number,
-        evaluation: attempt.evaluation,
-      })),
-    ),
+    mistakeGroups: groupMistakes(buildMistakeSources(data)),
     recommendations: [...buildTeacherFeedback(reports), ...buildAiRecommendations(reports)],
     scoreDynamics: buildScoreDynamics(reports, data),
     errorDistribution: buildErrorDistribution(reports),

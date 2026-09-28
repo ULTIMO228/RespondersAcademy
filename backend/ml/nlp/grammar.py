@@ -4,6 +4,11 @@
 Детерминировано, без сети; словари грузятся лениво один раз (< 5 мс/строка после загрузки).
 Синтаксические правила повторяют мок фронта (`shared/lib/grammar-check`): строчная буква в начале,
 двойные пробелы, пробел перед знаком препинания.
+
+Осторожность (US3, FR-008): замечание — только при надёжном основании. Не исправляются аббревиатуры
+(ДДС, ЕДДС, ЦУКС, МосгорБТИ), иная словоформа известной основы («запахе», «уведомлена»), неизвестное имя
+собственное внутри фразы без доменной замены (фамилии заявителей). Адресные поля (`check_field`) сверяются
+со справочником улиц (R3), а не с частотным словарём. Исходный текст не меняется: `wrong`/`fragment` — его срезы.
 """
 
 from __future__ import annotations
@@ -28,11 +33,24 @@ MIN_SUGGESTION_FREQUENCY = 50
 WEAK_KNOWN_FREQUENCY = 200
 WEAK_KNOWN_RATIO = 50
 
+# Окончания русских словоформ: замена, меняющая только окончание при общей основе, — другая форма, не опечатка.
+INFLECTION_ENDINGS = frozenset(
+    """
+    а я о е ё ы и у ю ь й ом ем ём ой ей ою ею ам ям ах ях ами ями ов ев ёв ий ый ая яя ое ее ые ие ого его ому ему
+    ым им ых их ую юю ть ти л ла ло ли ет ёт ит ут ют ат ят ешь ишь ете ите
+    """.split()
+) | {""}
+MIN_STEM_LENGTH = 4
+ABBREVIATION_MAX_LENGTH = 6
+REFLEXIVE_SUFFIXES = ("ся", "сь")  # «проводилась» ↔ «проводились»: возвратная частица поверх окончания
+SENTENCE_END = frozenset(".!?")
+
 WORD_PATTERN = re.compile(r"[А-Яа-яЁё]+")
 DOUBLE_SPACE_PATTERN = re.compile(r" {2,}")
 SPACE_BEFORE_PUNCTUATION_PATTERN = re.compile(r"\s+([,.;:!?])")
 LOWERCASE_START_PATTERN = re.compile(r"^[а-яё]")
 DEFAULT_FIELD = "text"
+ADDRESS_FIELD_PATTERN = re.compile(r"address|addr|street|адрес|улиц", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -119,12 +137,41 @@ def _restore_case(source: str, suggestion: str) -> str:
     return suggestion
 
 
-def suggest(word: str) -> str | None:
-    """Исправление слова или None, если слово известно / слишком короткое / уверенной замены нет."""
+def _is_abbreviation(word: str) -> bool:
+    """ДДС, ЕДДС, ЦУКС, МосгорБТИ: заглавные внутри слова — сокращение, основания для замены нет."""
+    if word.isupper():
+        return len(word) <= ABBREVIATION_MAX_LENGTH
+    return any(char.isupper() for char in word[1:])
+
+
+def _is_ending(tail: str) -> bool:
+    if tail.endswith(REFLEXIVE_SUFFIXES):
+        tail = tail[:-2]
+    return tail in INFLECTION_ENDINGS
+
+
+def _is_inflection(source: str, candidate: str) -> bool:
+    """«запахе» ↔ «запах», «уведомлена» ↔ «уведомлен»: общая основа, различаются только окончания."""
+    stem = 0
+    for left, right in zip(source, candidate, strict=False):
+        if left != right:
+            break
+        stem += 1
+    if stem < MIN_STEM_LENGTH:
+        return False
+    return _is_ending(source[stem:]) and _is_ending(candidate[stem:])
+
+
+def suggest(word: str, *, proper_name: bool = False) -> str | None:
+    """Исправление слова или None, если слово известно / слишком короткое / уверенной замены нет.
+
+    `proper_name` — слово с заглавной внутри фразы: заменяется только на доменное слово (иначе фамилия
+    заявителя «Карпин» стала бы «Картин»).
+    """
     from symspellpy import Verbosity
 
     sym = _symspell()
-    if sym is None or len(word) < MIN_WORD_LENGTH:
+    if sym is None or len(word) < MIN_WORD_LENGTH or _is_abbreviation(word):
         return None
     norm = _normalize(word)
     if norm in _domain_words():
@@ -138,7 +185,9 @@ def suggest(word: str) -> str | None:
     if not suggestions:
         return None
     best = suggestions[0]
-    if best.count < MIN_SUGGESTION_FREQUENCY:
+    if best.count < MIN_SUGGESTION_FREQUENCY or _is_inflection(norm, best.term):
+        return None
+    if proper_name and best.term not in _domain_words():
         return None
     if known is not None:
         strong = best.distance == 1 and (best.term in _domain_words() or best.count >= known * WEAK_KNOWN_RATIO)
@@ -150,16 +199,26 @@ def suggest(word: str) -> str | None:
     return _restore_case(word, best.term)
 
 
-def check_spelling(text: str, field: str = DEFAULT_FIELD) -> list[GrammarError]:
+def _sentence_start(text: str, position: int) -> bool:
+    before = text[:position].rstrip()
+    return not before or before[-1] in SENTENCE_END
+
+
+def check_spelling(text: str, field: str = DEFAULT_FIELD, *, skip: tuple[tuple[int, int], ...] = ()) -> list[GrammarError]:
+    """Орфография; `fragment` — точный срез исходного текста от предыдущего слова, `skip` — диапазоны без проверки."""
     errors: list[GrammarError] = []
-    previous = ""
+    previous_start: int | None = None
     for match in WORD_PATTERN.finditer(text):
         word = match.group(0)
-        expected = suggest(word)
+        if any(start <= match.start() < end for start, end in skip):
+            previous_start = match.start()
+            continue
+        proper_name = word[:1].isupper() and not _sentence_start(text, match.start())
+        expected = suggest(word, proper_name=proper_name)
         if expected is not None:
-            fragment = f"{previous} {word}" if previous else word
+            fragment = text[previous_start if previous_start is not None else match.start() : match.end()]
             errors.append(GrammarError(field=field, fragment=fragment, wrong=word, expected=expected, type="spelling"))
-        previous = word
+        previous_start = match.start()
     return errors
 
 
@@ -183,6 +242,52 @@ def check(text: str, field: str = DEFAULT_FIELD) -> list[GrammarError]:
     if not text or not text.strip():
         return []
     return [*check_spelling(text, field), *check_syntax(text, field)]
+
+
+def is_address_field(field: str) -> bool:
+    return ADDRESS_FIELD_PATTERN.search(field) is not None
+
+
+def _locate(text: str, query: str) -> tuple[int, int] | None:
+    """Диапазон улицы в исходном тексте: запрос справочника собран из слов без точек («ул Зверенецкая»)."""
+    tokens = query.split()
+    if not tokens:
+        return None
+    start = text.find(tokens[0])
+    if start < 0:
+        return None
+    end = start + len(tokens[0])
+    for token in tokens[1:]:
+        position = text.find(token, end)
+        if position < 0:
+            return None
+        end = position + len(token)
+    return start, end
+
+
+def check_address(text: str, field: str) -> list[GrammarError]:
+    """Адресное поле: улица — по справочнику R3 (похожая → замечание, неизвестная → без замечания),
+    остальные слова — орфография; синтаксические правила текста к адресу («ул. …») не применяются."""
+    if not text or not text.strip():
+        return []
+    from ml.nlp import address as address_nlp
+
+    if not address_nlp.load_streets():
+        return check_spelling(text, field)
+    match = address_nlp.match(text)
+    span = _locate(text, match.query)
+    if span is None:
+        return check_spelling(text, field)
+    errors = check_spelling(text, field, skip=(span,))
+    if match.lookalike and match.street is not None:
+        street = text[span[0] : span[1]]
+        errors.insert(0, GrammarError(field=field, fragment=street, wrong=street, expected=match.street.name, type="spelling"))
+    return errors
+
+
+def check_field(text: str, field: str = DEFAULT_FIELD) -> list[GrammarError]:
+    """Проверка одного поля с учётом его вида: адресное — по справочнику улиц, иначе — `check`."""
+    return check_address(text, field) if is_address_field(field) else check(text, field)
 
 
 def check_fields(fields: dict[str, str], *, skip: tuple[str, ...] = ("outfitNumber",)) -> list[GrammarError]:

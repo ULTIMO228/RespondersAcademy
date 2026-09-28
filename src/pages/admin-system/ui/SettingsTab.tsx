@@ -17,7 +17,7 @@ type SettingsTabProps = {
   model: AdminSystemModel;
 };
 
-/** Секция 3 «Настройки» (spec/04-pages/21): 7 подсекций, сохранение — в мок через PATCH. */
+/** Секция 3 «Настройки» (spec/000-фронт/04-pages/21): 7 подсекций, сохранение — в мок через PATCH. */
 export function SettingsTab({ overview, model }: SettingsTabProps) {
   const { settings } = overview;
   const save = model.saveSettings;

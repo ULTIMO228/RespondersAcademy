@@ -2,6 +2,8 @@ node_modules/
 .next/
 mocks/
 spec/
+specs/
+.specify/
 hack/
 research/
 icons/
@@ -10,4 +12,5 @@ test-results/
 playwright-report/
 extracted.txt
 package-lock.json
+backend/
 *.md

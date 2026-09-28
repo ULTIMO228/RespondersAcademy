@@ -14,6 +14,15 @@ export { createMockAiGateway, MockAiGateway } from "./ai-gateway.mock";
 export type { MockAiGatewayDeps } from "./ai-gateway.mock";
 export { API_PATHS, adminGetSettings, adminListAudit, adminListServices, adminListUsers } from "./endpoints";
 export { adminToggleUserActive, createScenario, createSession, getAttemptEvaluation } from "./endpoints";
+export {
+  getAssessmentReview,
+  getAssessmentState,
+  getMyErrors,
+  getSessionAiReport,
+  getSessionErrors,
+  getSessionErrorSummary,
+  resolveAssessment,
+} from "./endpoints";
 export { adminSystemApi, getAuditLog, getSystemLogs, getSystemMonitoring } from "./endpoints";
 export { getSystemServices, getSystemSettings, getSystemUsageStats } from "./endpoints";
 export { patchSystemSettings, postSystemServiceAction } from "./endpoints";
@@ -30,6 +39,13 @@ export { LOGIN_FAILURE_MESSAGES, getAuthPolicy, mapLoginError } from "./endpoint
 export { checkGrammar, deleteScenario, generateScenarios, getProfileMapping } from "./endpoints";
 export { getScenario, listMaterials, listTrainingCards, saveProfileMapping } from "./endpoints";
 export { updateScenario, uploadMaterial } from "./endpoints";
+export type { GrammarCheckBinding } from "./endpoints";
+export {
+  approveAIScenario,
+  createAIScenarioDrafts,
+  listAIScenarioVersions,
+  reviseAIScenario,
+} from "./endpoints";
 export { ADMIN_USER_FAILURE_MESSAGES, adminCreateUser, adminResetUserPassword } from "./endpoints";
 export { adminSetUserActive, adminSetUserRole, adminUpdateUser, mapAdminUserError } from "./endpoints";
 export type { AdminUserFailure, AdminUserFailureReason } from "./endpoints";
@@ -62,6 +78,41 @@ export type { ReportTimeMetric, ReportsResponse, Role, Scenario, ScenarioCreateR
 export type { ScenarioHints, ScenarioLevel, ScenarioListQuery, ScenarioMode, ScenarioSource } from "./types";
 export type { ScenarioTimeNorms, ScenarioValidateAction, ScenarioValidateRequest } from "./types";
 export type { ScenarioValidation, ScenarioValidationStatus, ServiceKind, ServiceNotification } from "./types";
+export type {
+  AIExpectedAction,
+  AIFieldDecision,
+  AIFieldDecisionInput,
+  AIFieldDecisionKind,
+  AIScenarioApproveRequest,
+  AIScenarioDraftRequest,
+  AIScenarioReviseRequest,
+  AIScenarioVersion,
+  AIValidationError,
+  AIWorkflowApproval,
+  AIWorkflowMode,
+  AIWorkflowSourceKind,
+  AIWorkflowValidation,
+} from "./types";
+export type {
+  AssessmentAxes,
+  AssessmentResolveRequest,
+  AssessmentReviewResponse,
+  AssessmentStateResponse,
+  EvaluationStatus,
+  SemanticArbitrationDecision,
+  SemanticReviewItem,
+} from "./types";
+export type {
+  ErrorRecord,
+  ErrorRecordCategory,
+  ErrorRecordDetector,
+  PaginatedErrorRecordsResponse,
+  SessionAiReport,
+  SessionErrorSummaryResponse,
+  StudentAttemptErrorsItem,
+  StudentErrorsResponse,
+  TopMistakeItem,
+} from "./types";
 export type { GrammarCheckRequest, MaterialFormat, MaterialUploadRequest } from "./types";
 export type { ProfileMappingRow, ProfileMappingSaveRequest, ScenarioGenerateRequest } from "./types";
 export type { ScenarioUpdateRequest, TrainingMaterial } from "./types";

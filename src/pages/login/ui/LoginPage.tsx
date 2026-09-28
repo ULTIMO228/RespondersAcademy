@@ -17,20 +17,13 @@ import styles from "./LoginPage.module.css";
 
 type LoginScreenProps = LoginParams & {
   isDemoMode: boolean;
-  isTwoFactorEnabled: boolean;
 };
 
 /**
- * `/login` — «112 ВХОД В СИСТЕМУ» 1:1 по ДДС_image1.png (spec/04-pages/00-auth.md).
- * Тренажёрные добавления (бренд, пометка ТЗ §4, номер АРМ, 2FA, подсказки) — в той же типографике.
+ * `/login` — «112 ВХОД В СИСТЕМУ» 1:1 по ДДС_image1.png (spec/000-фронт/04-pages/00-auth.md).
+ * Тренажёрные добавления (бренд, пометка ТЗ §4, номер АРМ, подсказки) — в той же типографике.
  */
-export function LoginScreen({
-  isDemoMode,
-  isTwoFactorEnabled,
-  returnUrl,
-  isSessionExpired,
-  demoRole,
-}: LoginScreenProps) {
+export function LoginScreen({ isDemoMode, returnUrl, isSessionExpired, demoRole }: LoginScreenProps) {
   return (
     <main className={styles.login}>
       <CityIllustration />
@@ -51,7 +44,6 @@ export function LoginScreen({
         <AuthForm
           key={demoRole}
           initialCredentials={isDemoMode ? pickDemoCredentials(demoRole) : undefined}
-          isTwoFactorEnabled={isTwoFactorEnabled}
           returnUrl={returnUrl}
         />
         <address className={styles.login__support}>
@@ -73,14 +65,8 @@ type LoginPageProps = {
   searchParams: Promise<LoginSearchParams>;
 };
 
-/** Роут `/login`: параметры гвардов (returnUrl, reason) + флаги shared/config (демо, 2FA). */
+/** Роут `/login`: параметры гвардов (returnUrl, reason) и флаг демо-режима. */
 export async function LoginPage({ searchParams }: LoginPageProps) {
   const params = readLoginParams(await searchParams);
-  return (
-    <LoginScreen
-      {...params}
-      isDemoMode={APP_ENV.isDemoMode}
-      isTwoFactorEnabled={APP_ENV.isTwoFactorEnabled}
-    />
-  );
+  return <LoginScreen {...params} isDemoMode={APP_ENV.isDemoMode} />;
 }

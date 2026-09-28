@@ -27,13 +27,21 @@ def stems(text: str) -> list[str]:
     return [w[:STEM_LENGTH] for w in words if len(w) >= MIN_WORD_LENGTH]
 
 
+def _stem_matches(s1: str, s2: str) -> bool:
+    return s1 == s2 or (
+        len(s1) >= MIN_WORD_LENGTH
+        and len(s2) >= MIN_WORD_LENGTH
+        and (s1.startswith(s2) or s2.startswith(s1))
+    )
+
+
 def lexical_coverage(phrase: str, text: str) -> float:
     """Доля основ слов фразы, встретившихся в тексте (регистр, ё, словоформы с общей основой не важны)."""
     phrase_stems = stems(phrase)
     if not phrase_stems:
         return 1.0
     text_stems = set(stems(text))
-    return sum(1 for s in phrase_stems if s in text_stems) / len(phrase_stems)
+    return sum(1 for s in phrase_stems if any(_stem_matches(s, ts) for ts in text_stems)) / len(phrase_stems)
 
 
 def lexical_similarity(a: str, b: str) -> float:
@@ -41,7 +49,9 @@ def lexical_similarity(a: str, b: str) -> float:
     sa, sb = set(stems(a)), set(stems(b))
     if not sa or not sb:
         return 1.0 if sa == sb else 0.0
-    return 2 * len(sa & sb) / (len(sa) + len(sb))
+    matched_a = sum(1 for a_stem in sa if any(_stem_matches(a_stem, b_stem) for b_stem in sb))
+    matched_b = sum(1 for b_stem in sb if any(_stem_matches(b_stem, a_stem) for a_stem in sa))
+    return (matched_a + matched_b) / (len(sa) + len(sb))
 
 
 def _fragments(text: str) -> list[str]:

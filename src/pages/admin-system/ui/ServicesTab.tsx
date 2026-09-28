@@ -22,7 +22,7 @@ type ServicesTabProps = {
 
 type PendingAction = { service: SystemService; action: SystemServiceAction };
 
-/** Секция 1 «Состояние сервисов» (spec/04-pages/21): плитки, индикаторы, оповещения. */
+/** Секция 1 «Состояние сервисов» (spec/000-фронт/04-pages/21): плитки, индикаторы, оповещения. */
 export function ServicesTab({ overview, model }: ServicesTabProps) {
   const [pending, setPending] = useState<PendingAction | null>(null);
   const confirm = async () => {

@@ -114,7 +114,9 @@ export async function runServiceAction(
 /* ─── Настройки ─────────────────────────────────────────────────────────────────────────────────── */
 
 export function getSystemSettings(): SystemSettings {
-  return readSystemSettings();
+  const settings = readSystemSettings();
+  if ("require2fa" in settings.security) delete (settings.security as Record<string, unknown>).require2fa;
+  return settings;
 }
 
 /** Патч читается по секциям: `database` не принимается (read-only, 21-admin-system.md §3). */
@@ -155,7 +157,7 @@ export async function patchSystemSettings(httpRequest: Request): Promise<SystemS
   if (errors.length > 0) {
     throw unprocessable(`Настройки не сохранены. ${errors.map((error) => error.message).join("; ")}`);
   }
-  const saved = updateSystemSettings((draft) => {
+  updateSystemSettings((draft) => {
     mergeSection(draft.telephony, patch.telephony);
     mergeSection(draft.backup, patch.backup);
     mergeSection(draft.logging, patch.logging);
@@ -163,6 +165,7 @@ export async function patchSystemSettings(httpRequest: Request): Promise<SystemS
     mergeSection(draft.performance, patch.performance);
     mergeSection(draft.autoRecovery, patch.autoRecovery);
   });
+  const saved = getSystemSettings();
   const isBackupRun = patch.backup?.lastAt !== undefined;
   const userId = typeof body.adminId === "string" ? body.adminId : "";
   if (isBackupRun) {

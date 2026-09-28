@@ -1,6 +1,6 @@
 import type { SelectOption } from "@/shared/ui";
 
-/** Колонки реестра (spec/04-pages/20; колонка «создана» не выводится — поле удалено из модели). */
+/** Колонки реестра (spec/000-фронт/04-pages/20; колонка «создана» не выводится — поле удалено из модели). */
 export const USER_TABLE_COLUMNS = [
   { key: "fullName", title: "ФИО" },
   { key: "login", title: "Логин" },

@@ -12,7 +12,7 @@ import { filterByProfile } from "../lib/profileFilter";
 import type { JournalApi } from "./deps";
 import { useJournalDeps } from "./deps";
 
-/** Поллинг ленты занятия GET /sessions/[id]/feed (2–5 сек, spec/03-architecture.md «Реальное время»). */
+/** Поллинг ленты занятия GET /sessions/[id]/feed (2–5 сек, spec/000-фронт/03-architecture.md «Реальное время»). */
 export const FEED_POLL_MS = 3000;
 const NOT_FOUND_STATUS = 404;
 

@@ -24,7 +24,7 @@ ACCEPTANCE = 0.9
 
 @pytest.fixture(scope="module")
 def cards() -> list[dict[str, Any]]:
-    with (get_settings().seed_dir / "spec" / "mocks" / "cards.json").open(encoding="utf-8") as handle:
+    with (get_settings().seed_dir / "spec" / "000-фронт" / "mocks" / "cards.json").open(encoding="utf-8") as handle:
         return json.load(handle)["cards"]
 
 

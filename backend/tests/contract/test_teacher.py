@@ -6,9 +6,8 @@ from app.db.session import get_sessionmaker
 from app.models.audit import AuditLog
 from app.models.teacher import ProfileMappingRow
 from app.models.user import User
-from app.services.security import issue_token
 from app.services.time import parse_iso_ms
-from tests.conftest import login_as
+from tests.conftest import login_as, token_for
 
 
 async def test_mapping_contract_and_atomic_save(client):
@@ -82,7 +81,7 @@ async def test_teacher_plan_and_control(client):
         assert len(issued.json()['session']['cardFlow']) == len(flow) + 1
         assert issued.json()['session']['cardFlow'][-1]['cardId'] in {'c-095', 'c-096'}
         client.cookies.clear()
-        client.headers['Authorization'] = f'Bearer {issue_token("u-003", "teacher")}'
+        client.headers['Authorization'] = f'Bearer {await token_for("u-003")}'
         assert (await client.get(f'/sessions/{sid}/control')).status_code == 403
         assert (await client.post(f'/sessions/{sid}/control', json={'action': 'pause'})).status_code == 403
         client.headers.pop('Authorization')

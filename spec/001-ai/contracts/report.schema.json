@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SessionReport",
+  "description": "Полный конверт нового отчёта; существующие /api/mock/reports не меняют форму.",
+  "allOf": [
+    {
+      "$ref": "#/$defs/reportExtension"
+    },
+    {
+      "type": "object",
+      "required": [
+        "modeBreakdown",
+        "effectiveScores",
+        "errorRecordIds"
+      ],
+      "properties": {
+        "modeBreakdown": {
+          "type": "object",
+          "required": [
+            "operator112",
+            "dds"
+          ],
+          "properties": {
+            "operator112": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "dds": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "effectiveScores": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "errorRecordIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "operator112",
+        "dds"
+      ]
+    },
+    "reportExtension": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "sessionId",
+        "generatedAt",
+        "attemptIds",
+        "errorCounts",
+        "reviewPendingCount"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "ai-workflow/1"
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attemptIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "errorCounts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "reviewPendingCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errorRecordIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

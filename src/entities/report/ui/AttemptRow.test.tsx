@@ -108,4 +108,34 @@ describe("AttemptRow", () => {
     expect(override.className).toContain("breakdown__note--teacher");
     expect(within(override).queryByText("ИИ")).not.toBeInTheDocument();
   });
+
+  it("показывает статус «На проверке» без фиктивного балла при review_required", () => {
+    renderRow({
+      ...failedAttempt,
+      status: "review_required",
+      score: null,
+    });
+    expect(screen.getByText("На проверке")).toBeInTheDocument();
+    expect(screen.queryByText("66")).not.toBeInTheDocument();
+  });
+
+  it("показывает статус «Ожидание» без фиктивного балла при pending", () => {
+    renderRow({
+      ...failedAttempt,
+      status: "pending",
+      score: null,
+    });
+    expect(screen.getByText("Ожидание")).toBeInTheDocument();
+    expect(screen.queryByText("66")).not.toBeInTheDocument();
+  });
+
+  it("показывает балл с подписью (Предварительно) при preliminary", () => {
+    renderRow({
+      ...ownAttempt,
+      status: "preliminary",
+      score: 98,
+    });
+    expect(screen.getByText("98")).toBeInTheDocument();
+    expect(screen.getByText("(Предварительно)")).toBeInTheDocument();
+  });
 });

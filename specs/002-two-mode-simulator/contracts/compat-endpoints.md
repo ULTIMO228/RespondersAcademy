@@ -37,7 +37,7 @@ Viewer: cookie `arm112_session` (JSON URL-encoded, `token` = JWT) или `Author
 | 27 | `POST /materials` | `compat/materials` | формат по расширению (201) | аудит `material.upload` | T |
 | 28 | `GET /profile-mapping` | `compat/profile_mapping` | `profile_mapping` + `studentCount` по `users.service` | — | - |
 | 29 | `PUT /profile-mapping` | `compat/profile_mapping` | 404 на неизвестный id | аудит `profileMapping.save` | T |
-| 30 | `POST /grammar-check` | `compat/grammar` | `ai_gateway.check_grammar` (R2 symspell + синтаксис) → `AiResponse<GrammarError[]>` (`provider: service`); для адресного `field` синтаксические правила не применяются, зато добавляется похожая улица справочника R3 как `spelling` | — | - |
+| 30 | `POST /grammar-check` | `compat/grammar` | `ai_gateway.check_grammar` (R2 symspell + синтаксис) → `AiResponse<GrammarError[]>` (`provider: service`); для адресного `field` синтаксические правила не применяются, зато добавляется похожая улица справочника R3 как `spelling`; US3 (`spec/001-ai` T054): необязательные `scenarioId`/`scenarioVersion` в теле → каждое замечание несёт `scenarioId` и текущую `scenarioVersion` (401 без сессии, 403 не преподаватель, 404 сценарий/версия, 409 устаревшая версия); без них ответ прежний | — | - |
 | 31 | `GET /sessions` | `compat/sessions` | фильтры `teacherId`, `studentId`, `state`; для S — проекция (свои `studentIds`, `cardFlow`, `cardEvents`); чужой `studentId` → 403; аноним со `studentId` → 401 | — | -/S/T/A |
 | 32 | `POST /sessions` | `compat/sessions` | мастер → `configured`, `plan` сохраняется (201) | — | T |
 | 33 | `POST /sessions/[id]/start` | `compat/sessions` | `configured → running`; `card_flow_items` по `plan` (темп, порядок, конвейер, категории, профили; без плана — шаг 3 мин); 409 | — | T |

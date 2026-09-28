@@ -4,5 +4,3 @@ export type AuthCredentials = {
   password: string;
   armNumber: string;
 };
-
-export type AuthStep = "credentials" | "code";

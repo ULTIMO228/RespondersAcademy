@@ -16,7 +16,7 @@ type LogsTabProps = {
 
 const RETENTION_NOTE = "Хранение ≥ 6 месяцев (ТЗ §9)";
 
-/** Секция 4 «Журналы и аудит» (spec/04-pages/21). */
+/** Секция 4 «Журналы и аудит» (spec/000-фронт/04-pages/21). */
 export function LogsTab({ overview, api }: LogsTabProps) {
   return (
     <div className={styles.logsTab}>

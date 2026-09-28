@@ -1,6 +1,6 @@
 /*
  * Гвард роутов (T2.1-07) на уровне Next 16 Proxy (бывший middleware): оптимистичная проверка cookie-сессии
- * до рендера, по матрице spec/02-roles.md. Без сессии → /login?returnUrl=…; истекла (24 ч) → /login с
+ * до рендера, по матрице spec/000-фронт/02-roles.md. Без сессии → /login?returnUrl=…; истекла (24 ч) → /login с
  * reason=expired и удалением cookie; чужая роль → rewrite на /forbidden со статусом 403.
  */
 import { NextResponse } from "next/server";

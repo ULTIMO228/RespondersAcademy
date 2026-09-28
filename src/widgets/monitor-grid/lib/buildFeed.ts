@@ -85,7 +85,7 @@ function describe(event: SessionFeedEvent, context: FeedContext): Described {
 
 /**
  * Превышение норматива реакции — отдельная строка ленты: между выдачей и открытием прошло больше нормы
- * (spec/04-pages/10: «11:05 Сидорова превысила норматив реакции»).
+ * (spec/000-фронт/04-pages/10: «11:05 Сидорова превысила норматив реакции»).
  */
 function reactionAlert(
   event: SessionFeedEvent,

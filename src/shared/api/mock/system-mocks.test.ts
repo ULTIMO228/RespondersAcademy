@@ -83,7 +83,7 @@ describe("mocks/admin/system-settings.json (T4.2-01)", () => {
   });
 
   it("безопасность и автовосстановление заполнены правдоподобно", () => {
-    expect(settings.security.require2fa).toBe(true);
+    expect("require2fa" in settings.security).toBe(false);
     expect(settings.security.minPasswordLength).toBeGreaterThanOrEqual(MIN_PASSWORD_LENGTH);
     expect(settings.security.lockAfterAttempts).toBeGreaterThanOrEqual(1);
     expect(settings.performance.refreshIntervalSec).toBeGreaterThan(0);

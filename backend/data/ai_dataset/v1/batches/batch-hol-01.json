@@ -1,0 +1,1243 @@
+[
+ {
+  "caseId": "sr-0676",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 3,
+  "cardId": "c-060",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Человек в опасности: Изнасиловали женщину ~30 л., травмы, просит полицию. Адрес: Москва, ул. Кастанаевская, 42 корп. 2, во дворе. Признаки: Человек в опасности, Изнасилование.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-020:3:a2",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-020:3:a3",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-020:3:a1",
+    "fact:ticket-020:3:a2",
+    "fact:ticket-020:3:a3"
+   ],
+   "missingFactIds": [
+    "fact:ticket-020:3:a1"
+   ],
+   "presentFactIds": [
+    "fact:ticket-020:3:a2",
+    "fact:ticket-020:3:a3"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0677",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 2,
+  "cardId": "c-068",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Артемьева Татьяна Романовна, 14.07.1977 г.р., чистила ухо, повредила барабанную перепонку, кровотечение. Адрес: Москва, ул. Лесная, 5. Признаки: Боль в ухе, нарушение слуха, Кровотечение.",
+  "applicant": {
+   "name": "Голубев Константин Дмитриевич",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:2:d1",
+    "text": "Артемьева Татьяна Романовна"
+   },
+   {
+    "id": "fact:ticket-023:2:d2",
+    "text": "14.07.1977 г.р., чистила ухо"
+   },
+   {
+    "id": "fact:ticket-023:2:d3",
+    "text": "повредила барабанную перепонку, кровотечение"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-023:2:d1",
+    "fact:ticket-023:2:d2",
+    "fact:ticket-023:2:d3"
+   ],
+   "missingFactIds": [
+    "fact:ticket-023:2:d3"
+   ],
+   "presentFactIds": [
+    "fact:ticket-023:2:d1",
+    "fact:ticket-023:2:d2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0678",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 3,
+  "cardId": "c-069",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Ребенок в опасности: Потерялся Блинов Евгений, 5 л., 30 мин назад; синяя куртка, жёлтая шапка, шарф и варежки, синие брюки, чёрные ботинки; гулял с бабушкой. Адрес: Москва, ул. Домодедовская, 34 корп. 1, двор у 3 подъезда. Признаки: Потерялся (пропал): В городской среде.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-023:3:a2",
+    "text": "направлен наряд полиции (102)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-023:3:a1",
+    "fact:ticket-023:3:a2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-023:3:a1"
+   ],
+   "presentFactIds": [
+    "fact:ticket-023:3:a2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0679",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 1,
+  "cardId": "c-058",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Драка: Дерутся 3 человека, без пострадавших, без оружия. Адрес: Москва, Олонецкий проезд, 4, за домом, дорожка в сторону кладбища. Признаки: Драка, Улица общественное место, До 10 человек.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:1:r1",
+    "text": "адрес: Москва, Олонецкий проезд, 4, за домом, дорожка в сторону кладбища"
+   },
+   {
+    "id": "fact:ticket-020:1:r2",
+    "text": "суть происшествия: Дерутся 3 человека"
+   },
+   {
+    "id": "fact:ticket-020:1:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-020:1:r4",
+    "text": "номер карточки: 2217"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-020:1:r1",
+    "fact:ticket-020:1:r2",
+    "fact:ticket-020:1:r3",
+    "fact:ticket-020:1:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-020:1:r1",
+    "fact:ticket-020:1:r2",
+    "fact:ticket-020:1:r3",
+    "fact:ticket-020:1:r4"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "colloquial",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0680",
+  "split": "holdout",
+  "sourceTicketId": "ticket-018",
+  "situationNo": 1,
+  "cardId": "c-052",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "пожар на улице: Видит пожар, что горит — не знает. Адрес: дорога от Киевского ш. (М3) в сторону Минского ш. (М1) через Крёкшино, ~1,5 км от ж/д переезда, напротив пруда. Признаки: на улице, открытое пламя.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-018:1:r1",
+    "text": "адрес: дорога от Киевского ш. (М3) в сторону Минского ш. (М1) через Крёкшино, ~1,5 км от ж/д переезда, напротив пруда"
+   },
+   {
+    "id": "fact:ticket-018:1:r2",
+    "text": "суть происшествия: Видит пожар, что горит — не знает"
+   },
+   {
+    "id": "fact:ticket-018:1:r3",
+    "text": "пострадавших нет или не сообщено"
+   },
+   {
+    "id": "fact:ticket-018:1:r4",
+    "text": "номер карточки: 3569"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-018:1:r1",
+    "fact:ticket-018:1:r2",
+    "fact:ticket-018:1:r3",
+    "fact:ticket-018:1:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "offTopic",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0681",
+  "split": "holdout",
+  "sourceTicketId": "ticket-018",
+  "situationNo": 3,
+  "cardId": "c-054",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Человек в опасности: С улицы слышны крики о помощи, кричит мужчина. Адрес: Москва, Огородный проезд, 12, во дворе. Признаки: Человек в опасности, Человек кричит о помощи.",
+  "applicant": {
+   "name": "Гусева Светлана Николаевна",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-018:3:d1",
+    "text": "С улицы слышны крики о помощи"
+   },
+   {
+    "id": "fact:ticket-018:3:d2",
+    "text": "кричит мужчина"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-018:3:d1",
+    "fact:ticket-018:3:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-018:3:d1",
+    "fact:ticket-018:3:d2"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0682",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 1,
+  "cardId": "c-067",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Скандал: Скандал с пьяным мужем; Носкова Галина Борисовна, 28 л., травма головы, кровотечение. Адрес: Москва, ул. Тихомирова, 15 корп. 1, кв. 79, под. 2, эт. 4, код 80В. Признаки: Скандал, Пострадавшие.",
+  "applicant": {
+   "name": "Виноградов Сергей Олегович",
+   "status": "знакомый",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:1:d1",
+    "text": "Скандал с пьяным мужем"
+   },
+   {
+    "id": "fact:ticket-023:1:d2",
+    "text": "Носкова Галина Борисовна, 28 л., травма головы, кровотечение"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-023:1:d1",
+    "fact:ticket-023:1:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-023:1:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-023:1:d1"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0683",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 1,
+  "cardId": "c-049",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "пожар в жилом доме: Сработала пожарная сигнализация в жилом доме, дыма и возгорания нет. Адрес: Москва, Большой Сухаревский пер., 19 стр. 2, под. 1, код 2215. Признаки: жилой дом, сигнализация.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:1:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-017:1:a2",
+    "text": "направлен расчёт МЧС (101)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-017:1:a1",
+    "fact:ticket-017:1:a2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-017:1:a1",
+    "fact:ticket-017:1:a2"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "verbose",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0684",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 1,
+  "cardId": "c-058",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Драка: Дерутся 3 человека, без пострадавших, без оружия. Адрес: Москва, Олонецкий проезд, 4, за домом, дорожка в сторону кладбища. Признаки: Драка, Улица общественное место, До 10 человек.",
+  "applicant": {
+   "name": "Елисеев Ярослав Андреевич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:1:d1",
+    "text": "Дерутся 3 человека"
+   },
+   {
+    "id": "fact:ticket-020:1:d2",
+    "text": "без пострадавших, без оружия"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-020:1:d1",
+    "fact:ticket-020:1:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-020:1:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-020:1:d1"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0685",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 3,
+  "cardId": "c-060",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Человек в опасности: Изнасиловали женщину ~30 л., травмы, просит полицию. Адрес: Москва, ул. Кастанаевская, 42 корп. 2, во дворе. Признаки: Человек в опасности, Изнасилование.",
+  "applicant": {
+   "name": "Гаврилова Анастасия Ивановна",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:3:d1",
+    "text": "Изнасиловали женщину ~30 л., травмы"
+   },
+   {
+    "id": "fact:ticket-020:3:d2",
+    "text": "просит полицию"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-020:3:d1",
+    "fact:ticket-020:3:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-020:3:d1",
+    "fact:ticket-020:3:d2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "typos",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0686",
+  "split": "holdout",
+  "sourceTicketId": "ticket-024",
+  "situationNo": 3,
+  "cardId": "c-072",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Хулиганство: Женщина с младенцем попрошайничает, пристаёт к гражданам; у ребёнка окровавленное лицо. Адрес: Москва, ул. Красная Пресня, напротив метро «1905 года». Признаки: Хулиганство, Попрошайки.",
+  "applicant": {
+   "name": "Зайцев Николай Игоревич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-024:3:d1",
+    "text": "Женщина с младенцем попрошайничает"
+   },
+   {
+    "id": "fact:ticket-024:3:d2",
+    "text": "пристаёт к гражданам"
+   },
+   {
+    "id": "fact:ticket-024:3:d3",
+    "text": "у ребёнка окровавленное лицо"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-024:3:d1",
+    "fact:ticket-024:3:d2",
+    "fact:ticket-024:3:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-024:3:d1",
+    "fact:ticket-024:3:d2",
+    "fact:ticket-024:3:d3"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0687",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 2,
+  "cardId": "c-059",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Женщина, речь невнятная, лицо перекошено, просит 03; на вид 70 лет. Адрес: дорога от Каширского ш. в сторону д. Истомиха, около остановки «Домодедовское кладбище», рядом с КПП. Признаки: Парализовало.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:2:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-020:2:a2",
+    "text": "направлена бригада СМП (103)"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-020:2:a1",
+    "fact:ticket-020:2:a2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-020:2:a1",
+    "fact:ticket-020:2:a2"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "swapIncident",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null,
+   "foreignFacts": [
+    "сообщение принято",
+    "направлен расчёт МЧС (101)",
+    "информация передана: ОЭК"
+   ]
+  }
+ },
+ {
+  "caseId": "sr-0688",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 2,
+  "cardId": "c-050",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Оказание медицинской скорой и неотложной помощи: У покупателя в магазине судороги, пена изо рта, при падении разбил голову; мужчина 40–45 л.. Адрес: Москва, ул. Твардовского, вл2к1,2, магазин «Лента», у касс. Признаки: Судороги.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:2:r1",
+    "text": "адрес: Москва, ул. Твардовского, вл2к1,2, магазин «Лента», у касс"
+   },
+   {
+    "id": "fact:ticket-017:2:r2",
+    "text": "суть происшествия: У покупателя в магазине судороги, пена изо рта"
+   },
+   {
+    "id": "fact:ticket-017:2:r3",
+    "text": "пострадавших: 1 (судороги, травма головы)"
+   },
+   {
+    "id": "fact:ticket-017:2:r4",
+    "text": "номер карточки: 8615"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-017:2:r1",
+    "fact:ticket-017:2:r2",
+    "fact:ticket-017:2:r3",
+    "fact:ticket-017:2:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-017:2:r1",
+    "fact:ticket-017:2:r2",
+    "fact:ticket-017:2:r3",
+    "fact:ticket-017:2:r4"
+   ],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0689",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 2,
+  "cardId": "c-050",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Оказание медицинской скорой и неотложной помощи: У покупателя в магазине судороги, пена изо рта, при падении разбил голову; мужчина 40–45 л.. Адрес: Москва, ул. Твардовского, вл2к1,2, магазин «Лента», у касс. Признаки: Судороги.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:2:r1",
+    "text": "адрес: Москва, ул. Твардовского, вл2к1,2, магазин «Лента», у касс"
+   },
+   {
+    "id": "fact:ticket-017:2:r2",
+    "text": "суть происшествия: У покупателя в магазине судороги, пена изо рта"
+   },
+   {
+    "id": "fact:ticket-017:2:r3",
+    "text": "пострадавших: 1 (судороги, травма головы)"
+   },
+   {
+    "id": "fact:ticket-017:2:r4",
+    "text": "номер карточки: 8615"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "timeReaction",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-017:2:r1",
+    "fact:ticket-017:2:r2",
+    "fact:ticket-017:2:r3",
+    "fact:ticket-017:2:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-017:2:r1",
+    "fact:ticket-017:2:r2",
+    "fact:ticket-017:2:r3",
+    "fact:ticket-017:2:r4"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0690",
+  "split": "holdout",
+  "sourceTicketId": "ticket-018",
+  "situationNo": 2,
+  "cardId": "c-053",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Муж не просыпается, издаёт хрипы. Носков Максим Алексеевич, 26.07.1977 г.р.. Адрес: МО, Красногорск, ул. Пионерская, 19, кв. 5, под. 1, эт. 2, код 5в. Признаки: Без сознания.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-018:2:r1",
+    "text": "адрес: МО, Красногорск, ул. Пионерская, 19, кв. 5, под. 1, эт. 2, код 5в"
+   },
+   {
+    "id": "fact:ticket-018:2:r2",
+    "text": "суть происшествия: Муж не просыпается, издаёт хрипы"
+   },
+   {
+    "id": "fact:ticket-018:2:r3",
+    "text": "пострадавших: 1 (не просыпается, хрипы)"
+   },
+   {
+    "id": "fact:ticket-018:2:r4",
+    "text": "номер карточки: 5900"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-018:2:r1",
+    "fact:ticket-018:2:r2",
+    "fact:ticket-018:2:r3",
+    "fact:ticket-018:2:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-018:2:r1",
+    "fact:ticket-018:2:r2",
+    "fact:ticket-018:2:r3",
+    "fact:ticket-018:2:r4"
+   ],
+   "confidence": 0.85
+  },
+  "recipe": {
+   "perturbation": "abbreviated",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0691",
+  "split": "holdout",
+  "sourceTicketId": "ticket-024",
+  "situationNo": 3,
+  "cardId": "c-072",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Хулиганство: Женщина с младенцем попрошайничает, пристаёт к гражданам; у ребёнка окровавленное лицо. Адрес: Москва, ул. Красная Пресня, напротив метро «1905 года». Признаки: Хулиганство, Попрошайки.",
+  "applicant": {
+   "name": "Зайцев Николай Игоревич",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-024:3:d1",
+    "text": "Женщина с младенцем попрошайничает"
+   },
+   {
+    "id": "fact:ticket-024:3:d2",
+    "text": "пристаёт к гражданам"
+   },
+   {
+    "id": "fact:ticket-024:3:d3",
+    "text": "у ребёнка окровавленное лицо"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-024:3:d1",
+    "fact:ticket-024:3:d2",
+    "fact:ticket-024:3:d3"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "сжатый, телеграфный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0692",
+  "split": "holdout",
+  "sourceTicketId": "ticket-020",
+  "situationNo": 3,
+  "cardId": "c-060",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Человек в опасности: Изнасиловали женщину ~30 л., травмы, просит полицию. Адрес: Москва, ул. Кастанаевская, 42 корп. 2, во дворе. Признаки: Человек в опасности, Изнасилование.",
+  "applicant": {
+   "name": "Гаврилова Анастасия Ивановна",
+   "status": "пострадавший",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-020:3:d1",
+    "text": "Изнасиловали женщину ~30 л., травмы"
+   },
+   {
+    "id": "fact:ticket-020:3:d2",
+    "text": "просит полицию"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-020:3:d1",
+    "fact:ticket-020:3:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "подробный",
+   "injection": true,
+   "injectionStyle": 3
+  }
+ },
+ {
+  "caseId": "sr-0693",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 3,
+  "cardId": "c-069",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Ребенок в опасности: Потерялся Блинов Евгений, 5 л., 30 мин назад; синяя куртка, жёлтая шапка, шарф и варежки, синие брюки, чёрные ботинки; гулял с бабушкой. Адрес: Москва, ул. Домодедовская, 34 корп. 1, двор у 3 подъезда. Признаки: Потерялся (пропал): В городской среде.",
+  "applicant": {
+   "name": "Абрамов Василий Леонидович",
+   "status": "родственник",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:3:d1",
+    "text": "Потерялся Блинов Евгений, 5 л., 30 мин назад, синяя куртка, жёлтая шапка"
+   },
+   {
+    "id": "fact:ticket-023:3:d2",
+    "text": "шарф и варежки, синие брюки"
+   },
+   {
+    "id": "fact:ticket-023:3:d3",
+    "text": "чёрные ботинки"
+   },
+   {
+    "id": "fact:ticket-023:3:d4",
+    "text": "гулял с бабушкой"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-023:3:d1",
+    "fact:ticket-023:3:d2",
+    "fact:ticket-023:3:d3",
+    "fact:ticket-023:3:d4"
+   ],
+   "missingFactIds": [
+    "fact:ticket-023:3:d4"
+   ],
+   "presentFactIds": [
+    "fact:ticket-023:3:d1",
+    "fact:ticket-023:3:d2",
+    "fact:ticket-023:3:d3"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0694",
+  "split": "holdout",
+  "sourceTicketId": "ticket-024",
+  "situationNo": 2,
+  "cardId": "c-071",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Оказание медицинской скорой и неотложной помощи: Логинов Юрий Николаевич, 8 л., упал сам с горки (1,5 м), травма лица, кровотечение. Адрес: Москва, Погонный проезд, 1 корп. 4, двор, детская площадка. Признаки: Травма.",
+  "applicant": {
+   "name": "Дроздов Максим Олегович",
+   "status": "родственник",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-024:2:d1",
+    "text": "Логинов Юрий Николаевич, 8 л."
+   },
+   {
+    "id": "fact:ticket-024:2:d2",
+    "text": "упал сам с горки (1,5 м), травма лица, кровотечение"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "phoneMatch",
+    "result": "ok"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-024:2:d1",
+    "fact:ticket-024:2:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-024:2:d1",
+    "fact:ticket-024:2:d2"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0695",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 1,
+  "cardId": "c-067",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Скандал: Скандал с пьяным мужем; Носкова Галина Борисовна, 28 л., травма головы, кровотечение. Адрес: Москва, ул. Тихомирова, 15 корп. 1, кв. 79, под. 2, эт. 4, код 80В. Признаки: Скандал, Пострадавшие.",
+  "applicant": {
+   "name": "Виноградов Сергей Олегович",
+   "status": "знакомый",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:1:d1",
+    "text": "Скандал с пьяным мужем"
+   },
+   {
+    "id": "fact:ticket-023:1:d2",
+    "text": "Носкова Галина Борисовна, 28 л., травма головы, кровотечение"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-023:1:d1",
+    "fact:ticket-023:1:d2"
+   ],
+   "missingFactIds": [
+    "fact:ticket-023:1:d2"
+   ],
+   "presentFactIds": [
+    "fact:ticket-023:1:d1"
+   ],
+   "confidence": 0.75
+  },
+  "recipe": {
+   "perturbation": "omitOne",
+   "style": "подробный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0696",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 1,
+  "cardId": "c-067",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Скандал: Скандал с пьяным мужем; Носкова Галина Борисовна, 28 л., травма головы, кровотечение. Адрес: Москва, ул. Тихомирова, 15 корп. 1, кв. 79, под. 2, эт. 4, код 80В. Признаки: Скандал, Пострадавшие.",
+  "applicant": {
+   "name": "Виноградов Сергей Олегович",
+   "status": "знакомый",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:1:d1",
+    "text": "Скандал с пьяным мужем"
+   },
+   {
+    "id": "fact:ticket-023:1:d2",
+    "text": "Носкова Галина Борисовна, 28 л., травма головы, кровотечение"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-023:1:d1",
+    "fact:ticket-023:1:d2"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "ambiguousText",
+   "style": "с канцеляризмами диспетчера",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0697",
+  "split": "holdout",
+  "sourceTicketId": "ticket-024",
+  "situationNo": 3,
+  "cardId": "c-072",
+  "mode": "dds",
+  "field": "dispatcherAction",
+  "situation": "Хулиганство: Женщина с младенцем попрошайничает, пристаёт к гражданам; у ребёнка окровавленное лицо. Адрес: Москва, ул. Красная Пресня, напротив метро «1905 года». Признаки: Хулиганство, Попрошайки.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-024:3:a3",
+    "text": "направлена бригада СМП (103)"
+   },
+   {
+    "id": "fact:ticket-024:3:a1",
+    "text": "сообщение принято"
+   },
+   {
+    "id": "fact:ticket-024:3:a2",
+    "text": "направлен наряд полиции (102)"
+   },
+   {
+    "id": "fact:ticket-024:3:a4",
+    "text": "сообщение принято"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "uncertain",
+   "referenceFactIds": [
+    "fact:ticket-024:3:a3",
+    "fact:ticket-024:3:a1",
+    "fact:ticket-024:3:a2",
+    "fact:ticket-024:3:a4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [],
+   "confidence": 0.0
+  },
+  "recipe": {
+   "perturbation": "foreignFact",
+   "style": "подробный",
+   "injection": true,
+   "injectionStyle": 4
+  }
+ },
+ {
+  "caseId": "sr-0698",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 3,
+  "cardId": "c-051",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Человек в опасности: Избита неизвестная женщина ~30 л., травма головы, кровотечение. Адрес: Москва, Дмитровское ш., 155 корп. 1, около магазина «Пятёрочка». Признаки: Человек в опасности, Человек избит, нанесение телесных повреждений.",
+  "applicant": {
+   "name": "Кириллов Виктор Викторович",
+   "status": "очевидец",
+   "mention": false
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:3:d1",
+    "text": "Избита неизвестная женщина ~30 л., травма головы, кровотечение"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "different",
+   "referenceFactIds": [
+    "fact:ticket-017:3:d1"
+   ],
+   "missingFactIds": [
+    "fact:ticket-017:3:d1"
+   ],
+   "presentFactIds": [],
+   "confidence": 0.9
+  },
+  "recipe": {
+   "perturbation": "contradict",
+   "style": "разговорный",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0699",
+  "split": "holdout",
+  "sourceTicketId": "ticket-017",
+  "situationNo": 3,
+  "cardId": "c-051",
+  "mode": "operator112",
+  "field": "description",
+  "situation": "Человек в опасности: Избита неизвестная женщина ~30 л., травма головы, кровотечение. Адрес: Москва, Дмитровское ш., 155 корп. 1, около магазина «Пятёрочка». Признаки: Человек в опасности, Человек избит, нанесение телесных повреждений.",
+  "applicant": {
+   "name": "Кириллов Виктор Викторович",
+   "status": "очевидец",
+   "mention": true
+  },
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-017:3:d1",
+    "text": "Избита неизвестная женщина ~30 л., травма головы, кровотечение"
+   }
+  ],
+  "verifiedRules": [],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-017:3:d1"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-017:3:d1"
+   ],
+   "confidence": 0.8
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ },
+ {
+  "caseId": "sr-0700",
+  "split": "holdout",
+  "sourceTicketId": "ticket-023",
+  "situationNo": 1,
+  "cardId": "c-067",
+  "mode": "dds",
+  "field": "serviceReport",
+  "situation": "Скандал: Скандал с пьяным мужем; Носкова Галина Борисовна, 28 л., травма головы, кровотечение. Адрес: Москва, ул. Тихомирова, 15 корп. 1, кв. 79, под. 2, эт. 4, код 80В. Признаки: Скандал, Пострадавшие.",
+  "applicant": null,
+  "referenceFacts": [
+   {
+    "id": "fact:ticket-023:1:r1",
+    "text": "адрес: Москва, ул. Тихомирова, 15 корп. 1, кв. 79, под. 2, эт. 4, код 80В"
+   },
+   {
+    "id": "fact:ticket-023:1:r2",
+    "text": "суть происшествия: Скандал с пьяным мужем"
+   },
+   {
+    "id": "fact:ticket-023:1:r3",
+    "text": "пострадавших: 1 (травма головы, кровотечение)"
+   },
+   {
+    "id": "fact:ticket-023:1:r4",
+    "text": "номер карточки: 6148"
+   }
+  ],
+  "verifiedRules": [
+   {
+    "rule": "statuses",
+    "result": "violation"
+   }
+  ],
+  "target": {
+   "decision": "equivalent",
+   "referenceFactIds": [
+    "fact:ticket-023:1:r1",
+    "fact:ticket-023:1:r2",
+    "fact:ticket-023:1:r3",
+    "fact:ticket-023:1:r4"
+   ],
+   "missingFactIds": [],
+   "presentFactIds": [
+    "fact:ticket-023:1:r1",
+    "fact:ticket-023:1:r2",
+    "fact:ticket-023:1:r3",
+    "fact:ticket-023:1:r4"
+   ],
+   "confidence": 0.95
+  },
+  "recipe": {
+   "perturbation": "paraphrase",
+   "style": "официально-деловой",
+   "injection": false,
+   "injectionStyle": null
+  }
+ }
+]

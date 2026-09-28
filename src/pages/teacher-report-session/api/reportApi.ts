@@ -11,6 +11,7 @@ import {
   getReference,
   getReportJournal,
   getReports,
+  getSessionErrorSummary,
   listSessions,
   postAttemptEvaluation,
   postReportFeedback,
@@ -26,6 +27,7 @@ import type {
   ReportJournalResponse,
   ReportsResponse,
   SessionContract,
+  SessionErrorSummaryResponse,
   SessionListQuery,
 } from "@/shared/api";
 
@@ -38,6 +40,7 @@ export type ReportApi = {
   getCard: (cardId: string, signal?: AbortSignal) => Promise<CardDetails>;
   postAttemptEvaluation: (attemptId: string, body: EvaluationOverrideRequest) => Promise<Evaluation>;
   postReportFeedback: (body: ReportFeedbackRequest) => Promise<ReportFeedback>;
+  getSessionErrorSummary?: (sessionId: string, signal?: AbortSignal) => Promise<SessionErrorSummaryResponse>;
 };
 
 export const defaultReportApi: ReportApi = {
@@ -49,4 +52,5 @@ export const defaultReportApi: ReportApi = {
   getCard,
   postAttemptEvaluation,
   postReportFeedback,
+  getSessionErrorSummary,
 };

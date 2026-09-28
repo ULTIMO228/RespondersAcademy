@@ -24,6 +24,7 @@ class Scenario(Base):
     deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     validation_report: Mapped[dict[str, Any] | None] = mapped_column(JSONVariant, nullable=True)
     history: Mapped[list[dict[str, Any]]] = mapped_column(JSONVariant, default=list)
+    created_by: Mapped[str | None] = mapped_column(String(16), nullable=True, index=True)
     updated_by: Mapped[str | None] = mapped_column(String(16), nullable=True)
     updated_at: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
