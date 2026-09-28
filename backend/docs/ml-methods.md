@@ -27,7 +27,7 @@
 
 | Раздел | Команда | Что измеряется | Локальный результат |
 |---|---|---|---|
-| `assessor` | `uv run python -m ml.scripts.eval_assessor` | Совпадение типов ошибок, κ, корреляции и MAE с экспертными баллами | 110 примеров; agreement 1,0; Pearson 0,9336; Spearman 0,7576; MAE 10,52. |
+| `assessor` | `uv run python -m ml.scripts.eval_assessor` | Совпадение типов ошибок, κ, корреляции и MAE с экспертными баллами | `dds-1.1.0`, 110 примеров; agreement 0,9986; Pearson 0,9336; Spearman 0,7576; MAE 10,52. |
 | `assessorOperator112` | `uv run python -m ml.scripts.eval_assessor --mode operator112` | Те же метрики для режима 112 | 58 примеров; agreement 1,0; Pearson 0,974; Spearman 0,8337; MAE 10,98. |
 | `classifier` | `uv run python -m ml.scripts.eval_classifier` | Accuracy на банке, top-3, доля уверенных, 5-блочная CV | 96 карточек; accuracy 1,0; CV accuracy 0,5729. Accuracy на банке оптимистична, поскольку карточки участвуют в обучении. |
 | `validator` | `uv run python -m ml.scripts.eval_validator` | Доля пропущенных корректных и отклонённых дефектных билетов | 20 + 20; обе доли 1,0. Это регрессия на примерах из банка, не независимый тест генерализации. |
