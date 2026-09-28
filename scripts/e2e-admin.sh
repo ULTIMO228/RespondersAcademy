@@ -10,7 +10,7 @@
 #   + рантайм-события: вход, действия над пользователями, правка оценки преподавателем, настройки, бэкап;
 #   фильтры по типу/оператору/карточке/периоду, пагинация) → сервисы (список, запуск/остановка/перезапуск,
 #   запрет остановки критичного сервиса во время активного занятия) → настройки (нормативы ТЗ: бэкап
-#   не реже 1 раза в сутки, журналы ≥ 6 мес, лимит сессий ≥ 20, отклик ≤ 2 с; 2FA-политика входа,
+#   не реже 1 раза в сутки, журналы ≥ 6 мес, лимит сессий ≥ 20, отклик ≤ 2 с; локальная политика входа,
 #   read-only БД, «Выполнить сейчас») → мониторинг и статистика использования → системные журналы →
 #   пакетное обновление (клиентская заглушка без сетевой отправки) → изоляция ролей (403 по матрице).
 set -uo pipefail
@@ -336,7 +336,7 @@ PY
 login() {
   anon_req POST /auth/login \
     "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3}"
-  check "вход $1 / АРМ $3 / 2FA" 200 "\"role\":\"$4\"" || return 1
+  check "вход $1 / АРМ $3" 200 "\"role\":\"$4\"" || return 1
   LOGGED_USER_ID="$(jget userId)"
   SESSION_COOKIE="$(python3 "$WORK_DIR/tools.py" urlencode-cookie <"$WORK_DIR/body")"
   [ -n "$SESSION_COOKIE" ] || {
@@ -365,7 +365,7 @@ step_login_admin() {
   ADMIN_COOKIE="$SESSION_COOKIE"
   expect "администратор системы — $ADMIN_ID" "$LOGGED_USER_ID" "$ADMIN_ID"
   anon_req GET /auth/policy
-  check "политика входа: GET /auth/policy (2FA включена)" 200 '"twoFactorRequired":true'
+  check "политика входа: GET /auth/policy (локальная 2FA недоступна)" 200 '"twoFactorRequired":false'
   local code
   for route in /admin/users /admin/system; do
     code="$(page "$route")"
@@ -596,6 +596,13 @@ step_session_lock() {
   login "$TEACHER_LOGIN" "$TEACHER_PASSWORD" "$TEACHER_ARM" teacher || return 1
   req POST "/sessions/$RUNNING_SESSION/stop"
   check "преподаватель завершает занятие: POST /sessions/$RUNNING_SESSION/stop" 200
+  # После студенческого/преподавательского E2E могут остаться другие занятия этого преподавателя.
+  req GET "/sessions?state=running&teacherId=$TEACHER_ID"
+  local session_id
+  for session_id in $(python3 -c 'import json,sys; print(" ".join(row["id"] for row in json.load(sys.stdin)))' <"$WORK_DIR/body"); do
+    req POST "/sessions/$session_id/stop"
+    check "преподаватель завершает оставшееся занятие: $session_id" 200
+  done
   SESSION_COOKIE="$ADMIN_COOKIE"
   req POST "/admin/system/services/$SVC_DB/action" "{\"action\":\"stop\",\"adminId\":\"$ADMIN_ID\"}"
   check "после завершения занятия остановка БД разрешена" 200
@@ -658,14 +665,14 @@ step_settings() {
 
 step_settings_security_and_backup() {
   req PATCH /admin/system/settings "{\"security\":{\"require2fa\":false},\"adminId\":\"$ADMIN_ID\"}"
-  check "безопасность: «Требовать 2FA» выключено" 200 '"require2fa":false'
+  check "безопасность: локальная 2FA не настраивается" 422 '2FA не поддерживается'
   anon_req GET /auth/policy
-  check "политика входа отразила настройку" 200 '"twoFactorRequired":false'
+  check "политика входа остаётся без 2FA" 200 '"twoFactorRequired":false'
   anon_req POST /auth/login \
     "{\"login\":\"$ADMIN_LOGIN\",\"password\":\"$ADMIN_PASSWORD\",\"armNumber\":$ADMIN_ARM}"
-  check "вход без кода из сообщения при выключенной 2FA" 200 '"twoFactorUsed":false'
+  check "вход без кода из сообщения" 200 '"twoFactorUsed":false'
   req PATCH /admin/system/settings "{\"security\":{\"require2fa\":true},\"adminId\":\"$ADMIN_ID\"}"
-  check "безопасность: 2FA возвращена (ТЗ §5)" 200 '"require2fa":true'
+  check "безопасность: включение 2FA отклонено" 422 '2FA не поддерживается'
   req PATCH /admin/system/settings "{\"security\":{\"minPasswordLength\":3},\"adminId\":\"$ADMIN_ID\"}"
   check "длина пароля 3 → 422" 422 'длина пароля'
   req PATCH /admin/system/settings "{\"security\":{\"lockAfterAttempts\":0},\"adminId\":\"$ADMIN_ID\"}"

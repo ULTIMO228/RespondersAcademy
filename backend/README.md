@@ -6,6 +6,8 @@ Python 3.11+ / FastAPI / SQLAlchemy 2 (async) / PostgreSQL (для разраб�
 
 ## Быстрый старт (SQLite)
 
+До запуска задайте `JWT_SECRET` случайным секретом длиной не менее 32 байт в окружении или `backend/.env` (см. `.env.example`).
+
 ```bash
 cd backend
 uv sync --group dev
@@ -122,7 +124,7 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 
 - Формы ответов: `uv run python scripts/extract_ts_fields.py` извлекает обязательные поля из `src/shared/api/types/*.ts` в `tests/contract/expected_fields.json`; `tests/contract/test_response_shapes.py` сверяет с ними все GET-эндпоинты таблицы контракта (тест `test_expected_fields_are_fresh` требует перегенерации после изменения TS-типов).
 - Демо-путь `docs/demo-script.md` целиком через HTTP — `tests/integration/test_demo_path.py` (admin → teacher → занятие на двух курсантов → попытки со звонком → отчёт → правка → обратная связь → данные `/arm/progress`).
-- Сквозные скрипты фронта: `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `powershell -File backend\scripts\run_frontend_e2e.ps1` — поднимают бэкенд на `:8130` с чистым сидом (`var/e2e.db`), собирают фронт, запускают `next start -p 3130` с `BACKEND_URL` и прогоняют `scripts/e2e-{student,teacher,admin}.sh`; логи — `var/e2e-logs/`. В Git Bash в `PATH` подставляется системный `C:\Windows\System32\curl.exe` — mingw-curl портит кириллицу в argv.
+- Сквозные скрипты фронта: `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `pwsh -File backend/scripts/run_frontend_e2e.ps1` — поднимают бэкенд на `:8130` с чистым сидом (`var/e2e.db`), собирают фронт, запускают `next start -p 3130` с `BACKEND_URL` и прогоняют `scripts/e2e-{student,teacher,admin}.sh`; логи — `var/e2e-logs/`. Windows-скрипт принимает отдельные `-DatabasePath` и `-LogDirPath` внутри `backend/var/`. В Git Bash в `PATH` подставляется системный `C:\Windows\System32\curl.exe` — mingw-curl портит кириллицу в argv.
 - Ограничения Git Bash/Windows: `sort` из System32 добавляет CR (дедуп в скрипте через `awk`), порты освобождаются через `netstat`/`taskkill`, `PYTHONUTF8=1`; фронт собирается `mocks:sync` + `mocks:validate` + `npx next build` (не `npm run build` — его строка с `NEXT_TELEMETRY_DISABLED=1` под cmd не работает). Rewrite по `BACKEND_URL` запекается в `.next/routes-manifest.json` при сборке, поэтому `.env.local` на время прогона откладывается и восстанавливается по завершении.
 - Правки бэкенда ради гейта (согласованы 2026-09-21, подробности — `specs/002-two-mode-simulator/research.md`):
   - Фильтр профиля курсанта (T054): если «категории плана ∩ профиль ∩ реакция службы» пусто, план откатывается на «категории плана ∩ категории профиля» с `WARN` в системных журналах (`session_engine.resolve_student_profile` → `(groups, strict)`).
@@ -152,7 +154,19 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 | 5 | `npm ci` + `backend/scripts/run_frontend_e2e.sh` | e2e-student 40/40, e2e-teacher 96/96, e2e-admin 140/140, EXIT=0 |
 | 6 | `eval_classifier`, `eval_assessor`, `pytest tests/unit/test_validator.py` | классификатор accuracy 1,0 / top-3 1,0 на 96 (cv 0,57, 0,15 с/текст); оценщик `dds-1.1.0` на 110 образцах — согласие 1,0, κ 1,0, Pearson 0,93, **Spearman 0,76** (ниже 0,8: критерий `eval_assessor` — Pearson ≥ 0,8; ранговая корреляция занижена связками в экспертных баллах — у образцов `refusedProfile-noComment` эксперт ставит 0, оценщик 39–45), MAE 10,5; валидатор 9 passed (20/20 и 20/20) |
 
-Не входило в прогон: PostgreSQL (нет на машине; схему создаёт сид, Alembic — T109), Docker, §7–§8 (волна B, офлайн-приёмка).
+Не входило в тот прогон: PostgreSQL 14 и Docker. Миграция Alembic проверена на SQLite; PostgreSQL-часть T109 остаётся открытой. Повторный Windows-прогон 2026-09-29 на отдельной базе: студент 40/40, преподаватель 96/96, администратор 141/141, EXIT=0. Офлайн-проверка и её оставшееся ограничение описаны в `docs/offline-check.md`.
+
+## Замер производительности T113 (2026-09-29)
+
+`cd backend && uv run python scripts/perf_smoke.py` создаёт отдельную SQLite-базу с 20 обучаемыми и пятью готовыми оценками для каждого, прогревает ML вне измерения, выполняет запросы через `httpx.ASGITransport` и удаляет базу. Это замер приложения на локальном SQLite без сетевых накладных расходов, не замер целевого PostgreSQL 14.
+
+| Операция | Факт | Порог |
+|---|---:|---:|
+| Оценка одной попытки | 189 мс | ≤ 5 с |
+| Отчёт 20 × 5 | 1,81 с | ≤ 30 с |
+| Лента, 20 одновременных запросов, p95 | **491 мс** | ≤ 200 мс |
+
+Устранены повторные запросы оценок для каждой попытки; p95 ленты снизился с 5,84 с до 472–491 мс в двух локальных прогонах. T113 остаётся открытым до достижения 200 мс и прогона на целевом PostgreSQL 14. Скрипт возвращает код 1 при нарушении любого порога.
 
 ## Переменные окружения
 
