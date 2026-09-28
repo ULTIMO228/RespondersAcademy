@@ -305,10 +305,10 @@
 
 **Goal**: расписание сообщений о ходе работ с проверкой своевременности статусов; распознавание голосового доклада
 
-- [ ] T105 [P] [US9] Create model `backend/app/models/work_message.py` (`card_work_messages`: attempt_id, kind departed/arrived/started/done, at, expected_status) and `backend/app/services/work_messages.py` — расписание по категории билета (интервалы из `params`), выдача при `accepted`; компонент `statuses` оценщика учитывает «статус после информации» (FR-050, нарушение №6, «статус без основания»)
-- [ ] T106 [US9] Create `backend/app/api/v1/work_messages.py` — `GET /attempts/{id}/work-messages?since=` и tests `backend/tests/unit/test_work_messages.py`
-- [ ] T107 [P] [US10] Create `backend/ml/speech/stt.py` — Vosk small-ru (lazy, `MODELS_DIR`, доменная грамматика: улицы, службы, числа), `transcribe(wav) -> text`; `POST /api/v1/attempts/{id}/report-audio` (multipart wav → транскрипт → чек-лист T064 → `phone_calls` + компонент `report`), `GET /cards/{id}/recordings` волны A начинает отдавать записи докладов
-- [ ] T108 [US10] Create tests `backend/tests/unit/test_report_checklist.py` (20 тестовых транскриптов → ≥ 80 % пунктов, SC-012) и `backend/data/labeled/reports/*.json`
+- [X] T105 [P] [US9] Create model `backend/app/models/work_message.py` (`card_work_messages`: attempt_id, kind departed/arrived/started/done, at, expected_status) and `backend/app/services/work_messages.py` — расписание по категории билета (интервалы из `params`), выдача при `accepted`; компонент `statuses` оценщика учитывает «статус после информации» (FR-050, нарушение №6, «статус без основания»)
+- [X] T106 [US9] Create `backend/app/api/v1/work_messages.py` — `GET /attempts/{id}/work-messages?since=` и tests `backend/tests/unit/test_work_messages.py`
+- [X] T107 [P] [US10] Create `backend/ml/speech/stt.py` — Vosk small-ru (lazy, `MODELS_DIR`, доменная грамматика: улицы, службы, числа), `transcribe(wav) -> text`; `POST /api/v1/attempts/{id}/report-audio` (multipart wav → транскрипт → чек-лист T064 → `phone_calls` + компонент `report`), `GET /cards/{id}/recordings` волны A начинает отдавать записи докладов
+- [X] T108 [US10] Create tests `backend/tests/unit/test_report_checklist.py` (20 тестовых транскриптов → ≥ 80 % пунктов, SC-012) и `backend/data/labeled/reports/*.json`
 
 ---
 

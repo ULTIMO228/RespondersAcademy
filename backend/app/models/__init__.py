@@ -13,6 +13,7 @@ from app.models.system import SystemLog, SystemService, SystemStatic
 from app.models.teacher import ProfileMappingRow, TrainingMaterial
 from app.models.ticket_audio import TicketAudio
 from app.models.user import User
+from app.models.work_message import WorkMessage
 
 __all__ = [
     "Address",
@@ -45,4 +46,5 @@ __all__ = [
     "TrainingMaterial",
     "TrainingSession",
     "User",
+    "WorkMessage",
 ]

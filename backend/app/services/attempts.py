@@ -137,6 +137,21 @@ async def record_progress(db: AsyncSession, attempt_id: str, body: dict[str, Any
     if attempt.mode == "operator112":
         raise invalid_transition("Попытка режима специалиста-112 ведётся через /api/v1/operator112/attempts")
     if status:
+        session = await db.get(TrainingSession, attempt.session_id)
+        if session and (session.plan or {}).get("workMessagesEnabled"):
+            from app.services.reference import read_reference
+            from app.services.status_machine import StatusTransitionError, dds_machine
+
+            machine = dds_machine((await read_reference(db))["ddsStatuses"])
+            previous = (attempt.statuses or [])[-1]["ddsStatus"] if attempt.statuses else None
+            try:
+                machine.assert_transition(previous, status["ddsStatus"], status.get("comment"))
+            except StatusTransitionError as exc:
+                raise exc.to_api_error() from exc
+            if status["ddsStatus"] == "accepted":
+                from app.services.work_messages import schedule_on_accept
+
+                await schedule_on_accept(db, attempt, status["at"])
         attempt.statuses = [*attempt.statuses, status]
     if entered:
         attempt.entered_text = {**attempt.entered_text, **entered}

@@ -163,9 +163,14 @@ def read_plan(plan: Any) -> dict[str, Any] | None:
         raise validation_failed("Некорректные настройки занятия (plan)")
     if "adaptive" in plan and not isinstance(plan["adaptive"], bool):
         raise validation_failed("Некорректное значение adaptive в настройках занятия")
+    if "workMessagesEnabled" in plan and not isinstance(plan["workMessagesEnabled"], bool):
+        raise validation_failed("Некорректное значение workMessagesEnabled")
     result = {k: plan[k] for k in ("categories", "issueOrder", "hints", "timeNorms", "maxGrammarErrors", "paceSec", "conveyor")}
     if "adaptive" in plan:
         result["adaptive"] = plan["adaptive"]
+    for key in ("workMessagesEnabled", "workMessageIntervalsSec", "workMessageIntervalsByGroup"):
+        if key in plan:
+            result[key] = plan[key]
     return result
 
 

@@ -5,15 +5,18 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.compat.auth import read_body
-from app.api.errors import validation_failed
+from app.api.deps import Viewer, get_viewer
+from app.api.errors import forbidden, unauthorized, validation_failed
+from app.config import get_settings
 from app.db.ids import PREFIX, format_id, max_suffix
 from app.db.session import get_db
 from app.models.card import CardRuntime, IncidentCard
+from app.models.session import Attempt
 from app.services.cards import ensure_runtime, read_runtime, require_card
 from app.services.reference import read_reference
 from app.services.status_machine import StatusTransitionError, dds_machine
@@ -157,6 +160,33 @@ async def post_sms(card_id: str, request: Request, db: AsyncSession = Depends(ge
 
 
 @router.get("/cards/{card_id}/recordings")
-async def list_recordings(card_id: str, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
+async def list_recordings(card_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> list[dict[str, Any]]:
     await require_card(db, card_id)
-    return []
+    attempts = (await db.execute(select(Attempt).where(Attempt.card_id == card_id))).scalars().all()
+    if viewer is None:
+        return []
+    if viewer.is_student:
+        attempts = [attempt for attempt in attempts if attempt.student_id == viewer.user_id]
+    return [{"id": call["id"], "cardId": card_id, "attemptId": attempt.id,
+             "at": call.get("startedAt"), "transcript": call.get("transcript") or [],
+             "url": f"/api/v1/cards/{card_id}/recordings/{call['id']}/file"}
+            for attempt in attempts for call in attempt.calls or [] if isinstance(call, dict) and isinstance(call.get("recording"), dict)]
+
+
+@router.get("/cards/{card_id}/recordings/{call_id}/file")
+async def get_recording_file(card_id: str, call_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> FileResponse:
+    await require_card(db, card_id)
+    if viewer is None:
+        raise unauthorized("Войдите в систему для прослушивания аудиозаписи")
+    attempts = (await db.execute(select(Attempt).where(Attempt.card_id == card_id))).scalars().all()
+    for attempt in attempts:
+        for call in attempt.calls or []:
+            if call.get("id") == call_id and isinstance(call.get("recording"), dict):
+                if viewer.is_student and viewer.user_id != attempt.student_id:
+                    raise forbidden("Доступна только собственная аудиозапись")
+                path = get_settings().var_dir / "recordings" / f"{call_id}.wav"
+                if path.is_file():
+                    return FileResponse(path, media_type="audio/wav", filename=f"{call_id}.wav")
+    from app.api.errors import not_found
+
+    raise not_found("Аудиозапись доклада не найдена")

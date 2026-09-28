@@ -57,6 +57,8 @@ V4_MISSING_COMMENT = _register(Rule("v4", "missingComment", "critical", f"{MEMO}
 V5_INCOMPLETE_COMMENT = _register(Rule("v5", "incompleteComment", "major", f"{MEMO}, нарушение №5", "Неполный комментарий к статусу «{status}»: не указано {missing}"))
 V6_NO_PROGRESS_STATUS = _register(Rule("v6", "noProgressStatus", "major", f"{MEMO}, нарушение №6", "Отсутствует статус хода выполнения работ «{status}» после полученной информации о ходе реагирования"))
 V6_NO_PROGRESS_COMMENT = _register(Rule("v6c", "noProgressStatus", "minor", f"{MEMO}, нарушение №6", "Статус хода работ «{status}» без комментария о ходе реагирования"))
+V6_STATUS_WITHOUT_BASIS = _register(Rule("v6b", "statusWithoutBasis", "major", f"{MEMO}, нарушение №6; сообщение о ходе работ", "Статус «{status}» поставлен до получения информации о ходе работ"))
+V6_STATUS_LATE = _register(Rule("v6l", "statusAfterInformationLate", "major", f"{MEMO}, нарушение №6; расписание сообщения о ходе работ", "Статус «{status}» поставлен через {delay} с после сообщения (допустимо {window} с)"))
 V7_NO_CONTACT = _register(Rule("v7", "noContact", "major", f"{MEMO}, нарушение №7", "Не обеспечена оперативная связь: не отвечено на звонок отдела контроля / руководителя смены ({number})"))
 
 # ─── Тайминги (Q&A) ───────────────────────────────────────────────────────────────────────────────

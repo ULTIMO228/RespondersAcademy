@@ -22,6 +22,7 @@ from app.models.report import CalibrationSample
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSession
 from app.models.user import User
+from app.models.work_message import WorkMessage
 from app.services import audit
 from app.services.reference import read_reference
 from app.services.session_engine import evaluation_contract, session_contract
@@ -70,7 +71,13 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
         "timeNorms": {"primaryReactionSec": 30, "fullProcessingSec": 180},
         "successCriteria": {"maxGrammarErrors": 1, "requiredFields": []},
     }
-    evaluation = await asyncio.to_thread(gateway.evaluate_attempt, attempt.to_contract(), scenario_doc, cards, reference, session_doc, weights)
+    attempt_doc = attempt.to_contract()
+    messages = (await db.execute(select(WorkMessage).where(WorkMessage.attempt_id == attempt.id))).scalars().all()
+    cutoff = attempt.completed_at or now_iso()
+    from app.services.time import parse_iso_ms
+
+    attempt_doc["workMessages"] = [{**row.to_contract(), "delivered": parse_iso_ms(row.at) <= parse_iso_ms(cutoff)} for row in messages]
+    evaluation = await asyncio.to_thread(gateway.evaluate_attempt, attempt_doc, scenario_doc, cards, reference, session_doc, weights)
     row = Evaluation(
         attempt_id=attempt.id,
         assessor_version=str(evaluation.get("assessorVersion") or "unknown"),

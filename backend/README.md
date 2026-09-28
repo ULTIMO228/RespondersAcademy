@@ -27,6 +27,10 @@ uv run python -m app.seed.load
 
 Цепочка A → B (Phase 15): создайте задание `trainingMode: "chain"` с исходным билетом и курсантами оператора 112 и ДДС. После отправки карточки адресат из списка оповещения получает её в `cardFlow` с `issuedBy: "chain"`; если адресата нет, в `params.noRecipient` задания появляется запись с `cardId`. Эталон ДДС сверяется с исходным билетом. В отчёте связи попыток доступны в `chainLinks`. Преподаватель может выдать ловушку через `POST /sessions/{id}/control` с `{"action":"issue","studentId":"...","cardId":"...","trapType":"wrongType"}`; доступны также `addressTypo`, `outOfZone`, `duplicate`.
 
+Сообщения о ходе работ (Phase 16): включите `workMessagesEnabled: true` в `plan` занятия или `params` задания. Интервалы после статуса `accepted` задаются массивом `workMessageIntervalsSec` из четырёх возрастающих секунд (по умолчанию 20, 50, 90, 150); для отдельных категорий используйте `workMessageIntervalsByGroup`. Курсант получает наступившие сообщения через `GET /api/v1/attempts/{id}/work-messages?since=<ISO>`. Оценщик проверяет статус до сообщения и задержку более 30 секунд.
+
+Аудиодоклад: установите `uv sync --extra stt` и положите локальную модель Vosk small-ru в `backend/models/vosk-model-small-ru-0.22/` (или задайте `MODELS_DIR`). `POST /api/v1/attempts/{id}/report-audio` принимает multipart WAV (моно PCM 16 бит, 8/16 кГц), сохраняет транскрипт и чек-лист в звонке попытки; `GET /api/v1/cards/{id}/recordings` возвращает записи. Без установленной модели эндпоинт возвращает 503 с причиной. Проверка чек-листа на 20 размеченных докладах: 95 из 100 пунктов.
+
 Фронт через бэкенд (без правок кода фронта, кроме rewrite в `next.config.ts`):
 
 ```bash

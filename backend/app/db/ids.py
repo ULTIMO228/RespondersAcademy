@@ -13,6 +13,7 @@ _SUFFIX = re.compile(r"-(\d+)$")
 PREFIX = {
     "statusEvent": "st",
     "workLine": "wl",
+    "workMessage": "wm",
     "reminder": "rem",
     "sms": "sms",
     "audit": "audit",
