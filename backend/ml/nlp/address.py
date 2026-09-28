@@ -149,6 +149,7 @@ def _norm_index() -> dict[str, list[Street]]:
     return index
 
 
+@lru_cache(maxsize=4096)
 def match(text: str, *, limit: int = 3) -> AddressMatch:
     """Лучшее совпадение введённой улицы со справочником; тип улицы уточняет выбор среди одноимённых."""
     query_raw = extract_street_query(text)
