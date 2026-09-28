@@ -269,10 +269,10 @@
 
 **Independent Test**: у обучаемого с 3 оценёнными попытками `GET /me/history` → 3 записи, `GET /me/analytics` → динамика и топ-3 ошибок, `GET /kb/articles?group=запах газа` → статья с 5 разделами; чужие данные → 403
 
-- [ ] T094 [P] [US4] Create model `backend/app/models/kb.py` (`kb_articles`: id, group, title, sections JSON {signs, notification, clarify, ddsDecision, typicalErrors}, updated_by?, updated_at) and generator `backend/ml/scripts/build_kb.py` — статьи из `classifier_entries` (признаки, список оповещения по группе), памятки (`specs/kb/04-domain/*`) и билетов (типичные ситуации) → `backend/data/kb/*.json`; сид в `seed/load.py`
-- [ ] T095 [P] [US4] Create `backend/app/services/analytics.py` — агрегаты по попыткам (FR-045): по обучаемому (`byMode`, `reactionMs`, `topErrors`, `dynamics`), по группе/категории/режиму/формату; используется лобби и преподавателем
-- [ ] T096 [US4] Create `backend/app/api/v1/lobby.py` — `GET /me`, `GET /me/history` (`PageResponse<HistoryItem>`, фильтры `mode/format`), `GET /me/analytics`, `GET /kb/articles`, `GET/PATCH /kb/articles/{id}` (PATCH — teacher) и schemas `backend/app/schemas/v1/lobby.py`
-- [ ] T097 [US4] Create contract tests `backend/tests/contract/test_v1_lobby.py` (изоляция: student → только свои; аноним → 401)
+- [X] T094 [P] [US4] Create model `backend/app/models/kb.py` (`kb_articles`: id, group, title, sections JSON {signs, notification, clarify, ddsDecision, typicalErrors}, updated_by?, updated_at) and generator `backend/ml/scripts/build_kb.py` — статьи из `classifier_entries` (признаки, список оповещения по группе), памятки (`specs/kb/04-domain/*`) и билетов (типичные ситуации) → `backend/data/kb/*.json`; сид в `seed/load.py`
+- [X] T095 [P] [US4] Create `backend/app/services/analytics.py` — агрегаты по попыткам (FR-045): по обучаемому (`byMode`, `reactionMs`, `topErrors`, `dynamics`), по группе/категории/режиму/формату; используется лобби и преподавателем
+- [X] T096 [US4] Create `backend/app/api/v1/lobby.py` — `GET /me`, `GET /me/history` (`PageResponse<HistoryItem>`, фильтры `mode/format`), `GET /me/analytics`, `GET /kb/articles`, `GET/PATCH /kb/articles/{id}` (PATCH — teacher) и schemas `backend/app/schemas/v1/lobby.py`
+- [X] T097 [US4] Create contract tests `backend/tests/contract/test_v1_lobby.py` (изоляция: student → только свои; аноним → 401)
 
 ---
 

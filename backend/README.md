@@ -14,6 +14,15 @@ uv run uvicorn app.main:app --port 8000 # http://localhost:8000/api/docs
 uv run pytest -q
 ```
 
+Справочник лобби (Phase 13) собирается из ЕКП и учебных билетов в `data/kb/`:
+
+```bash
+uv run python -m ml.scripts.build_kb
+uv run python -m app.seed.load
+```
+
+Повторная загрузка добавляет новые статьи и сохраняет правки преподавателя в существующих статьях.
+
 Фронт через бэкенд (без правок кода фронта, кроме rewrite в `next.config.ts`):
 
 ```bash

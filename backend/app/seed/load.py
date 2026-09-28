@@ -28,6 +28,7 @@ from app.models import (
     Evaluation,
     GroupReport,
     IncidentCard,
+    KbArticle,
     ProfileMappingRow,
     ReferenceEntry,
     Report,
@@ -458,6 +459,19 @@ async def seed_assignments(db: AsyncSession) -> int:
     return len(ASSIGNMENTS_SEED)
 
 
+async def seed_kb(db: AsyncSession) -> int:
+    """Исходные статьи добавляются один раз; правки преподавателя сохраняются при повторном сиде."""
+    folder = Path(__file__).resolve().parents[2] / "data" / "kb"
+    count = 0
+    for path in sorted(folder.glob("kb-*.json")):
+        article = read_json(path)
+        if await db.get(KbArticle, article["id"]) is None:
+            db.add(KbArticle(id=article["id"], group=article["group"], title=article["title"],
+                             sections=article["sections"]))
+        count += 1
+    return count
+
+
 async def reset_all() -> None:
     engine = get_engine()
     async with engine.begin() as connection:
@@ -487,6 +501,7 @@ async def run_seed(seed_dir: Path | None = None, reset: bool = False) -> dict[st
         summary.update(await seed_admin(db, paths))
         summary["streets"] = await seed_streets(db)
         summary["assignments"] = await seed_assignments(db)
+        summary["kbArticles"] = await seed_kb(db)
         await db.commit()
         return summary
 
