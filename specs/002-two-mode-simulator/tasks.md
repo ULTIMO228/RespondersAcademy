@@ -315,7 +315,7 @@
 ## Phase 17: Polish & Cross-Cutting Concerns
 
 - [ ] T109 [P] Create `backend/alembic/env.py` + initial migration `backend/alembic/versions/0001_initial.py` (PostgreSQL, JSONB) и проверить `alembic upgrade head` + сид на PostgreSQL 14 (docker-compose или локальная установка)
-- [ ] T110 [P] Create `backend/ml/scripts/prepare_models.py` — скачивание rubert-tiny2, multilingual-e5-small, symspell-словаря, (флаги `--tts`, `--stt`, `--llm`) в `backend/models/`, проверка контрольных сумм; `GET /api/v1/health` показывает загруженные модели; `GET /api/v1/metrics/ml` отдаёт `backend/var/metrics.json`
+- [X] T110 [P] Create `backend/ml/scripts/prepare_models.py` — скачивание rubert-tiny2, multilingual-e5-small, symspell-словаря, (флаги `--tts`, `--stt`, `--llm`) в `backend/models/`, проверка контрольных сумм; `GET /api/v1/health` показывает загруженные модели; `GET /api/v1/metrics/ml` отдаёт `backend/var/metrics.json`
 - [ ] T111 [P] Write `backend/docs/architecture.md` (функциональная и компонентная архитектура, матрица доступа роль × ресурс, путь внедрения TLS/SIP/бэкапов по расписанию — принцип IV) и `backend/docs/ml-methods.md` (методы обработки данных, метрики, калибровка — требование платформы хакатона)
 - [ ] T112 [P] Offline acceptance per quickstart §8: запуск без сети, захват исходящих соединений, шаблонная генерация без Ollama; результат в `backend/docs/offline-check.md`
 - [ ] T113 Performance check: оценка попытки ≤ 5 с, отчёт 20 × 5 ≤ 30 с, feed ≤ 200 мс при 20 параллельных клиентах (скрипт `backend/scripts/perf_smoke.py` на httpx), фиксация в `backend/README.md`
