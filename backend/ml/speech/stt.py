@@ -36,9 +36,10 @@ def _model():
     if not path.is_dir():
         raise SpeechUnavailable(f"Локальная модель Vosk small-ru не найдена: {path}")
     try:
-        from vosk import Model
+        from vosk import Model, SetLogLevel
     except ImportError as exc:
         raise SpeechUnavailable("Для распознавания установите optional dependency backend[stt]") from exc
+    SetLogLevel(-1)
     return Model(str(path))
 
 
@@ -53,6 +54,19 @@ def domain_grammar() -> list[str]:
     return [*SERVICES, *NUMBERS, *[street for street in streets if street], "[unk]"]
 
 
+def _recognize(model: object, rate: int, data: bytes, grammar: list[str] | None = None) -> str:
+    from vosk import KaldiRecognizer
+
+    recognizer = (KaldiRecognizer(model, rate) if grammar is None else
+                  KaldiRecognizer(model, rate, json.dumps(grammar, ensure_ascii=False)))
+    parts: list[str] = []
+    for offset in range(0, len(data), 8000):
+        if recognizer.AcceptWaveform(data[offset:offset + 8000]):
+            parts.append(json.loads(recognizer.Result()).get("text", ""))
+    parts.append(json.loads(recognizer.FinalResult()).get("text", ""))
+    return " ".join(part for part in parts if part).strip()
+
+
 def transcribe(wav: bytes) -> str:
     if not wav or len(wav) > MAX_WAV_BYTES:
         raise ValueError("WAV должен быть непустым и не больше 20 МБ")
@@ -61,16 +75,10 @@ def transcribe(wav: bytes) -> str:
             if source.getnchannels() != 1 or source.getsampwidth() != 2 or source.getframerate() not in (8000, 16000):
                 raise ValueError("Ожидается моно PCM WAV 16 бит, 8 или 16 кГц")
             rate = source.getframerate()
-            chunks = iter(lambda: source.readframes(4000), b"")
+            data = source.readframes(source.getnframes())
             model = _model()
-            from vosk import KaldiRecognizer
-
-            recognizer = KaldiRecognizer(model, rate, json.dumps(domain_grammar(), ensure_ascii=False))
-            parts: list[str] = []
-            for chunk in chunks:
-                if recognizer.AcceptWaveform(chunk):
-                    parts.append(json.loads(recognizer.Result()).get("text", ""))
-            parts.append(json.loads(recognizer.FinalResult()).get("text", ""))
-            return " ".join(part for part in parts if part).strip()
+            # Жёсткая грамматика превращает свободный доклад в числа и названия служб.
+            # Сначала распознаём речь целиком; словарь помогает только если свободный проход пуст.
+            return _recognize(model, rate, data) or _recognize(model, rate, data, domain_grammar())
     except (wave.Error, EOFError) as exc:
         raise ValueError("Некорректный WAV-файл") from exc

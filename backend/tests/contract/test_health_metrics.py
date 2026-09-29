@@ -7,6 +7,7 @@ import json
 import pytest
 
 from app.config import get_settings
+from tests.conftest import login_as
 
 
 @pytest.mark.asyncio
@@ -23,6 +24,12 @@ async def test_health_reports_model_installation_and_load_state(client):
 async def test_metrics_returns_file_contents_and_404_when_missing(client, tmp_path, monkeypatch):
     settings = get_settings()
     monkeypatch.setattr(settings, "var_dir", tmp_path)
+    anonymous = await client.get("http://test/api/v1/metrics/ml")
+    assert anonymous.status_code == 401
+    await login_as(client, "student")
+    assert (await client.get("http://test/api/v1/metrics/ml")).status_code == 403
+    client.cookies.clear()
+    await login_as(client, "admin")
     missing = await client.get("http://test/api/v1/metrics/ml")
     assert missing.status_code == 404
     metrics = {"classifier": {"accuracy": 0.9}}

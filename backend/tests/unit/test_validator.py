@@ -91,6 +91,13 @@ def test_duplicate_links_and_reverse_links_are_declared(cards):
     assert not validator.check_duplicate(undeclared, cards).passed
 
 
+def test_same_type_at_different_address_is_not_duplicate(cards):
+    balcony_fire = next(card for card in cards if card["id"] == "c-010")
+    another_balcony_fire = next(card for card in cards if card["id"] == "c-013")
+    assert validator.check_duplicate(balcony_fire, [another_balcony_fire]).passed
+    assert not validator.check_duplicate({**balcony_fire, "id": "c-900"}, [balcony_fire]).passed
+
+
 def test_operator_mistake_trap_expects_category_mismatch(cards):
     gas = next(c for c in cards if c["group"].startswith("Запах газа в помещении"))
     trap = {**gas, "group": "пожар в жилом доме", "trap": "operatorMistake"}

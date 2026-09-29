@@ -14,10 +14,11 @@ from app.db.base import Base
 BACKEND = Path(__file__).resolve().parents[2]
 
 
-def _run(*args: str, environment: dict[str, str]) -> None:
+def _run(*args: str, environment: dict[str, str]) -> str:
     result = subprocess.run([sys.executable, *args], cwd=BACKEND, env=environment,
                             capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
+    return result.stdout
 
 
 def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
@@ -28,9 +29,18 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
     with sqlite3.connect(database) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert set(Base.metadata.tables) <= tables
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0001_initial"
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0002_ai_auth"
     _run("-m", "alembic", "check", environment=environment)
     _run("-m", "app.seed.load", environment=environment)
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT COUNT(*) FROM users").fetchone()[0] >= 20
         assert connection.execute("SELECT COUNT(*) FROM incident_cards").fetchone()[0] >= 96
+
+
+def test_postgresql_offline_upgrade_compiles_jsonb():
+    environment = {**os.environ, "DATABASE_URL": "postgresql+asyncpg://offline:offline@invalid.invalid/offline"}
+    ddl = _run("-m", "alembic", "upgrade", "head", "--sql", environment=environment)
+    assert ddl.count("CREATE TABLE") == len(Base.metadata.tables) + 1  # alembic_version
+    assert "JSONB" in ddl
+    assert "CREATE TABLE ai_assessment_jobs" in ddl
+    assert "0002_ai_auth" in ddl

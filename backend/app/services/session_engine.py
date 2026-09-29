@@ -5,12 +5,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import math
 from collections.abc import Callable, Coroutine
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Viewer, resolve_student_scope
@@ -53,6 +54,7 @@ FOREIGN_SESSION_MESSAGE = "Занятие ведёт другой препода
 NOT_IN_SESSION_MESSAGE = "Вы не участвуете в этом занятии"
 
 ReportBuilder = Callable[[AsyncSession, str], Coroutine[Any, Any, None]]
+_feed_reads: dict[tuple[asyncio.AbstractEventLoop, Any, str, str], asyncio.Task[Any]] = {}
 
 
 # ─── Загрузка контракта ───────────────────────────────────────────────────────────────────────────
@@ -87,14 +89,57 @@ async def evaluation_contract(db: AsyncSession, attempt_id: str) -> dict[str, An
     return data
 
 
+async def evaluations_for_attempts(db: AsyncSession, attempt_ids: list[str]) -> dict[str, dict[str, Any]]:
+    """Load a session's evaluations in three queries instead of three per attempt."""
+    from app.models.ai_assessment import EvaluationRevision
+
+    if not attempt_ids:
+        return {}
+    revisions = (
+        await db.execute(
+            select(EvaluationRevision)
+            .where(EvaluationRevision.attempt_id.in_(attempt_ids))
+            .order_by(EvaluationRevision.attempt_id, EvaluationRevision.revision.desc())
+        )
+    ).scalars().all()
+    latest = {}
+    for revision in revisions:
+        latest.setdefault(revision.attempt_id, revision)
+    evaluations = (
+        await db.execute(select(Evaluation).where(Evaluation.attempt_id.in_(attempt_ids)))
+    ).scalars().all()
+    overrides = (
+        await db.execute(
+            select(TeacherOverride)
+            .where(TeacherOverride.attempt_id.in_(attempt_ids))
+            .order_by(TeacherOverride.attempt_id, TeacherOverride.id.desc())
+        )
+    ).scalars().all()
+    newest_override = {}
+    for override in overrides:
+        newest_override.setdefault(override.attempt_id, override)
+    result = {}
+    for evaluation in evaluations:
+        revision = latest.get(evaluation.attempt_id)
+        if revision is not None and revision.status in ("pending", "review_required"):
+            continue
+        override = newest_override.get(evaluation.attempt_id)
+        data = evaluation.to_contract(override.to_contract() if override else None)
+        if revision is not None:
+            data["revision"] = revision.revision
+            data["status"] = revision.status
+        result[evaluation.attempt_id] = data
+    return result
+
+
 async def attempts_of(db: AsyncSession, session_id: str) -> list[Attempt]:
     return list((await db.execute(select(Attempt).where(Attempt.session_id == session_id).order_by(Attempt.seq, Attempt.id))).scalars().all())
 
 
 async def session_contract(db: AsyncSession, row: TrainingSession) -> dict[str, Any]:
-    events = []
-    for attempt in await attempts_of(db, row.id):
-        events.append(attempt.to_contract(await evaluation_contract(db, attempt.id)))
+    attempts = await attempts_of(db, row.id)
+    evaluations = await evaluations_for_attempts(db, [attempt.id for attempt in attempts])
+    events = [attempt.to_contract(evaluations.get(attempt.id)) for attempt in attempts]
     return {
         "id": row.id,
         "teacherId": row.teacher_id,
@@ -538,18 +583,102 @@ def build_feed(session: dict[str, Any], since: str | None, at: str) -> list[dict
     return [r[2] for r in ranked]
 
 
-async def session_feed(db: AsyncSession, session_id: str, viewer: Viewer | None, since: str | None, at: str | None, student_id: str | None) -> dict[str, Any]:
+async def feed_attempts(db: AsyncSession, session_id: str) -> list[dict[str, Any]]:
+    """Read attempts and their latest score state in one query for concurrent polling."""
+    from app.models.ai_assessment import EvaluationRevision
+
+    latest_revisions = (
+        select(EvaluationRevision.attempt_id, func.max(EvaluationRevision.revision).label("revision"))
+        .group_by(EvaluationRevision.attempt_id)
+        .subquery()
+    )
+    latest_overrides = (
+        select(TeacherOverride.attempt_id, func.max(TeacherOverride.id).label("id"))
+        .group_by(TeacherOverride.attempt_id)
+        .subquery()
+    )
+    rows = (
+        await db.execute(
+            select(
+                Attempt.id.label("attempt_id"), Attempt.student_id, Attempt.card_id,
+                Attempt.opened_at, Attempt.statuses, Attempt.completed_at, Attempt.full_processing_ms,
+                Evaluation.total_score, Evaluation.errors, Evaluation.grammar_errors, Evaluation.ai_comment,
+                EvaluationRevision.revision, EvaluationRevision.status.label("revision_status"),
+                TeacherOverride.id.label("override_id"),
+            )
+            .select_from(Attempt)
+            .outerjoin(Evaluation, Evaluation.attempt_id == Attempt.id)
+            .outerjoin(latest_revisions, latest_revisions.c.attempt_id == Attempt.id)
+            .outerjoin(
+                EvaluationRevision,
+                and_(EvaluationRevision.attempt_id == Attempt.id, EvaluationRevision.revision == latest_revisions.c.revision),
+            )
+            .outerjoin(latest_overrides, latest_overrides.c.attempt_id == Attempt.id)
+            .outerjoin(TeacherOverride, TeacherOverride.id == latest_overrides.c.id)
+            .where(Attempt.session_id == session_id)
+            .order_by(Attempt.seq, Attempt.id)
+        )
+    ).mappings().all()
+    events = []
+    for row in rows:
+        attempt = {
+            "id": row.attempt_id, "studentId": row.student_id, "cardId": row.card_id,
+            "openedAt": row.opened_at, "statuses": row.statuses or [],
+            "completedAt": row.completed_at or "", "fullProcessingMs": row.full_processing_ms,
+        }
+        if row.total_score is not None and row.revision_status not in ("pending", "review_required"):
+            evaluation = {
+                "totalScore": row.total_score, "errors": row.errors or [],
+                "grammarErrors": row.grammar_errors or [], "aiComment": row.ai_comment or "",
+            }
+            if row.override_id is not None:
+                evaluation["teacherOverride"] = True
+            if row.revision is not None:
+                evaluation["revision"] = row.revision
+                evaluation["status"] = row.revision_status
+            attempt["evaluation"] = evaluation
+        events.append(attempt)
+    return events
+
+
+async def _read_feed_metadata(db: AsyncSession, session_id: str) -> dict[str, Any]:
     row = await require_session_row(db, session_id)
-    if viewer is not None and viewer.role == "teacher" and row.teacher_id != viewer.user_id:
+    return {
+        "teacherId": row.teacher_id,
+        "studentIds": list(row.student_ids or []),
+        "cardFlow": row.card_flow or [],
+    }
+
+
+async def _shared_feed_read(db: AsyncSession, session_id: str, stage: str, read: Callable[[], Coroutine[Any, Any, Any]]) -> Any:
+    """Merge concurrent polls; completed reads are never cached."""
+    key = (asyncio.get_running_loop(), db.get_bind(), session_id, stage)
+    task = _feed_reads.get(key)
+    if task is None or task.done():
+        task = asyncio.create_task(read())
+        _feed_reads[key] = task
+
+        def discard(completed: asyncio.Task[Any]) -> None:
+            if _feed_reads.get(key) is completed:
+                _feed_reads.pop(key, None)
+
+        task.add_done_callback(discard)
+    return await asyncio.shield(task)
+
+
+async def session_feed(db: AsyncSession, session_id: str, viewer: Viewer | None, since: str | None, at: str | None, student_id: str | None) -> dict[str, Any]:
+    metadata = await _shared_feed_read(db, session_id, "metadata", lambda: _read_feed_metadata(db, session_id))
+    if viewer is not None and viewer.role == "teacher" and metadata["teacherId"] != viewer.user_id:
         raise forbidden(FOREIGN_SESSION_MESSAGE)
-    if viewer is not None and viewer.is_student and viewer.user_id not in (row.student_ids or []):
+    if viewer is not None and viewer.is_student and viewer.user_id not in metadata["studentIds"]:
         raise forbidden(NOT_IN_SESSION_MESSAGE)
     scope = resolve_student_scope(viewer, student_id)
     for key, value in (("since", since), ("at", at)):
         if value is not None and not is_iso(value):
             raise validation_failed(f"Некорректная метка времени «{key}»: {value}")
     at_value = at or now_iso()
-    events = build_feed(await session_contract(db, row), since, at_value)
+    card_events = await _shared_feed_read(db, session_id, "attempts", lambda: feed_attempts(db, session_id))
+    events = build_feed({"cardFlow": metadata["cardFlow"], "cardEvents": card_events}, since, at_value)
     if scope:
         events = [e for e in events if e["studentId"] == scope]
     return {"sessionId": session_id, "at": at_value, "events": events}

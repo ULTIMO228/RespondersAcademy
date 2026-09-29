@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.compat.auth import read_body
-from app.api.deps import Viewer, get_viewer
+from app.api.deps import Viewer, get_viewer, require_viewer
 from app.api.errors import forbidden
 from app.db.session import get_db
 from app.schemas.common import read_string
@@ -62,14 +62,14 @@ async def session_feed(session_id: str, request: Request, db: AsyncSession = Dep
 
 
 @router.get("/sessions/{session_id}/control")
-async def get_control(session_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
+async def get_control(session_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
     row = await session_engine.require_session_row(db, session_id)
     _assert_control_access(viewer, row.teacher_id)
     return await session_engine.control_response(db, row)
 
 
 @router.post("/sessions/{session_id}/control")
-async def post_control(session_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
+async def post_control(session_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
     row = await session_engine.require_session_row(db, session_id)
     _assert_control_access(viewer, row.teacher_id)
     body = await read_body(request)
@@ -78,8 +78,8 @@ async def post_control(session_id: str, request: Request, db: AsyncSession = Dep
     return response
 
 
-def _assert_control_access(viewer: Viewer | None, teacher_id: str) -> None:
-    if viewer and viewer.is_student:
+def _assert_control_access(viewer: Viewer, teacher_id: str) -> None:
+    if viewer.is_student:
         raise forbidden("Управление занятием доступно преподавателю и администратору")
-    if viewer and viewer.role == "teacher" and viewer.user_id != teacher_id:
+    if viewer.role == "teacher" and viewer.user_id != teacher_id:
         raise forbidden(session_engine.FOREIGN_SESSION_MESSAGE)

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import io
+import wave
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
@@ -75,8 +77,10 @@ async def post_report_audio(attempt_id: str, file: Annotated[UploadFile, File()]
     recording_dir.mkdir(parents=True, exist_ok=True)
     recording_path = recording_dir / f"{call_id}.wav"
     recording_path.write_bytes(data)
+    with wave.open(io.BytesIO(data), "rb") as sound:
+        duration_ms = round(sound.getnframes() * 1000 / sound.getframerate())
     call = {"id": call_id, "fromUserId": attempt.student_id, "toNumber": to_number, "startedAt": at, "endedAt": at,
-            "transcript": transcript, "recording": {"contentType": "audio/wav", "size": len(data)}}
+            "transcript": transcript, "recording": {"contentType": "audio/wav", "size": len(data), "durationMs": duration_ms}}
     if report is not None:
         call["report"] = report.to_contract()
     attempt.calls = [*(attempt.calls or []), call]

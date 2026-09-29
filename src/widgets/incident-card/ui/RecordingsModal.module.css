@@ -8,7 +8,7 @@
 
 .recordings__item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-sm) 0;
@@ -19,6 +19,35 @@
 .recordings__duration {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+.recordings__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.recordings__actions audio {
+  flex: 1;
+  min-width: 0;
+}
+
+.recordings__download {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height-sm);
+  padding: 0 var(--spacing-md);
+  border: var(--border-width) solid var(--color-graphite-300);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: var(--font-size-xs);
+  text-decoration: none;
+}
+
+.recordings__download:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .recordings__empty {

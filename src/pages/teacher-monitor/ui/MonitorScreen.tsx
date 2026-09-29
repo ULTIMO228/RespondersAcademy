@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { RecordingsButton } from "@/widgets/incident-card";
 import { compareWithEtalon, StudentActions } from "@/widgets/monitor-grid";
 import { getCardEtalonSegment, STUDENT_STATE_TITLES } from "@/entities/session";
 import { formatShortName } from "@/entities/user";
@@ -77,6 +78,7 @@ export function MonitorScreen({ teacherId, studentId }: MonitorScreenProps) {
           <p className={styles.monitor__empty}>Курсант ещё не открыл выданную карточку — зеркало пустое.</p>
         )}
         <div className={styles.monitor__side}>
+          {mirror ? <RecordingsButton card={mirror.card} /> : null}
           <AIAssessmentPanel
             attemptId={attempt?.id ?? current?.attempt?.attemptId ?? null}
             cardCompleted={current?.state === "finished" || Boolean(attempt?.completedAt)}

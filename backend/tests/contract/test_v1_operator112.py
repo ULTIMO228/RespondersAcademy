@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 
 import pytest_asyncio
@@ -23,6 +24,7 @@ from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation
 from app.models.ticket_audio import TicketAudio
 from app.schemas.admin import resolve_audit_type
+from app.services.time import now_iso
 from ml.generate import validator
 from tests.conftest import login_as
 
@@ -90,6 +92,44 @@ async def test_tickets_list_and_audio_fallback(v1: AsyncClient):
     assert status.json()["status"] == "failed" and status.json()["emergency"] is True and status.json()["transcript"] == body["transcript"]
     assert (await v1.get("/tickets/c-050/audio/file")).status_code == 404
     assert (await v1.post("/tickets/c-050/audio", json={"voice": "loud"})).status_code == 400
+
+
+async def test_ready_applicant_audio_is_playable_from_recordings(v1: AsyncClient, tmp_path: Path):
+    wav = b"RIFFtest-applicant-audio"
+    path = tmp_path / "applicant.wav"
+    path.write_bytes(wav)
+    async with get_sessionmaker()() as db:
+        row = await db.get(TicketAudio, "c-050")
+        previous = None if row is None else (row.path, row.status, row.duration_ms, row.generated_at)
+        if row is None:
+            row = TicketAudio(card_id="c-050", transcript="Заявитель", voice="female")
+            db.add(row)
+        row.path = str(path)
+        row.status = "ready"
+        row.duration_ms = 2100
+        row.generated_at = now_iso()
+        await db.commit()
+    try:
+        await login_as(v1, "teacher")
+        listed = await v1.get("/cards/c-050/recordings")
+        assert listed.status_code == 200, listed.text
+        recording = next(item for item in listed.json() if item["id"] == "ticket-c-050")
+        assert recording["title"] == "Голос заявителя" and recording["duration"] == "00:02"
+        assert recording["audioUrl"] == "/api/v1/tickets/c-050/audio/file"
+        played = await v1.get("http://test" + recording["audioUrl"])
+        assert played.status_code == 200 and played.content == wav
+        assert played.headers["content-disposition"].startswith("inline;")
+        await login_as(v1, "student")
+        assert all(item["id"] != "ticket-c-050" for item in (await v1.get("/cards/c-050/recordings")).json())
+        assert (await v1.get("http://test" + recording["audioUrl"])).status_code == 403
+    finally:
+        async with get_sessionmaker()() as db:
+            row = await db.get(TicketAudio, "c-050")
+            if previous is None:
+                await db.delete(row)
+            else:
+                row.path, row.status, row.duration_ms, row.generated_at = previous
+            await db.commit()
 
 
 async def test_ticket_create_by_teacher(v1: AsyncClient):

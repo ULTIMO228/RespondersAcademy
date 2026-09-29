@@ -186,4 +186,5 @@ async def get_audio_file(card_id: str, db: AsyncSession = Depends(get_db), viewe
         raise not_found("Аудиозапись не готова: используйте расшифровку (аварийный режим)")
     await operator112_service.audio_access(db, card_id, viewer)
     await db.commit()
-    return FileResponse(row.path, media_type="audio/wav", filename=f"{card_id}.wav", headers={"Cache-Control": "no-store"})
+    return FileResponse(row.path, media_type="audio/wav", filename=f"{card_id}.wav",
+                        content_disposition_type="inline", headers={"Cache-Control": "no-store"})

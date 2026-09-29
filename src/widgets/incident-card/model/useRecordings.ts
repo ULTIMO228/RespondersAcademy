@@ -9,13 +9,19 @@ import { formatDurationPadded } from "@/shared/lib";
 import { buildMockRecordings } from "../lib/mockRecordings";
 
 /** Строка модалки «Записи разговоров»: длительность — «мм:сс». */
-export type RecordingView = { id: string; at: string; title: string; duration: string };
+export type RecordingView = {
+  id: string;
+  at: string;
+  title: string;
+  duration: string;
+  audioUrl: string | null;
+};
 
 type RecordingSource = { id: string; createdAt: string; phones: { aon: string } };
 
 function fromApi(recording: CardRecording): RecordingView {
-  const { id, startedAt, title, duration } = recording;
-  return { id, at: startedAt, title, duration };
+  const { id, startedAt, title, duration, audioUrl } = recording;
+  return { id, at: startedAt, title, duration, audioUrl };
 }
 
 /** Прототип / просмотр преподавателем: мок-записи по АОН (без обращения к API). */
@@ -25,10 +31,11 @@ export function buildLocalRecordings(card: RecordingSource): RecordingView[] {
     at: recording.at,
     title: recording.phone,
     duration: formatDurationPadded(recording.durationMs),
+    audioUrl: null,
   }));
 }
 
-/** Живой режим: GET /api/mock/cards/[id]/recordings (в моках записей нет → «Записей не найдено»). */
+/** Живой режим: GET /api/mock/cards/[id]/recordings; без бэкенда мок возвращает пустой список. */
 export function useRecordings(card: RecordingSource, isLive: boolean) {
   const [recordings, setRecordings] = useState<RecordingView[] | null>(() =>
     isLive ? null : buildLocalRecordings(card),
