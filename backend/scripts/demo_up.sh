@@ -164,6 +164,13 @@ echo "▸ Загрузка фикстуры сквозной цепочки A �
   exit 1
 }
 
+echo "▸ Демо-билет для ИИ-генерации карточек (demo-fire-1)..."
+(cd "$BACKEND_DIR" && uv run python scripts/seed_ai_demo_source.py >"$LOG_DIR/ai_source_seed.log" 2>&1) || echo "⚠ Не удалось добавить demo-fire-1 (лог: $LOG_DIR/ai_source_seed.log)"
+if [ -z "${LLAMA_URL:-}" ] && curl -sf -m 2 "http://127.0.0.1:8081/health" >/dev/null 2>&1; then
+  export LLAMA_URL="http://127.0.0.1:8081"   # модель уже поднята (./scripts/ai-up.sh или run_semantic_model.py)
+fi
+echo "   ИИ-модель: ${LLAMA_URL:-не подключена (генерация карточек — только шаблоны)}"
+
 echo "▸ Запуск бэкенда на http://127.0.0.1:$BACKEND_PORT..."
 (cd "$BACKEND_DIR" && uv run uvicorn app.main:app --port "$BACKEND_PORT" >"$LOG_DIR/backend.log" 2>&1) &
 BACKEND_PID=$!

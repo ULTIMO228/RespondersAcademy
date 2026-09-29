@@ -110,6 +110,24 @@ describe("Operator112Softphone: разговор и запись", () => {
     expect(audioLoader).toHaveBeenCalledTimes(1);
   });
 
+  it("StrictMode: blob-URL, стоящий в плеере, не отозван (иначе play() → NotSupportedError)", async () => {
+    let counter = 0;
+    const created: string[] = [];
+    const revoked: string[] = [];
+    vi.mocked(URL.createObjectURL).mockImplementation(() => {
+      const url = `blob:audio-${++counter}`;
+      created.push(url);
+      return url;
+    });
+    vi.mocked(URL.revokeObjectURL).mockImplementation((url) => void revoked.push(url));
+    const audioLoader = vi.fn().mockResolvedValue(new Blob(["RIFF"]));
+    const { container } = render(<StrictMode>{view({ attempt: answered(), audioLoader })}</StrictMode>);
+    await waitFor(() => expect(container.querySelector("audio")).not.toBeNull());
+    const src = container.querySelector("audio")?.getAttribute("src") ?? "";
+    expect(created).toContain(src);
+    expect(revoked).not.toContain(src);
+  });
+
   it("404 файла → транскрипт с пометкой аварийного режима, ввод не блокируется", async () => {
     const audioLoader = vi.fn().mockRejectedValue(new ApiError(404, "notFound", "Аудиозапись не готова"));
     render(view({ attempt: answered(), audioLoader }));

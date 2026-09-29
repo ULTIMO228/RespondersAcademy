@@ -6,6 +6,7 @@ import asyncio
 import hashlib
 import json
 import re
+import time
 from typing import Any
 
 from sqlalchemy import select
@@ -13,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Viewer
-from app.api.errors import conflict, forbidden, not_found, validation_failed
+from app.api.errors import conflict, forbidden, not_found, unprocessable, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.ai_scenario import (
     AIRequest,
@@ -32,7 +33,7 @@ from app.services import reference as reference_service
 from app.services.audit import record
 from app.services.time import now_iso
 from ml import source_gate
-from ml.generate import scenario_generator, validator
+from ml.generate import llm, scenario_generator, validator
 
 SOURCE_TICKET_NUMBER = re.compile(r"(\d+)$")
 SERVICE_NUMBER = re.compile(r"\b10[1-4]\b")
@@ -229,9 +230,41 @@ def generate_from_approved_source(
     classifier_entries: list[dict[str, Any]],
     *,
     count: int,
+    generator: str = "auto",
 ) -> list[dict[str, Any]]:
-    """Генератор видит только очищенный текст, локальные адреса и справочник ЕКП."""
+    """Генератор видит только очищенный текст, локальные адреса и справочник ЕКП.
+
+    `generator`: `auto` — LLM при живом Ollama, иначе шаблон; `template` — только шаблон; `ai` — только LLM
+    (нет Ollama или ответ не получен → 422, без тихой подмены шаблоном).
+    """
     base = _safe_base_card(source, category, classifier_entry, addresses)
+    if generator == "template":
+        return scenario_generator.generate_template(
+            category,
+            [base],
+            addresses,
+            count=count,
+            traps=[None],
+            reference=reference,
+            entries=classifier_entries,
+        )
+    if generator == "ai":
+        client = llm.configured_client()
+        if client is None or not client.healthy():
+            raise unprocessable("ИИ недоступен: модель не настроена (LLAMA_URL / OLLAMA_URL) или не отвечает")
+        produced = scenario_generator.generate_llm(
+            category,
+            [base],
+            addresses,
+            count=count,
+            traps=scenario_generator._traps_for(count, [None]),
+            reference=reference,
+            entries=classifier_entries,
+            client=client,
+        )
+        if not produced:
+            raise unprocessable("ИИ не вернул корректный ответ за отведённые попытки; повторите или выберите шаблон")
+        return produced
     produced = scenario_generator.generate(
         category,
         [base],
@@ -449,6 +482,7 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
         raise validation_failed(f"Категория «{body.category}» отсутствует в классификаторе ЕКП")
     addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
     reference = await reference_service.read_reference(db)
+    started = time.perf_counter()
     produced = await asyncio.to_thread(
         generate_from_approved_source,
         source,
@@ -458,7 +492,9 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
         reference,
         classifier_entries,
         count=body.count,
+        generator=body.generator,
     )
+    generation_ms = round((time.perf_counter() - started) * 1000)
     if len(produced) < body.count:
         base = _safe_base_card(source, body.category, classifier_entry, addresses)
         produced = scenario_generator.generate_template(
@@ -517,7 +553,8 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
             profiles,
             allowed_addresses,
         )
-        responses.append(result)
+        provider = str(((candidate.get("scenario") or {}).get("generation") or {}).get("provider") or "template")
+        responses.append({**result, "generation": {"provider": provider, "durationMs": generation_ms}})
     await record(
         db,
         action="ai.scenario.drafts",

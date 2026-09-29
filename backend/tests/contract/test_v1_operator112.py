@@ -17,6 +17,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import delete, select
 
 from app import ai_gateway
+from app.config import get_settings
 from app.db.session import get_sessionmaker
 from app.models.assignment import AssignmentAttempt
 from app.models.audit import AuditLog
@@ -364,3 +365,25 @@ async def test_compat_progress_rejects_operator_attempt(v1: AsyncClient):
     assert created.status_code in (200, 201), created.text
     rejected = await v1.post(f"/attempts/{created.json()['id']}/progress", json={"enteredText": {"comment": "x"}})
     assert rejected.status_code == 409 and rejected.json()["error"]["code"] == "invalidTransition"
+
+
+async def test_curated_elevenlabs_recording_takes_priority(v1: AsyncClient, tmp_path: Path, monkeypatch):
+    """Студийная запись `<id>-elevenlabs.mp3` подхватывается вместо синтеза и отдаётся как audio/mpeg."""
+    monkeypatch.setenv("DEMO_AUDIO_DIR", str(tmp_path))
+    get_settings.cache_clear()
+    try:
+        (tmp_path / "c-050-elevenlabs.mp3").write_bytes(b"ID3\x04\x00\x00\x00\x00\x00\x00" + b"\xff\xfb\x90\x00" + b"\x00" * 16000)
+        await login_as(v1, "teacher")
+        response = await v1.post("/tickets/c-050/audio", json={"voice": "auto"})
+        assert response.status_code == 202, response.text
+        body = response.json()
+        assert body["status"] == "ready" and body["emergency"] is False and body["durationMs"] == 1000
+        played = await v1.get("/tickets/c-050/audio/file")
+        assert played.status_code == 200 and played.headers["content-type"] == "audio/mpeg"
+    finally:
+        async with get_sessionmaker()() as db:
+            row = await db.get(TicketAudio, "c-050")
+            if row is not None:
+                await db.delete(row)
+                await db.commit()
+        get_settings.cache_clear()

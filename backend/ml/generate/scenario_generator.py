@@ -75,6 +75,9 @@ MAX_GRAMMAR_ERRORS = 1
 REQUIRED_FIELDS = ("dispatcherAction", "outfitNumber")
 SYNTAX_REQUIREMENTS = "Полные предложения, без сокращений, адрес и номер наряда без ошибок"
 LLM_RETRIES = 2
+TOKENS_PER_TICKET = 200  # фабула + поля билета в JSON; обрыв по лимиту дешевле, чем «разговорчивая» модель до 1500 токенов
+TOKENS_OVERHEAD = 60
+PROMPT_ECHO_MARKERS = ("Группа ЕКП", "Примеры фабул", "addressIndex")
 
 SERVICE_NUMBER = re.compile(r"^(10[1-4])\b")
 SERVICE_PHRASES = {"101": "расчёт направлен", "102": "наряд полиции направлен", "103": "бригада СМП направлена", "104": "аварийная бригада газовой службы направлена"}
@@ -430,6 +433,8 @@ def _ticket_from_llm(item: dict[str, Any], base: dict[str, Any], addresses: list
     index = item.get("addressIndex")
     if not summary or not isinstance(index, int) or not (0 <= index < len(addresses)):
         return None
+    if any(marker in summary for marker in PROMPT_ECHO_MARKERS):
+        return None  # маленькая модель иногда пересказывает промпт вместо фабулы → повтор с другим seed
     if trap == "crossRegion":
         trap = None  # LLM-путь работает только с московскими адресами справочника
     ticket = build_ticket(base, addresses[index], None, category)
@@ -456,6 +461,13 @@ def _ticket_from_llm(item: dict[str, Any], base: dict[str, Any], addresses: list
     return ticket
 
 
+def _schema_for(count: int) -> dict[str, Any]:
+    """Схема с ровно `count` билетами: маленькая модель игнорирует число из промпта и пишет до лимита токенов."""
+    schema = copy.deepcopy(LLM_SCHEMA)
+    schema["properties"]["tickets"].update({"minItems": count, "maxItems": count})
+    return schema
+
+
 def generate_llm(category: str, cards: list[dict[str, Any]], addresses: list[dict[str, Any]], *, count: int, traps: list[str | None], reference: dict[str, Any], entries: list[dict[str, Any]], client: llm.OllamaClient) -> list[dict[str, Any]] | None:
     """LLM-путь; None — сервер недоступен или за LLM_RETRIES попыток не получен корректный ответ."""
     if not client.healthy():
@@ -466,7 +478,7 @@ def generate_llm(category: str, cards: list[dict[str, Any]], addresses: list[dic
         return None
     prompt = _llm_prompt(category, bases, address_pool, count, traps)
     for attempt in range(LLM_RETRIES + 1):
-        answer = client.chat_json(LLM_SYSTEM, prompt, LLM_SCHEMA, seed=stable_seed(category) + attempt)
+        answer = client.chat_json(LLM_SYSTEM, prompt, _schema_for(count), seed=stable_seed(category) + attempt, max_tokens=TOKENS_PER_TICKET * count + TOKENS_OVERHEAD)
         items = answer.get("tickets") if isinstance(answer, dict) else None
         if not isinstance(items, list) or len(items) < count:
             continue
@@ -476,7 +488,7 @@ def generate_llm(category: str, cards: list[dict[str, Any]], addresses: list[dic
             ticket = _ticket_from_llm(item, base, address_pool, trap, category, entries) if isinstance(item, dict) else None
             if ticket is None:
                 break
-            results.append({"scenario": build_scenario(index, category, ticket, base, trap, reference=reference, entries=entries, provider=f"ollama:{client.model}"), "cards": [ticket]})
+            results.append({"scenario": build_scenario(index, category, ticket, base, trap, reference=reference, entries=entries, provider=client.provider), "cards": [ticket]})
         if len(results) == count:
             return results
     return None

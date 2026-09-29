@@ -45,6 +45,7 @@ class ScenarioDraftRequest(StrictAIContractModel):
     source_ticket_id: Annotated[str, Field(min_length=1, max_length=64)]
     category: Annotated[str, Field(min_length=1, max_length=160)]
     count: Annotated[int, Field(strict=True, ge=1, le=5)] = 1
+    generator: Literal["auto", "template", "ai"] = "auto"
     request_id: RequestId
 
 

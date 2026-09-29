@@ -53,6 +53,21 @@ def warmup_ml() -> None:
 
     parts = {"embedder": embedder.available(), "spellcheck": grammar.available(), "classifier": classifier.mode()}
     log.info("ML warmup за %.1f с: %s", time.perf_counter() - started, parts)
+    warmup_llm()
+
+
+def warmup_llm() -> None:
+    """Прогрев локальной LLM (llama.cpp/Ollama): системный промпт генерации обрабатывается сразу при старте."""
+    from ml.generate import llm, scenario_generator
+
+    client = llm.configured_client()
+    if client is None:
+        return
+    seconds = client.warmup(scenario_generator.LLM_SYSTEM)
+    if seconds is None:
+        log.warning("LLM warmup: %s недоступна, генерация пойдёт по шаблону", client.provider)
+    else:
+        log.info("LLM warmup: %s, системный промпт обработан за %.2f с", client.provider, seconds)
 
 
 @asynccontextmanager

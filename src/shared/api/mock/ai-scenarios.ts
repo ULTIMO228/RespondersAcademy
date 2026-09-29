@@ -162,6 +162,15 @@ export async function createAiScenarioDrafts(
   const sourceTicketId = readRequiredString(body, "sourceTicketId", 64);
   const category = readRequiredString(body, "category", 160);
   const requestId = readRequiredString(body, "requestId", 128);
+  const generator = body.generator === undefined ? "auto" : body.generator;
+  if (generator !== "auto" && generator !== "template" && generator !== "ai") {
+    throw validationFailed("«generator» — auto, template или ai");
+  }
+  if (generator === "ai") {
+    throw validationFailed(
+      "ИИ недоступен в автономном режиме фронта: подключите бэкенд (BACKEND_URL) и Ollama",
+    );
+  }
   const count = body.count === undefined ? 1 : body.count;
   if (typeof count !== "number" || !Number.isInteger(count) || count < 1 || count > MAX_DRAFT_COUNT) {
     throw validationFailed(`«count» — целое число от 1 до ${MAX_DRAFT_COUNT}`);
@@ -175,12 +184,17 @@ export async function createAiScenarioDrafts(
   if (card.group.toLowerCase() !== category.toLowerCase()) {
     throw validationFailed(`Категория «${category}» не совпадает с группой билета «${card.group}»`);
   }
-  return replayOrCompute(`drafts:${viewer.userId}:${requestId}`, () =>
+  const startedAt = Date.now();
+  const drafts = replayOrCompute(`drafts:${viewer.userId}:${requestId}`, () =>
     Array.from({ length: count }, () => {
       const draft = buildDraft(card, mode, nextAiScenarioId(), viewer.userId);
       return insertStoredAiVersion(viewer.userId, draft);
     }),
   );
+  return drafts.map((draft) => ({
+    ...draft,
+    generation: { provider: "mock", durationMs: Date.now() - startedAt },
+  }));
 }
 
 function requireOwnVersions(scenarioId: string, viewer: MockViewer) {

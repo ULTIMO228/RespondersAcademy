@@ -11,6 +11,15 @@
 Стек: Next.js (App Router) + React + TypeScript strict, архитектура Feature-Sliced Design в `src/`,
 данные — собственный мок-слой `/api/mock/*` поверх JSON. Внешних сервисов, CDN и сетевых вызовов нет.
 
+| 🎬 Демо-видео | 🧠 ИИ-модель | 📊 Презентация |
+|:---:|:---:|:---:|
+| [Смотреть на Google Drive](https://drive.google.com/file/d/1Yug-Fk055mn_m6pWqyqFOKM5Q_wp8oME/view?usp=sharing) | [Скачать с Google Drive](https://drive.google.com/file/d/1Yug-Fk055mn_m6pWqyqFOKM5Q_wp8oME/view?usp=sharing) | [Открыть в Google Slides](https://docs.google.com/presentation/d/1L6EC4AJEkSB8At1SAymVtG-2M4BhsrOn/edit?usp=sharing&ouid=107397258586226076996&rtpof=true&sd=true) |
+
+**Содержание:** [Архитектура](#архитектура-два-контура) · [Быстрый старт с ИИ](#быстрый-старт-с-ии-две-команды) ·
+[Демо-стенд](#быстрый-старт-демо-стенд-одной-командой-sc-015) · [Разработка](#установка-вручную-и-разработка) ·
+[ИИ-модель](#ии-модель-и-генерация-карточек) · [Учётные записи](#демо-учётные-записи) · [Проверки](#проверки) ·
+[Структура](#структура-репозитория) · [Документация](#документация) · [Ограничения](#честные-ограничения)
+
 ## Архитектура: два контура
 
 1. **Платформа-обложка** (`src/shared/ui/platform`, токены `--pf-*`):
@@ -24,6 +33,25 @@
    - Режим специалиста-112 (`/arm/operator112`): виртуальный софтфон, таймер реакции 30 с, подсказки адресов по классификатору улиц, опросная карта по дереву ЕКП с авторасчётом перечня служб, передача карточки, интеллектуальный разбор с бейджем «ИИ».
    - Режим диспетчера ДДС (`/arm`, `/arm/card/[cardId]`, `/arm/phone`): журнал карточек, граф статусов реагирования с блокирующими валидациями, лента оперативных сообщений служб о ходе работ в реальном времени, голосовой доклад дежурной смене с распознаванием речи и проверкой чек-листа.
    - Сквозная цепочка A → B (112 → ДДС): карточка, оформленная оператором 112, подтверждается преподавателем и переходит на этап диспетчера ДДС.
+
+## Быстрый старт с ИИ: две команды
+
+Нужны Node.js 20+, [uv](https://docs.astral.sh/uv/) и Python 3.9+. Интернет — только на первую установку (~540 МБ модели).
+
+```bash
+./scripts/setup.sh     # зависимости, база с сидами, ИИ-модель и llama.cpp (повторный запуск безопасен)
+./scripts/ai-up.sh     # модель :8081 + бэкенд :8000 + фронт :3000, всё в фоне
+```
+
+Дальше откройте http://localhost:3000/login и войдите преподавателем (`morozova` / `teacher112`). Проверка ИИ-генерации — в разделе
+[«ИИ-модель и генерация карточек»](#ии-модель-и-генерация-карточек). Остановка и статус:
+
+```bash
+./scripts/ai-up.sh status
+./scripts/ai-up.sh stop
+```
+
+Без ИИ-модели: `./scripts/setup.sh --no-model` и `./scripts/ai-up.sh --no-model` — всё работает на статичных шаблонах.
 
 ## Быстрый старт: демо-стенд одной командой (SC-015)
 
@@ -52,6 +80,62 @@ npm run dev            # фронтенд на http://localhost:3000 (автон
 BACKEND_URL=http://localhost:8130 npm run dev
 ```
 
+Бэкенд вручную (из `backend/`): `uv run python -m app.seed.load --reset && uv run uvicorn app.main:app --port 8000`; с ИИ — добавьте `LLAMA_URL=http://127.0.0.1:8081` и запустите модель (см. ниже). Скрипты `setup.sh` и `ai-up.sh` делают всё это за вас.
+
+## ИИ-модель и генерация карточек
+
+**Модель.** Дообученная Qwen3.5-0.8B в формате Q4_K_M (542 МБ, адаптер слит в веса), работает на обычном CPU через
+[llama.cpp](https://github.com/ggml-org/llama.cpp) `b11258`, после первой загрузки — без интернета. Описание, метрики и воспроизведение сборки —
+[`docs/model-report/`](docs/model-report/README.md), быстрый запуск — [`docs/model-report/QUICKSTART.md`](docs/model-report/QUICKSTART.md).
+
+**Что скачать.** Ничего вручную: `./scripts/setup.sh` (или только модель — `python3 backend/ml/scripts/run_semantic_model.py --download-only`) сам:
+
+1. качает `semantic-review-Q4_K_M.gguf` (542 МБ) с Google Drive в `backend/models/`, оборванная загрузка продолжается с места остановки;
+2. сверяет sha256 (эталон — `backend/ml/semantic_model.json`, файл с неверной суммой удаляется);
+3. качает официальный llama.cpp `b11258` (~19 МБ) в `backend/var/llamacpp/`. Сборки предусмотрены для Windows, Linux и macOS; на macOS (Apple Silicon) запуск проверен, на Windows — по отчёту команды, Linux не проверялся.
+
+Оба каталога вне git. Drive не открывается или медленный — положите GGUF в `backend/models/` вручную или укажите свою ссылку:
+`python3 backend/ml/scripts/run_semantic_model.py --download-only --url https://…/semantic-review-Q4_K_M.gguf`.
+Свой `llama-server` — переменная `LLAMA_SERVER`.
+
+**Как включается.** Бэкенд ходит к модели, если задан `LLAMA_URL` (`./scripts/ai-up.sh` задаёт его сам; вручную — `backend/.env.example`):
+
+| Переменная | По умолчанию | Смысл |
+|---|---|---|
+| `LLAMA_URL` | не задана | адрес OpenAI-совместимого сервера llama.cpp, например `http://127.0.0.1:8081` |
+| `LLAMA_MODEL` | `semantic-review` | имя модели в метке провайдера |
+| `OLLAMA_URL` / `OLLAMA_MODEL` | не заданы | альтернатива — Ollama (`qwen2.5:7b-instruct`); имеет приоритет ниже `LLAMA_URL` |
+
+Ручной запуск сервера модели: `python3 backend/ml/scripts/run_semantic_model.py` (порт 8081; флаг `--reasoning off` уже учтён — без него ответ приходит пустым).
+
+**Три способа генерации** (кабинет преподавателя → `/teacher/scenarios/<id>` → «Версии AI-сценария» → селектор «Генерация»):
+
+| Способ | Что происходит |
+|---|---|
+| Авто | модель, если она отвечает, иначе статичный шаблон |
+| Только ИИ | только модель; недоступна или не вернула корректный ответ — ошибка 422, без тихой подмены шаблоном |
+| Статичный шаблон | карточка той же группы ЕКП + адрес из справочника, без ИИ |
+
+Пока идёт генерация, под кнопкой тикает таймер, после — строка «Сгенерировано: … · N с» с провайдером (`статичный шаблон (без ИИ)` /
+`ИИ: локальная модель semantic-review`). То же в API: `POST /api/v1/ai/scenarios/drafts` принимает `generator` (`auto|template|ai`) и возвращает
+`generation: {provider, durationMs}`. Итоговое решение по карточке всегда за преподавателем (черновик → правка → утверждение).
+
+**Как проверить, что работает именно ИИ.**
+
+1. `./scripts/ai-up.sh`, вход преподавателем, `/teacher/scenarios/s-010`.
+2. Билет `demo-fire-1` (создаётся `setup.sh`), категория «пожар в жилом доме».
+3. Сгенерируйте в режимах «Статичный шаблон» и «Только ИИ» и сравните время и провайдера: шаблон — миллисекунды и `template`, модель — 1–3 с и `llamacpp:…`.
+4. Остановите модель (`./scripts/ai-up.sh stop`, затем `./scripts/ai-up.sh --no-model`): «Только ИИ» должен вернуть «ИИ недоступен», а «Авто» — молча уйти в шаблон.
+
+**Оптимизация.** Системный промпт обрабатывается сразу при старте (прогрев: `warmup_llm` в бэкенде и промпта разбора в лаунчере модели), кэш префикса
+включён (`cache_prompt`, `--cache-reuse`). Число карточек ограничено в JSON-схеме (`minItems`/`maxItems`), а лимит токенов считается от числа карточек —
+без этого модель не останавливалась и генерация занимала ~26 с вместо 1–3 с. Ответ, в котором модель пересказывает промпт, отбрасывается и запрашивается заново.
+
+**Честно о качестве.** Модель обучена на смысловой разбор ответов (`SemanticReviewV1`), а не на написание фабул: тексты карточек получаются
+сырыми и близкими к исходной ситуации, встречаются нелепые детали. Для рабочих учебных карточек используйте «Статичный шаблон» или правьте
+черновик; хорошее качество генерации потребует дообучения именно на эту задачу. Без бэкенда (автономный мок-режим фронта) ИИ нет вообще,
+режим «Только ИИ» там честно отвечает отказом.
+
 ## Демо-учётные записи
 
 Вход — через форму `/login`: логин и пароль. Номер АРМ необязателен. Двухфакторная аутентификация в локальном контуре отключена (решение A14, `docs/COMPLIANCE.md` п. 11).
@@ -75,6 +159,8 @@ npm run mocks:validate # валидатор моков spec/000-фронт/mocks
 npm run check          # lint + format:check + steiger + typecheck + build
 ```
 
+Бэкенд (из `backend/`): `uv run pytest -q` и `uv run ruff check .`. Сейчас 3 теста падают независимо от ИИ-генерации: два — воспроизведение аудио заявителя (`test_v1_operator112.py`), один — `test_ai_dataset_build.py::test_release_invariants`.
+
 ### Сквозные проверки (e2e по HTTP)
 
 Три curl-скрипта проходят пользовательские сценарии ТЗ §10 целиком — через реальные Route Handlers,
@@ -92,37 +178,43 @@ scripts/e2e-admin.sh         # администратор: пользовате�
 переменной `BASE_URL`. **Важно:** мок-стор накапливает состояние в памяти процесса, поэтому повторный прогон
 на том же сервере даст ложные расхождения — перезапустите сервер.
 
-Браузерный e2e-раннер (`@playwright/test`) подключается в фазе 5.1 волны 5; на момент подготовки сдачи
-основным сквозным контуром остаются HTTP-скрипты выше — см. «Честные ограничения».
+Браузерный e2e — Playwright: `npm run e2e` сам собирает прод-сборку и поднимает сервер на порту 3140
+(спеки в `e2e/`, включая визуальные снимки симулятора `simulator-visual.spec.ts`).
+Фронт на реальном бэкенде: `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]`.
 
 Офлайн-приёмка (чистая машина, отключённая сеть, 0 внешних запросов) — `docs/offline-check.md`.
 Шпаргалка 5-минутного демо-пути — `docs/demo-script.md`.
 
-## Структура
+## Структура репозитория
 
 ```
-app/            роутинг Next.js (App Router) — тонкие обёртки над src/pages; app/api/mock/** — Route Handlers мок-API
-proxy.ts        middleware сессии (cookie arm112_session) и гварды ролей
-docs/           артефакты сдачи и документация (см. раздел «Документация»)
-mocks/          рабочая копия мок-данных: генерируется из spec/000-фронт/mocks (mocks:sync)
-                + mocks/local (справочник адресов) и mocks/admin (аудит, состояние раздела «Система»)
+app/            роуты Next.js (App Router): тонкие обёртки над src/pages;
+                app/api/mock/** — мок-API, app/api/v1/ai/** — автономные ИИ-ответы
+proxy.ts        оптимистичный гвард сессии (cookie arm112_session) и ролей
+src/            фронт по Feature-Sliced Design:
+  app/          провайдеры, корневой и ролевые лэйауты, стили
+  pages/        экраны симулятора (journal, incident, phone, operator112) и кабинетов
+                (student/*, teacher/*, admin/*, teacher-*, admin-*, reference, account, login)
+  widgets/      incident-list, incident-card, service-panel, operator112-softphone,
+                work-message-feed, monitor-grid, report-charts, platform-nav, app-nav …
+  features/     status-form, statement-form, call-control, operator112-address/-questionnaire,
+                report-recorder, scenario-builder, session-wizard, assignment-create, auth-form …
+  entities/     incident, service, user, session, report, system, assignment, operator112-attempt
+  shared/       ui (UI-kit, токены vars.css и --pf-*), api (клиент, мок-слой, типы, ИИ-шлюз),
+                lib, config
+backend/        FastAPI + SQLAlchemy + ML: app/ (api, services, models, schemas, seed),
+                ml/ (assess, classify, generate, nlp, speech), tests/, alembic/;
+                backend/models и backend/var — вне git
+mocks/          рабочая копия мок-данных (генерируется из spec/000-фронт/mocks; local/ и admin/ — app-уровень)
+e2e/            Playwright: smoke, demo-path, platform, two-mode-full-path, auth-security, simulator-visual
+scripts/        setup.sh, ai-up.sh, demo-up.sh, sync-mocks.mjs, e2e-*.sh, demo-video/
+spec/, specs/   спецификации фич (фронт) и speckit-пакеты бэкенда
+docs/           артефакты сдачи (см. «Документация»)
 icons/          20 восстановленных SVG-иконок АРМ-112 (копируются в public/icons)
-scripts/        sync-mocks.mjs и сквозные скрипты e2e-*.sh
-pages/          пустая заглушка, чтобы Next.js не принял src/pages за Pages Router
-spec/           спецификации, исходные мок-данные, план задач
-src/app/        FSD-слой app: корневой и ролевые лэйауты, прокси сессии, глобальные стили
-src/pages/      экраны: journal, incident, phone, progress, help, login, forbidden,
-                teacher-dashboard/-monitor/-scenarios/-scenario-editor/-session/-reports/-report-session,
-                admin-users, admin-system, dev-map, dev-ui
-src/widgets/    incident-list, incident-card, service-panel, monitor-grid, report-charts, app-nav
-src/features/   status-form, incident-type-picker, statement-form, call-control, scenario-builder,
-                session-wizard, session-control, report-export, auth-form
-src/entities/   incident, service, user, session, report, system
-src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (клиент + мок-слой + типы),
-                lib (ru-форматтеры, хранилище, сеть, грамматика), config (роуты, окружение, словари)
 ```
 
-Тесты лежат рядом с кодом (`*.test.ts(x)`, `spec/000-фронт/10-code-rules.md` §6).
+Стек: Next.js 16 + React 19 + TypeScript strict (версии в `package.json` — `latest`, фактические смотреть в `node_modules`);
+бэкенд — Python 3.11+, FastAPI, SQLAlchemy 2 async, Pydantic v2, `uv`. Тесты лежат рядом с кодом (`*.test.ts(x)`).
 
 ## Документация
 
@@ -141,6 +233,10 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
 | [`spec/000-фронт/10-code-rules.md`](spec/000-фронт/10-code-rules.md) | нормы кода: FSD, SOLID, тесты, гейты |
 | [`spec/000-фронт/11-implementation-plan.md`](spec/000-фронт/11-implementation-plan.md) | план реализации, тестовая стратегия, критерии завершения |
 | [`spec/000-фронт/12-tasks.md`](spec/000-фронт/12-tasks.md) | план задач по волнам 0–5 и отметки выполнения |
+| [`backend/README.md`](backend/README.md) | бэкенд: фазы, API, сиды, ML, переменные окружения |
+| [`docs/model-report/`](docs/model-report/README.md) | ИИ-модель: обучение, метрики, быстрый запуск |
+| [`docs/platform-design.md`](docs/platform-design.md) | дизайн платформы-обложки (кабинеты, вход) |
+| [`AGENTS.md`](AGENTS.md) | правила разработки, инварианты и команды для разработчиков и агентов |
 | [`docs/mock-api.md`](docs/mock-api.md) | мок-API `/api/mock/*`: эндпоинты, коды ошибок, соглашения |
 | [`docs/LIBRARIES.md`](docs/LIBRARIES.md) | перечень библиотек с версиями, лицензиями и назначением (ТЗ §13) |
 | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | сверка с ТЗ: требование → статус → где смотреть |
@@ -158,7 +254,10 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
 Что это **не** и чего в решении нет — намеренно, по договорённостям Q&A (`spec/000-фронт/08-qa-decisions.md`)
 и границам тестового фронта (`spec/000-фронт/00-overview.md`). Построчная сверка — [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md).
 
-**Мок-контур вместо бэкенда.**
+**Два режима: автономный мок-контур и бэкенд.** Без `BACKEND_URL` фронт работает на встроенном мок-слое (ниже). С `BACKEND_URL` запросы уходят в
+Python-бэкенд `backend/` (FastAPI, SQLAlchemy, ML) с теми же контрактами; бэкенд и локальная ИИ-модель описаны выше.
+
+**Мок-контур вместо бэкенда (автономный режим фронта).**
 
 - Бэкенда и БД нет: данные — JSON из `mocks/`, мутации — in-memory store процесса Next.js, перезапуск сервера
   сбрасывает состояние. Контракты (`src/shared/api/types/*`, `spec/000-фронт/05-data-models.md`) рассчитаны на замену
@@ -169,14 +268,14 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
 - TLS и защита каналов передачи — свойство контура развёртывания, в тестовом фронте не реализуются
   (`spec/000-фронт/01-requirements-map.md` §5).
 
-**ИИ имитируется.**
+**ИИ в автономном режиме имитируется.** (С бэкендом и моделью — см. «ИИ-модель и генерация карточек»: локальная Qwen3.5-0.8B, GPU и внешние API не нужны.)
 
 - Все «ИИ-функции» (генерация сценариев, разбор грамматики, оценка попытки, реплики абонента, рекомендации)
   выдаёт мок-шлюз `src/shared/api/ai-gateway.ts` — адаптер с фиксированным контрактом `AiResponse`,
   рассчитанный на подмену реальным сервисом (пометка «ИИ-модуль: заменить на реальный сервис»,
   `spec/000-фронт/03-architecture.md`). Везде, где ответ пришёл «от ИИ», в интерфейсе стоит бейдж «ИИ» (в1, в5).
-- Моделей, GPU и STT/TTS в прототипе нет: по в1 всё должно работать на CPU, поэтому тяжёлых клиентских
-  вычислений в спеках и коде не закладывалось.
+- Во фронте (мок-режим) моделей, GPU и STT/TTS нет: по в1 всё работает на CPU, тяжёлых клиентских вычислений нет.
+  Локальные модели живут только в бэкенде.
 
 **Софтфон — UI-эмуляция.**
 
@@ -192,16 +291,14 @@ src/shared/     ui (UI-kit, SVG-чарты, токены vars.css), api (кли�
   конфликт §6 ↔ §8/§15 разобран в `spec/000-фронт/01-requirements-map.md`.
 - Экспорт XLSX (есть CSV и PDF-печать), расширенная аналитика сверх `byStage` / `byErrorType` / `dynamics`,
   сертификаты (реализована PDF-заглушка через canvas, без шаблона заказчика и юридической силы).
-- Звуковое сопровождение ограничено сигналом поступления карточки; речевого синтеза нет.
+- Во фронте без бэкенда звук ограничен сигналом поступления карточки; синтез речи заявителя (Silero TTS) — только в бэкенде.
 
 **Проверки и тесты.**
 
-- Сквозной контур — HTTP-скрипты `scripts/e2e-*.sh` (реальные Route Handlers, cookie-сессия, проверка 403):
-  они покрывают сценарии ТЗ §10, но не проверяют браузерный рендер. Браузерный e2e (Playwright) —
-  инфраструктура фазы 5.1 волны 5; актуальный статус — в `docs/FINAL-GATE.md`.
-- Скринкаст демо-пути (`docs/demo.mp4`, ТЗ §14/§18) **не записан** — требует захвата экрана и микрофона.
-  Готов покадровый сценарий записи с репликами и таймингами:
-  [`docs/demo-recording-plan.md`](docs/demo-recording-plan.md).
+- Сквозной контур — HTTP-скрипты `scripts/e2e-*.sh` (сценарии ТЗ §10) и Playwright-спеки `e2e/`;
+  актуальный статус гейтов — в `docs/FINAL-GATE.md`.
+- Скринкаст демо-пути — [Google Drive](https://drive.google.com/file/d/1Yug-Fk055mn_m6pWqyqFOKM5Q_wp8oME/view?usp=sharing) (сценарий записи — [`docs/demo-recording-plan.md`](docs/demo-recording-plan.md),
+  скрипт записи — `scripts/demo-video/`).
 - Сопроводительная документация .docx/.pdf и презентация pptx/pdf — внешние треки сдачи, статус в
   [`docs/DELIVERY.md`](docs/DELIVERY.md).
 

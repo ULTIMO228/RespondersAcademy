@@ -17,6 +17,9 @@ export type CallerAudioState =
   | { status: "emergency" }
   | { status: "denied" };
 
+/** Внутреннее состояние: для ready хранится Blob, blob-URL создаётся и отзывается эффектом (устойчиво к StrictMode). */
+type ResolvedAudio = { status: "ready"; blob: Blob } | Exclude<CallerAudioState, { status: "ready" }>;
+
 export type CallerAudioLoader = (cardId: string, signal?: AbortSignal) => Promise<Blob>;
 
 const HTTP_CONFLICT = 409;
@@ -36,23 +39,24 @@ export function useCallerAudio({
   format,
   loader = fetchTicketAudioFile,
 }: Options): CallerAudioState {
-  const [state, setState] = useState<CallerAudioState>({ status: "idle" });
-  const requested = useRef<{ attemptId: string; promise: Promise<CallerAudioState> } | null>(null);
+  const [state, setState] = useState<ResolvedAudio>({ status: "idle" });
+  const [url, setUrl] = useState<string | null>(null);
+  const requested = useRef<{ attemptId: string; promise: Promise<ResolvedAudio> } | null>(null);
   const answered = attempt.state === "answered";
 
   useEffect(() => {
     if (!answered) return undefined;
     let active = true;
     if (requested.current?.attemptId !== attempt.id) {
-      let promise: Promise<CallerAudioState>;
+      let promise: Promise<ResolvedAudio>;
       if (isReplayBlocked(attempt, format)) {
-        promise = Promise.resolve<CallerAudioState>({ status: "denied" });
+        promise = Promise.resolve<ResolvedAudio>({ status: "denied" });
       } else if (isEmergencyAudio(attempt)) {
-        promise = Promise.resolve<CallerAudioState>({ status: "emergency" });
+        promise = Promise.resolve<ResolvedAudio>({ status: "emergency" });
       } else {
         promise = loader(attempt.cardId).then(
-          (blob): CallerAudioState => ({ status: "ready", url: URL.createObjectURL(blob) }),
-          (error: unknown): CallerAudioState => {
+          (blob): ResolvedAudio => ({ status: "ready", blob }),
+          (error: unknown): ResolvedAudio => {
             const status = (error as { status?: number } | null)?.status;
             return status === HTTP_CONFLICT ? { status: "denied" } : { status: "emergency" };
           },
@@ -71,14 +75,17 @@ export function useCallerAudio({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answered, attempt.id]);
 
-  useEffect(
-    () => () => {
-      void requested.current?.promise.then((result) => {
-        if (result.status === "ready") URL.revokeObjectURL(result.url);
-      });
-    },
-    [],
-  );
+  const blob = state.status === "ready" ? state.blob : null;
+  useEffect(() => {
+    if (!blob) {
+      setUrl(null);
+      return undefined;
+    }
+    const objectUrl = URL.createObjectURL(blob);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [blob]);
 
+  if (state.status === "ready") return url ? { status: "ready", url } : { status: "loading" };
   return state;
 }

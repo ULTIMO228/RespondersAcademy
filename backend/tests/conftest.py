@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 import secrets
+import tempfile
 from collections.abc import AsyncIterator
 from urllib.parse import quote
 
@@ -23,6 +24,8 @@ from app.seed.load import run_seed
 from app.services import reference as reference_service
 
 os.environ.setdefault("ML_WARMUP", "0")  # get_settings() ещё не вызывался: модели грузятся лениво там, где нужны тесту
+os.environ.setdefault("VAR_DIR", tempfile.mkdtemp(prefix="arm112-test-var-"))  # готовые демо-WAV из var/audio тестам не мешают
+os.environ.setdefault("DEMO_AUDIO_DIR", tempfile.mkdtemp(prefix="arm112-test-demo-audio-"))
 os.environ.setdefault("TTS_ENABLED", "0")  # аудио билетов в тестах не синтезируется (аварийный режим с расшифровкой)
 
 DEMO_USERS = {

@@ -178,7 +178,15 @@ function CallerRecording({ audio, transcript, isExam, isBlockedByServer, onRepla
       {/* Экзамен: без нативных контролов — запись проигрывается один раз, повтор блокируется на сервере (409). */}
       <audio ref={player} src={audio.url} controls={!isExam} preload="auto" />
       {needsGesture ? (
-        <Button size="sm" onClick={() => void player.current?.play().then(() => setNeedsGesture(false))}>
+        <Button
+          size="sm"
+          onClick={() =>
+            void player.current?.play().then(
+              () => setNeedsGesture(false),
+              () => undefined,
+            )
+          }
+        >
           Воспроизвести запись
         </Button>
       ) : null}
@@ -188,7 +196,7 @@ function CallerRecording({ audio, transcript, isExam, isBlockedByServer, onRepla
           onClick={() => {
             onReplay();
             if (player.current) player.current.currentTime = 0;
-            void player.current?.play();
+            player.current?.play().catch(() => setNeedsGesture(true));
           }}
         >
           Прослушать ещё раз

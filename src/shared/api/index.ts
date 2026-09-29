@@ -105,6 +105,8 @@ export type {
   AIFieldDecisionKind,
   AIScenarioApproveRequest,
   AIScenarioDraftRequest,
+  AIScenarioGeneration,
+  AIScenarioGeneratorKind,
   AIScenarioReviseRequest,
   AIScenarioVersion,
   AIValidationError,

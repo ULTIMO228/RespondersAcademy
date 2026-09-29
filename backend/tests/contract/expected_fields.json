@@ -53,6 +53,17 @@
     "count",
     "requestId"
    ],
+   "optional": [
+    "generator"
+   ],
+   "extends": []
+  },
+  "AIScenarioGeneration": {
+   "file": "scenario.ts",
+   "required": [
+    "provider",
+    "durationMs"
+   ],
    "optional": [],
    "extends": []
   },
@@ -95,7 +106,8 @@
     "sourceCardVersion",
     "parentVersion",
     "teacherComment",
-    "approvedBy"
+    "approvedBy",
+    "generation"
    ],
    "extends": []
   },

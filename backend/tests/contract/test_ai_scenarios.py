@@ -261,3 +261,32 @@ async def test_http_auth_and_errors_both_modes(v1: AsyncClient, mode: str) -> No
     assert (await v1.get("/ai/scenarios/s-missing-id/versions")).status_code == 404
     assert (await v1.post("/ai/scenarios/s-missing-id/approve", json={"version": 1, "requestId": "req-3"})).status_code == 404
     assert (await v1.post("/ai/scenarios/s-missing-id/revise", json={"baseVersion": 1, "comment": "test", "acceptedFields": [{"fieldPath": "summary", "decision": "accepted"}], "requestId": "req-4"})).status_code == 404
+
+
+async def test_generator_template_возвращает_провайдера_и_время(v1: AsyncClient) -> None:
+    source_id = "t009-gen-template-source"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    response = await v1.post("/ai/scenarios/drafts", json=draft_body(source_id, "t009-gen-template-req", generator="template"))
+    assert response.status_code == 201, response.text
+    generation = response.json()[0]["generation"]
+    assert generation["provider"] == "template"
+    assert isinstance(generation["durationMs"], int) and generation["durationMs"] >= 0
+
+
+async def test_generator_ai_без_ollama_даёт_422_без_подмены_шаблоном(v1: AsyncClient, monkeypatch) -> None:
+    from ml.generate import llm
+
+    monkeypatch.setattr(llm, "configured_client", lambda: None)
+    source_id = "t009-gen-ai-off-source"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    response = await v1.post("/ai/scenarios/drafts", json=draft_body(source_id, "t009-gen-ai-off-req", generator="ai"))
+    assert response.status_code == 422, response.text
+    assert "ИИ недоступен" in response.json()["error"]["message"]
+
+
+async def test_generator_неизвестное_значение_отклоняется(v1: AsyncClient) -> None:
+    await login_as(v1, "teacher")
+    response = await v1.post("/ai/scenarios/drafts", json=draft_body("x", "gen-bad-req", generator="gpt"))
+    assert response.status_code == 400

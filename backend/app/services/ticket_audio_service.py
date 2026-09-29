@@ -28,6 +28,7 @@ from ml.speech import tts
 
 log = logging.getLogger("uvicorn.error")
 AUDIO_SUBDIR = "audio"
+_MP3_BITRATES = (0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0)  # MPEG-1 Layer III, кбит/с
 DISABLED_REASON = "синтез отключён (TTS_ENABLED=0)"
 
 
@@ -37,6 +38,30 @@ def audio_dir() -> Path:
 
 def audio_path(card_id: str) -> Path:
     return audio_dir() / f"{card_id}.wav"
+
+
+def curated_path(card_id: str) -> Path | None:
+    """Готовая студийная запись заявителя (эмоциональнее синтеза Silero) — приоритетнее любого синтеза."""
+    path = get_settings().demo_audio_dir / f"{card_id}-elevenlabs.mp3"
+    return path if path.is_file() else None
+
+
+def mp3_duration_ms(path: Path) -> int | None:
+    """Длительность CBR-mp3 по первому кадру (без внешних утилит); None — не удалось разобрать."""
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    offset = 0
+    if data[:3] == b"ID3" and len(data) >= 10:
+        offset = 10 + ((data[6] & 0x7F) << 21 | (data[7] & 0x7F) << 14 | (data[8] & 0x7F) << 7 | (data[9] & 0x7F))
+    while offset + 4 <= len(data):
+        if data[offset] == 0xFF and data[offset + 1] & 0xE0 == 0xE0:
+            bitrate = _MP3_BITRATES[data[offset + 2] >> 4] * 1000
+            if bitrate:
+                return int((len(data) - offset) * 8000 / bitrate)
+        offset += 1
+    return None
 
 
 def synthesis_allowed() -> bool:
@@ -61,7 +86,9 @@ def build_transcript(ticket: dict[str, Any], voice: str, reference: dict[str, An
 async def ensure_audio(db: AsyncSession, card: IncidentCard, voice: str = "auto", *, regenerate: bool = False) -> tuple[TicketAudio, bool]:
     """Строка `ticket_audio` для билета; (строка, нужен ли синтез). Готовая запись без `regenerate` не трогается."""
     row = await db.get(TicketAudio, card.id)
-    if row is not None and not regenerate and row.status in ("ready", "pending"):
+    if row is not None and not regenerate and row.status in ("ready", "pending") and not (
+        row.source != "elevenlabs" and curated_path(card.id) is not None
+    ):
         if row.status == "ready" and row.path and not Path(row.path).exists():
             row.status, row.error = "failed", "файл записи отсутствует"
             await db.flush()
@@ -75,6 +102,19 @@ async def ensure_audio(db: AsyncSession, card: IncidentCard, voice: str = "auto"
     row.transcript, row.voice, row.source = transcript, resolved_voice, source
     row.path, row.duration_ms, row.error = None, None, None
     row.generated_at = None
+    curated = curated_path(card.id)
+    if curated is not None:
+        row.path, row.duration_ms, row.source = str(curated), mp3_duration_ms(curated), "elevenlabs"
+        row.status, row.generated_at = "ready", now_iso()
+        await db.flush()
+        return row, False
+    prebuilt = audio_path(card.id)
+    if prebuilt.exists() and (not regenerate or not synthesis_allowed()):
+        # Готовая запись (демо-набор в var/audio): используем её, когда синтез недоступен или не запрошен заново.
+        row.path, row.duration_ms = str(prebuilt), tts.wav_duration_ms(prebuilt)
+        row.status, row.generated_at = "ready", now_iso()
+        await db.flush()
+        return row, False
     if synthesis_allowed():
         row.status = "pending"
         await db.flush()

@@ -29,3 +29,4 @@ next-env.d.ts
 /backend/models/
 /backend/.venv/
 /backend/**/__pycache__/
+scripts/demo-video/.work/

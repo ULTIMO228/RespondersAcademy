@@ -136,7 +136,7 @@ class _FlakyClient(llm.OllamaClient):
     def healthy(self) -> bool:
         return True
 
-    def chat_json(self, system, user, schema, *, seed=None):
+    def chat_json(self, system, user, schema, *, seed=None, max_tokens=None):
         self.calls += 1
         if self.calls == 1:
             return {"tickets": "not-a-list"}
@@ -153,3 +153,51 @@ def test_llm_path_falls_back_and_retries(cards, addresses):
     assert all(item["cards"][0]["group"] == CATEGORY and "(место:" in item["cards"][0]["summary"] for item in produced)
     assert produced[1]["cards"][0]["victims"] == {"count": 1, "note": ""} and "victims" not in produced[0]["cards"][0]
     assert produced[0]["scenario"]["title"] == gen.generate_template(CATEGORY, cards, addresses)[0]["scenario"]["title"]
+
+
+def test_openai_клиент_llama_server_разбирает_json_и_называет_провайдера(monkeypatch) -> None:
+    calls: list[str] = []
+
+    class _Resp:
+        status_code = 200
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"choices": [{"message": {"content": '{"tickets": []}'}}]}
+
+    monkeypatch.setattr(llm.httpx, "post", lambda url, **kwargs: calls.append(url) or _Resp())
+    client = llm.OllamaClient("http://127.0.0.1:8081/", "semantic-review", openai=True)
+
+    assert client.provider == "llamacpp:semantic-review"
+    assert client.chat_json("s", "u", {"type": "object"}) == {"tickets": []}
+    assert calls == ["http://127.0.0.1:8081/v1/chat/completions"]
+
+
+def test_openai_клиент_при_сбое_возвращает_none(monkeypatch) -> None:
+    def boom(*args, **kwargs):
+        raise llm.httpx.ConnectError("нет сервера")
+
+    monkeypatch.setattr(llm.httpx, "post", boom)
+    assert llm.OllamaClient("http://127.0.0.1:1", "m", openai=True).chat_json("s", "u", {}) is None
+
+
+def test_схема_llm_ограничивает_число_билетов_и_не_портит_общую() -> None:
+    schema = gen._schema_for(3)
+
+    assert schema["properties"]["tickets"]["minItems"] == 3
+    assert schema["properties"]["tickets"]["maxItems"] == 3
+    assert "maxItems" not in gen.LLM_SCHEMA["properties"]["tickets"]
+
+
+def test_warmup_недоступного_сервера_возвращает_none() -> None:
+    llm.reset_health_cache()
+    assert llm.OllamaClient("http://127.0.0.1:1", "m", openai=True).warmup("system") is None
+
+
+def test_фабула_с_эхом_промпта_отбрасывается() -> None:
+    base = {"id": "c-010", "group": "Дерево", "caller": {"name": "А", "phone": "1"}}
+    item = {"summary": "Группа ЕКП: «Дерево». Примеры фабул этой группы: ...", "addressIndex": 0, "callerName": "Б", "callerStatus": "очевидец"}
+
+    assert gen._ticket_from_llm(item, base, [{"street": "Тестовая"}], None, "Дерево", []) is None

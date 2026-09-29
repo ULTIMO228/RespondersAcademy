@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { STANDALONE_AI_NOTE, isStandaloneAiRelease } from "@/shared/api";
-import type { AIWorkflowMode, AIScenarioVersion } from "@/shared/api";
+import type {
+  AIScenarioGeneration,
+  AIScenarioGeneratorKind,
+  AIWorkflowMode,
+  AIScenarioVersion,
+} from "@/shared/api";
 import { AiBadge } from "@/shared/ui";
 
 import type { ScenarioEditorApi } from "../api/editorApi";
@@ -23,6 +28,18 @@ type PanelState = { status: "loading" } | { status: "ready" } | { status: "error
 function requestId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
   return `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function formatSeconds(ms: number): string {
+  return `${(ms / 1000).toFixed(1)} с`;
+}
+
+function providerLabel(provider: string): string {
+  if (provider === "template") return "статичный шаблон (без ИИ)";
+  if (provider === "mock") return "автономный мок (без ИИ)";
+  if (provider.startsWith("llamacpp:")) return `ИИ: локальная модель ${provider.slice("llamacpp:".length)}`;
+  if (provider.startsWith("ollama:")) return `ИИ: локальная модель ${provider.slice("ollama:".length)}`;
+  return provider;
 }
 
 function fieldText(value: unknown): string {
@@ -46,6 +63,9 @@ export function AIScenarioWorkflowPanel({
   const [summaryEdit, setSummaryEdit] = useState("");
   const [notice, setNotice] = useState<{ kind: "error" | "success"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [generator, setGenerator] = useState<AIScenarioGeneratorKind>("auto");
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [lastGeneration, setLastGeneration] = useState<AIScenarioGeneration | null>(null);
 
   const selectedVersion = useMemo(() => versions.at(-1) ?? null, [versions]);
 
@@ -79,16 +99,22 @@ export function AIScenarioWorkflowPanel({
   const handleCreate = async () => {
     setSaving(true);
     setNotice(null);
+    setLastGeneration(null);
+    const startedAt = Date.now();
+    setElapsedMs(0);
+    const timer = setInterval(() => setElapsedMs(Date.now() - startedAt), 100);
     try {
       const created = await api.createAIScenarioDrafts({
         mode,
         sourceTicketId: sourceTicketId.trim(),
         category: category.trim(),
         count: 1,
+        generator,
         requestId: requestId(),
       });
       const first = created[0];
       if (!first) throw new Error("Сервис не вернул созданный черновик");
+      setLastGeneration(first.generation ?? { provider: "template", durationMs: Date.now() - startedAt });
       await loadVersions(first.scenarioId);
       setNotice({ kind: "success", text: "Черновик создан и доступен только преподавателю" });
     } catch (error) {
@@ -97,6 +123,8 @@ export function AIScenarioWorkflowPanel({
         text: error instanceof Error ? error.message : "Не удалось создать черновик",
       });
     } finally {
+      clearInterval(timer);
+      setElapsedMs(Date.now() - startedAt);
       setSaving(false);
     }
   };
@@ -192,6 +220,17 @@ export function AIScenarioWorkflowPanel({
             <option value="dds">ДДС</option>
           </select>
         </label>
+        <label className={styles.field}>
+          <span>Генерация</span>
+          <select
+            value={generator}
+            onChange={(event) => setGenerator(event.target.value as AIScenarioGeneratorKind)}
+          >
+            <option value="auto">Авто (ИИ, если доступен)</option>
+            <option value="ai">Только ИИ (локальная модель)</option>
+            <option value="template">Статичный шаблон (без ИИ)</option>
+          </select>
+        </label>
         <button
           type="button"
           className={styles.button}
@@ -202,6 +241,16 @@ export function AIScenarioWorkflowPanel({
         </button>
       </div>
 
+      {saving && elapsedMs > 0 ? (
+        <p className={styles.meta} role="status" data-testid="ai-generation-timer">
+          Генерация… {formatSeconds(elapsedMs)}
+        </p>
+      ) : null}
+      {!saving && lastGeneration ? (
+        <p className={styles.meta} role="status" data-testid="ai-generation-result">
+          Сгенерировано: {providerLabel(lastGeneration.provider)} · {formatSeconds(lastGeneration.durationMs)}
+        </p>
+      ) : null}
       {panelState.status === "loading" ? <p role="status">Загрузка версий…</p> : null}
       {panelState.status === "error" ? (
         <p className={styles.error} role="alert">

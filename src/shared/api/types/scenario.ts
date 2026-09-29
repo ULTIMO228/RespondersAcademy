@@ -133,6 +133,16 @@ export interface AIScenarioVersion {
   };
   fieldDecisions: AIFieldDecision[];
   approvedBy?: string;
+  /** Только в ответе на создание черновиков: чем и за сколько сгенерировано. */
+  generation?: AIScenarioGeneration;
+}
+
+export type AIScenarioGeneratorKind = "auto" | "template" | "ai";
+
+export interface AIScenarioGeneration {
+  /** `template` — статичный шаблон, `ollama:<модель>` — локальная LLM, `mock` — автономный мок без ИИ. */
+  provider: string;
+  durationMs: number;
 }
 
 export interface AIScenarioDraftRequest {
@@ -140,6 +150,7 @@ export interface AIScenarioDraftRequest {
   sourceTicketId: string;
   category: string;
   count: number;
+  generator?: AIScenarioGeneratorKind;
   requestId: string;
 }
 

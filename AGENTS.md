@@ -125,7 +125,7 @@ uv run pytest -q                           # одиночный: uv run pytest t
 uv run ruff check .
 ```
 
-Фронт через бэкенд — `BACKEND_URL=http://localhost:8000 npm run dev`. Гейт «фронт на реальном бэкенде» (бэкенд на `:8130` с чистой `var/e2e.db`, `next start -p 3130`, три sh-скрипта, логи — `backend/var/e2e-logs/`):
+Фронт через бэкенд — `BACKEND_URL=http://localhost:8000 npm run dev`. Установка «всё сразу» — `./scripts/setup.sh` (зависимости, сиды, модель ИИ + llama.cpp; `--no-model` без ИИ), стенд с ИИ — `./scripts/ai-up.sh [start|stop|status]` (модель :8081, бэкенд :8000, фронт :3000; логи `backend/var/logs/`). ИИ-модель проекта — дообученная Qwen3.5-0.8B через llama.cpp (`docs/model-report/QUICKSTART.md`), включается `LLAMA_URL`; Ollama не используется. Гейт «фронт на реальном бэкенде» (бэкенд на `:8130` с чистой `var/e2e.db`, `next start -p 3130`, три sh-скрипта, логи — `backend/var/e2e-logs/`):
 
 ```bash
 backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]
