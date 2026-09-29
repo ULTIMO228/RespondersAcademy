@@ -469,10 +469,10 @@ async def evaluation(db: AsyncSession, attempt_id: str, viewer: Viewer) -> dict[
 
 
 async def audio_access(db: AsyncSession, card_id: str, viewer: Viewer) -> AssignmentAttempt | None:
-    """Доступ к файлу записи: S — только в рамках своей попытки по билету; экзамен — один запрос (счётчик replays)."""
+    """Доступ к файлу записи активной учебной карточки; экзамен — один запрос."""
     if not viewer.is_student:
         return None
-    rows = (await db.execute(select(Attempt).where(Attempt.card_id == card_id, Attempt.student_id == viewer.user_id, Attempt.mode == MODE).order_by(Attempt.opened_at.desc(), Attempt.id.desc()))).scalars().all()
+    rows = (await db.execute(select(Attempt).where(Attempt.card_id == card_id, Attempt.student_id == viewer.user_id).order_by(Attempt.opened_at.desc(), Attempt.id.desc()))).scalars().all()
     attempt = next((a for a in rows if a.state != "submitted"), None)
     if attempt is None:
         raise forbidden("Запись доступна только в рамках активной попытки по билету")

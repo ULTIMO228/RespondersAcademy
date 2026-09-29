@@ -188,7 +188,14 @@ async def list_recordings(card_id: str, db: AsyncSession = Depends(get_db), view
             })
     ticket_audio = await db.get(TicketAudio, card_id)
     if ticket_audio is not None and ticket_audio.status == "ready" and ticket_audio.path and Path(ticket_audio.path).is_file():
-        if not viewer.is_student or any(attempt.mode == "operator112" and attempt.state != "submitted" for attempt in attempts):
+        # Голос заявителя — часть самой учебной карточки. Показываем его
+        # преподавателю и обучающемуся, если карточка открыта в активной
+        # попытке (для студента), независимо от режима dds/operator112.
+        student_has_active_attempt = any(
+            attempt.student_id == viewer.user_id and attempt.state != "submitted"
+            for attempt in attempts
+        )
+        if not viewer.is_student or student_has_active_attempt:
             seconds = max(0, round((ticket_audio.duration_ms or 0) / 1000))
             url = f"/api/v1/tickets/{card_id}/audio/file"
             recordings.append({

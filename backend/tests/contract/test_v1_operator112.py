@@ -128,8 +128,9 @@ async def test_ready_applicant_audio_is_playable_from_recordings(
         assert f"c-050.{extension}" in played.headers["content-disposition"]
         assert played.headers["content-disposition"].startswith("inline;")
         await login_as(v1, "student")
-        assert all(item["id"] != "ticket-c-050" for item in (await v1.get("/cards/c-050/recordings")).json())
-        assert (await v1.get("http://test" + recording["audioUrl"])).status_code == 403
+        student_listed = await v1.get("/cards/c-050/recordings")
+        assert any(item["id"] == "ticket-c-050" for item in student_listed.json())
+        assert (await v1.get("http://test" + recording["audioUrl"])).status_code == 200
     finally:
         async with get_sessionmaker()() as db:
             row = await db.get(TicketAudio, "c-050")

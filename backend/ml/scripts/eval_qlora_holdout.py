@@ -119,7 +119,10 @@ def main() -> None:
 
 def report(rows: list[dict[str, Any]], tag: str, path: Path) -> None:
     n = len(rows)
-    pct = lambda k: round(100 * sum(1 for r in rows if r["checks"].get(k)) / n, 1)
+
+    def pct(k: str) -> float:
+        return round(100 * sum(1 for r in rows if r["checks"].get(k)) / n, 1)
+
     conf = Counter((r["gold"]["decision"], (r["answer"] or {}).get("decision", "нет JSON")) for r in rows)
     by_field: dict[str, list[bool]] = defaultdict(list)
     for r in rows:
