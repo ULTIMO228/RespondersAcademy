@@ -6,6 +6,7 @@ Holdout открывается только для финальной оценк
     python backend/ml/scripts/eval_qlora_holdout.py --limit 3        # дымовой прогон
     python backend/ml/scripts/eval_qlora_holdout.py                  # полный holdout, 110 примеров
     python backend/ml/scripts/eval_qlora_holdout.py --no-adapter     # базовая модель без адаптера (для сравнения)
+    python backend/ml/scripts/eval_qlora_holdout.py --server http://127.0.0.1:8081   # Q4 GGUF через llama.cpp/LM Studio (OpenAI API)
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import json
 import os
 import re
 import time
+import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -73,13 +75,14 @@ def main() -> None:
     p.add_argument("--model-id", default=str(REPO / "backend" / "models" / "qwen3.5_0.8b"))
     p.add_argument("--adapter", default=str(REPO / "backend" / "models" / "qwen3.5_0.8b_qlora_adapter" / "final"))
     p.add_argument("--no-adapter", action="store_true", help="Базовая модель без адаптера")
+    p.add_argument("--server", default="", help="URL OpenAI-совместимого сервера (llama-server, LM Studio): оценка GGUF вместо HF-модели")
     p.add_argument("--split", default="holdout", choices=["holdout", "validation"])
     p.add_argument("--limit", type=int, default=0)
     p.add_argument("--max-new-tokens", type=int, default=260)
     p.add_argument("--out", default="")
     args = p.parse_args()
 
-    tag = "base" if args.no_adapter else "adapter"
+    tag = "gguf" if args.server else "base" if args.no_adapter else "adapter"
     out_path = Path(args.out) if args.out else REPO / "backend" / "var" / f"{args.split}_predictions_{tag}.jsonl"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -89,23 +92,28 @@ def main() -> None:
         records = records[: args.limit]
     done = {r["id"] for r in load_jsonl(out_path)} if out_path.exists() else set()
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_id)
-    print(f"[{time.strftime('%H:%M:%S')}] загрузка модели ({tag})...", flush=True)
-    bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.float16)
-    model = AutoModelForCausalLM.from_pretrained(args.model_id, quantization_config=bnb, device_map={"": 0}, dtype=torch.float16)
-    if not args.no_adapter:
-        model = PeftModel.from_pretrained(model, args.adapter)
-    model.eval()
+    tokenizer = model = None
+    if not args.server:
+        tokenizer = AutoTokenizer.from_pretrained(args.model_id)
+        print(f"[{time.strftime('%H:%M:%S')}] загрузка модели ({tag})...", flush=True)
+        bnb = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.float16)
+        model = AutoModelForCausalLM.from_pretrained(args.model_id, quantization_config=bnb, device_map={"": 0}, dtype=torch.float16)
+        if not args.no_adapter:
+            model = PeftModel.from_pretrained(model, args.adapter)
+        model.eval()
 
     t0 = time.time()
     todo = [r for r in records if r["id"] not in done]
     for i, rec in enumerate(todo, 1):
         msgs = rec["messages"]
-        prompt = tokenizer.apply_chat_template(msgs[:2], tokenize=False, add_generation_prompt=True)
-        ids = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to("cuda")
-        with torch.no_grad():
-            gen = model.generate(**ids, max_new_tokens=args.max_new_tokens, do_sample=False, use_cache=True)
-        text = tokenizer.decode(gen[0, ids["input_ids"].shape[1]:], skip_special_tokens=True)
+        if args.server:
+            text = generate_via_server(args.server, msgs[:2], args.max_new_tokens)
+        else:
+            prompt = tokenizer.apply_chat_template(msgs[:2], tokenize=False, add_generation_prompt=True)
+            ids = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to("cuda")
+            with torch.no_grad():
+                gen = model.generate(**ids, max_new_tokens=args.max_new_tokens, do_sample=False, use_cache=True)
+            text = tokenizer.decode(gen[0, ids["input_ids"].shape[1]:], skip_special_tokens=True)
         payload, gold = json.loads(msgs[1]["content"]), json.loads(msgs[2]["content"])
         ans = parse_answer(text)
         row = {"id": rec["id"], "raw": text, "answer": ans, "gold": gold, "checks": check_answer(ans, payload, gold), "meta": meta[rec["id"]]["labels"] | {"field": meta[rec["id"]]["field"], "mode": meta[rec["id"]]["mode"]}}
@@ -115,6 +123,14 @@ def main() -> None:
         print(f"[{time.strftime('%H:%M:%S')}] {i}/{len(todo)} ({100*i/len(todo):.0f}%) {el/i:.1f} с/пример, осталось ~{el/i*(len(todo)-i)/60:.0f} мин | gold={gold['decision']} pred={(ans or {}).get('decision')}", flush=True)
 
     report(load_jsonl(out_path), tag, out_path.with_suffix(".report.json"))
+
+
+def generate_via_server(url: str, messages: list[dict[str, str]], max_tokens: int) -> str:
+    """Один жадкий запрос к OpenAI-совместимому серверу (llama-server, LM Studio, Ollama /v1)."""
+    body = json.dumps({"messages": messages, "temperature": 0, "max_tokens": max_tokens, "stream": False}).encode("utf-8")
+    req = urllib.request.Request(url.rstrip("/") + "/v1/chat/completions", data=body, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=600) as resp:
+        return json.loads(resp.read().decode("utf-8"))["choices"][0]["message"]["content"]
 
 
 def report(rows: list[dict[str, Any]], tag: str, path: Path) -> None:
