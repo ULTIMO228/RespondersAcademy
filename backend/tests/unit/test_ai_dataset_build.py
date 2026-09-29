@@ -271,4 +271,6 @@ def test_release_invariants() -> None:
     assert len(texts) == len(set(texts)), "дубликаты studentText"
     assert decisions == manifest["counts"]["byDecision"]
     for name, info in manifest["files"].items():
-        assert hashlib.sha256((RELEASE / name).read_bytes()).hexdigest() == info["sha256"]
+        # Git may check out text artifacts with CRLF on Windows; release hashes use LF.
+        content = (RELEASE / name).read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(content).hexdigest() == info["sha256"]

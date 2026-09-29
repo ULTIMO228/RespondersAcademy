@@ -152,6 +152,13 @@ def _check_card_number(text: str, card: dict[str, Any]) -> ReportCheck:
     if not found:
         numbers = _card_numbers(card)
         found = any(m.group(1).lstrip("0") in {n.lstrip("0") for n in numbers} for m in CARD_WORD.finditer(text))
+        if not found:
+            from ml.speech.tts import number_to_words
+
+            found = any(
+                re.search(rf"карточк\w*\s*(?:номер\s*)?{re.escape(number_to_words(int(number)))}\b", lowered)
+                for number in numbers if number.isdigit() and int(number) <= 999_999
+            )
     return ReportCheck("cardNumber", CHECK_LABELS["cardNumber"], expected, found)
 
 

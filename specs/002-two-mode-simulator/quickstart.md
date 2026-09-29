@@ -15,6 +15,8 @@
 
 ## 1. Бэкенд: окружение и модели
 
+Перед запуском задайте `JWT_SECRET` случайным значением длиной не менее 32 байт через окружение или `backend/.env`; значение из примера оставлять пустым нельзя. Для PostgreSQL дополнительно задайте `DATABASE_URL`. Штатный рантайм не требует доступа к интернету.
+
 ```bash
 cd backend && uv sync --extra nlp --extra pg --group dev
 ```
@@ -27,7 +29,7 @@ cd backend && uv run python -m ml.scripts.prepare_models
 cd backend && uv run python -m ml.scripts.train_classifier
 ```
 
-`prepare_models` скачивает в `backend/models/` rubert-tiny2 (~120 МБ; `--only embedder dedup` добавит multilingual-e5-small, ~470 МБ — для демо не обязателен: на объявленных дублях сидов rubert-tiny2 даёт тот же результат; `--only tts` — Silero v4 ru, ~40 МБ, для аудиозаписей режима 112). Словарь symspell и доменные слова лежат в репозитории (`backend/data/dict/`, `backend/data/domain_words.txt`), индекс собирается при первом обращении в `backend/var/symspell_ru.pkl`. `train_classifier` собирает артефакт классификатора `backend/models/ekp_group_lr.joblib` (вне git; без него — режим прототипов). Флаги `--tts`, `--stt`, `--llm` появятся в волне B (T110). Дальше сеть не нужна.
+`prepare_models` по умолчанию готовит rubert-tiny2, multilingual-e5-small и проверенную копию словаря SymSpell в `backend/models/`. Для выборочной загрузки — `--only embedder` или `--only dedup`; `--tts`, `--stt` добавляют Silero/Vosk, `--llm` вызывает локальную CLI Ollama. Контрольные суммы проверяются при загрузке и через `--verify-only` без сети. Доменные слова лежат в `backend/data/domain_words.txt`, индекс SymSpell собирается при первом обращении в `backend/var/symspell_ru.pkl`. `train_classifier` собирает артефакт `backend/models/ekp_group_lr.joblib` (вне git; без него — режим прототипов).
 
 ## 2. База и сиды
 
@@ -37,9 +39,10 @@ SQLite (по умолчанию, `backend/var/dev.db`):
 cd backend && uv run python -m app.seed.load
 ```
 
-PostgreSQL (схему создаёт сам сид через `create_all`; миграции Alembic — T109, Phase 17):
+PostgreSQL (схему создаёт Alembic; сид её не создаёт):
 
 ```bash
+cd backend && DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run alembic upgrade head
 cd backend && DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run python -m app.seed.load
 ```
 
@@ -101,7 +104,7 @@ scripts/e2e-admin.sh
 
 Ожидаемо: `PASS` по всем шагам, код возврата 0. В отличие от мок-стора, состояние живёт в БД: перед повторным прогоном — `uv run python -m app.seed.load --reset`.
 
-Весь §5 одной командой — `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `powershell -File backend\scripts\run_frontend_e2e.ps1`: бэкенд на `:8130` с чистым сидом `backend/var/e2e.db` (свежий процесс перед каждым скриптом), сборка фронта с `BACKEND_URL`, `next start -p 3130`, три e2e-скрипта; логи в `backend/var/e2e-logs/`. На Windows `npm run build` из cmd не работает (bash-синтаксис в `package.json`) — скрипт вызывает `mocks:sync`, `mocks:validate` и `npx next build` напрямую.
+Весь §5 одной командой — `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `pwsh -File backend/scripts/run_frontend_e2e.ps1`: бэкенд на `:8130` с чистым сидом `backend/var/e2e.db`, сборка фронта с `BACKEND_URL`, `next start -p 3130`, три e2e-скрипта; логи в `backend/var/e2e-logs/`. Windows-скрипт принимает `-DatabasePath` и `-LogDirPath` внутри `backend/var/`, чтобы сохранить прежний прогон. На Windows 2026-09-29 проверены студент 40/40, преподаватель 96/96 и администратор 141/141; ограничения офлайн-приёмки описаны в `backend/docs/offline-check.md`.
 
 Ручная проверка: `http://localhost:3130/login` → `ivanov / student112 / АРМ 1` → `/arm` показывает карточки из БД; преподаватель `morozova / teacher112 / 21` → «Сгенерировать (ИИ)» возвращает сценарии с отчётом валидации; оценка попытки в `/arm/progress` имеет бейдж «ИИ» и текст, начинающийся с «ИИ-оценка:».
 
@@ -119,7 +122,7 @@ cd backend && uv run python -m ml.scripts.eval_assessor
 cd backend && uv run pytest -q tests/unit/test_validator.py
 ```
 
-Ожидаемо: accuracy классификатора ≥ 0,80 на 96 задачах (SC-006); согласие оценщика ≥ 0,85 по типам ошибок и корреляция ≥ 0,8 на `backend/data/labeled/` (SC-003/004); валидатор — ≥ 90 % дефектных отклонено, ≥ 85 % корректных пропущено (SC-005) — в волне A это проверяет unit-тест на `backend/data/labeled/tickets/` (20 корректных + 20 дефектных); `uv run python -m ml.scripts.eval_validator` реализован в Phase 11 (T087); `GET /api/v1/metrics/ml` — T110. Результаты классификатора и оценщика пишутся в `backend/var/metrics.json`.
+Ожидаемо: accuracy классификатора ≥ 0,80 на 96 задачах (SC-006); согласие оценщика ≥ 0,85 по типам ошибок и корреляция ≥ 0,8 на `backend/data/labeled/` (SC-003/004); валидатор — ≥ 90 % дефектных отклонено, ≥ 85 % корректных пропущено (SC-005). Команда `uv run python -m ml.scripts.eval_validator` проверяет 20 корректных и 20 дефектных билетов. Результаты пишутся в `backend/var/metrics.json` и выдаются администратору через `GET /api/v1/metrics/ml`; подробности и ограничения выборки — `backend/docs/ml-methods.md`.
 
 ## 7. Волна B: режим специалиста-112 (Phase 10)
 
@@ -149,4 +152,4 @@ Phase 12 добавляет `/api/v1/assignments`: преподаватель с
 
 После входа преподавателя или администратора: `POST /api/v1/tickets` создаёт ручной билет с эталоном по ЕКП, difficulty (1–5), grammarErrors и аудитом `ticket.create` (тип `content`). `POST /api/v1/tickets/{id}/validate` без тела возвращает отчёт шести проверок; `GET /api/v1/tickets` возвращает сохранённый отчёт в `validation`. Проверка не утверждает билет автоматически. Для студента POST → 403, без сессии → 401, неизвестный билет → 404.
 
-Метрики SC-005: `cd backend` → `uv run python -m ml.scripts.eval_validator`. Результаты сохраняются в `var/metrics.json`, раздел `validator`: 20/20 корректных, 20/20 дефектных, 2 ручные проверки (22.09.2026). Это регрессионная выборка из банка билетов. API метрик остаётся задачей T110.
+Метрики SC-005: `cd backend` → `uv run python -m ml.scripts.eval_validator`. Результаты сохраняются в `var/metrics.json`, раздел `validator`: 20/20 корректных, 20/20 дефектных, 2 ручные проверки (22.09.2026). Это регрессионная выборка из банка билетов. API метрик реализован: `GET /api/v1/metrics/ml` с сессией администратора.

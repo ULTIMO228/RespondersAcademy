@@ -184,6 +184,11 @@ async def get_audio_file(card_id: str, db: AsyncSession = Depends(get_db), viewe
     row = await db.get(TicketAudio, card_id)
     if row is None or row.status != "ready" or not row.path or not Path(row.path).exists():
         raise not_found("Аудиозапись не готова: используйте расшифровку (аварийный режим)")
+    suffix = Path(row.path).suffix.lower()
+    if suffix not in {".wav", ".mp3"}:
+        raise not_found("Неподдерживаемый формат аудиозаписи")
     await operator112_service.audio_access(db, card_id, viewer)
     await db.commit()
-    return FileResponse(row.path, media_type="audio/wav", filename=f"{card_id}.wav", headers={"Cache-Control": "no-store"})
+    media_type = "audio/mpeg" if suffix == ".mp3" else "audio/wav"
+    return FileResponse(row.path, media_type=media_type, filename=f"{card_id}{suffix}",
+                        content_disposition_type="inline", headers={"Cache-Control": "no-store"})

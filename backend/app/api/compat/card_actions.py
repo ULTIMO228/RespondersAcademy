@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -17,6 +18,7 @@ from app.db.ids import PREFIX, format_id, max_suffix
 from app.db.session import get_db
 from app.models.card import CardRuntime, IncidentCard
 from app.models.session import Attempt
+from app.models.ticket_audio import TicketAudio
 from app.services.cards import ensure_runtime, read_runtime, require_card
 from app.services.reference import read_reference
 from app.services.status_machine import StatusTransitionError, dds_machine
@@ -167,10 +169,42 @@ async def list_recordings(card_id: str, db: AsyncSession = Depends(get_db), view
         return []
     if viewer.is_student:
         attempts = [attempt for attempt in attempts if attempt.student_id == viewer.user_id]
-    return [{"id": call["id"], "cardId": card_id, "attemptId": attempt.id,
-             "at": call.get("startedAt"), "transcript": call.get("transcript") or [],
-             "url": f"/api/v1/cards/{card_id}/recordings/{call['id']}/file"}
-            for attempt in attempts for call in attempt.calls or [] if isinstance(call, dict) and isinstance(call.get("recording"), dict)]
+    recordings = []
+    for attempt in attempts:
+        for call in attempt.calls or []:
+            if not isinstance(call, dict) or not isinstance(call.get("recording"), dict):
+                continue
+            duration_ms = call["recording"].get("durationMs")
+            seconds = max(0, round(duration_ms / 1000)) if isinstance(duration_ms, (int, float)) else 0
+            url = f"/api/v1/cards/{card_id}/recordings/{call['id']}/file"
+            path = get_settings().var_dir / "recordings" / f"{call['id']}.wav"
+            recordings.append({
+                "id": call["id"], "cardId": card_id, "attemptId": attempt.id,
+                "at": call.get("startedAt"), "startedAt": call.get("startedAt"),
+                "title": f"Доклад в {call.get('toNumber') or '112'}",
+                "duration": f"{seconds // 60:02}:{seconds % 60:02}",
+                "audioUrl": url if path.is_file() else None,
+                "transcript": call.get("transcript") or [], "url": url,
+            })
+    ticket_audio = await db.get(TicketAudio, card_id)
+    if ticket_audio is not None and ticket_audio.status == "ready" and ticket_audio.path and Path(ticket_audio.path).is_file():
+        # Голос заявителя — часть самой учебной карточки. Показываем его
+        # преподавателю и обучающемуся, если карточка открыта в активной
+        # попытке (для студента), независимо от режима dds/operator112.
+        student_has_active_attempt = any(
+            attempt.student_id == viewer.user_id and attempt.state != "submitted"
+            for attempt in attempts
+        )
+        if not viewer.is_student or student_has_active_attempt:
+            seconds = max(0, round((ticket_audio.duration_ms or 0) / 1000))
+            url = f"/api/v1/tickets/{card_id}/audio/file"
+            recordings.append({
+                "id": f"ticket-{card_id}", "cardId": card_id,
+                "at": ticket_audio.generated_at, "startedAt": ticket_audio.generated_at,
+                "title": "Голос заявителя", "duration": f"{seconds // 60:02}:{seconds % 60:02}",
+                "audioUrl": url, "url": url,
+            })
+    return recordings
 
 
 @router.get("/cards/{card_id}/recordings/{call_id}/file")
@@ -186,7 +220,8 @@ async def get_recording_file(card_id: str, call_id: str, db: AsyncSession = Depe
                     raise forbidden("Доступна только собственная аудиозапись")
                 path = get_settings().var_dir / "recordings" / f"{call_id}.wav"
                 if path.is_file():
-                    return FileResponse(path, media_type="audio/wav", filename=f"{call_id}.wav")
+                    return FileResponse(path, media_type="audio/wav", filename=f"{call_id}.wav",
+                                        content_disposition_type="inline", headers={"Cache-Control": "no-store"})
     from app.api.errors import not_found
 
     raise not_found("Аудиозапись доклада не найдена")

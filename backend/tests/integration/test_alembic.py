@@ -55,7 +55,7 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
     with sqlite3.connect(database) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert set(Base.metadata.tables) <= tables
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0001_initial"
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0004_ai_guards"
     _run("-m", "alembic", "check", environment=environment)
     _run("-m", "app.seed.load", environment=environment)
     with sqlite3.connect(database) as connection:
@@ -123,3 +123,12 @@ def test_postgresql_migration_renders_tables_and_guards_offline():
         "CREATE OR REPLACE FUNCTION guard_ai_evaluation_revision()", "CREATE TRIGGER trg_ai_evaluation_revision_immutable",
     ):
         assert fragment in sql
+
+
+def test_postgresql_offline_upgrade_compiles_jsonb():
+    environment = {**os.environ, "DATABASE_URL": "postgresql+asyncpg://offline:offline@invalid.invalid/offline"}
+    ddl = _run("-m", "alembic", "upgrade", "head", "--sql", environment=environment)
+    assert ddl.count("CREATE TABLE") == len(Base.metadata.tables) + 1  # alembic_version
+    assert "JSONB" in ddl
+    assert "CREATE TABLE ai_assessment_jobs" in ddl
+    assert "0004_ai_guards" in ddl

@@ -6,6 +6,8 @@ Python 3.11+ / FastAPI / SQLAlchemy 2 (async) / PostgreSQL (для разраб�
 
 ## Быстрый старт (SQLite)
 
+До запуска задайте `JWT_SECRET` случайным секретом длиной не менее 32 байт в окружении или `backend/.env` (см. `.env.example`).
+
 ```bash
 cd backend
 uv sync --group dev
@@ -13,6 +15,8 @@ uv run python -m app.seed.load          # сиды из spec/000-фронт/mock
 uv run uvicorn app.main:app --port 8000 # http://localhost:8000/api/docs
 uv run pytest -q
 ```
+
+Существующая `var/dev.db` может быть старой схемы: `create_all` не добавляет новые столбцы. Например, база без `users.locked_until` даёт 500 при входе. Для демо используйте новую базу, задав `DATABASE_URL=sqlite+aiosqlite:///./var/demo-preview.db` **до** `python -m app.seed.load` и запуска Uvicorn; старую `dev.db` не сбрасывайте без сохранения данных. Миграция существующей PostgreSQL-базы остаётся в T109.
 
 Справочник лобби (Phase 13) собирается из ЕКП и учебных билетов в `data/kb/`:
 
@@ -29,9 +33,15 @@ uv run python -m app.seed.load
 
 Сообщения о ходе работ (Phase 16): включите `workMessagesEnabled: true` в `plan` занятия или `params` задания. Интервалы после статуса `accepted` задаются массивом `workMessageIntervalsSec` из четырёх возрастающих секунд (по умолчанию 20, 50, 90, 150); для отдельных категорий используйте `workMessageIntervalsByGroup`. Курсант получает наступившие сообщения через `GET /api/v1/attempts/{id}/work-messages?since=<ISO>`. Оценщик проверяет статус до сообщения и задержку более 30 секунд.
 
-Аудиодоклад: установите `uv sync --extra stt` и положите локальную модель Vosk small-ru в `backend/models/vosk-model-small-ru-0.22/` (или задайте `MODELS_DIR`). `POST /api/v1/attempts/{id}/report-audio` принимает multipart WAV (моно PCM 16 бит, 8/16 кГц), сохраняет транскрипт и чек-лист в звонке попытки; `GET /api/v1/cards/{id}/recordings` возвращает записи. Без установленной модели эндпоинт возвращает 503 с причиной. Проверка чек-листа на 20 размеченных докладах: 95 из 100 пунктов.
+Аудиодоклад: установите `uv sync --extra stt` и подготовьте локальную модель Vosk small-ru командой `uv run python -m ml.scripts.prepare_models --only stt` (или задайте `MODELS_DIR`). Курсант загружает WAV из открытой карточки; `POST /api/v1/attempts/{id}/report-audio` принимает моно PCM 16 бит, 8/16 кГц, сохраняет транскрипт, чек-лист и файл в попытке. В карточке запись можно прослушать, преподаватель видит её в мониторинге через «Записи по карточке». Без модели эндпоинт возвращает 503 с причиной. Проверка чек-листа на 20 размеченных докладах: 95 из 100 пунктов.
 
-Фронт через бэкенд (без правок кода фронта, кроме rewrite в `next.config.ts`):
+Для демонстрации карточки `c-010` подготовьте локальный пример `uv run python scripts/prepare_demo_audio.py`; скрипт синтезирует `backend/var/demo-dds-report.wav` (16 кГц, файл не хранится в Git). При локальной проверке Vosk распознал этот файл, чек-лист отметил 5/5 пунктов. Голос заявителя — отдельная запись TTS: подготовьте Silero командой `uv run python -m ml.scripts.prepare_models --only tts`, затем запустите генерацию через `POST /api/v1/tickets/c-010/audio` под преподавателем; после статуса `ready` запись появляется в мониторинге и доступна по `/api/v1/tickets/c-010/audio/file`. Это озвученная реплика заявителя, а не запись двустороннего телефонного разговора. Для свежего сида генерацию нужно запустить заново.
+
+Демо-записи ElevenLabs находятся в `backend/data/demo_audio/` (условия использования и атрибуция — в [README папки](data/demo_audio/README.md)). После загрузки сида запустите `uv run python scripts/install_demo_recordings.py` из `backend/` (при отдельной демо-БД задайте `DATABASE_URL`). Команда проверяет MP3 и билеты, сохраняет пути и расшифровки в `ticket_audio`; повторный запуск безопасен. Эндпоинт `/api/v1/tickets/{id}/audio/file` отдаёт их как `audio/mpeg`. После `seed.load --reset` команду нужно повторить. Кнопка перегенерации записи преподавателем заменит MP3 синтезом Silero.
+
+Сквозной прогон 2026-09-29 на отдельной `demo-preview.db`: Next.js `:3000` → FastAPI `:8000`, TTS `ready`, файл заявителя 200, загрузка доклада 201, чек-лист 5/5, файл доклада 200. Headless Edge подтвердил загрузку и плеер в карточке курсанта, обе записи — в мониторинге преподавателя. Локальные серверы используют `BACKEND_URL=http://localhost:8000` на этапе сборки Next.js; при изменении адреса бэкенда пересоберите фронт.
+
+Фронт через бэкенд (rewrite в `next.config.ts` направляет `/api/mock/*` и `/api/v1/*` на FastAPI):
 
 ```bash
 BACKEND_URL=http://localhost:8000 npm run dev
@@ -45,7 +55,7 @@ DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run ale
 DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run python -m app.seed.load
 ```
 
-Схемой PostgreSQL управляет Alembic; сиды её не создают. На новой SQLite-базе миграция и сиды проверяются командой `uv run pytest tests/integration/test_alembic.py`; `uv run alembic check` выявляет расхождения моделей и схемы. `docker compose up` из `backend/` выполняет миграцию и сиды перед запуском API (профиль `llm` поднимает Ollama). Для проверки на PostgreSQL 14 нужен доступный сервер и extra `pg`.
+Схемой PostgreSQL управляет Alembic; сиды её не создают. `uv run pytest tests/integration/test_alembic.py` проверяет миграцию и сиды на новой SQLite-базе, а также компиляцию миграций в офлайн SQL PostgreSQL (45 `CREATE TABLE`, 70 колонок JSONB); `uv run alembic check` выявляет расхождения моделей и схемы. `docker compose up` из `backend/` выполняет миграцию и сиды перед запуском API (профиль `llm` поднимает Ollama). Для проверки `upgrade head` и сидов на реальном PostgreSQL 14 нужен доступный сервер и extra `pg`; офлайн-компиляция не заменяет этот прогон.
 
 ## Структура
 
@@ -61,7 +71,10 @@ DATABASE_URL=postgresql+asyncpg://arm112:arm112@localhost:5432/arm112 uv run pyt
 
 ```bash
 uv sync --extra nlp --group dev                 # torch CPU + sentence-transformers (~500 МБ)
-uv run python -m ml.scripts.prepare_models      # rubert-tiny2 → backend/models (единственная точка сети)
+uv run python -m ml.scripts.prepare_models      # rubert-tiny2, multilingual-e5-small, SymSpell → models/
+uv run python -m ml.scripts.prepare_models --tts --stt  # опциональные Silero и Vosk
+uv run python -m ml.scripts.prepare_models --llm        # опционально: ollama pull OLLAMA_MODEL
+uv run python -m ml.scripts.prepare_models --verify-only  # сверка локальных SHA-256 без сети
 uv run python -m ml.scripts.eval_assessor       # метрики оценщика на data/labeled → var/metrics.json
 uv run python -m ml.scripts.calibrate [--db]    # ridge-подбор весов (+ правки преподавателей) → var/weights.json
 ```
@@ -72,6 +85,8 @@ uv run python -m ml.scripts.calibrate [--db]    # ridge-подбор весов 
   `data/dict/ru_frequency.txt` + `data/domain_words.txt` (`ml.scripts.build_domain_words`) для symspell,
   `data/labeled/` (размеченная выборка, `ml.scripts.build_labeled`, правила — `data/labeled/README.md`).
 - Индекс spellcheck кэшируется в `var/symspell_ru.pkl` (пересобирается при изменении словарей).
+- Подготовка сверяет SHA-256 фиксированных файлов и хеши Git/LFS для Hugging Face, затем пишет `.sha256.json` рядом с каждой моделью. `--only embedder` или `--only dedup` ограничивает загрузку. Словарь SymSpell в `models/symspell/` — проверенная копия; рантайм читает исходный `data/dict/ru_frequency.txt`.
+- `GET /api/v1/health` показывает `installed` (файлы есть) и `loaded` (модель уже в памяти) для пяти компонентов. `GET /api/v1/metrics/ml` доступен администратору, возвращает `var/metrics.json` без преобразований; до генерации метрик возвращает 404.
 
 ## Phase 5: профили и экспорт
 
@@ -117,7 +132,7 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 
 - Формы ответов: `uv run python scripts/extract_ts_fields.py` извлекает обязательные поля из `src/shared/api/types/*.ts` в `tests/contract/expected_fields.json`; `tests/contract/test_response_shapes.py` сверяет с ними все GET-эндпоинты таблицы контракта (тест `test_expected_fields_are_fresh` требует перегенерации после изменения TS-типов).
 - Демо-путь `docs/demo-script.md` целиком через HTTP — `tests/integration/test_demo_path.py` (admin → teacher → занятие на двух курсантов → попытки со звонком → отчёт → правка → обратная связь → данные `/arm/progress`).
-- Сквозные скрипты фронта: `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `powershell -File backend\scripts\run_frontend_e2e.ps1` — поднимают бэкенд на `:8130` с чистым сидом (`var/e2e.db`), собирают фронт, запускают `next start -p 3130` с `BACKEND_URL` и прогоняют `scripts/e2e-{student,teacher,admin}.sh`; логи — `var/e2e-logs/`. В Git Bash в `PATH` подставляется системный `C:\Windows\System32\curl.exe` — mingw-curl портит кириллицу в argv.
+- Сквозные скрипты фронта: `backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]` (Linux/macOS/WSL/Git Bash) или `pwsh -File backend/scripts/run_frontend_e2e.ps1` — поднимают бэкенд на `:8130` с чистым сидом (`var/e2e.db`), собирают фронт, запускают `next start -p 3130` с `BACKEND_URL` и прогоняют `scripts/e2e-{student,teacher,admin}.sh`; логи — `var/e2e-logs/`. Windows-скрипт принимает отдельные `-DatabasePath` и `-LogDirPath` внутри `backend/var/`. В Git Bash в `PATH` подставляется системный `C:\Windows\System32\curl.exe` — mingw-curl портит кириллицу в argv.
 - Ограничения Git Bash/Windows: `sort` из System32 добавляет CR (дедуп в скрипте через `awk`), порты освобождаются через `netstat`/`taskkill`, `PYTHONUTF8=1`; фронт собирается `mocks:sync` + `mocks:validate` + `npx next build` (не `npm run build` — его строка с `NEXT_TELEMETRY_DISABLED=1` под cmd не работает). Rewrite по `BACKEND_URL` запекается в `.next/routes-manifest.json` при сборке, поэтому `.env.local` на время прогона откладывается и восстанавливается по завершении.
 - Правки бэкенда ради гейта (согласованы 2026-09-21, подробности — `specs/002-two-mode-simulator/research.md`):
   - Фильтр профиля курсанта (T054): если «категории плана ∩ профиль ∩ реакция службы» пусто, план откатывается на «категории плана ∩ категории профиля» с `WARN` в системных журналах (`session_engine.resolve_student_profile` → `(groups, strict)`).
@@ -147,7 +162,19 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 | 5 | `npm ci` + `backend/scripts/run_frontend_e2e.sh` | e2e-student 40/40, e2e-teacher 96/96, e2e-admin 140/140, EXIT=0 |
 | 6 | `eval_classifier`, `eval_assessor`, `pytest tests/unit/test_validator.py` | классификатор accuracy 1,0 / top-3 1,0 на 96 (cv 0,57, 0,15 с/текст); оценщик `dds-1.1.0` на 110 образцах — согласие 1,0, κ 1,0, Pearson 0,93, **Spearman 0,76** (ниже 0,8: критерий `eval_assessor` — Pearson ≥ 0,8; ранговая корреляция занижена связками в экспертных баллах — у образцов `refusedProfile-noComment` эксперт ставит 0, оценщик 39–45), MAE 10,5; валидатор 9 passed (20/20 и 20/20) |
 
-Не входило в прогон: PostgreSQL (нет на машине; схему создаёт сид, Alembic — T109), Docker, §7–§8 (волна B, офлайн-приёмка).
+Не входило в тот прогон: PostgreSQL 14 и Docker. Миграция Alembic проверена на SQLite; PostgreSQL-часть T109 остаётся открытой. Повторный Windows-прогон 2026-09-29 на отдельной базе: студент 40/40, преподаватель 96/96, администратор 141/141, EXIT=0. Офлайн-проверка и её оставшееся ограничение описаны в `docs/offline-check.md`.
+
+## Замер производительности T113 (2026-09-29)
+
+`cd backend && uv run python scripts/perf_smoke.py` создаёт отдельную SQLite-базу с 20 обучаемыми и пятью готовыми оценками для каждого, прогревает ML вне измерения, выполняет запросы через `httpx.ASGITransport` и удаляет базу. Это замер приложения на локальном SQLite без сетевых накладных расходов, не замер целевого PostgreSQL 14.
+
+| Операция | Факт | Порог |
+|---|---:|---:|
+| Оценка одной попытки | 244 мс | ≤ 5 с |
+| Отчёт 20 × 5 | 1717 мс | ≤ 30 с |
+| Лента, 20 одновременных запросов к одному занятию, p95 | **92 мс** (последний прогон) | ≤ 200 мс |
+
+Устранены повторные запросы оценок для каждой попытки; p95 ленты снизился с 5,84 с до 472–491 мс в ранних локальных прогонах. Диагностика показала, что сборка событий занимает около 2 мс, а задержка возникает при параллельных чтениях SQLite (последний p95 до изменения — 347 мс). Одновременные чтения метаданных и попыток одного занятия теперь объединяются; готовый результат не кешируется, поэтому следующий запрос видит новые данные. Три последовательных прогона дали p95 **85, 93 и 92 мс**. Полный набор тестов: 378 passed, включая проверку одновременных запросов и чтения после новой записи. Скрипт возвращает код 1 при нарушении любого порога. PostgreSQL 14 будет проверен отдельно в T109.
 
 ## Переменные окружения
 

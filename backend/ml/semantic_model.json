@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "semantic-model/1",
+  "name": "semantic-review",
+  "description": "Qwen3.5-0.8B, дообученная QLoRA на смысловом разборе (SemanticReviewV1); адаптер слит в веса, квантование Q4_K_M",
+  "file": "semantic-review-Q4_K_M.gguf",
+  "sizeBytes": 541903328,
+  "sha256": "3e99d6dd19eda7f172b2edb0b9c71018f686d84439263f7ce7f2a60bf988ba8e",
+  "baseModel": "Qwen/Qwen3.5-0.8B",
+  "quantization": "Q4_K_M",
+  "promptVersion": "semantic_review_v1",
+  "promptSha256": "34732e16cc47664a2e41981e7642c7881bb61ea2017f20dcee7eae7195a68f9d",
+  "runtime": "llama.cpp b11258, CPU, --reasoning off",
+  "driveFileId": "1o9RHSYpA09TGPlkU2WP5b_VhTRwUEjcH",
+  "url": null
+}

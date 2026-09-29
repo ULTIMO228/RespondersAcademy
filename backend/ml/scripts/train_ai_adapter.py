@@ -42,7 +42,7 @@ def check_hardware_availability() -> tuple[bool, str]:
 
         if torch.cuda.is_available():
             vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-            if vram_gb >= 6.0:
+            if round(vram_gb, 1) >= 6.0:
                 return True, f"CUDA доступна: {vram_gb:.1f} GB VRAM"
             return False, f"Недостаточно VRAM: доступно {vram_gb:.1f} GB, требуется >= 6.0 GB"
         if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():

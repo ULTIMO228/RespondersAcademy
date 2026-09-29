@@ -26,6 +26,7 @@ import { browserStorage, useCardSession } from "../model/useCardSession";
 import { useCardStatuses } from "../model/useCardStatuses";
 import { useProcessingTimer } from "../model/useProcessingTimer";
 import { AttemptResult } from "./attempt-result/AttemptResult";
+import { AudioReportUpload } from "./AudioReportUpload";
 import { ConnectionBanner } from "./ConnectionBanner";
 import { HintBar } from "./HintBar";
 import { HotkeyHints } from "./HotkeyHints";
@@ -136,6 +137,7 @@ export function IncidentWorkspace({
             serviceNames={getServiceNames(card.notificationList, reference.services)}
             controls={controls}
           />
+          <AudioReportUpload attemptId={attempt.id} />
           <ServicePanel
             card={card}
             services={reference.services}

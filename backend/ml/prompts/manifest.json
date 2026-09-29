@@ -9,7 +9,7 @@
     "semanticReview": {
       "version": "semantic_review_v1",
       "path": "backend/ml/prompts/semantic_review_v1.md",
-      "sha256": "a5cb903a16f702ed9a02c1a0f0f6f2fcb069966fd9476474ea27abbf52716998",
+      "sha256": "34732e16cc47664a2e41981e7642c7881bb61ea2017f20dcee7eae7195a68f9d",
       "outputSchema": "spec/001-ai/contracts/semantic-review-v1.schema.json",
       "outputSchemaSha256": "166bb495f0dbdf48cd404c9d87ea29e180db94024bba8e0ed8858a5a069d96e5"
     },

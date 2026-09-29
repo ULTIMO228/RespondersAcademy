@@ -13,9 +13,12 @@ class ClassifierEntry(Base):
 
     code: Mapped[str] = mapped_column(String(16), primary_key=True)
     group: Mapped[str] = mapped_column(String(160), index=True)
-    sign1: Mapped[str] = mapped_column(String(160), default="")
-    sign2: Mapped[str] = mapped_column(String(160), default="")
-    sign3: Mapped[str] = mapped_column(String(160), default="")
+    # The EKP source contains long multi-part signs (sign2 is 181 chars in
+    # the shipped classifier), so the SQLite-backed development schema had
+    # been masking a PostgreSQL varchar overflow at seed time.
+    sign1: Mapped[str] = mapped_column(String(400), default="")
+    sign2: Mapped[str] = mapped_column(String(400), default="")
+    sign3: Mapped[str] = mapped_column(String(400), default="")
     extra_signs: Mapped[str] = mapped_column(String(400), default="")
     final_type: Mapped[str] = mapped_column(String(400))
     ekp35_type: Mapped[str] = mapped_column(String(400), default="")

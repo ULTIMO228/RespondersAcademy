@@ -31,12 +31,32 @@ export function RecordingsModal({ recordings, error, onClose }: RecordingsModalP
               <span>{formatDateTime(recording.at)}</span>
               <span>{recording.title}</span>
               <span className={styles.recordings__duration}>{recording.duration}</span>
-              <Button size="sm" disabled title={MOCK_AUDIO_TITLE}>
-                прослушать
-              </Button>
-              <Button size="sm" disabled title={MOCK_AUDIO_TITLE}>
-                скачать
-              </Button>
+              {recording.audioUrl ? (
+                <div className={styles.recordings__actions}>
+                  <audio
+                    controls
+                    preload="none"
+                    src={recording.audioUrl}
+                    aria-label={`Прослушать ${recording.title}`}
+                  />
+                  <a
+                    className={styles.recordings__download}
+                    href={recording.audioUrl}
+                    download={`${recording.id}.wav`}
+                  >
+                    скачать
+                  </a>
+                </div>
+              ) : (
+                <div className={styles.recordings__actions}>
+                  <Button size="sm" disabled title={MOCK_AUDIO_TITLE}>
+                    прослушать
+                  </Button>
+                  <Button size="sm" disabled title={MOCK_AUDIO_TITLE}>
+                    скачать
+                  </Button>
+                </div>
+              )}
             </li>
           ))}
         </ul>

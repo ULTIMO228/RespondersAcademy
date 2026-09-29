@@ -73,17 +73,34 @@ async def _resolve_session(db: AsyncSession, card_id: str, student_id: str) -> T
     return session
 
 
+async def _session_for_issuance(db: AsyncSession, card_id: str, student_id: str, issued_at: str) -> TrainingSession | None:
+    """Exact issuance identifies a session when several running sessions contain the same card."""
+    sessions = (await db.execute(select(TrainingSession).where(TrainingSession.state == "running"))).scalars().all()
+    return next((session for session in sessions if any(
+        item.get("cardId") == card_id and item.get("studentId") == student_id and item.get("issuedAt") == issued_at
+        for item in session.card_flow or []
+    )), None)
+
+
 async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], bool]:
     student_id = body.get("studentId")
     if not isinstance(student_id, str) or not student_id.strip():
         raise validation_failed("Укажите курсанта (studentId)")
     student_id = student_id.strip()
     issued_at = _read_iso(body["issuedAt"], "issuedAt") if body.get("issuedAt") is not None else None
-    existing = await find_student_attempt(db, card_id, student_id)
-    if existing:
-        session, attempt = existing
-        return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False
-    session = await _resolve_session(db, card_id, student_id)
+    session = await _session_for_issuance(db, card_id, student_id, issued_at) if issued_at else None
+    if session is not None:
+        attempt = (await db.execute(select(Attempt).where(
+            Attempt.session_id == session.id, Attempt.card_id == card_id, Attempt.student_id == student_id,
+        ).order_by(Attempt.seq.desc(), Attempt.id.desc()))).scalars().first()
+        if attempt is not None:
+            return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False
+    else:
+        existing = await find_student_attempt(db, card_id, student_id)
+        if existing:
+            session, attempt = existing
+            return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False
+        session = await _resolve_session(db, card_id, student_id)
     opened_at = now_iso()
     if issued_at is None:
         issued_at = next((i["issuedAt"] for i in (session.card_flow or []) if i.get("cardId") == card_id and i.get("studentId") == student_id), None)

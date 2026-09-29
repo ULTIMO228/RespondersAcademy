@@ -17,6 +17,36 @@
   color: var(--color-accent-blue);
 }
 
+.page__audioReport {
+  margin: var(--card-gap);
+  padding: var(--spacing-md) var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+.page__audioReport h2 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-base);
+}
+
+.page__audioReport p {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.page__audioReport form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.page__audioReport audio {
+  display: block;
+  max-width: 100%;
+}
+
 /* Баннер «Соединение потеряно» — поверх интерфейса, в цветах шапки превышения (без новых цветов). */
 .page__banner {
   position: sticky;
