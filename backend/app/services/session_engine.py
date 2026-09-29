@@ -597,7 +597,14 @@ async def feed_attempts(db: AsyncSession, session_id: str) -> list[dict[str, Any
     )
     rows = (
         await db.execute(
-            select(Attempt, Evaluation, EvaluationRevision, TeacherOverride)
+            select(
+                Attempt.id.label("attempt_id"), Attempt.student_id, Attempt.card_id,
+                Attempt.opened_at, Attempt.statuses, Attempt.completed_at, Attempt.full_processing_ms,
+                Evaluation.total_score, Evaluation.errors, Evaluation.grammar_errors, Evaluation.ai_comment,
+                EvaluationRevision.revision, EvaluationRevision.status.label("revision_status"),
+                TeacherOverride.id.label("override_id"),
+            )
+            .select_from(Attempt)
             .outerjoin(Evaluation, Evaluation.attempt_id == Attempt.id)
             .outerjoin(latest_revisions, latest_revisions.c.attempt_id == Attempt.id)
             .outerjoin(
@@ -609,16 +616,26 @@ async def feed_attempts(db: AsyncSession, session_id: str) -> list[dict[str, Any
             .where(Attempt.session_id == session_id)
             .order_by(Attempt.seq, Attempt.id)
         )
-    ).all()
+    ).mappings().all()
     events = []
-    for attempt, evaluation, revision, override in rows:
-        data = None
-        if evaluation is not None and (revision is None or revision.status not in ("pending", "review_required")):
-            data = evaluation.to_contract(override.to_contract() if override else None)
-            if revision is not None:
-                data["revision"] = revision.revision
-                data["status"] = revision.status
-        events.append(attempt.to_contract(data))
+    for row in rows:
+        attempt = {
+            "id": row.attempt_id, "studentId": row.student_id, "cardId": row.card_id,
+            "openedAt": row.opened_at, "statuses": row.statuses or [],
+            "completedAt": row.completed_at or "", "fullProcessingMs": row.full_processing_ms,
+        }
+        if row.total_score is not None and row.revision_status not in ("pending", "review_required"):
+            evaluation = {
+                "totalScore": row.total_score, "errors": row.errors or [],
+                "grammarErrors": row.grammar_errors or [], "aiComment": row.ai_comment or "",
+            }
+            if row.override_id is not None:
+                evaluation["teacherOverride"] = True
+            if row.revision is not None:
+                evaluation["revision"] = row.revision
+                evaluation["status"] = row.revision_status
+            attempt["evaluation"] = evaluation
+        events.append(attempt)
     return events
 
 

@@ -1,5 +1,10 @@
+import pytest
+
+from app.db.session import get_sessionmaker
+from app.models.session import Attempt, Evaluation, TeacherOverride
 from app.services.session_engine import (
     build_feed,
+    feed_attempts,
     order_for_student,
     pace_ms_for_student,
     project_for_student,
@@ -36,6 +41,37 @@ def test_window_and_order():
     assert [e["kind"] for e in later] == ["statusChanged", "cardCompleted", "aiEvaluation"]
     assert later[-1]["isAi"] is True and later[-1]["errorCount"] == 1 and later[-1]["totalScore"] == 98
     assert build_feed(SESSION, "2026-09-16T10:05:12+03:00", "2026-09-16T11:00:00+03:00") == []
+
+
+@pytest.mark.asyncio
+async def test_feed_projection_keeps_evaluation_and_override(seeded_db):
+    async with get_sessionmaker()() as db:
+        db.add(Attempt(
+            id="att-feed-test", session_id="ses-feed-test", card_id="c-063", student_id="u-005",
+            mode="dds", opened_at="2026-09-16T10:02:14+03:00", statuses=[], services_called=[],
+            completed_at="2026-09-16T10:05:12+03:00", full_processing_ms=178000,
+            entered_text={}, calls=[], seq=1,
+        ))
+        db.add(Evaluation(
+            attempt_id="att-feed-test", assessor_version="test", time_score=80, correctness_score=80,
+            grammar_score=80, semantic_score=80, total_score=80, grammar_errors=[{"field": "x"}],
+            errors=[], ai_comment="ok", components={}, generated_at="2026-09-16T10:05:12+03:00", mode="dds",
+        ))
+        await db.flush()
+        attempts = await feed_attempts(db, "ses-feed-test")
+        events = build_feed({"cardFlow": [], "cardEvents": attempts}, None, "2026-09-16T10:06:00+03:00")
+        assert [event["kind"] for event in events] == ["cardOpened", "cardCompleted", "aiEvaluation"]
+        assert events[-1]["status"] == "preliminary" and events[-1]["errorCount"] == 1
+
+        db.add(TeacherOverride(
+            attempt_id="att-feed-test", teacher_id="u-002", score=77, comment="Проверено",
+            at="2026-09-16T10:06:00+03:00",
+        ))
+        await db.flush()
+        attempts = await feed_attempts(db, "ses-feed-test")
+        events = build_feed({"cardFlow": [], "cardEvents": attempts}, None, "2026-09-16T10:06:00+03:00")
+        assert events[-1]["status"] == "final" and events[-1]["totalScore"] == 80
+        await db.rollback()
 
 
 def test_projection():
