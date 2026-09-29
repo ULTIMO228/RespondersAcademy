@@ -23,7 +23,7 @@ class TicketAudio(Base):
     generated_at: Mapped[str | None] = mapped_column(String(32), nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     error: Mapped[str | None] = mapped_column(String(600), nullable=True)
-    source: Mapped[str] = mapped_column(String(16), default="template")  # template | gateway — кто дал текст реплики
+    source: Mapped[str] = mapped_column(String(16), default="template")  # template | gateway | elevenlabs
 
     def to_contract(self, *, emergency: bool | None = None) -> dict[str, Any]:
         data: dict[str, Any] = {"cardId": self.card_id, "status": self.status, "transcript": self.transcript, "voice": self.voice}

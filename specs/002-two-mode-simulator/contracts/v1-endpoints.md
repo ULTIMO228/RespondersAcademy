@@ -11,7 +11,7 @@
 | `POST /tickets/[id]/validate` | — | `ValidationReport { checks: [{ id: category \| address \| requiredFields \| duplicate \| grammar \| consistency, passed, confidence?, message }], passed, needsReview }` | T/A; 401/403/404; R22; сохранение в `incident_cards.extra.validation` и отчётах связанных сценариев; не меняет утверждение преподавателя |
 | `POST /tickets/[id]/audio` | `{ voice?: male \| female \| auto }` | `TicketAudio { cardId, status: pending \| ready \| failed, transcript, voice, path?, durationMs?, generatedAt?, error?, emergency }` (202) | T/A; текст — `AiGateway.call_script` или шаблон; TTS Silero в фоне (`BackgroundTasks`), перегенерация; без модели / `TTS_ENABLED=0` — `failed` + `emergency: true` (FR-013) |
 | `GET /tickets/[id]/audio` | — | `TicketAudio` | нет записи → `status: pending`, `emergency: true` |
-| `GET /tickets/[id]/audio/file` | — | `audio/wav` (24 кГц mono) | не готова → 404; S — только в рамках своей открытой попытки по билету (403); экзамен — один запрос (счётчик `replays`, второй → 409) |
+| `GET /tickets/[id]/audio/file` | — | `audio/wav` (Silero, 24 кГц mono) или `audio/mpeg` (локально установленная MP3-запись) | не готова → 404; S — только в рамках своей открытой попытки по билету (403); экзамен — один запрос (счётчик `replays`, второй → 409) |
 
 ## Режим специалиста-112 (US3; FR-011–FR-017)
 
