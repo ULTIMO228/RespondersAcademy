@@ -2,13 +2,13 @@
   "schemaVersion": "dataset-manifest/1",
   "name": "ai-semantic-review",
   "version": "v1",
-  "createdAt": "2026-09-28T20:33:05+00:00",
+  "createdAt": "2026-09-29T07:52:51+00:00",
   "task": "Смысловой разбор спорного случая → SemanticReviewV1 (spec/001-ai/contracts/semantic-review-v1.schema.json)",
   "targetModel": "Qwen3.5-0.8B (QLoRA, обучение вне репозитория)",
   "format": "chat JSONL: messages[system,user,assistant]; обучать только по токенам assistant",
   "promptVersion": "semantic_review_v1",
-  "promptSha256": "a5cb903a16f702ed9a02c1a0f0f6f2fcb069966fd9476474ea27abbf52716998",
-  "outputSchemaSha256": "166bb495f0dbdf48cd404c9d87ea29e180db94024bba8e0ed8858a5a069d96e5",
+  "promptSha256": "34732e16cc47664a2e41981e7642c7881bb61ea2017f20dcee7eae7195a68f9d",
+  "outputSchemaSha256": "3b46d90ccad797fd540b6357b4ed4fcc89d4880fad38dcb7d3645fcea733c52b",
   "generator": "claude-haiku-4-5 (тексты и объяснения); часть неопределённых примеров написана Claude вручную; рецепты и метки — план ml.dataset.plan",
   "planSeed": 112,
   "counts": {
@@ -100,24 +100,24 @@
   ],
   "files": {
     "train.jsonl": {
-      "sha256": "d6551ebc039b0efaf42eacd17aaba9c2ae8c2da7cc4420e9e19908e70a8fbc28",
+      "sha256": "f3eb60f4a60a021402fd7320a207a2d4c7bd31f4b93ec15d9e7f3ca5cccc7594",
       "lines": 531
     },
     "validation.jsonl": {
-      "sha256": "52f1dd945d897b0e7903be0a882bd9ba72e3c5b0bae4b069751c3dd31fbc8790",
+      "sha256": "62e4211ce61147bd83c73cd8296fb3b698c69f16b7a99c535f6828450eb26a58",
       "lines": 121
     },
     "holdout.jsonl": {
-      "sha256": "0957a3f6819df8f708c570569abcf095fb36453f5ba7636dd5abcdf4d76f994a",
+      "sha256": "9c942bea8425a494338f565d846925a81b18b9d1aefc7fda94106b0baac8c4b5",
       "lines": 110
     },
     "metadata.jsonl": {
-      "sha256": "e7e8d0a8368cc6c7114cedc7d96ea1071922643a9a73942b2241b2fd3baa1e94",
+      "sha256": "04574fb93e50dc97ceddfa4fd0b2d7bfa6dea44eb6cda4705a3faa8a25d09ee0",
       "lines": 762
     },
     "system_prompt.md": {
-      "sha256": "a5cb903a16f702ed9a02c1a0f0f6f2fcb069966fd9476474ea27abbf52716998",
-      "lines": 16
+      "sha256": "7ed9caa5f90c5c43cd19c6f5a9cf20655ebf589361fb12678ed720aeb707bad9",
+      "lines": 53
     }
   }
 }
