@@ -1,151 +1,185 @@
-/* «112 ВХОД В СИСТЕМУ» — ДДС_image1.png: голубой фон с городом, колонка формы справа (≈65–94 % ширины). */
 :global(body):has(.login) {
   min-width: 0;
 }
 
 .login {
   position: relative;
-  display: flex;
-  justify-content: flex-end;
   min-height: 100dvh;
   overflow: hidden;
-  padding-right: 5.8vw;
   background: linear-gradient(
     110deg,
     var(--color-login-sky-top) 0%,
     var(--color-login-sky) 55%,
     var(--color-login-sky-bottom) 100%
   );
-  color: var(--journal-login-label);
+  color: var(--pf-text);
+  font-family: var(--pf-font-ui);
+  font-size: var(--pf-fs-body);
+  line-height: var(--pf-lh-body);
 }
 
-.login__column {
-  position: relative;
+/* Вступление на сплошной карточке: текст не лежит на иллюстрации (контраст). */
+.login__intro {
+  position: absolute;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  width: 29.2vw;
-  padding: 11.5dvh 0 48px;
+  left: var(--pf-space-7);
+  bottom: 88px;
+  width: 480px;
+  padding: var(--pf-space-6);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-modal);
+  box-shadow: var(--pf-shadow-raised);
 }
 
-.login__brand {
-  order: 5;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xxs);
-  margin-top: 24px;
-  color: var(--journal-login-label);
-  font-size: var(--font-size-sm);
-}
-
-.login__disclaimer {
-  color: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-}
-
-.login__title {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 0 0 32px;
-  font-weight: var(--font-weight-regular);
-}
-
-.login__logo {
-  font-size: clamp(64px, 5vw, 104px);
-  font-weight: var(--journal-login-logo-weight);
-  line-height: 0.9;
-  letter-spacing: 0;
-}
-
-.login__caption {
-  font-size: clamp(18px, 1.7vw, 34px);
-  font-weight: var(--font-weight-medium);
+.login__mark {
+  font-size: 64px;
+  font-weight: 300;
+  letter-spacing: -0.04em;
   line-height: 1;
-  white-space: nowrap;
+}
+
+.login__heading {
+  max-width: 18ch;
+  margin: var(--pf-space-3) 0;
+  font-size: 28px;
+  font-weight: var(--pf-fw-medium);
+  line-height: var(--pf-lh-heading);
+  letter-spacing: var(--pf-tracking-heading);
+}
+
+.login__lead {
+  max-width: 44ch;
+  margin: 0;
+}
+
+.login__facts {
+  display: grid;
+  gap: var(--pf-space-3);
+  margin: var(--pf-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.login__facts li {
+  display: flex;
+  gap: var(--pf-space-3);
+  align-items: baseline;
+  padding-top: var(--pf-space-3);
+  border-top: 1px solid var(--pf-border);
+}
+
+.login__facts li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.login__facts b {
+  min-width: 76px;
+  font-variant-numeric: tabular-nums;
+}
+
+.login__facts span {
+  color: var(--pf-text-muted);
+}
+
+.login__panel {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 5.8vw;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 29.2vw;
+  min-width: 420px;
+}
+
+.login__card {
+  display: grid;
+  gap: var(--pf-space-5);
+  padding: var(--pf-space-6);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-modal);
+  box-shadow: var(--pf-shadow-raised);
 }
 
 .login__support {
-  display: flex;
-  flex-direction: column;
-  margin-top: 28px;
-  color: var(--journal-login-label);
-  font-size: clamp(18px, 1.15vw, 22px);
+  margin: 0;
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-caption);
   font-style: normal;
-  line-height: 1.2;
 }
 
 .login__support-link {
-  color: var(--color-login-link);
+  color: var(--pf-link);
+}
+
+.login__disclaimer {
+  position: absolute;
+  z-index: 1;
+  left: var(--pf-space-7);
+  bottom: var(--pf-space-5);
+  margin: 0;
+  padding: var(--pf-space-2) var(--pf-space-3);
+  background: var(--pf-bg-card);
+  border-radius: var(--pf-radius-control);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-caption);
 }
 
 .login__demo {
-  margin-top: 24px;
-  color: var(--journal-login-label);
-  font-size: var(--font-size-sm);
+  font-size: var(--pf-fs-caption);
 }
 
 .login__demo-title {
+  min-height: var(--pf-target-min);
   cursor: pointer;
-  min-height: 24px;
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--pf-fw-medium);
 }
 
 .login__demo-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xxs);
+  display: grid;
+  gap: var(--pf-space-1);
+  margin: var(--pf-space-2) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .login__shortcuts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
+  gap: var(--pf-space-4);
+  margin: var(--pf-space-3) 0 0;
 }
 
 .login__shortcut {
-  color: var(--journal-login-label);
-  font-weight: var(--font-weight-bold);
+  color: var(--pf-link);
+  font-weight: var(--pf-fw-medium);
 }
 
-@media (max-width: 1100px) {
-  .login__column {
-    width: 46%;
-  }
-  .login__caption {
-    font-size: 20px;
-  }
-}
-
-@media (max-width: 700px) {
+/* Ниже 1280 px иллюстрация остаётся фоном, карточки складываются в колонку. */
+@media (max-width: 1279px) {
   .login {
-    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--pf-space-4);
+    align-items: center;
+    padding: var(--pf-space-5) var(--pf-space-4);
   }
-  .login__column {
-    width: 100%;
-    max-width: 460px;
-    margin: 0 auto;
-    padding-top: 64px;
-  }
-  .login__title {
-    gap: 12px;
-  }
-  .login__logo {
-    font-size: 64px;
-  }
-  .login__caption {
-    font-size: 20px;
-  }
-}
 
-/* «Сессия истекла» (автовыход 24 ч) — в типографике сообщений формы входа. */
-.login__notice {
-  margin-bottom: var(--spacing-sm);
-  color: var(--journal-login-text);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
+  .login__intro,
+  .login__panel,
+  .login__disclaimer {
+    position: relative;
+    inset: auto;
+    width: min(480px, 100%);
+    min-width: 0;
+  }
+
+  .login__panel {
+    order: -1;
+  }
 }

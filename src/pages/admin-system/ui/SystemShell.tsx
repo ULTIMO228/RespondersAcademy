@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { hasActiveFailure, findActiveFailures } from "@/entities/system";
 import { Button, Tabs } from "@/shared/ui";
+import { PageHeader } from "@/shared/ui/platform";
 
 import type { SystemApi } from "../api/systemApi";
 import type { SystemTabId } from "../config/systemTabs";
@@ -57,9 +58,7 @@ export function SystemShell({ adminId, api }: SystemShellProps) {
           {state.settings.autoRecovery.enabled ? " Автовосстановление включено." : ""}
         </div>
       ) : null}
-      <header className={styles.shell__header}>
-        <h1 className={styles.shell__title}>Система</h1>
-      </header>
+      <PageHeader title="Система" description="Сервисы, мониторинг, настройки и журналы" />
       <Tabs
         items={SYSTEM_TABS}
         activeId={activeTab}

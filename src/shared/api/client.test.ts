@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, buildQuery, createApiClient } from "./client";
+import {
+  ApiError,
+  SERVER_REQUIRED_MESSAGE,
+  ServerRequiredError,
+  buildQuery,
+  createApiClient,
+} from "./client";
 import { getCard, getCards, getReports, listScenarios, login, postCardStatus } from "./endpoints";
 
 type FetchMock = ReturnType<typeof vi.fn<typeof fetch>>;
@@ -72,10 +78,13 @@ describe("доменные функции: URL, метод, тело", () => {
     expect(fetchMock.mock.calls[1][1]?.body).toBeUndefined();
   });
 
-  it("успешный ответ возвращается как есть", async () => {
-    const session = { userId: "u-005", role: "student", token: "t", twoFactorUsed: true, issuedAt: "x" };
-    stubFetch(200, session);
-    await expect(login({ login: "ivanov", password: "p", armNumber: 5 })).resolves.toEqual(session);
+  it("успешный ответ входа: клиент оставляет только userId и role (токен не сохраняется)", async () => {
+    const body = { userId: "u-005", role: "student", token: "t", twoFactorUsed: true, issuedAt: "x" };
+    stubFetch(200, body);
+    await expect(login({ login: "ivanov", password: "p", armNumber: 5 })).resolves.toEqual({
+      userId: "u-005",
+      role: "student",
+    });
   });
 });
 
@@ -114,5 +123,69 @@ describe("ApiError: маппинг статусов и единого форма
       }),
     });
     await expect(client.get("/reference")).rejects.toMatchObject({ status: 0, code: "networkError" });
+  });
+});
+
+describe("requiresServer: раздел только для бэкенда (спека 002, R10)", () => {
+  const serverClient = () => createApiClient({ baseUrl: "/api/v1", requiresServer: true });
+
+  it("404 без { error } (Next без BACKEND_URL) → ServerRequiredError с русским сообщением", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => new Response("<html>404</html>", { status: 404 })),
+    );
+    const error = await serverClient()
+      .get("/assignments")
+      .catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(ServerRequiredError);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 404, code: "serverRequired", message: SERVER_REQUIRED_MESSAGE });
+  });
+
+  it("404 бэкенда по данным ({ error: { code } }) остаётся обычным ApiError", async () => {
+    stubFetch(404, { error: { code: "notFound", message: "Задание «asg-9» не найдено" } });
+    const error = await serverClient()
+      .get("/assignments/asg-9")
+      .catch((caught: unknown) => caught);
+    expect(error).not.toBeInstanceOf(ServerRequiredError);
+    expect(error).toMatchObject({ status: 404, code: "notFound", message: "Задание «asg-9» не найдено" });
+  });
+
+  it("не-404 без тела (500 прокси при недоступном бэкенде) — обычная ошибка сервера", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => new Response("", { status: 500 })),
+    );
+    const error = await serverClient()
+      .get("/assignments")
+      .catch((caught: unknown) => caught);
+    expect(error).not.toBeInstanceOf(ServerRequiredError);
+    expect(error).toMatchObject({ status: 500, code: "internal" });
+  });
+
+  it("сетевой сбой — networkError (баннер «Нет соединения»), а не «нужен сервер»", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+    const error = await serverClient()
+      .get("/assignments")
+      .catch((caught: unknown) => caught);
+    expect(error).not.toBeInstanceOf(ServerRequiredError);
+    expect(error).toMatchObject({ status: 0, code: "networkError" });
+  });
+
+  it("клиент без requiresServer (мок-слой, ИИ-панели) пустой 404 не переопределяет", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => new Response("", { status: 404 })),
+    );
+    const error = await createApiClient({ baseUrl: "/api/v1/ai" })
+      .get("/scenarios/x/versions")
+      .catch((caught: unknown) => caught);
+    expect(error).not.toBeInstanceOf(ServerRequiredError);
+    expect(error).toMatchObject({ status: 404, code: "notFound" });
   });
 });

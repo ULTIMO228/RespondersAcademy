@@ -3,7 +3,8 @@
  * Единый реестр ErrorRecord, агрегаты сессии и история ошибок обучаемого.
  */
 
-export type ErrorRecordDetector = "rule" | "ml" | "llm_confirmed" | "teacher";
+/** "standalone_mock" — только автономный режим фронта без бэкенда (ответы имитации, app/api/v1/ai/**). */
+export type ErrorRecordDetector = "rule" | "ml" | "llm_confirmed" | "teacher" | "standalone_mock";
 
 export type ErrorRecordCategory =
   "card_completion" | "services" | "route" | "grammar" | "semantic" | "status_flow" | "manual";

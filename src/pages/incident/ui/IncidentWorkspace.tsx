@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 import { IncidentCardView } from "@/widgets/incident-card";
 import { ServicePanel } from "@/widgets/service-panel";
+import { WorkMessageList, useWorkMessages } from "@/widgets/work-message-feed";
+import { ReportRecorder } from "@/features/report-recorder";
 import { getMainServiceIds } from "@/entities/service";
 import { isNormExceeded, resolveTimeNorms } from "@/entities/session";
 import type { PublicUser } from "@/shared/api";
@@ -79,6 +81,9 @@ export function IncidentWorkspace({
   const [isStatusFormOpen, setStatusFormOpen] = useState(false);
   const [isResultShown, setResultShown] = useState(statuses.isCompleted);
   const evaluation = useAttemptEvaluation(attempt.id, statuses.isCompleted);
+  // Сообщения служб (этап ДДС задания): пока их нет, блоки скрыты — карточка выглядит как прежде. Голосовой доклад появляется,
+  // когда служба уже сообщила о ходе работ.
+  const workMessages = useWorkMessages({ attemptId: attempt.id, enabled: !statuses.isCompleted });
   const { isAltHeld } = useCardHotkeys({
     onClose: () => router.push(ROUTES.arm),
     onView: controls.amend.onView,
@@ -145,6 +150,8 @@ export function IncidentWorkspace({
             isStatusFormOpen={isStatusFormOpen}
             onStatusFormOpenChange={setStatusFormOpen}
           />
+          <WorkMessageList messages={workMessages.messages} isOnline={workMessages.isOnline} />
+          {workMessages.messages.length > 0 ? <ReportRecorder attemptId={attempt.id} /> : null}
         </>
       )}
       <HotkeyHints isVisible={isAltHeld} />

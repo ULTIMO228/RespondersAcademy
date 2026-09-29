@@ -16,7 +16,7 @@ from app.models.card import IncidentCard
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TrainingSession
 from app.models.user import User
-from app.services import operator112_service
+from app.services import audit, operator112_service
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso, parse_iso_ms
 
@@ -76,6 +76,13 @@ async def candidate_card_ids(db: AsyncSession, rule: dict[str, Any], student_ids
     if len(docs) < count:
         raise validation_failed(f"По правилу найдено билетов: {len(docs)}, требуется: {count}")
     return [c["cardId"] for c in docs[:count]]
+
+
+async def _audit(db: AsyncSession, viewer: Viewer, action: str, details: str) -> None:
+    """Действия по заданиям пишутся в журнал аудита от имени пользователя запроса (конституция: логируются все)."""
+    user = await db.get(User, viewer.user_id)
+    await audit.record(db, action=action, user_id=viewer.user_id, role=viewer.role, details=details,
+                       operator_arm=user.arm_number if user is not None else None)
 
 
 async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict[str, Any]:
@@ -143,6 +150,8 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
         for version, card_id in ai_links
     )
     await db.flush()
+    await _audit(db, viewer, "assignment.create",
+                 f"Задание {row.id}: режим {row.training_mode}, {row.format}, обучающихся {len(row.student_ids)}")
     return row.to_contract()
 
 
@@ -286,6 +295,7 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
         saved_card = await operator112_service.saved_card_for_attempt(db, last_attempt.id)
         if dds_version.card_snapshot.get("id") != saved_card.id or dds_version.source_card_id != saved_card.id:
             raise conflict("Сохранённая карточка изменилась после подтверждения ДДС")
+        await _audit(db, viewer, "assignment.start", f"Задание {row.id}: этап ДДС цепочки, обучающийся {student}, билет {saved_card.id}")
         return {"attempt": await _dds_start(db, row, student, saved_card.id)}
     card_ids = list(row.card_ids or [])
     if not card_ids and row.random_rule:
@@ -325,7 +335,9 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
             raise conflict("Назначенная версия operator112 больше недоступна")
     if row.training_mode in ("operator112", "chain"):
         attempt, _ = await operator112_service.create_attempt(db, row.id, card_id, student, viewer, background)
+        await _audit(db, viewer, "assignment.start", f"Задание {row.id}: выдан билет {card_id}, обучающийся {student}")
         return {"attempt": attempt}
+    await _audit(db, viewer, "assignment.start", f"Задание {row.id}: выдан билет {card_id}, обучающийся {student}")
     return {"attempt": await _dds_start(db, row, student, card_id)}
 
 
@@ -344,8 +356,10 @@ async def finish(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[s
         return row.to_contract()
     links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id))).scalars().all()
     now = now_iso()
+    closed = 0
     for link in links:
         if link.state not in ("submitted", "notCompleted"):
+            closed += 1
             link.state, link.passed = "notCompleted", False if row.format == "exam" else None
             attempt = await db.get(Attempt, link.attempt_id)
             if attempt is not None and not attempt.completed_at:
@@ -354,4 +368,5 @@ async def finish(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[s
                     attempt.state = "submitted"
     row.state = "finished"
     await db.flush()
+    await _audit(db, viewer, "assignment.finish", f"Задание {row.id} завершено, незавершённых попыток закрыто: {closed}")
     return row.to_contract()

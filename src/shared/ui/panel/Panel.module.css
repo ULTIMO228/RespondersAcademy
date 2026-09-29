@@ -35,3 +35,30 @@
 .panel__body {
   padding: var(--spacing-md) var(--spacing-lg);
 }
+
+/* Платформа: панель кабинета — карточка на светлом фоне; в симуляторе (без data-zone) остаётся репликой АРМ. */
+:global([data-zone="platform"]) .panel {
+  background: var(--pf-bg-card);
+  color: var(--pf-text);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  overflow: hidden;
+}
+
+:global([data-zone="platform"]) .panel__header--dark,
+:global([data-zone="platform"]) .panel__header--plain {
+  background: var(--pf-bg-subtle);
+  color: var(--pf-text);
+  border-bottom: 1px solid var(--pf-border);
+  min-height: 44px;
+  padding: var(--pf-space-2) var(--pf-space-5);
+}
+
+:global([data-zone="platform"]) .panel__title {
+  font-size: var(--pf-fs-body);
+  font-weight: var(--pf-fw-bold);
+}
+
+:global([data-zone="platform"]) .panel__body {
+  padding: var(--pf-space-4) var(--pf-space-5);
+}

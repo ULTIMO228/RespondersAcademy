@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: безопасность</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M2 20a7 7 0 0114 0" />
+                <path d="M17 4.5a3.5 3.5 0 010 7M18 14a7 7 0 013 6" /></svg
+              >Пользователи</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="6" rx="1.5" />
+                <rect x="3" y="14" width="18" height="6" rx="1.5" />
+                <path d="M7 7h.01M7 17h.01" /></svg
+              >Система</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 4h14v16H5z" />
+                <path d="M8 8h8M8 12h8M8 16h4" /></svg
+              >Аудит</a
+            >
+          </li>
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" />
+                <path d="M9 12l2 2 4-4" /></svg
+              >Безопасность</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Администрирование</span><span aria-hidden="true">/</span
+            ><span aria-current="page">Безопасность</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">АД</span>
+              <div>
+                <div>Администратор</div>
+                <div class="user__role">Администратор системы</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Безопасность</h1>
+              <p>Политика входа и паролей</p>
+            </div>
+          </div>
+          <div class="cards-2">
+            <section class="card">
+              <h2 style="margin-bottom: 16px">Политика</h2>
+              <form class="form-grid" onsubmit="return false;">
+                <div class="field">
+                  <label>Минимальная длина пароля</label><input value="8" /><span class="hint"
+                    >от 6 до 64 символов</span
+                  >
+                </div>
+                <div class="field">
+                  <label>Неудачных попыток до блокировки</label><input value="5" /><span class="hint"
+                    >блокировка на 15 минут</span
+                  >
+                </div>
+                <div class="field field--wide">
+                  <button class="btn btn--primary" type="button">Сохранить</button>
+                </div>
+              </form>
+            </section>
+            <section class="card">
+              <h2 style="margin-bottom: 16px">Как сейчас устроено</h2>
+              <dl class="kv">
+                <dt>Срок сессии</dt>
+                <dd>24 часа (задаётся при запуске, не правится здесь)</dd>
+                <dt>Двухфакторная проверка</dt>
+                <dd><span class="chip chip--warning">не реализована</span></dd>
+                <dt>Cookie сессии</dt>
+                <dd>HttpOnly, SameSite=Lax</dd>
+              </dl>
+              <p class="caption muted" style="margin-top: 12px">
+                Отсутствие 2FA — расхождение с ТЗ §5, зафиксировано в COMPLIANCE.
+              </p>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

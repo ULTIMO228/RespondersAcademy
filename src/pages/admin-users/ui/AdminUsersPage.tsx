@@ -1,4 +1,5 @@
 import { getSessionUser } from "@/entities/user/index.server";
+import { PageHeader } from "@/shared/ui/platform";
 
 import { RolesMatrixInfo } from "./RolesMatrixInfo";
 import { UsersRegistry } from "./UsersRegistry";
@@ -15,13 +16,10 @@ export async function AdminUsersPage() {
   if (!sessionUser) return null;
   return (
     <div className={styles.page}>
-      <header className={styles.page__header}>
-        <h1 className={styles.page__title}>Пользователи и роли</h1>
-        <p className={styles.page__note}>
-          Администратор не имеет доступа к оценкам и сценариям. В реестре — только необходимые поля (принцип
-          минимальных привилегий, ТЗ §8).
-        </p>
-      </header>
+      <PageHeader
+        title="Пользователи и роли"
+        description="Администратор не имеет доступа к оценкам и сценариям. В реестре — только необходимые поля (принцип минимальных привилегий, ТЗ §8)."
+      />
       <UsersRegistry adminId={sessionUser.user.id} />
       <RolesMatrixInfo />
     </div>

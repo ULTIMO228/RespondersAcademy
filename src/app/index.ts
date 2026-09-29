@@ -1,7 +1,9 @@
 export { AdminLayout } from "./layouts/AdminLayout";
+export { ArmSectionLayout } from "./layouts/ArmSectionLayout";
 export { ArmCardLayout } from "./layouts/ArmCardLayout";
 export { ArmJournalLayout } from "./layouts/ArmJournalLayout";
 export { LightArmLayout } from "./layouts/LightArmLayout";
+export { SharedPlatformLayout } from "./layouts/SharedPlatformLayout";
 export { StudentLayout } from "./layouts/StudentLayout";
 export { TeacherLayout } from "./layouts/TeacherLayout";
 export { RootLayout } from "./RootLayout";

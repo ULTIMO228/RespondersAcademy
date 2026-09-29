@@ -1,0 +1,114 @@
+/*
+ * Токены платформы-обложки (`--pf-*`, спека 002, T037; docs/platform-design.md). Платформа — вход, кабинеты
+ * обучающегося, преподавателя и администратора, справочник, профиль. Симулятор `/arm/*` эти токены НЕ использует:
+ * он остаётся точной репликой ПОВ-112 (правило №1); граница проверяется тестом в src/app/layouts.
+ *
+ * Происхождение значений — токены АРМ из vars.css: тот же графит шапки, те же оранжевый и синий акценты, тот же
+ * цветокод статусов. Отличие — светлые поверхности, воздух, скругления и типографика для чтения, а также
+ * затемнённые версии акцентов там, где исходный цвет не проходит контраст WCAG 2.2 AA (оранжевый #ec653b с белым
+ * текстом даёт 3,24:1, синий #157dbd — 4,47:1). Пары «текст/фон» замеряет tokens-platform.test.ts.
+ * Единственные места с hex — vars.css и tokens-*.css (AGENTS §7).
+ */
+:root {
+  /* ——— Поверхности ——— */
+  --pf-bg-page: #f3f5f7; /* фон страницы (холодный оттенок --color-gray-100) */
+  --pf-bg-card: #ffffff;
+  --pf-bg-subtle: #eef1f3; /* шапка таблицы, зебра, неактивные поля */
+  --pf-bg-hover: #e4e9ec; /* наведение на строку, пункт меню */
+  --pf-bg-selected: #e3eef6; /* выбранная строка/вкладка — тон бейджа «ИИ» */
+  --pf-border: #d5dbdf; /* волосяная линия между блоками */
+  --pf-border-control: #7d888f; /* граница поля ввода: ≥ 3:1 к белому (WCAG 1.4.11) */
+
+  /* ——— Оболочка: боковая панель и верхняя полоса (графит АРМ) ——— */
+  --pf-shell-bg: var(--color-graphite-900);
+  --pf-shell-bg-hover: #3a4248;
+  --pf-shell-bg-active: #444d54;
+  --pf-shell-border: #454e55;
+  --pf-shell-text: var(--color-light-text);
+  --pf-shell-muted: #b8c4c9;
+  --pf-shell-accent: var(--color-accent-orange); /* индикатор активного пункта */
+  --pf-shell-focus: #ffffff; /* синий фокус на графите даёт 2,78:1 — в оболочке кольцо белое */
+
+  /* ——— Текст ——— */
+  --pf-text: var(--color-ink);
+  /* 6,28:1 на белом; «мягкий» серый АРМ (3,23:1) для текста не используется */
+  --pf-text-muted: var(--color-ink-muted);
+  --pf-text-on-action: #ffffff;
+
+  /* ——— Действие и навигация ——— */
+  --pf-action: #c8461d; /* главная кнопка: затемнённый оранжевый АРМ, 4,83:1 с белым */
+  --pf-action-hover: #b83c14;
+  --pf-brand-orange: var(--color-accent-orange); /* только графика и индикаторы (3:1), не текст */
+  --pf-link: #0f6aa3; /* затемнённый синий АРМ: 5,82:1 на белом */
+  --pf-link-hover: #0a5583;
+  --pf-focus: var(--color-accent-blue);
+  --pf-focus-ring: 0 0 0 2px var(--color-white), 0 0 0 4px var(--pf-focus);
+
+  /* ——— Состояния (цветокод статусов АРМ; текстовые оттенки проходят 4,5:1 на своём фоне) ——— */
+  --pf-success: #1f7a2e;
+  --pf-success-bg: #e6f4e8;
+  --pf-warning: #8a5a00;
+  --pf-warning-bg: #fff6d6;
+  --pf-danger: #b42318;
+  --pf-danger-bg: #fdecea;
+  --pf-info: #0f6aa3;
+  --pf-info-bg: #e3eef6;
+
+  /* ——— Графики и KPI: цвета линий/столбцов ≥ 3:1 к белому; норматив — всегда красный пунктир ——— */
+  --pf-chart-score: var(--color-accent-blue);
+  --pf-chart-reaction: var(--color-accent-orange);
+  --pf-chart-duration: var(--color-status-accepted);
+  --pf-chart-other: var(--color-service-at);
+  --pf-chart-norm: var(--pf-danger);
+  --pf-chart-grid: #e1e6e9;
+
+  /* ——— Типографика: локальный системный шрифт (без CDN, принцип I); шкала 13/14/16/20/28 ——— */
+  --pf-font-ui: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+  --pf-font-mono: ui-monospace, "SF Mono", "Roboto Mono", Consolas, monospace;
+  --pf-fs-caption: 13px;
+  --pf-fs-body: 14px;
+  --pf-fs-lead: 16px;
+  --pf-fs-h2: 20px;
+  --pf-fs-h1: 28px;
+  --pf-fs-kpi: 32px; /* всегда с tabular-nums */
+  --pf-fw-regular: 400;
+  --pf-fw-medium: 500;
+  --pf-fw-bold: 700;
+  --pf-lh-body: 1.5;
+  --pf-lh-heading: 1.2;
+  --pf-tracking-heading: -0.01em;
+  --pf-tracking-caps: 0.06em;
+  --pf-measure: 68ch;
+
+  /* ——— Отступы (шкала 4/8/12/16/24/32/48) ——— */
+  --pf-space-1: 4px;
+  --pf-space-2: 8px;
+  --pf-space-3: 12px;
+  --pf-space-4: 16px;
+  --pf-space-5: 24px;
+  --pf-space-6: 32px;
+  --pf-space-7: 48px;
+
+  /* ——— Радиусы: растут с весом компонента ——— */
+  --pf-radius-chip: 4px;
+  --pf-radius-control: 6px;
+  --pf-radius-card: 8px;
+  --pf-radius-modal: 12px;
+
+  /* ——— Тени: в покое — волосяная граница, тень только у поднятых слоёв ——— */
+  --pf-shadow-raised: 0 1px 2px rgba(31, 38, 44, 0.08), 0 4px 12px rgba(31, 38, 44, 0.08);
+  --pf-shadow-overlay: 0 2px 4px rgba(31, 38, 44, 0.1), 0 12px 32px rgba(31, 38, 44, 0.16);
+
+  /* ——— Размеры ——— */
+  --pf-control-height: 36px;
+  --pf-target-min: 24px; /* WCAG 2.2 SC 2.5.8 */
+  --pf-sidebar-width: 248px;
+  --pf-sidebar-width-collapsed: 64px;
+  --pf-topbar-height: 56px;
+  --pf-content-max: 1440px;
+
+  /* ——— Движение: отклик ≤ 180 мс, только transform/opacity; выключается prefers-reduced-motion ——— */
+  --pf-dur-fast: 120ms;
+  --pf-dur-base: 180ms;
+  --pf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}

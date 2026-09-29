@@ -23,11 +23,26 @@ export const ROLE_ACCESS_ROWS: RoleAccessRow[] = [
   },
   { route: "/arm/phone", title: "Софтфон", access: { student: YES, teacher: NO, admin: NO } },
   {
-    route: "/arm/progress",
-    title: "Мой прогресс и ошибки",
+    route: "/arm/operator112",
+    title: "Режим «Специалист-112»",
+    access: { student: YES, teacher: NO, admin: NO },
+  },
+  { route: "/student", title: "Кабинет обучающегося", access: { student: YES, teacher: NO, admin: NO } },
+  {
+    route: "/student/results",
+    title: "Результаты и разбор попыток",
     access: { student: { allowed: true, note: "только свои" }, teacher: NO, admin: NO },
   },
-  { route: "/arm/help", title: "Справочная база", access: { student: YES, teacher: NO, admin: NO } },
+  {
+    route: "/student/analytics",
+    title: "Аналитика и рекомендации",
+    access: { student: { allowed: true, note: "только свои" }, teacher: NO, admin: NO },
+  },
+  {
+    route: "/student/assignments",
+    title: "Задания и экзамены",
+    access: { student: { allowed: true, note: "только назначенные" }, teacher: NO, admin: NO },
+  },
   { route: "/teacher", title: "Мониторинг класса", access: { student: NO, teacher: YES, admin: NO } },
   {
     route: "/teacher/monitor/[studentId]",
@@ -53,6 +68,8 @@ export const ROLE_ACCESS_ROWS: RoleAccessRow[] = [
     title: "Отчёты и аналитика",
     access: { student: NO, teacher: YES, admin: NO },
   },
+  { route: "/reference", title: "Справочник", access: { student: YES, teacher: YES, admin: YES } },
+  { route: "/account", title: "Профиль и безопасность", access: { student: YES, teacher: YES, admin: YES } },
   { route: "/admin/users", title: "Пользователи и роли", access: { student: NO, teacher: NO, admin: YES } },
   {
     route: "/admin/system",

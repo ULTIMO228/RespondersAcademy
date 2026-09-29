@@ -1,15 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthSession, UserRole } from "@/shared/api";
+import type { UserRole } from "@/shared/api";
 
 import { buildLoginHref, canAccessRoute, isProtectedPath, resolveRouteAccess } from "./route-access";
-import { SESSION_TTL_MS } from "./session";
+import type { SessionClaims } from "./session";
 
 const ISSUED_AT = "2026-09-17T11:13:19+03:00";
 const NOW = Date.parse(ISSUED_AT) + 1000;
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
-function sessionOf(role: UserRole): AuthSession {
-  return { userId: "u-x", role, token: "t", twoFactorUsed: true, issuedAt: ISSUED_AT };
+/** Заявленные поля токена сессии (proxy читает их без проверки подписи). */
+function sessionOf(role: UserRole): SessionClaims {
+  return { userId: "u-x", role, expiresAtMs: Date.parse(ISSUED_AT) + SESSION_TTL_MS };
 }
 
 /** Матрица spec/000-фронт/02-roles.md: путь → роли с доступом. */
@@ -19,6 +21,8 @@ const MATRIX: [string, UserRole[]][] = [
   ["/arm/phone", ["student"]],
   ["/arm/progress", ["student"]],
   ["/arm/help", ["student"]],
+  ["/student/assignments", ["student"]],
+  ["/student", ["student"]],
   ["/teacher", ["teacher"]],
   ["/teacher/monitor/u-005", ["teacher"]],
   ["/teacher/scenarios/sc-1", ["teacher"]],

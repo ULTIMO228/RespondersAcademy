@@ -33,3 +33,12 @@ export type {
 export { DEFAULT_SCORE_WEIGHTS, DEFAULT_WEIGHT_PERCENTS, getWeightsSum } from "./model/score-weights";
 export { isWeightsSumValid, SCORE_AXES, WEIGHTS_TOTAL_PERCENT } from "./model/score-weights";
 export type { ScoreAxis, ScoreWeights } from "./model/score-weights";
+export {
+  describeErrorType,
+  formatSecondsShort,
+  PROCESSING_NORM_LABEL,
+  REACTION_NORM_LABEL,
+  summarizePerformance,
+  toneAgainstNorm,
+} from "./lib/analytics";
+export type { NormTone, PerformanceSummary } from "./lib/analytics";

@@ -1,14 +1,12 @@
 /*
  * Отчёт о занятии поверх настоящих route handlers мок-API (T3.4-04…T3.4-17): fetch подменён
- * диспетчером на app/api/mock/**, cookie преподавателя — из document.cookie (как в браузере).
+ * диспетчером на app/api/mock/**, cookie преподавателя — подписанная сессия мок-слоя (в браузере она HttpOnly).
  * Playwright в проекте нет: сквозной путь «отчёт → правка оценки → аудит → экспорт» закрыт здесь.
  */
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { sessionStore } from "@/entities/user";
-
-import { listAuditLog, resetMockStore } from "../../../../app/api/mock/_server/testing";
+import { buildSessionCookie, listAuditLog, resetMockStore } from "../../../../app/api/mock/_server/testing";
 import * as evaluation from "../../../../app/api/mock/attempts/[id]/evaluation/route";
 import * as card from "../../../../app/api/mock/cards/[id]/route";
 import * as reference from "../../../../app/api/mock/reference/route";
@@ -50,22 +48,12 @@ async function routeFetch(input: RequestInfo | URL, init?: RequestInit): Promise
     if (!match) continue;
     const request = new Request(url, {
       method: init?.method ?? "GET",
-      headers: { cookie: document.cookie, ...(init?.headers as Record<string, string>) },
+      headers: { cookie: buildSessionCookie(TEACHER.id), ...(init?.headers as Record<string, string>) },
       body: init?.body as BodyInit | undefined,
     });
     return handler(request, { params: Promise.resolve({ id: decodeURIComponent(match[1] ?? "") }) });
   }
   return new Response(JSON.stringify({ error: { code: "notFound", message: path } }), { status: 404 });
-}
-
-function signInTeacher() {
-  sessionStore.set({
-    userId: TEACHER.id,
-    role: "teacher",
-    token: `mock-${TEACHER.id}`,
-    twoFactorUsed: true,
-    issuedAt: new Date().toISOString(),
-  });
 }
 
 async function renderReport() {
@@ -90,13 +78,11 @@ function summaryTable(): HTMLElement {
 beforeEach(() => {
   resetMockStore();
   localStorage.clear();
-  signInTeacher();
   vi.stubGlobal("fetch", vi.fn(routeFetch));
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  sessionStore.clear();
 });
 
 describe("Шапка, сводная таблица и детализация (T3.4-04…07)", () => {

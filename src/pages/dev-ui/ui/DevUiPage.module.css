@@ -34,3 +34,33 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-md);
 }
+
+/* Полка платформы: на своём фоне и в токенах платформы, отдельно от реплики АРМ выше. */
+.shelf__platform {
+  display: grid;
+  gap: var(--pf-space-5);
+  margin-top: var(--pf-space-6);
+  padding: var(--pf-space-5);
+  background: var(--pf-bg-page);
+  color: var(--pf-text);
+  font-family: var(--pf-font-ui);
+  font-size: var(--pf-fs-body);
+}
+
+.shelf__subtitle {
+  margin: 0;
+  font-size: var(--pf-fs-h2);
+  font-weight: var(--pf-fw-medium);
+}
+
+.shelf__stack {
+  display: grid;
+  gap: var(--pf-space-2);
+  margin-top: var(--pf-space-4);
+}
+
+.shelf__states {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pf-space-5);
+}

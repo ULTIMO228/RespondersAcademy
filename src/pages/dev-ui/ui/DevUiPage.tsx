@@ -22,6 +22,7 @@ import {
 import { DEMO_ICONS, DEMO_ROWS, DEMO_STATUSES } from "../config/shelfData";
 
 import styles from "./DevUiPage.module.css";
+import { PlatformShelf } from "./PlatformShelf";
 
 /** Полка UI-примитивов: все состояния для ручной проверки (T0.1-09, T0.1-10). */
 export function DevUiPage() {
@@ -113,6 +114,7 @@ export function DevUiPage() {
           norms={[{ value: 30, label: "норматив 30 с" }]}
         />
       </div>
+      <PlatformShelf />
       {isModalOpen ? (
         <Modal
           title="Добавьте службы"

@@ -71,5 +71,7 @@ def summarize(items: list[dict[str, Any]]) -> dict[str, Any]:
         "byMode": by_mode, "reactionMs": _stats(items)["averageReactionMs"],
         "topErrors": [{"type": kind, "count": count} for kind, count in sorted(errors.items(), key=lambda pair: (-pair[1], pair[0]))[:3]],
         "dynamics": {"labels": [item["at"][:10] for item in ordered], "values": [item["score"] for item in ordered]},
-        "byGroup": grouped["group"], "byFormat": grouped["format"],
+        "byGroup": grouped["group"],
+        # Контракт Analytics.byFormat — Record<AssignmentFormat, Stats>: оба формата всегда, даже без попыток.
+        "byFormat": {fmt: _stats([item for item in items if item["format"] == fmt]) for fmt in ("training", "exam")},
     }

@@ -3,8 +3,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { canAccessRoute, resolveRouteAccess } from "@/entities/user";
+import type { SessionClaims } from "@/entities/user";
 import type * as SharedApi from "@/shared/api";
-import type { AuthSession, PublicUser } from "@/shared/api";
+import type { PublicUser } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 
 const TEACHER = { id: "u-002", fullName: "Морозова Елена Сергеевна", role: "teacher" } as PublicUser;
@@ -12,7 +13,7 @@ const TEACHER = { id: "u-002", fullName: "Морозова Елена Серге
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 vi.mock("@/entities/user/index.server", () => ({
-  getSessionUser: async () => ({ user: TEACHER, session: {} as AuthSession }),
+  getSessionUser: async () => ({ user: TEACHER }),
 }));
 
 vi.mock("@/shared/api", async (importOriginal) => {
@@ -30,8 +31,8 @@ vi.mock("@/shared/api", async (importOriginal) => {
 const SCENARIO_ROUTE = ROUTES.teacherScenario("s-032");
 const NOW = Date.now();
 
-function session(role: PublicUser["role"]): AuthSession {
-  return { userId: "u-001", role, token: "mock", twoFactorUsed: true, issuedAt: new Date(NOW).toISOString() };
+function session(role: PublicUser["role"]): SessionClaims {
+  return { userId: "u-001", role, expiresAtMs: NOW + 60_000 };
 }
 
 describe("Роуты и гвард раздела (T3.1-01)", () => {

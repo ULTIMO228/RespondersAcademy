@@ -11,6 +11,7 @@ export { Input } from "./input";
 export { Modal } from "./modal";
 export { Panel } from "./panel";
 export { Select } from "./select";
+export { ServerRequired } from "./server-required";
 export type { SelectOption } from "./select";
 export { StatusChip } from "./status-chip";
 export type { StatusTone } from "./status-chip";

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: назначения</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" /></svg
+              >Назначения</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 12h4l3-8 4 16 3-8h4" /></svg
+              >Занятия</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 3h9l4 4v14H6z" />
+                <path d="M14 3v5h5M9 13h7M9 17h7" /></svg
+              >Сценарии</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M2 20a7 7 0 0114 0" />
+                <path d="M17 4.5a3.5 3.5 0 010 7M18 14a7 7 0 013 6" /></svg
+              >Обучающиеся</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Отчёты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки"><span aria-current="page">Назначения</span></nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">МЕ</span>
+              <div>
+                <div>Морозова Е. С.</div>
+                <div class="user__role">Преподаватель</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Назначения</h1>
+              <p>Тренировки и экзамены для групп и отдельных обучающихся</p>
+            </div>
+            <a class="btn btn--primary" href="#">Новое назначение</a>
+          </div>
+          <div class="toolbar">
+            <div class="segmented">
+              <span>Все</span><span aria-current="true">Активные</span><span>Завершённые</span>
+            </div>
+            <span class="select"
+              >Режим: все
+              <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px">
+                <path d="M6 9l6 6 6-6" /></svg
+            ></span>
+          </div>
+          <section class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Режим</th>
+                  <th>Формат</th>
+                  <th>Обучающиеся</th>
+                  <th>Срок</th>
+                  <th>Выполнение</th>
+                  <th>Состояние</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><a href="#">Экзамен, 5 билетов</a></td>
+                  <td>112</td>
+                  <td>Экзамен</td>
+                  <td>ДДС-01 · 12</td>
+                  <td class="num">30.09</td>
+                  <td style="width: 180px">
+                    <div class="progress"><i style="width: 58%"></i></div>
+                  </td>
+                  <td><span class="chip chip--info">Идёт</span></td>
+                </tr>
+                <tr>
+                  <td><a href="#">Цепочка «Пожар»</a></td>
+                  <td>A → B</td>
+                  <td>Тренировка</td>
+                  <td>ДДС-01 · 12</td>
+                  <td class="num">03.10</td>
+                  <td style="width: 180px">
+                    <div class="progress"><i style="width: 25%"></i></div>
+                  </td>
+                  <td><span class="chip chip--warning">Есть входы на подтверждение</span></td>
+                </tr>
+                <tr>
+                  <td><a href="#">ДТП с пострадавшими</a></td>
+                  <td>ДДС</td>
+                  <td>Тренировка</td>
+                  <td>ДДС-02 · 9</td>
+                  <td class="num">05.10</td>
+                  <td style="width: 180px">
+                    <div class="progress"><i style="width: 80%"></i></div>
+                  </td>
+                  <td><span class="chip chip--info">Идёт</span></td>
+                </tr>
+                <tr>
+                  <td><a href="#">Экзамен по группе «Пожары»</a></td>
+                  <td>112</td>
+                  <td>Экзамен</td>
+                  <td>ДДС-01 · 12</td>
+                  <td class="num">25.09</td>
+                  <td style="width: 180px">
+                    <div class="progress"><i style="width: 100%"></i></div>
+                  </td>
+                  <td><span class="chip chip--success">Завершено</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

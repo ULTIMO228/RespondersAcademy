@@ -48,12 +48,26 @@ def _parse_cookie(raw: str | None) -> dict[str, Any] | None:
     return None
 
 
+def _looks_like_jwt(raw: str) -> bool:
+    """Серверная cookie сессии — «голый» JWT (три base64url-сегмента); JSON начинается с `{` / `%7B`."""
+    return raw.count(".") == 2 and not raw.lstrip().startswith(("{", "%7B", "%7b"))
+
+
 def viewer_from_request(request: Request) -> Viewer | None:
-    """Нет cookie / битая / истёкшая или неподписанная сессия → None (аноним, как в моке)."""
+    """Нет cookie / битая / истёкшая или неподписанная сессия → None (аноним, как в моке).
+
+    Источники токена: cookie из одного JWT (её выдаёт сервер при входе), устаревшая JSON-cookie
+    (переходный период) и заголовок Bearer (приоритетнее cookie).
+    """
     token: str | None = None
-    session = _parse_cookie(request.cookies.get(SESSION_COOKIE))
-    if session and isinstance(session.get("token"), str):
-        token = session["token"]
+    session: dict[str, Any] | None = None
+    raw_cookie = request.cookies.get(SESSION_COOKIE)
+    if raw_cookie and _looks_like_jwt(raw_cookie):
+        token = raw_cookie
+    else:
+        session = _parse_cookie(raw_cookie)
+        if session and isinstance(session.get("token"), str):
+            token = session["token"]
     auth = request.headers.get("authorization", "")
     if auth.lower().startswith("bearer "):
         token = auth[7:].strip()

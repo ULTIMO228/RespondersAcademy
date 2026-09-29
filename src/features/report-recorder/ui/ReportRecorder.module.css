@@ -1,0 +1,74 @@
+/* Голосовой доклад в карточке ДДС: блок в палитре карточки, кнопки — общие Button АРМ. */
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.report__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.report__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.report__rec {
+  color: var(--color-accent-red);
+  font-weight: var(--font-weight-bold);
+}
+
+.report__hint {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.report__error {
+  margin: 0;
+  color: var(--color-accent-red);
+  font-weight: var(--font-weight-medium);
+}
+
+.report__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.report__text {
+  margin: 0;
+  padding: var(--spacing-md);
+  background: var(--color-white);
+}
+
+.report__score {
+  margin: 0;
+  font-weight: var(--font-weight-bold);
+}
+
+.report__checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report__checks li[data-found="true"] {
+  color: var(--color-status-accepted);
+}
+
+.report__checks li[data-found="false"] {
+  color: var(--color-status-new);
+}

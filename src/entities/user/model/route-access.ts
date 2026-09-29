@@ -2,12 +2,13 @@
  * Гвард роутов по матрице доступа spec/000-фронт/02-roles.md (ROLE_ACCESS_ROWS — единственный источник).
  * Чистые функции: используются proxy (сервер), серверными лэйаутами и резолвером редиректа входа.
  */
-import type { AuthSession, UserRole } from "@/shared/api";
+import type { UserRole } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 
 import { ROLE_ACCESS_ROWS } from "../config/roleAccess";
 import type { RoleAccessRow } from "../config/roleAccess";
 import { isSessionExpired } from "./session";
+import type { SessionClaims } from "./session";
 
 /** public — роут вне матрицы; unauthenticated/expired → /login; forbidden → 403. */
 export type RouteAccess = "public" | "allowed" | "unauthenticated" | "expired" | "forbidden";
@@ -56,9 +57,10 @@ export function canAccessRoute(role: UserRole, pathname: string): boolean {
   return sectionRows.length === 0 || sectionRows.some((sectionRow) => sectionRow.access[role].allowed);
 }
 
+/** Оптимистичное решение по заявленным полям токена (без проверки подписи); полная проверка — verifySession(). */
 export function resolveRouteAccess(
   pathname: string,
-  session: AuthSession | null,
+  session: SessionClaims | null,
   nowMs: number,
 ): RouteAccess {
   if (!isProtectedPath(pathname)) return "public";

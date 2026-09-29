@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 
-import { ReportExportButtons } from "@/features/report-export";
+import { ReportExportButtons, ServerExportButtons } from "@/features/report-export";
 import type { FileSaver, Printer } from "@/features/report-export";
 import { ReportCharts } from "@/widgets/report-charts";
 import { Button, Panel } from "@/shared/ui";
@@ -115,6 +115,7 @@ export function ReportSessionScreen({
           saver={saver}
           printer={printer}
         />
+        {groupReport ? <ServerExportButtons reportId={groupReport.id} /> : null}
       </ReportHeader>
       {hasData ? (
         <>

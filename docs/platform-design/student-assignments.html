@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: задания</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M8 8h8M8 12h8M8 16h5" /></svg
+              >Задания</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Результаты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17l6-6 4 4 8-9" />
+                <path d="M15 6h6v6" /></svg
+              >Аналитика</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a class="nav__sim" href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" /></svg
+              >Открыть АРМ</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Кабинет обучающегося</span><span aria-hidden="true">/</span
+            ><span aria-current="page">Задания</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">ИС</span>
+              <div>
+                <div>Иванов С. П.</div>
+                <div class="user__role">Обучающийся · ДДС-01</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Задания</h1>
+              <p>Тренировки и экзамены, назначенные преподавателем</p>
+            </div>
+            <div class="segmented">
+              <span>Все</span><span aria-current="true">Активные</span><span>Выполненные</span>
+            </div>
+          </div>
+          <div class="cards-2">
+            <article class="card task">
+              <div class="task__head">
+                <div>
+                  <h3>Экзамен: режим «Специалист-112», 5 билетов</h3>
+                  <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap">
+                    <span class="chip chip--info">Режим 112</span
+                    ><span class="chip chip--warning">Экзамен</span
+                    ><span class="chip chip--danger">Срок 30 сентября</span>
+                  </div>
+                </div>
+              </div>
+              <p class="muted">Вызов выдаётся один раз, повторное прослушивание записи недоступно.</p>
+              <dl class="facts" style="margin: 0; padding-top: 12px">
+                <div>
+                  <dt>Порог</dt>
+                  <dd class="num">70 баллов</dd>
+                </div>
+                <div>
+                  <dt>Лимит на билет</dt>
+                  <dd class="num">10:00</dd>
+                </div>
+                <div>
+                  <dt>Выполнено</dt>
+                  <dd class="num">2 из 5</dd>
+                </div>
+              </dl>
+              <div>
+                <div class="caption muted" style="margin-bottom: 4px">Прогресс: 2 из 5 билетов</div>
+                <div class="progress"><i style="width: 40%"></i></div>
+              </div>
+              <div>
+                <a class="btn btn--primary" href="#"
+                  >Продолжить
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" /></svg
+                ></a>
+                <a class="btn btn--ghost" href="#">Условия</a>
+              </div>
+            </article>
+            <article class="card task">
+              <div class="task__head">
+                <div>
+                  <h3>Цепочка A → B: пожар в жилом доме</h3>
+                  <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap">
+                    <span class="chip chip--info">Цепочка</span
+                    ><span class="chip chip--success">Тренировка</span>
+                  </div>
+                </div>
+              </div>
+              <p class="muted">
+                Сначала приём вызова, затем работа диспетчера ДДС. Этап ДДС открывается после подтверждения
+                преподавателем.
+              </p>
+              <dl class="facts" style="margin: 0; padding-top: 12px">
+                <div>
+                  <dt>Билетов</dt>
+                  <dd class="num">1</dd>
+                </div>
+                <div>
+                  <dt>Сообщения служб</dt>
+                  <dd class="num">включены</dd>
+                </div>
+                <div>
+                  <dt>Срок</dt>
+                  <dd class="num">—</dd>
+                </div>
+              </dl>
+              <div>
+                <div class="caption muted" style="margin-bottom: 4px">
+                  Этап 112 выполнен, ждёт подтверждения
+                </div>
+                <div class="progress progress--warn"><i style="width: 50%"></i></div>
+              </div>
+              <div><span class="chip chip--warning">Ожидает подтверждения преподавателем</span></div>
+            </article>
+            <article class="card task">
+              <div class="task__head">
+                <div>
+                  <h3>Тренировка: ДТП с пострадавшими</h3>
+                  <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap">
+                    <span class="chip chip--info">Режим ДДС</span
+                    ><span class="chip chip--success">Тренировка</span>
+                  </div>
+                </div>
+              </div>
+              <p class="muted">
+                Карточка в списке происшествий: принять, отработать по статусам, отчитаться.
+              </p>
+              <dl class="facts" style="margin: 0; padding-top: 12px">
+                <div>
+                  <dt>Билетов</dt>
+                  <dd class="num">3</dd>
+                </div>
+                <div>
+                  <dt>Норматив</dt>
+                  <dd class="num">30 с / 3 мин</dd>
+                </div>
+                <div>
+                  <dt>Срок</dt>
+                  <dd class="num">5 октября</dd>
+                </div>
+              </dl>
+              <div>
+                <div class="caption muted" style="margin-bottom: 4px">Не начато</div>
+                <div class="progress"><i style="width: 0%"></i></div>
+              </div>
+              <div>
+                <a class="btn btn--primary" href="#"
+                  >Начать
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" /></svg
+                ></a>
+              </div>
+            </article>
+            <article class="card task">
+              <div class="task__head">
+                <div>
+                  <h3>Экзамен по группе «Пожары»</h3>
+                  <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap">
+                    <span class="chip chip--info">Режим 112</span
+                    ><span class="chip chip--warning">Экзамен</span>
+                  </div>
+                </div>
+              </div>
+              <p class="muted">Задание завершено преподавателем.</p>
+              <dl class="facts" style="margin: 0; padding-top: 12px">
+                <div>
+                  <dt>Итог</dt>
+                  <dd class="num">Сдан</dd>
+                </div>
+                <div>
+                  <dt>Баллы</dt>
+                  <dd class="num">82 из 100</dd>
+                </div>
+                <div>
+                  <dt>Порог</dt>
+                  <dd class="num">70</dd>
+                </div>
+              </dl>
+              <div>
+                <div class="caption muted" style="margin-bottom: 4px">Выполнено 5 из 5</div>
+                <div class="progress"><i style="width: 100%"></i></div>
+              </div>
+              <div><a class="btn btn--secondary" href="#">Разбор результата</a></div>
+            </article>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

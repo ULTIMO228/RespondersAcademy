@@ -1,0 +1,127 @@
+/* Опросная карта режима 112: чипы и подписи — как в развёрнутой опросной карте АРМ (features/incident-type-picker). */
+.q {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.q[data-disabled="true"] {
+  opacity: 0.7;
+}
+
+.q__level {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--spacing-md);
+  align-items: start;
+}
+
+.q__question {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  padding-top: var(--spacing-sm);
+}
+
+.q__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.q__type {
+  margin: 0;
+}
+
+.q__empty {
+  color: var(--color-ink-muted);
+}
+
+.q__notice {
+  margin: 0;
+  color: var(--color-accent-red);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: var(--border-width) solid var(--color-gray-200);
+}
+
+.list__heading,
+.list__subheading {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.list__subheading {
+  color: var(--color-ink-muted);
+}
+
+.list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-white);
+}
+
+.list__title {
+  font-weight: var(--font-weight-medium);
+}
+
+.list__mode,
+.list__reason {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.list__badge {
+  padding: 0 var(--spacing-sm);
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+}
+
+.list__add,
+.list__retry {
+  margin-left: auto;
+  padding: var(--spacing-xxs) var(--spacing-md);
+  border: var(--border-width) solid var(--color-accent-blue);
+  background: var(--color-white);
+  color: var(--color-accent-blue);
+  font-size: var(--font-size-sm);
+}
+
+.list__retry {
+  margin-left: 0;
+}
+
+.list__add:hover:not(:disabled),
+.list__retry:hover {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+
+.list__add:focus-visible,
+.list__retry:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

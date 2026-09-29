@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 
-export default function AdminIndexPage() {
-  redirect("/admin/users");
-}
+export { AdminHomeScreen as default } from "@/pages/admin/home";
+
+export const metadata: Metadata = {
+  title: "Состояние системы",
+};

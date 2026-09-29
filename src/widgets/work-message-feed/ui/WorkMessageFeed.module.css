@@ -1,0 +1,39 @@
+/* Лента сообщений служб: панель блока карточки, строки — как записи журнала событий (токены АРМ). */
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.feed__title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.feed__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feed__list li {
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-white);
+  border-left: 3px solid var(--color-status-accepted);
+  font-family: var(--font-mono);
+}
+
+.feed__offline {
+  margin: 0;
+  color: var(--color-accent-red);
+  font-size: var(--font-size-sm);
+}

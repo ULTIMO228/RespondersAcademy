@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: главная обучающегося</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M8 8h8M8 12h8M8 16h5" /></svg
+              >Задания</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Результаты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17l6-6 4 4 8-9" />
+                <path d="M15 6h6v6" /></svg
+              >Аналитика</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a class="nav__sim" href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" /></svg
+              >Открыть АРМ</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Кабинет обучающегося</span><span aria-hidden="true">/</span
+            ><span aria-current="page">Главная</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">ИС</span>
+              <div>
+                <div>Иванов С. П.</div>
+                <div class="user__role">Обучающийся · ДДС-01</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Добрый день, Сергей Петрович</h1>
+              <p>Сегодня 29 сентября · ближайший срок — экзамен до 30 сентября</p>
+            </div>
+          </div>
+          <div class="grid">
+            <section class="card" aria-label="Показатели">
+              <div class="card__head">
+                <h2>Мои показатели</h2>
+                <a href="#">Вся аналитика</a>
+              </div>
+              <div class="stats">
+                <div class="stat">
+                  <div class="caps">Средний балл</div>
+                  <div class="stat__value">87</div>
+                  <div class="stat__norm muted">за 12 попыток · порог 70</div>
+                </div>
+                <div class="stat">
+                  <div class="caps">Реакция</div>
+                  <div class="stat__value ok">24 с</div>
+                  <div class="stat__norm muted">норматив 30 с</div>
+                </div>
+                <div class="stat">
+                  <div class="caps">Отработка</div>
+                  <div class="stat__value bad">3:20</div>
+                  <div class="stat__norm bad">выше норматива 3 мин</div>
+                </div>
+                <div class="stat">
+                  <div class="caps">Попытки</div>
+                  <div class="stat__value">12</div>
+                  <div class="stat__norm muted">8 тренировок · 4 экзамена</div>
+                </div>
+              </div>
+            </section>
+            <div class="grid grid--home">
+              <section class="card lead-card" aria-label="Ближайшее задание">
+                <div class="caps">Ближайшее задание</div>
+                <h2 style="margin-top: var(--pf-space-1)">Экзамен: режим «Специалист-112», 5 билетов</h2>
+                <div class="lead-card__meta">
+                  <span class="chip chip--info">Режим 112</span><span class="chip chip--warning">Экзамен</span
+                  ><span class="chip chip--danger">Срок 30 сентября</span>
+                </div>
+                <p class="muted" style="max-width: var(--pf-measure)">
+                  Вызов выдаётся один раз, повторное прослушивание записи недоступно. Оценка ставится
+                  автоматически, окончательное решение остаётся за преподавателем.
+                </p>
+                <dl class="facts">
+                  <div>
+                    <dt>Порог сдачи</dt>
+                    <dd class="num">70 баллов</dd>
+                  </div>
+                  <div>
+                    <dt>Лимит на билет</dt>
+                    <dd class="num">10:00</dd>
+                  </div>
+                  <div>
+                    <dt>Выполнено</dt>
+                    <dd class="num">2 из 5</dd>
+                  </div>
+                </dl>
+                <a class="btn btn--primary" href="#"
+                  >Продолжить задание
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" /></svg
+                ></a>
+                <a class="btn btn--ghost" href="#">Условия</a>
+              </section>
+              <div class="grid">
+                <section class="card" aria-label="Рекомендации">
+                  <div class="card__head">
+                    <h3>Что подтянуть</h3>
+                    <span class="chip chip--info">ИИ</span>
+                  </div>
+                  <ul class="list">
+                    <li>
+                      <span>Уточнение адреса: чаще пропускается номер дома</span><a href="#">Изучить</a>
+                    </li>
+                    <li>
+                      <span>Пожар в жилом доме: не запрошены сведения о пострадавших</span
+                      ><a href="#">Изучить</a>
+                    </li>
+                    <li><span>Вызов службы 103: порядок передачи карточки</span><a href="#">Изучить</a></li>
+                  </ul>
+                  <p class="caption muted" style="margin-top: var(--pf-space-3)">
+                    Рекомендации подготовлены ИИ; приоритет итоговой оценки — за преподавателем.
+                  </p>
+                </section>
+              </div>
+            </div>
+            <section class="card" aria-label="Последние результаты">
+              <div class="card__head">
+                <h2>Последние результаты</h2>
+                <a href="#">Все результаты</a>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th>Задание</th>
+                    <th>Режим</th>
+                    <th class="num">Балл</th>
+                    <th class="num">Реакция</th>
+                    <th>Итог</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="num">28.09.2026</td>
+                    <td>Тренировка: пожар в жилом доме</td>
+                    <td>112</td>
+                    <td class="num">92</td>
+                    <td class="num">21 с</td>
+                    <td><span class="chip chip--success">Зачтено</span></td>
+                    <td><a href="#">Разбор</a></td>
+                  </tr>
+                  <tr>
+                    <td class="num">27.09.2026</td>
+                    <td>Экзамен: билет 2 из 5</td>
+                    <td>112</td>
+                    <td class="num">64</td>
+                    <td class="num">33 с</td>
+                    <td><span class="chip chip--danger">Не сдан</span></td>
+                    <td><a href="#">Разбор</a></td>
+                  </tr>
+                  <tr>
+                    <td class="num">25.09.2026</td>
+                    <td>Карточка ДТП с пострадавшими</td>
+                    <td>ДДС</td>
+                    <td class="num">88</td>
+                    <td class="num">26 с</td>
+                    <td><span class="chip chip--success">Зачтено</span></td>
+                    <td><a href="#">Разбор</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

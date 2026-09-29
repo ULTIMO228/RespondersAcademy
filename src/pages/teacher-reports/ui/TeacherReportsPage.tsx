@@ -1,4 +1,5 @@
 import { getSessionUser } from "@/entities/user/index.server";
+import { PageHeader } from "@/shared/ui/platform";
 
 import { ReportsJournal } from "./ReportsJournal";
 
@@ -13,9 +14,7 @@ export async function TeacherReportsPage() {
   if (!sessionUser) return null;
   return (
     <div className={styles.reports}>
-      <header className={styles.reports__header}>
-        <h1 className={styles.reports__title}>Отчёты занятий</h1>
-      </header>
+      <PageHeader title="Отчёты занятий" description="Прошедшие занятия: сводка, разбор попыток, экспорт" />
       <ReportsJournal teacherId={sessionUser.user.id} />
     </div>
   );

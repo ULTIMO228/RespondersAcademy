@@ -45,5 +45,5 @@ export function pickDemoCredentials(role: UserRole): AuthCredentials | undefined
   const login = users.find((user) => user.id === DEMO_USER_IDS[role])?.login;
   const [account] = login ? toDemoAccount(login) : [];
   if (!account) return undefined;
-  return { login: account.login, password: account.password, armNumber: String(account.armNumber) };
+  return { login: account.login, password: account.password };
 }

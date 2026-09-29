@@ -38,12 +38,18 @@ AUDIT_TYPE_BY_PREFIX = {
     "backup": "backup",
     "card": "card",
     "scenario": "content",
+    "assignment": "content",
     "ticket": "content",
     "material": "content",
     "profileMapping": "content",
+    "kb": "content",
+    "ai": "content",
 }
 AUDIT_ACTION_TITLES = {
     "auth.login": "Вход в систему",
+    "auth.logout": "Выход из системы",
+    "auth.logoutAll": "Выход на всех устройствах",
+    "auth.passwordChange": "Смена пароля",
     "user.create": "Создана учётная запись",
     "user.update": "Изменена учётная запись",
     "user.roleChange": "Смена роли",
@@ -69,7 +75,14 @@ AUDIT_ACTION_TITLES = {
     "scenario.generate": "Сгенерированы сценарии (ИИ)",
     "scenario.validate": "Проверка сценария",
     "material.upload": "Загружен учебный материал",
+    "assignment.create": "Создано задание",
+    "assignment.start": "Выдан билет задания",
+    "assignment.finish": "Задание завершено",
     "profileMapping.save": "Привязка профильных категорий",
+    "kb.update": "Правка статьи справочника",
+    "ai.scenario.drafts": "Черновики сценариев (ИИ)",
+    "ai.scenario.revise": "Сценарий пересмотрен (ИИ)",
+    "ai.scenario.approve": "Сценарий утверждён",
 }
 
 

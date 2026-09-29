@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { STANDALONE_AI_NOTE, isStandaloneAiRelease } from "@/shared/api";
 import type { AIWorkflowMode, AIScenarioVersion } from "@/shared/api";
+import { AiBadge } from "@/shared/ui";
 
 import type { ScenarioEditorApi } from "../api/editorApi";
 import { ScenarioTextCheck } from "./ScenarioTextCheck";
@@ -161,6 +163,11 @@ export function AIScenarioWorkflowPanel({
           <p className={styles.caption}>
             Черновики остаются закрытыми для обучающихся до утверждения преподавателем.
           </p>
+          {isStandaloneAiRelease(selectedVersion?.etalonVersion) ? (
+            <p className={styles.caption} data-testid="ai-standalone-note">
+              <AiBadge title={STANDALONE_AI_NOTE} /> {STANDALONE_AI_NOTE}
+            </p>
+          ) : null}
         </div>
         {activeScenarioId !== initialScenarioId ? (
           <Link className={styles.link} href={`/teacher/scenarios/${encodeURIComponent(activeScenarioId)}`}>

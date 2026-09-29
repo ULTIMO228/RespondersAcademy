@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: главная преподавателя</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" /></svg
+              >Назначения</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 12h4l3-8 4 16 3-8h4" /></svg
+              >Занятия</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 3h9l4 4v14H6z" />
+                <path d="M14 3v5h5M9 13h7M9 17h7" /></svg
+              >Сценарии</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M2 20a7 7 0 0114 0" />
+                <path d="M17 4.5a3.5 3.5 0 010 7M18 14a7 7 0 013 6" /></svg
+              >Обучающиеся</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Отчёты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Кабинет преподавателя</span><span aria-hidden="true">/</span
+            ><span aria-current="page">Главная</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">МЕ</span>
+              <div>
+                <div>Морозова Е. С.</div>
+                <div class="user__role">Преподаватель</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Добрый день, Елена Сергеевна</h1>
+              <p>Группа ДДС-01 · 12 обучающихся</p>
+            </div>
+          </div>
+          <div class="grid" style="grid-template-columns: minmax(0, 7fr) minmax(0, 5fr)">
+            <div class="grid">
+              <section class="card">
+                <div class="card__head">
+                  <h2>Требуют подтверждения</h2>
+                  <span class="chip chip--warning">2 входа ДДС</span>
+                </div>
+                <ul class="list">
+                  <li>
+                    <span
+                      ><b>Иванов С. П.</b> · цепочка «Пожар в жилом доме»<br /><span class="muted caption"
+                        >Этап 112 сдан 28.09, 92 балла</span
+                      ></span
+                    ><a class="btn btn--primary" href="#">Проверить сценарий</a>
+                  </li>
+                  <li>
+                    <span
+                      ><b>Петрова А. В.</b> · цепочка «Запах газа»<br /><span class="muted caption"
+                        >Этап 112 сдан 28.09, 80 баллов</span
+                      ></span
+                    ><a class="btn btn--primary" href="#">Проверить сценарий</a>
+                  </li>
+                </ul>
+              </section>
+              <section class="card">
+                <div class="card__head">
+                  <h2>Активные назначения</h2>
+                  <a href="#">Все назначения</a>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Назначение</th>
+                      <th>Режим</th>
+                      <th>Срок</th>
+                      <th>Прогресс группы</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Экзамен, 5 билетов</td>
+                      <td>112</td>
+                      <td class="num">30.09</td>
+                      <td>
+                        <div class="progress"><i style="width: 58%"></i></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Цепочка «Пожар»</td>
+                      <td>A → B</td>
+                      <td class="num">03.10</td>
+                      <td>
+                        <div class="progress progress--warn"><i style="width: 25%"></i></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Тренировка «ДТП»</td>
+                      <td>ДДС</td>
+                      <td class="num">05.10</td>
+                      <td>
+                        <div class="progress"><i style="width: 80%"></i></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+            <section class="card">
+              <div class="card__head">
+                <h2>В зоне риска</h2>
+                <span class="caption muted">по числу типичных ошибок</span>
+              </div>
+              <ul class="list">
+                <li>
+                  <span class="risk"
+                    ><span class="dot dot--bad"></span
+                    ><span
+                      ><b>Егоров К. А.</b><br /><span class="muted caption"
+                        >14 ошибок · чаще всего адрес</span
+                      ></span
+                    ></span
+                  ><a href="#">Профиль</a>
+                </li>
+                <li>
+                  <span class="risk"
+                    ><span class="dot dot--warn"></span
+                    ><span
+                      ><b>Белов Р. А.</b><br /><span class="muted caption"
+                        >11 ошибок · пропуск вопроса о пострадавших</span
+                      ></span
+                    ></span
+                  ><a href="#">Профиль</a>
+                </li>
+                <li>
+                  <span class="risk"
+                    ><span class="dot dot--warn"></span
+                    ><span
+                      ><b>Михайлов И. С.</b><br /><span class="muted caption"
+                        >9 ошибок · время отработки</span
+                      ></span
+                    ></span
+                  ><a href="#">Профиль</a>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

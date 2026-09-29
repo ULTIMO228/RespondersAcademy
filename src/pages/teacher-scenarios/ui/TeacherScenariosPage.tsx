@@ -2,6 +2,7 @@ import { buildCardIndex } from "@/features/scenario-builder";
 import { TRAINING_CARD_FIXTURE_IDS } from "@/entities/session";
 import { getSessionUser } from "@/entities/user/index.server";
 import { cards, classifier } from "@/shared/api";
+import { PageHeader } from "@/shared/ui/platform";
 
 import { TeacherScenariosScreen } from "./TeacherScenariosScreen";
 
@@ -19,12 +20,10 @@ export async function TeacherScenariosPage() {
   const cardIndex = buildCardIndex(cards, classifier, (cardId) => TRAINING_CARD_FIXTURE_IDS[cardId]);
   return (
     <div className={styles.scenarios}>
-      <header className={styles.scenarios__header}>
-        <h1 className={styles.scenarios__title}>Сценарии и эталоны</h1>
-        <p className={styles.scenarios__note}>
-          Шаблоны по 32 билетам и генеративные вариации. В занятие назначаются только утверждённые сценарии.
-        </p>
-      </header>
+      <PageHeader
+        title="Сценарии и эталоны"
+        description="Шаблоны по 32 билетам и генеративные вариации. В занятие назначаются только утверждённые сценарии."
+      />
       <TeacherScenariosScreen teacherId={sessionUser.user.id} cardIndex={cardIndex} />
     </div>
   );

@@ -14,6 +14,7 @@ import type {
   ReportJournalResponse,
   ReportsResponse,
 } from "../../types";
+import { buildSessionToken } from "../session-cookie";
 import { resetMockStore } from "../store";
 
 const AUDIT_URL = "http://localhost/api/mock/admin/audit";
@@ -152,15 +153,7 @@ describe("POST /api/mock/reports/feedback — обратная связь кур
   });
 });
 
-/** Cookie мок-сессии обучающегося (формат — entities/user serializeSession). */
+/** Значение cookie мок-сессии обучающегося u-005 (подписанный токен мок-слоя). */
 function buildStudentCookie(): string {
-  return encodeURIComponent(
-    JSON.stringify({
-      userId: "u-005",
-      role: "student",
-      token: "mock-u-005",
-      twoFactorUsed: true,
-      issuedAt: new Date().toISOString(),
-    }),
-  );
+  return buildSessionToken("u-005");
 }

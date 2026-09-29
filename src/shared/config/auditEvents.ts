@@ -40,12 +40,19 @@ const TYPE_BY_PREFIX: Record<string, AuditEventType> = {
   card: "card",
   scenario: "content",
   material: "content",
+  assignment: "content",
+  ticket: "content",
+  kb: "content",
+  ai: "content",
   profileMapping: "content",
 };
 
 /** Человекочитаемые названия событий (колонка «Событие», образец экрана «аудит» ПОВ-112). */
 export const AUDIT_ACTION_TITLES: Record<string, string> = {
   "auth.login": "Вход в систему",
+  "auth.logout": "Выход из системы",
+  "auth.logoutAll": "Выход на всех устройствах",
+  "auth.passwordChange": "Смена пароля",
   "user.create": "Создана учётная запись",
   "user.update": "Изменена учётная запись",
   "user.roleChange": "Смена роли",
@@ -70,6 +77,14 @@ export const AUDIT_ACTION_TITLES: Record<string, string> = {
   "scenario.generate": "Сгенерированы сценарии (ИИ)",
   "scenario.validate": "Проверка сценария",
   "material.upload": "Загружен учебный материал",
+  "assignment.create": "Создано задание",
+  "assignment.start": "Выдан билет задания",
+  "assignment.finish": "Задание завершено",
+  "ticket.create": "Создан билет",
+  "kb.update": "Правка статьи справочника",
+  "ai.scenario.drafts": "Черновики сценариев (ИИ)",
+  "ai.scenario.revise": "Сценарий пересмотрен (ИИ)",
+  "ai.scenario.approve": "Сценарий утверждён",
   "profileMapping.save": "Привязка профильных категорий",
 };
 

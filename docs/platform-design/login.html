@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: вход</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="login login--city">
+      <div class="login__city" aria-hidden="true"></div>
+      <section class="login__intro login__intro--card" aria-label="О тренажёре">
+        <div class="login__mark">112</div>
+        <h1>Учебный тренажёр оператора ДДС</h1>
+        <p>
+          Эмулятор АРМ-112 для подготовки операторов дежурно-диспетчерских служб г. Москвы: задания, экзамены
+          и разбор ошибок.
+        </p>
+        <ul class="login__facts login__facts--card">
+          <li><b>30 с</b><span>норматив реакции на новую карточку</span></li>
+          <li><b>3 мин</b><span>норматив полной отработки</span></li>
+          <li><b>2 режима</b><span>специалист 112 и оператор ДДС</span></li>
+        </ul>
+      </section>
+      <section class="login__panel">
+        <div class="login__card">
+          <div class="login__notice" role="status">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v5M12 16h.01" /></svg
+            ><span>Сессия истекла. Войдите снова</span>
+          </div>
+          <form class="login__form" aria-label="Вход в систему" onsubmit="return false;">
+            <h2>Вход</h2>
+            <div class="field">
+              <label for="l">Логин</label><input id="l" autocomplete="username" value="ivanov" />
+            </div>
+            <div class="field">
+              <label for="p">Пароль</label
+              ><input id="p" type="password" autocomplete="current-password" value="••••••••••" />
+            </div>
+            <button class="btn btn--primary" type="submit">Войти</button>
+            <details class="dual">
+              <summary>Демо-доступ для экспертов</summary>
+              <p class="muted" style="margin-top: var(--pf-space-2)">
+                Обучающийся ivanov · преподаватель morozova · администратор admin. Пароли — в справке
+                демонстрации.
+              </p>
+            </details>
+          </form>
+          <p class="caption muted">Техническая поддержка учебного комплекса: внутр. 300 (дежурный УМЦ)</p>
+        </div>
+      </section>
+      <p class="login__disclaimer login__disclaimer--card">
+        Учебная система. Не является рабочей системой-112
+      </p>
+    </div>
+  </body>
+</html>

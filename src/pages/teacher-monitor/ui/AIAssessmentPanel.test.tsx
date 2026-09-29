@@ -56,6 +56,27 @@ describe("AIAssessmentPanel", () => {
     expect(screen.getByText("92")).toBeInTheDocument();
   });
 
+  it("ответ автономного режима помечен пояснением рядом с бейджем «ИИ»; у ответа бэкенда пометки нет", async () => {
+    const state = {
+      attemptId: "att-01",
+      mode: "dds" as const,
+      status: "preliminary" as const,
+      revision: 1,
+      availableAxes: ["timeScore" as const],
+      axes: { timeScore: 90, correctnessScore: null, grammarScore: null, semanticScore: null },
+      totalScore: 90,
+      updatedAt: "2026-09-27T12:00:00Z",
+    };
+    vi.mocked(api.getAssessmentState).mockResolvedValueOnce({ ...state, reasonCode: "standalone_mock" });
+    const { unmount } = render(<AIAssessmentPanel attemptId="att-01" cardCompleted={true} />);
+    expect(await screen.findByTestId("ai-standalone-note")).toHaveTextContent(/Автономный режим/);
+    unmount();
+    vi.mocked(api.getAssessmentState).mockResolvedValueOnce({ ...state, reasonCode: null });
+    render(<AIAssessmentPanel attemptId="att-01" cardCompleted={true} />);
+    await screen.findByText("Предварительно");
+    expect(screen.queryByTestId("ai-standalone-note")).toBeNull();
+  });
+
   it("при review_required отображает форму арбитража и не показывает фиктивный итоговый балл", async () => {
     vi.mocked(api.getAssessmentState).mockResolvedValueOnce({
       attemptId: "att-02",

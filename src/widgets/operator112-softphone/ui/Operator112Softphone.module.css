@@ -1,0 +1,129 @@
+/* Софтфон режима 112: токены softphone (tokens-softphone.css) и АРМ (vars.css); новых цветов и форм контролов нет. */
+.softphone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: var(--color-gray-50);
+  border: var(--border-width) solid var(--color-gray-200);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.softphone[data-state="ringing"] {
+  background: var(--softphone-expected-bg);
+  border-color: var(--softphone-expected-border);
+}
+
+.softphone__header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.softphone__handset {
+  display: inline-flex;
+  color: var(--softphone-call-icon);
+}
+
+.softphone__handset[data-ringing="true"] {
+  animation: ring 1.1s ease-in-out infinite;
+}
+
+.softphone__caller {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.softphone__aon {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+}
+
+.softphone__status {
+  font-weight: var(--font-weight-bold);
+}
+
+.softphone__note {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.softphone__ringing,
+.softphone__talk {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+.softphone__norm {
+  flex: 1;
+  color: var(--color-ink-muted);
+}
+
+.softphone__norm[data-exceeded="true"],
+.softphone__flag {
+  color: var(--color-timer-exceeded);
+  font-weight: var(--font-weight-bold);
+}
+
+.softphone__answer {
+  min-width: 200px;
+}
+
+.softphone__player,
+.softphone__transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--softphone-transcript-ai-bg);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.softphone__playerhead {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.softphone__emergency,
+.softphone__denied {
+  color: var(--color-ink-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.softphone__denied {
+  color: var(--color-timer-exceeded);
+}
+
+.softphone__text {
+  max-height: var(--softphone-transcript-height);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  line-height: var(--line-height-base);
+}
+
+@keyframes ring {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-12deg);
+  }
+  75% {
+    transform: rotate(12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .softphone__handset[data-ringing="true"] {
+    animation: none;
+  }
+}

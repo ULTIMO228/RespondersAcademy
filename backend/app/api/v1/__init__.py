@@ -11,10 +11,13 @@ def build_router() -> APIRouter:
         ai_errors,
         ai_scenarios,
         assignments,
+        lobby,
         operator112,
+        recommendations,
         reports_export,
         tickets,
         validation,
+        work_messages,
     )
 
     router = APIRouter()
@@ -26,6 +29,9 @@ def build_router() -> APIRouter:
         tickets,
         operator112,
         assignments,
+        lobby,
+        recommendations,
+        work_messages,
         validation,
     ):
         router.include_router(module.router)

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import { telephonyStore } from "@/entities/service";
 import type { TelephonyStore } from "@/entities/service";
-import { useAuthSession } from "@/entities/user";
+import { useSessionUser } from "@/entities/user";
 import { apiCallResponder } from "@/features/call-control";
 import type { CallResponder, LineStatus } from "@/features/call-control";
 import type { InternalNumber } from "@/shared/api";
@@ -41,7 +41,7 @@ export function PhoneScreen({
   clock,
   store = telephonyStore,
 }: PhoneScreenProps) {
-  const studentId = useAuthSession()?.userId ?? null;
+  const studentId = useSessionUser()?.id ?? null;
   const directory = usePhoneDirectory(cardId, api);
   const numbers = directory.status === "ready" ? directory.data.numbers : NO_NUMBERS;
   const expected = directory.status === "ready" ? directory.data.expected : null;

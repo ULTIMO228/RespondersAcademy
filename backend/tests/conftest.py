@@ -70,13 +70,11 @@ def cookie_value(session: dict) -> str:
 
 
 async def login_as(client: AsyncClient, role: str) -> dict:
-    """Вход демо-учёткой и установка cookie сессии на клиент; возвращает AuthSession."""
+    """Вход демо-учёткой; cookie сессии (JWT) ставит сам сервер, клиент хранит её в jar; возвращает AuthSession."""
     creds = DEMO_USERS[role]
     response = await client.post("/auth/login", json=creds)
     assert response.status_code == 200, response.text
-    session = response.json()
-    client.cookies.set("arm112_session", cookie_value(session))
-    return session
+    return response.json()
 
 
 async def token_for(user_id: str) -> str:

@@ -7,6 +7,10 @@ const segment = (id: string) => encodeURIComponent(id);
 export const API_PATHS = {
   login: "/auth/login",
   authPolicy: "/auth/policy",
+  authSession: "/auth/session",
+  logout: "/auth/logout",
+  logoutAll: "/auth/logout-all",
+  changePassword: "/auth/password",
   reference: "/reference",
   classifier: "/classifier",
   cards: "/cards",

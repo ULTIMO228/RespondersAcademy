@@ -184,6 +184,37 @@
     "AdminUserRoleFields"
    ]
   },
+  "Analytics": {
+   "file": "lobby.ts",
+   "required": [
+    "byMode",
+    "reactionMs",
+    "topErrors",
+    "dynamics",
+    "byGroup",
+    "byFormat"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AnalyticsDynamics": {
+   "file": "lobby.ts",
+   "required": [
+    "labels",
+    "values"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AnalyticsTopError": {
+   "file": "lobby.ts",
+   "required": [
+    "type",
+    "count"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ApiErrorBody": {
    "file": "api.ts",
    "required": [
@@ -338,6 +369,147 @@
    ],
    "extends": []
   },
+  "Assignment": {
+   "file": "assignments.ts",
+   "required": [
+    "id",
+    "teacherId",
+    "studentIds",
+    "trainingMode",
+    "format",
+    "cardIds",
+    "params",
+    "state",
+    "createdAt",
+    "title"
+   ],
+   "optional": [
+    "randomRule",
+    "dueAt"
+   ],
+   "extends": []
+  },
+  "AssignmentCreateRequest": {
+   "file": "assignments.ts",
+   "required": [
+    "studentIds",
+    "trainingMode",
+    "format"
+   ],
+   "optional": [
+    "teacherId",
+    "cardIds",
+    "scenarioVersions",
+    "randomRule",
+    "params",
+    "dueAt",
+    "title"
+   ],
+   "extends": []
+  },
+  "AssignmentDetail": {
+   "file": "assignments.ts",
+   "required": [
+    "id",
+    "teacherId",
+    "studentIds",
+    "trainingMode",
+    "format",
+    "cardIds",
+    "params",
+    "state",
+    "createdAt",
+    "title",
+    "progress"
+   ],
+   "optional": [
+    "randomRule",
+    "dueAt"
+   ],
+   "extends": [
+    "Assignment"
+   ]
+  },
+  "AssignmentHints": {
+   "file": "assignments.ts",
+   "required": [
+    "enabled"
+   ],
+   "optional": [
+    "idleSec",
+    "steps"
+   ],
+   "extends": []
+  },
+  "AssignmentListQuery": {
+   "file": "assignments.ts",
+   "required": [],
+   "optional": [
+    "studentId",
+    "teacherId",
+    "state"
+   ],
+   "extends": []
+  },
+  "AssignmentNorms": {
+   "file": "assignments.ts",
+   "required": [
+    "answerSec",
+    "submitSec"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AssignmentParams": {
+   "file": "assignments.ts",
+   "required": [],
+   "optional": [
+    "norms",
+    "hints",
+    "passThreshold",
+    "timeLimitSec",
+    "maxGrammarErrors",
+    "workMessagesEnabled",
+    "workMessageIntervalsSec",
+    "adaptive"
+   ],
+   "extends": []
+  },
+  "AssignmentProgress": {
+   "file": "assignments.ts",
+   "required": [
+    "studentId",
+    "cardId",
+    "state",
+    "attemptId"
+   ],
+   "optional": [
+    "score",
+    "passed",
+    "chainReview"
+   ],
+   "extends": []
+  },
+  "AssignmentRandomRule": {
+   "file": "assignments.ts",
+   "required": [
+    "groups",
+    "difficulty",
+    "count"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AssignmentScenarioVersion": {
+   "file": "assignments.ts",
+   "required": [
+    "scenarioId",
+    "version",
+    "cardId"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "AttemptProgressRequest": {
    "file": "attempts.ts",
    "required": [],
@@ -461,6 +633,94 @@
     "sessionId",
     "attemptId",
     "call"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraft": {
+   "file": "operator112.ts",
+   "required": [
+    "applicant",
+    "phones",
+    "address",
+    "what",
+    "description",
+    "emergency",
+    "notificationList"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftAddress": {
+   "file": "operator112.ts",
+   "required": [
+    "formal",
+    "street",
+    "house",
+    "okrug",
+    "raion",
+    "descriptive",
+    "source"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftApplicant": {
+   "file": "operator112.ts",
+   "required": [
+    "name",
+    "status"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftCasualties": {
+   "file": "operator112.ts",
+   "required": [
+    "injured",
+    "ambulanceRefused",
+    "blocked"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftEmergency": {
+   "file": "operator112.ts",
+   "required": [
+    "chs",
+    "chp"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftNotification": {
+   "file": "operator112.ts",
+   "required": [
+    "serviceId",
+    "addedBy"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftPhones": {
+   "file": "operator112.ts",
+   "required": [
+    "aon",
+    "provided",
+    "onSite"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftWhat": {
+   "file": "operator112.ts",
+   "required": [
+    "pollAnswers",
+    "signs",
+    "flags",
+    "finalType",
+    "classifierCode",
+    "casualties"
    ],
    "optional": [],
    "extends": []
@@ -686,6 +946,36 @@
    ],
    "extends": []
   },
+  "ChainReview": {
+   "file": "assignments.ts",
+   "required": [
+    "scenarioId",
+    "version",
+    "approval",
+    "validation"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ChainSubmitReview": {
+   "file": "assignments.ts",
+   "required": [
+    "scenarioId",
+    "version",
+    "cardId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ChangePasswordRequest": {
+   "file": "requests.ts",
+   "required": [
+    "currentPassword",
+    "newPassword"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ChartData": {
    "file": "report.ts",
    "required": [
@@ -841,6 +1131,17 @@
    "optional": [],
    "extends": []
   },
+  "FieldDiff": {
+   "file": "operator112.ts",
+   "required": [
+    "field",
+    "entered",
+    "expected",
+    "ok"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "GeoPoint": {
    "file": "arm-card.ts",
    "required": [
@@ -879,6 +1180,25 @@
    ],
    "extends": []
   },
+  "GroupInsight": {
+   "file": "lobby.ts",
+   "required": [
+    "share",
+    "errorType",
+    "text"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GroupInsights": {
+   "file": "lobby.ts",
+   "required": [
+    "insights",
+    "suggestedGroup"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "GroupReport": {
    "file": "report.ts",
    "required": [
@@ -901,6 +1221,44 @@
     "errorsByCriterion"
    ],
    "optional": [],
+   "extends": []
+  },
+  "HealthStatus": {
+   "file": "health.ts",
+   "required": [
+    "status",
+    "db",
+    "version"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "HistoryItem": {
+   "file": "lobby.ts",
+   "required": [
+    "attemptId",
+    "mode",
+    "format",
+    "cardId",
+    "title",
+    "score",
+    "at"
+   ],
+   "optional": [
+    "passed",
+    "reportUrl"
+   ],
+   "extends": []
+  },
+  "HistoryQuery": {
+   "file": "lobby.ts",
+   "required": [],
+   "optional": [
+    "mode",
+    "format",
+    "page",
+    "perPage"
+   ],
    "extends": []
   },
   "IncidentCaller": {
@@ -956,6 +1314,49 @@
    "optional": [],
    "extends": []
   },
+  "KbArticle": {
+   "file": "kb.ts",
+   "required": [
+    "id",
+    "group",
+    "title",
+    "sections"
+   ],
+   "optional": [
+    "updatedBy",
+    "updatedAt"
+   ],
+   "extends": []
+  },
+  "KbArticlePatch": {
+   "file": "kb.ts",
+   "required": [
+    "sections"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "KbArticlesQuery": {
+   "file": "kb.ts",
+   "required": [],
+   "optional": [
+    "group",
+    "q"
+   ],
+   "extends": []
+  },
+  "KbSections": {
+   "file": "kb.ts",
+   "required": [
+    "signs",
+    "notification",
+    "clarify",
+    "ddsDecision",
+    "typicalErrors"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "LabeledSeries": {
    "file": "report.ts",
    "required": [
@@ -969,10 +1370,11 @@
    "file": "requests.ts",
    "required": [
     "login",
-    "password",
+    "password"
+   ],
+   "optional": [
     "armNumber"
    ],
-   "optional": [],
    "extends": []
   },
   "MaterialUploadRequest": {
@@ -992,6 +1394,127 @@
     "serviceId",
     "addedBy",
     "statuses"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "NotificationListItem": {
+   "file": "operator112.ts",
+   "required": [
+    "serviceId",
+    "addedBy",
+    "title"
+   ],
+   "optional": [
+    "mode",
+    "condition"
+   ],
+   "extends": []
+  },
+  "NotificationListPreview": {
+   "file": "operator112.ts",
+   "required": [],
+   "optional": [
+    "signs",
+    "classifierCode"
+   ],
+   "extends": []
+  },
+  "NotificationListResponse": {
+   "file": "operator112.ts",
+   "required": [
+    "finalType",
+    "classifierCode",
+    "group",
+    "services",
+    "conditional"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "OperatorAttempt": {
+   "file": "operator112.ts",
+   "required": [
+    "id",
+    "cardId",
+    "studentId",
+    "aon",
+    "incidentNumber",
+    "createdAt",
+    "openedAt",
+    "state",
+    "events",
+    "replays",
+    "hintsShown"
+   ],
+   "optional": [
+    "answeredAt",
+    "completedAt",
+    "assignmentId",
+    "hints",
+    "audio",
+    "cardSnapshot"
+   ],
+   "extends": []
+  },
+  "OperatorEvaluation": {
+   "file": "operator112.ts",
+   "required": [
+    "timeScore",
+    "correctnessScore",
+    "grammarScore",
+    "semanticScore",
+    "totalScore",
+    "grammarErrors",
+    "errors",
+    "aiComment",
+    "fieldDiff",
+    "mode",
+    "assessorVersion"
+   ],
+   "optional": [
+    "passed"
+   ],
+   "extends": []
+  },
+  "OperatorEvent": {
+   "file": "operator112.ts",
+   "required": [
+    "id",
+    "type",
+    "at",
+    "payload"
+   ],
+   "optional": [
+    "before"
+   ],
+   "extends": []
+  },
+  "OperatorEventRequest": {
+   "file": "operator112.ts",
+   "required": [
+    "type"
+   ],
+   "optional": [
+    "payload"
+   ],
+   "extends": []
+  },
+  "OperatorHintStep": {
+   "file": "operator112.ts",
+   "required": [
+    "stage",
+    "text"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "OperatorHints": {
+   "file": "operator112.ts",
+   "required": [
+    "enabled",
+    "idleSec",
+    "steps"
    ],
    "optional": [],
    "extends": []
@@ -1081,6 +1604,31 @@
    ],
    "extends": []
   },
+  "Recommendation": {
+   "file": "lobby.ts",
+   "required": [
+    "id",
+    "kind",
+    "targetId",
+    "title",
+    "reason",
+    "createdAt"
+   ],
+   "optional": [
+    "acceptedAt"
+   ],
+   "extends": []
+  },
+  "RecommendationReason": {
+   "file": "lobby.ts",
+   "required": [
+    "errorType",
+    "count",
+    "ruleId"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ReferenceData": {
    "file": "reference.ts",
    "required": [
@@ -1119,12 +1667,60 @@
    ],
    "extends": []
   },
+  "ReportAudioResponse": {
+   "file": "work-messages.ts",
+   "required": [
+    "attemptId",
+    "call",
+    "recording"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportCall": {
+   "file": "work-messages.ts",
+   "required": [
+    "id",
+    "fromUserId",
+    "toNumber",
+    "startedAt",
+    "endedAt",
+    "transcript"
+   ],
+   "optional": [
+    "report"
+   ],
+   "extends": []
+  },
   "ReportCharts": {
    "file": "report.ts",
    "required": [
     "byStage",
     "byErrorType",
     "dynamics"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportCheck": {
+   "file": "work-messages.ts",
+   "required": [
+    "id",
+    "label",
+    "expected",
+    "found"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportCheckResult": {
+   "file": "work-messages.ts",
+   "required": [
+    "version",
+    "text",
+    "checks",
+    "missing",
+    "score"
    ],
    "optional": [],
    "extends": []
@@ -1270,6 +1866,16 @@
     "normMs",
     "factMs",
     "deviationMs"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ReportTranscriptLine": {
+   "file": "work-messages.ts",
+   "required": [
+    "speaker",
+    "text",
+    "at"
    ],
    "optional": [],
    "extends": []
@@ -1594,6 +2200,32 @@
    "optional": [],
    "extends": []
   },
+  "Stats": {
+   "file": "lobby.ts",
+   "required": [
+    "count",
+    "averageScore",
+    "averageReactionMs",
+    "averageProcessingMs",
+    "replays",
+    "hintsShown"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "Street": {
+   "file": "operator112.ts",
+   "required": [
+    "id",
+    "name",
+    "type"
+   ],
+   "optional": [
+    "okrug",
+    "raion"
+   ],
+   "extends": []
+  },
   "StudentAttemptErrorsItem": {
    "file": "errors.ts",
    "required": [
@@ -1619,6 +2251,17 @@
    "optional": [
     "sessionId"
    ],
+   "extends": []
+  },
+  "StudentProfile": {
+   "file": "lobby.ts",
+   "required": [
+    "ratings",
+    "strongerMode",
+    "typicalErrors",
+    "recommendations"
+   ],
+   "optional": [],
    "extends": []
   },
   "SuccessCriteria": {
@@ -1745,6 +2388,65 @@
    "optional": [],
    "extends": []
   },
+  "Ticket": {
+   "file": "tickets.ts",
+   "required": [
+    "id",
+    "ticketNo",
+    "situationNo",
+    "group",
+    "summary",
+    "address",
+    "caller",
+    "expectedServices",
+    "expectedTags",
+    "difficulty",
+    "approved",
+    "modeOrigin"
+   ],
+   "optional": [
+    "addressRefined",
+    "victims",
+    "noAmbulance",
+    "crossRegion",
+    "duplicateOf",
+    "createdByStudentId",
+    "audio",
+    "validation"
+   ],
+   "extends": [
+    "IncidentCard"
+   ]
+  },
+  "TicketAudio": {
+   "file": "operator112.ts",
+   "required": [
+    "cardId",
+    "status",
+    "transcript",
+    "voice",
+    "emergency"
+   ],
+   "optional": [
+    "path",
+    "durationMs",
+    "generatedAt",
+    "error"
+   ],
+   "extends": []
+  },
+  "TicketsQuery": {
+   "file": "tickets.ts",
+   "required": [],
+   "optional": [
+    "group",
+    "difficulty",
+    "source",
+    "validationStatus",
+    "q"
+   ],
+   "extends": []
+  },
   "ToggleUserActiveRequest": {
    "file": "requests.ts",
    "required": [
@@ -1783,6 +2485,15 @@
     "speaker",
     "text",
     "at"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "TypicalError": {
+   "file": "lobby.ts",
+   "required": [
+    "type",
+    "count"
    ],
    "optional": [],
    "extends": []
@@ -1851,6 +2562,17 @@
     "calledTo",
     "person",
     "message"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "WorkMessage": {
+   "file": "work-messages.ts",
+   "required": [
+    "id",
+    "kind",
+    "at",
+    "expectedStatus"
    ],
    "optional": [],
    "extends": []

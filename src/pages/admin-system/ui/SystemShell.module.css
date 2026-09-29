@@ -10,20 +10,6 @@
   font-size: var(--font-size-md);
 }
 
-.shell__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-gray-50);
-}
-
-.shell__title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-regular);
-}
-
 .shell__dev {
   padding: var(--spacing-xxs) var(--spacing-md);
   border: var(--border-width) dashed var(--color-graphite-300);

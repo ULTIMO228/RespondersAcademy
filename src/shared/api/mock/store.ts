@@ -8,6 +8,7 @@
  * Наружу store отдаёт копии (structuredClone): менять состояние — только функциями store-*.ts.
  */
 import type {
+  AIScenarioVersion,
   AuditLogEntry,
   CardFlowItem,
   CardRuntimeState,
@@ -39,6 +40,12 @@ export interface StoredSessionPlan {
   parked: CardFlowItem[];
 }
 
+/** Версия AI-сценария автономного режима; автор нужен для проверки прав (в контракте версии его нет). */
+export interface StoredAiScenarioVersion {
+  createdBy: string;
+  version: AIScenarioVersion;
+}
+
 export interface MockStoreState {
   users: User[];
   scenarios: Scenario[];
@@ -59,6 +66,10 @@ export interface MockStoreState {
   /** План мастера и состояние выдачи по id занятия (T3.2-02). */
   sessionPlans: Record<string, StoredSessionPlan>;
   auditLog: AuditLogEntry[];
+  /** Версии AI-сценариев автономного режима (app/api/v1/ai/scenarios/**), по возрастанию scenarioId, version. */
+  aiScenarioVersions: StoredAiScenarioVersion[];
+  /** Ответы на уже обработанные requestId автономного режима: ключ — «операция:requestId» (идемпотентность). */
+  aiRequests: Record<string, unknown>;
   settings: SystemSettings;
   /** Лента системных журналов (T4.2-01): сид mocks/admin/system-logs.json + рантайм-события. */
   systemLogs: SystemLogEntry[];
@@ -82,6 +93,7 @@ export const MOCK_ID_PREFIX = {
   session: "ses",
   attempt: "att",
   call: "call",
+  aiScenario: "ais",
 } as const;
 
 export type MockIdPrefix = (typeof MOCK_ID_PREFIX)[keyof typeof MOCK_ID_PREFIX];

@@ -2,6 +2,7 @@ import { SessionWizard } from "@/features/session-wizard";
 import type { SessionWizardApi } from "@/features/session-wizard";
 import { getSessionUser } from "@/entities/user/index.server";
 import type { PublicUser } from "@/shared/api";
+import { PageHeader } from "@/shared/ui/platform";
 
 import styles from "./TeacherSessionPage.module.css";
 
@@ -15,10 +16,10 @@ type TeacherSessionScreenProps = {
 export function TeacherSessionScreen({ teacher, api }: TeacherSessionScreenProps) {
   return (
     <div className={styles.session}>
-      <header className={styles.session__header}>
-        <h1 className={styles.session__title}>Настройка занятия</h1>
-        <p className={styles.session__note}>Преподаватель {teacher.fullName} · сценарии Б и В (ТЗ §10)</p>
-      </header>
+      <PageHeader
+        title="Настройка занятия"
+        description={`Преподаватель ${teacher.fullName} · сценарии Б и В (ТЗ §10)`}
+      />
       <SessionWizard teacherId={teacher.id} api={api} />
     </div>
   );

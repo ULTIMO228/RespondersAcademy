@@ -5,6 +5,9 @@
 export { readArmFixtures, readAuditLog, readCards, readClassifier, readClassifierMeta } from "./readers";
 export { readGroupReport, readReference, readReports, readScenarios, readSessions } from "./readers";
 export { readUsers } from "./readers";
+export { issueSessionToken, readRequestSession, verifySessionToken } from "./auth-tokens";
+export { buildSessionCookie, buildSessionToken, ensureTestStudent } from "./session-cookie";
+export type { VerifiedSession } from "./auth-tokens";
 export { badRequest, conflict, forbidden, HTTP_STATUS, jsonCreated, jsonError, jsonOk } from "./respond";
 export { MockApiError, notFound, toErrorResponse, unauthorized, validationFailed } from "./respond";
 export { withErrorHandling } from "./respond";

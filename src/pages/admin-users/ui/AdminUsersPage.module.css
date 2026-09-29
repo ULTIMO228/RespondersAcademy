@@ -4,27 +4,6 @@
   gap: var(--spacing-md);
 }
 
-.page__header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-gray-50);
-}
-
-.page__title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-regular);
-}
-
-.page__note {
-  max-width: 640px;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-sm);
-  text-align: right;
-}
-
 .page__readonly {
   color: var(--color-light-muted);
   font-size: var(--font-size-xs);

@@ -7,3 +7,12 @@ export const APP_ENV = {
   /** Базовый URL мок-слоя; замена бэкенда = смена этой переменной (контракты не меняются). */
   mockApiBaseUrl: process.env.NEXT_PUBLIC_MOCK_API_BASE_URL || DEFAULT_MOCK_API_BASE_URL,
 } as const;
+
+/**
+ * Серверные переменные (в браузерную сборку не попадают — Next подставляет только NEXT_PUBLIC_*).
+ * `BACKEND_URL` читает исключительно next.config.ts (AGENTS §6).
+ */
+export const SERVER_ENV = {
+  /** Секрет подписи сессии мок-слоя (HS256). Не задан — процесс генерирует случайный при старте. */
+  mockSessionSecret: process.env.MOCK_SESSION_SECRET,
+} as const;

@@ -22,3 +22,17 @@ describe("APP_ENV — флаги экрана входа", () => {
     expect(env.isDemoMode).toBe(false);
   });
 });
+
+describe("SERVER_ENV — серверные переменные", () => {
+  it("секрет сессии мок-слоя не задан по умолчанию (генерируется процессом)", async () => {
+    vi.stubEnv("MOCK_SESSION_SECRET", undefined);
+    vi.resetModules();
+    expect((await import("./env")).SERVER_ENV.mockSessionSecret).toBeUndefined();
+  });
+
+  it("читает MOCK_SESSION_SECRET", async () => {
+    vi.stubEnv("MOCK_SESSION_SECRET", "test-secret");
+    vi.resetModules();
+    expect((await import("./env")).SERVER_ENV.mockSessionSecret).toBe("test-secret");
+  });
+});

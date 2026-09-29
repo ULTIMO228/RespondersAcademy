@@ -34,3 +34,29 @@
   color: var(--color-ink-muted);
   text-align: center;
 }
+
+/* Платформа: спокойная таблица (светлая шапка, крупнее строки). */
+:global([data-zone="platform"]) .table {
+  font-size: var(--pf-fs-body);
+  color: var(--pf-text);
+}
+
+:global([data-zone="platform"]) .table th {
+  height: 40px;
+  padding: 0 var(--pf-space-4);
+  background: var(--pf-bg-subtle);
+  border-bottom: 1px solid var(--pf-border);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-caption);
+  font-weight: var(--pf-fw-medium);
+}
+
+:global([data-zone="platform"]) .table td {
+  height: 44px;
+  padding: var(--pf-space-2) var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+:global([data-zone="platform"]) .table tbody tr:hover td {
+  background: var(--pf-bg-hover);
+}

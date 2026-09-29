@@ -152,6 +152,7 @@ test.describe("Демо-путь защиты", () => {
 
   test("шаг 3а — вход курсанта и поступление карточки c-095 с таймером 30 сек", async () => {
     await loginAs(student, "student");
+    await student.goto("/arm");
     await expect(student.getByRole("heading", { name: "Поиск происшествий" })).toBeVisible();
 
     /* Назначенный преподавателем модуль → занятие курсанта и лента профильных карточек. */

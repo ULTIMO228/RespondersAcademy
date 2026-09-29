@@ -16,6 +16,7 @@ const DETECTOR_NAMES: Record<string, string> = {
   ml: "ML-модель",
   llm_confirmed: "Подтверждено LLM",
   teacher: "Преподаватель",
+  standalone_mock: "Имитация ИИ (автономный режим)",
 };
 
 export function SessionErrorSummaryPanel({ summary, attempts }: SessionErrorSummaryPanelProps) {

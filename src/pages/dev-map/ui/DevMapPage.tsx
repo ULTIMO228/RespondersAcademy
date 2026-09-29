@@ -27,8 +27,24 @@ const SCREEN_GROUPS: { title: string; screens: ScreenLink[] }[] = [
         spec: "02-arm-card.md п. 1",
       },
       { href: ROUTES.armPhone, title: "Софтфон", spec: "04-pages/03-arm-softphone.md" },
-      { href: ROUTES.armProgress, title: "Мои результаты", spec: "04-pages/04-arm-progress.md" },
-      { href: ROUTES.armHelp, title: "Справочная база", spec: "04-pages/04-arm-progress.md" },
+      { href: ROUTES.armOperator112, title: "Специалист-112", spec: "spec/001-ai" },
+    ],
+  },
+  {
+    title: "Платформа: обучающийся",
+    screens: [
+      { href: ROUTES.studentHome, title: "Главная", spec: "002/07-platform-shell.md" },
+      { href: ROUTES.studentAssignments, title: "Задания", spec: "002/07-platform-shell.md" },
+      { href: ROUTES.studentResults, title: "Результаты", spec: "002/07-platform-shell.md" },
+      { href: ROUTES.studentAnalytics, title: "Аналитика", spec: "002/07-platform-shell.md" },
+    ],
+  },
+  {
+    title: "Платформа: общие",
+    screens: [
+      { href: ROUTES.reference, title: "Справочник", spec: "002/07-platform-shell.md" },
+      { href: ROUTES.account, title: "Профиль", spec: "002/07-platform-shell.md" },
+      { href: ROUTES.accountSecurity, title: "Безопасность", spec: "002/07-platform-shell.md" },
     ],
   },
   {
@@ -72,7 +88,7 @@ const SCREEN_GROUPS: { title: string; screens: ScreenLink[] }[] = [
   },
 ];
 
-/** Карта всех 11 спек-экранов (15 роутов) — для показа прототипа (волна 0). */
+/** Карта экранов прототипа: симулятор АРМ-112 и платформа — для показа и ручной проверки. */
 export function DevMapPage() {
   return (
     <div className={styles.map}>

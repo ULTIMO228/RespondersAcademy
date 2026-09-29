@@ -103,6 +103,19 @@ async def revoke_user_sessions(db: AsyncSession, user_id: str) -> None:
     )
 
 
+async def revoke_other_user_sessions(db: AsyncSession, user_id: str, keep_session_hash: str) -> None:
+    """Отзыв всех сессий пользователя, кроме текущей (смена пароля)."""
+    await db.execute(
+        update(AuthSession)
+        .where(
+            AuthSession.user_id == user_id,
+            AuthSession.jti_hash != keep_session_hash,
+            AuthSession.revoked_at.is_(None),
+        )
+        .values(revoked_at=int(datetime.now(UTC).timestamp()))
+    )
+
+
 async def revoke_session(db: AsyncSession, session_hash: str) -> None:
     await db.execute(
         update(AuthSession)

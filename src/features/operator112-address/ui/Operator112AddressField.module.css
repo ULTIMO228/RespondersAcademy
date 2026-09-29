@@ -1,0 +1,66 @@
+/* Блок адреса режима 112: поля — общий Input АРМ, подсказка — плоский список с линиями, как выпадающий адрес карточки. */
+.address {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--spacing-md) var(--spacing-lg);
+  margin: 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 0;
+  background: var(--color-gray-50);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.address__street {
+  position: relative;
+}
+
+.address__wide {
+  grid-column: 1 / -1;
+}
+
+.address__suggest {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-gray-200);
+  box-shadow: 0 2px 6px var(--color-shadow);
+}
+
+.address__option {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  text-align: left;
+}
+
+.address__option:hover,
+.address__option[data-active="true"] {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+
+.address__status {
+  display: block;
+  padding-top: var(--spacing-xs);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.address__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-accent-red);
+}

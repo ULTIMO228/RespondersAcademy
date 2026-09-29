@@ -9,23 +9,23 @@ import { DEMO_ACCOUNTS, loginAs } from "./helpers/auth";
 import type { DemoRole } from "./helpers/auth";
 import { DEMO_CARD, DEMO_SCENARIO, DEMO_STUDENT } from "./helpers/demo-data";
 
-test("страница входа отдаёт 200 и показывает форму «112 ВХОД В СИСТЕМУ»", async ({ page }) => {
+test("страница входа отдаёт 200 и показывает форму входа платформы", async ({ page }) => {
   const response = await page.goto("/login");
   expect(response?.status()).toBe(200);
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("ВХОД В СИСТЕМУ");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Учебный тренажёр оператора ДДС");
   const form = page.getByRole("form", { name: "Вход в систему" });
-  await expect(form.getByLabel("логин:")).toBeVisible();
-  await expect(form.getByLabel("пароль:")).toBeVisible();
-  await expect(form.getByLabel("номер АРМ:")).toBeVisible();
-  await expect(form.getByRole("button", { name: "ВОЙТИ" })).toBeEnabled();
+  await expect(form.getByLabel("Логин")).toBeVisible();
+  await expect(form.getByLabel("Пароль")).toBeVisible();
+  await expect(form.getByLabel("номер АРМ")).toHaveCount(0);
+  await expect(form.getByRole("button", { name: "Войти" })).toBeEnabled();
   await expect(page.getByText("Учебная система. Не является рабочей системой-112")).toBeVisible();
 });
 
 /** Маркер раздела каждой роли — заголовок первого экрана после входа. */
 const ROLE_LANDINGS: Record<DemoRole, string> = {
   teacher: "Преподаватель",
-  student: "Поиск происшествий",
+  student: "Здравствуйте",
   admin: "Администратор",
 };
 

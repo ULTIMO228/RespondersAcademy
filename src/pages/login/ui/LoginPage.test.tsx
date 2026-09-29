@@ -32,11 +32,12 @@ const DEFAULT_PROPS = {
 } as const;
 
 describe("LoginScreen (/login)", () => {
-  it("рендерит «112 ВХОД В СИСТЕМУ», пометку учебной системы и блок поддержки", () => {
+  it("рендерит название тренажёра, нормативы и блок поддержки", () => {
     render(<LoginScreen {...DEFAULT_PROPS} />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("112ВХОД В СИСТЕМУ");
-    expect(screen.getByText("Учебный тренажёр оператора ДДС — эмулятор АРМ-112")).toBeInTheDocument();
-    expect(screen.getByText("Техническая поддержка учебного комплекса")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Учебный тренажёр оператора ДДС");
+    expect(screen.getByText("30 с")).toBeInTheDocument();
+    expect(screen.getByText("3 мин")).toBeInTheDocument();
+    expect(screen.getByText(/Техническая поддержка учебного комплекса/)).toBeInTheDocument();
   });
 
   it("пометка «Учебная система…» видна при любом демо-флаге", () => {
@@ -44,16 +45,17 @@ describe("LoginScreen (/login)", () => {
     expect(screen.getByText("Учебная система. Не является рабочей системой-112")).toBeInTheDocument();
   });
 
-  it("содержит поля «Логин», «Пароль», «Номер АРМ»", () => {
+  it("содержит поля «Логин» и «Пароль»; номера АРМ и шага 2FA нет (A14)", () => {
     render(<LoginScreen {...DEFAULT_PROPS} />);
-    expect(screen.getByLabelText(/логин/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/номер АРМ/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Логин")).toBeInTheDocument();
+    expect(screen.getByLabelText("Пароль")).toHaveAttribute("type", "password");
+    expect(screen.queryByLabelText(/номер АРМ/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/код из сообщения/i)).not.toBeInTheDocument();
   });
 
-  it("демо on: подсказки учёток (из mocks/users.json) и ссылки «Войти как …» предзаполняют форму", () => {
+  it("демо on: подсказки учёток скрыты под «Демо-доступ», ссылки «Войти как …» предзаполняют форму", () => {
     render(<LoginScreen {...DEFAULT_PROPS} />);
-    const summary = screen.getByText("Тестовые учётные записи (демо-режим):");
+    const summary = screen.getByText("Демо-доступ");
     expect(summary.closest("details")).not.toHaveAttribute("open");
     fireEvent.click(summary);
     expect(screen.getByText("ivanov")).toBeInTheDocument();
@@ -62,13 +64,13 @@ describe("LoginScreen (/login)", () => {
       "href",
       "/login?demo=teacher",
     );
-    expect(screen.getByLabelText(/логин/i)).toHaveValue("ivanov");
+    expect(screen.getByLabelText("Логин")).toHaveValue("ivanov");
   });
 
   it("демо: ?demo=admin предзаполняет учётку администратора, returnUrl сохраняется в ссылках", () => {
     render(<LoginScreen {...DEFAULT_PROPS} demoRole="admin" returnUrl="/admin/system" />);
-    fireEvent.click(screen.getByText("Тестовые учётные записи (демо-режим):"));
-    expect(screen.getByLabelText(/логин/i)).toHaveValue("admin");
+    fireEvent.click(screen.getByText("Демо-доступ"));
+    expect(screen.getByLabelText("Логин")).toHaveValue("admin");
     expect(screen.getByRole("link", { name: "обучающийся" })).toHaveAttribute(
       "href",
       "/login?returnUrl=%2Fadmin%2Fsystem&demo=student",
@@ -77,9 +79,9 @@ describe("LoginScreen (/login)", () => {
 
   it("демо off: подсказки учёток скрыты, форма пустая", () => {
     render(<LoginScreen {...DEFAULT_PROPS} isDemoMode={false} />);
-    expect(screen.queryByText("Тестовые учётные записи (демо-режим):")).not.toBeInTheDocument();
+    expect(screen.queryByText("Демо-доступ")).not.toBeInTheDocument();
     expect(screen.queryByText("ivanov")).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/логин/i)).toHaveValue("");
+    expect(screen.getByLabelText("Логин")).toHaveValue("");
   });
 
   it("истёкшая сессия: сообщение «Сессия истекла»", () => {
@@ -87,10 +89,10 @@ describe("LoginScreen (/login)", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Сессия истекла");
   });
 
-  it("демо: «ВОЙТИ» с предзаполненной учёткой завершает парольный вход", async () => {
+  it("демо: «Войти» с предзаполненной учёткой завершает вход одним шагом", async () => {
     render(<LoginScreen {...DEFAULT_PROPS} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "ВОЙТИ" }));
+      fireEvent.click(screen.getByRole("button", { name: "Войти" }));
     });
     expect(screen.queryByLabelText(/код из сообщения/i)).not.toBeInTheDocument();
   });

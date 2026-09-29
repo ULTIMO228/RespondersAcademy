@@ -1,0 +1,41 @@
+.detail {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--pf-space-5);
+  margin-bottom: var(--pf-space-5);
+}
+
+.terms {
+  display: grid;
+  gap: var(--pf-space-3);
+  margin: 0;
+}
+
+.terms > div {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: var(--pf-space-4);
+}
+
+.terms dt {
+  color: var(--pf-text-muted);
+}
+
+.terms dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.students {
+  margin: 0;
+  padding-left: var(--pf-space-5);
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pf-space-3);
+}

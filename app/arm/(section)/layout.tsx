@@ -1,1 +1,1 @@
-export { StudentLayout as default } from "@/app";
+export { ArmSectionLayout as default } from "@/app";

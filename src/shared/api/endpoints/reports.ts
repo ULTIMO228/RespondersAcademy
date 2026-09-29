@@ -3,12 +3,14 @@
  * Персональные отчёты и оценка попытки — getReports / getStudentReports / getAttemptEvaluation (./training).
  */
 import { apiClient } from "../client";
+import { v1ApiClient } from "../v1-client";
 import type {
   Evaluation,
   EvaluationOverrideRequest,
   ReportFeedback,
   ReportFeedbackRequest,
   ReportJournalQuery,
+  ReportExportFormat,
   ReportJournalResponse,
 } from "../types";
 import { API_PATHS } from "./paths";
@@ -32,4 +34,12 @@ export function postAttemptEvaluation(
 /** POST /reports/feedback — комментарий и рекомендации курсанту (видны в `/arm/progress`). */
 export function postReportFeedback(body: ReportFeedbackRequest): Promise<ReportFeedback> {
   return apiClient.post<ReportFeedback>(API_PATHS.reportFeedback, body);
+}
+
+/**
+ * GET /api/v1/reports/{id}/export.csv|pdf: id — из GET /reports (индивидуальный) либо групповой отчёт занятия.
+ * Сервер отдаёт attachment (CSV с BOM, PDF); студент — только свой, преподаватель — своих занятий (иначе 403).
+ */
+export function downloadReportExport(reportId: string, format: ReportExportFormat): Promise<Blob> {
+  return v1ApiClient.getBlob(`/reports/${encodeURIComponent(reportId)}/export.${format}`);
 }

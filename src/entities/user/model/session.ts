@@ -1,75 +1,62 @@
 /*
- * Auth-сессия пользователя (spec/000-фронт/05-data-models.md §1 AuthSession; spec/000-фронт/04-pages/00-auth.md).
- * Хранится в cookie SESSION_COOKIE — одно значение видят proxy, серверные лэйауты и клиентский стор.
+ * Сессия пользователя глазами клиентского слоя. Cookie SESSION_COOKIE выдаёт и очищает только сервер (HttpOnly, значение —
+ * подписанный JWT); клиентский код её не читает и не пишет. Здесь — только оптимистичное чтение заявленных полей JWT
+ * для proxy (наличие, срок, роль) БЕЗ проверки подписи: секрет остаётся у бэкенда, а данные защищает verifySession()
+ * (server-session.ts), которая спрашивает сервер (GET /auth/session).
  */
-import type { AuthSession, Role } from "@/shared/api";
+import type { Role } from "@/shared/api";
 
-export const SESSION_COOKIE = "arm112_session";
+export { SESSION_COOKIE, SESSION_TTL_SECONDS } from "@/shared/config";
 
-const HOURS_PER_SESSION = 24;
-const MS_PER_SECOND = 1000;
-const SECONDS_PER_HOUR = 3600;
-
-/** Автовыход через 24 часа непрерывной сессии (как в реальном АРМ-112, источник п. 1.1). */
-export const SESSION_TTL_MS = HOURS_PER_SESSION * SECONDS_PER_HOUR * MS_PER_SECOND;
+/** Заголовок запроса, который proxy проставляет для серверных лэйаутов: куда вернуть пользователя после входа. */
+export const RETURN_URL_HEADER = "x-arm-return-url";
 
 const ROLES: readonly Role[] = ["student", "teacher", "admin"];
+const MS_PER_SECOND = 1000;
+const JWT_PARTS = 3;
+
+/** Заявленные (непроверенные подписью) поля токена сессии. */
+export interface SessionClaims {
+  userId: string;
+  role: Role;
+  /** Конец жизни токена, мс с эпохи. */
+  expiresAtMs: number;
+}
 
 function isRole(value: unknown): value is Role {
   return typeof value === "string" && (ROLES as readonly string[]).includes(value);
 }
 
-function isAuthSession(value: unknown): value is AuthSession {
-  if (typeof value !== "object" || value === null) return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.userId === "string" &&
-    isRole(candidate.role) &&
-    typeof candidate.token === "string" &&
-    typeof candidate.twoFactorUsed === "boolean" &&
-    typeof candidate.issuedAt === "string" &&
-    !Number.isNaN(Date.parse(candidate.issuedAt))
-  );
-}
-
-function tryParseJson(raw: string): unknown {
+function decodeBase64Url(segment: string): string | null {
   try {
-    return JSON.parse(raw);
+    const padded = segment
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(Math.ceil(segment.length / 4) * 4, "=");
+    const bytes = Uint8Array.from(atob(padded), (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
   } catch {
     return null;
   }
 }
 
-function tryDecode(raw: string): string {
+/** Поля JWT из значения cookie; не JWT, битая структура или нет `sub`/`role`/`exp` → null. Подпись НЕ проверяется. */
+export function readSessionClaims(raw: string | null | undefined): SessionClaims | null {
+  if (!raw) return null;
+  const parts = raw.split(".");
+  if (parts.length !== JWT_PARTS) return null;
+  const json = decodeBase64Url(parts[1]);
+  if (json === null) return null;
   try {
-    return decodeURIComponent(raw);
+    const payload = JSON.parse(json) as Record<string, unknown>;
+    const { sub, role, exp } = payload;
+    if (typeof sub !== "string" || !isRole(role) || typeof exp !== "number") return null;
+    return { userId: sub, role, expiresAtMs: exp * MS_PER_SECOND };
   } catch {
-    return raw;
+    return null;
   }
 }
 
-/** Значение cookie сессии: только поля AuthSession (без лишних данных пользователя). */
-export function serializeSession(session: AuthSession): string {
-  const { userId, role, token, twoFactorUsed, issuedAt } = session;
-  return JSON.stringify({ userId, role, token, twoFactorUsed, issuedAt });
-}
-
-/** Разбор значения cookie (закодированного или уже раскодированного); мусор → null. */
-export function parseSession(raw: string | null | undefined): AuthSession | null {
-  if (!raw) return null;
-  const parsed = tryParseJson(raw) ?? tryParseJson(tryDecode(raw));
-  return isAuthSession(parsed) ? parsed : null;
-}
-
-export function getSessionExpiresAt(session: AuthSession): number {
-  return Date.parse(session.issuedAt) + SESSION_TTL_MS;
-}
-
-export function isSessionExpired(session: AuthSession, nowMs: number): boolean {
-  return nowMs >= getSessionExpiresAt(session);
-}
-
-/** Остаток жизни сессии в секундах (для Max-Age cookie), не меньше 0. */
-export function getSessionMaxAgeSeconds(session: AuthSession, nowMs: number): number {
-  return Math.max(0, Math.ceil((getSessionExpiresAt(session) - nowMs) / MS_PER_SECOND));
+export function isSessionExpired(claims: SessionClaims, nowMs: number): boolean {
+  return nowMs >= claims.expiresAtMs;
 }

@@ -1,0 +1,120 @@
+.chart {
+  margin: 0;
+  display: grid;
+  gap: var(--pf-space-3);
+}
+
+.chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--pf-fs-caption);
+  color: var(--pf-text-muted);
+}
+
+.chart__swatch {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-radius: 2px;
+  background: var(--pf-chart-score);
+}
+
+.chart__swatch--reaction {
+  background: var(--pf-chart-reaction);
+}
+
+.chart__swatch--norm {
+  background: var(--pf-chart-norm);
+}
+
+.chart__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart__grid {
+  stroke: var(--pf-chart-grid);
+  stroke-width: 1;
+}
+
+.chart__text {
+  fill: var(--pf-text-muted);
+  font-family: var(--pf-font-ui);
+  font-size: 12px;
+}
+
+.chart__norm {
+  stroke: var(--pf-chart-norm);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.chart__normLabel {
+  fill: var(--pf-danger);
+  font-family: var(--pf-font-ui);
+  font-size: 12px;
+  font-weight: var(--pf-fw-medium);
+}
+
+.chart__line {
+  fill: none;
+  stroke: var(--pf-chart-score);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.chart__point {
+  fill: var(--pf-bg-card);
+  stroke: var(--pf-chart-score);
+  stroke-width: 2.5;
+}
+
+.chart__bar {
+  fill: var(--pf-chart-score);
+}
+
+.chart__bar--reaction {
+  fill: var(--pf-chart-reaction);
+}
+
+.chart__details {
+  font-size: var(--pf-fs-caption);
+}
+
+.chart__summary {
+  cursor: pointer;
+  color: var(--pf-link);
+  min-height: var(--pf-target-min);
+  display: inline-flex;
+  align-items: center;
+}
+
+.chart__summary:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.chart__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--pf-space-2);
+}
+
+.chart__table th,
+.chart__table td {
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border-top: 1px solid var(--pf-border);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__table th:first-child {
+  text-align: left;
+}

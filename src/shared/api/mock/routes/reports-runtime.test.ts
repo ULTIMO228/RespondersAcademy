@@ -25,6 +25,7 @@ import type {
   ReportsResponse,
   Session,
 } from "../../types";
+import { buildSessionCookie } from "../session-cookie";
 import { resetMockStore } from "../store";
 
 const TEACHER_ID = "u-002";
@@ -76,11 +77,8 @@ function getReports(query: string, cookie?: string): Promise<Response> {
   );
 }
 
-/** Мок-сессия курсанта (cookie arm112_session) — источник истины изоляции (T2.5-01). */
-function studentCookie(userId: string): string {
-  const session = { userId, role: "student", token: `mock-${userId}`, twoFactorUsed: true };
-  return `arm112_session=${encodeURIComponent(JSON.stringify({ ...session, issuedAt: new Date().toISOString() }))}`;
-}
+/** Мок-сессия курсанта (подписанная cookie arm112_session) — источник истины изоляции (T2.5-01). */
+const studentCookie = (userId: string): string => buildSessionCookie(userId);
 
 async function json<TBody>(response: Response): Promise<TBody> {
   return (await response.json()) as TBody;

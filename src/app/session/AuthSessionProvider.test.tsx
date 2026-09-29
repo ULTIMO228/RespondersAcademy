@@ -1,8 +1,9 @@
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { sessionStore, SESSION_TTL_MS, useAuthSession } from "@/entities/user";
-import type { AuthSession } from "@/entities/user";
+import { useSessionUser } from "@/entities/user";
+import type { PublicUser } from "@/entities/user";
+import { ApiError, createApiClient, setUnauthorizedHandler } from "@/shared/api";
 
 import { AuthSessionProvider } from "./AuthSessionProvider";
 
@@ -12,67 +13,83 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock }),
 }));
 
-const ISSUED_AT = "2026-09-17T11:13:19+03:00";
-const SESSION: AuthSession = {
-  userId: "u-005",
+const USER: PublicUser = {
+  id: "u-005",
+  login: "ivanov",
+  fullName: "Иванов Сергей Петрович",
   role: "student",
-  token: "mock-u-005-abc",
-  twoFactorUsed: true,
-  issuedAt: ISSUED_AT,
+  armNumber: 1,
+  isActive: true,
 };
 
 function SessionProbe() {
-  const session = useAuthSession();
-  return <span data-testid="probe">{session ? session.userId : "нет сессии"}</span>;
+  const user = useSessionUser();
+  return <span data-testid="probe">{user ? user.id : "нет сессии"}</span>;
+}
+
+function respondWith(status: number) {
+  return createApiClient({
+    baseUrl: "/api/mock",
+    fetcher: vi.fn(async () => new Response(status === 204 ? null : "{}", { status })),
+  });
 }
 
 beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date(ISSUED_AT));
-  sessionStore.set(SESSION);
   replaceMock.mockClear();
+  window.history.replaceState(null, "", "/student/assignments?tab=1");
 });
 
 afterEach(() => {
-  sessionStore.clear();
-  vi.useRealTimers();
+  setUnauthorizedHandler(null);
 });
 
 describe("AuthSessionProvider", () => {
-  it("отдаёт сессию клиентским компонентам (useAuthSession)", () => {
+  it("отдаёт пользователя сессии клиентским компонентам (useSessionUser)", () => {
     render(
-      <AuthSessionProvider session={SESSION}>
+      <AuthSessionProvider user={USER}>
         <SessionProbe />
       </AuthSessionProvider>,
     );
     expect(screen.getByTestId("probe")).toHaveTextContent("u-005");
   });
 
-  it("через 24 ч: стор сброшен, редирект на /login?reason=expired", () => {
+  it("401 любого запроса уводит на /login «Сессия истекла» с возвратом на текущую страницу", async () => {
     render(
-      <AuthSessionProvider session={SESSION}>
+      <AuthSessionProvider user={USER}>
         <SessionProbe />
       </AuthSessionProvider>,
     );
-    act(() => {
-      vi.advanceTimersByTime(SESSION_TTL_MS - 1);
-    });
-    expect(replaceMock).not.toHaveBeenCalled();
-    act(() => {
-      vi.advanceTimersByTime(1);
-    });
-    expect(sessionStore.get()).toBeNull();
-    expect(screen.getByTestId("probe")).toHaveTextContent("нет сессии");
-    expect(replaceMock).toHaveBeenCalledWith("/login?reason=expired");
+    await expect(respondWith(401).get("/me")).rejects.toBeInstanceOf(ApiError);
+    expect(replaceMock).toHaveBeenCalledTimes(1);
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/login?returnUrl=%2Fstudent%2Fassignments%3Ftab%3D1&reason=expired",
+    );
+    await expect(respondWith(401).get("/me")).rejects.toBeInstanceOf(ApiError);
+    expect(replaceMock).toHaveBeenCalledTimes(1);
   });
 
-  it("unmount останавливает отсчёт", () => {
-    const { unmount } = render(
-      <AuthSessionProvider session={SESSION}>
+  it("401 входа и выхода — штатный ответ, а не «сессия истекла»", async () => {
+    render(
+      <AuthSessionProvider user={USER}>
         <SessionProbe />
       </AuthSessionProvider>,
     );
+    await expect(respondWith(401).post("/auth/login", {})).rejects.toBeInstanceOf(ApiError);
+    await expect(respondWith(401).post("/auth/logout")).rejects.toBeInstanceOf(ApiError);
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it("другие ошибки (403, 500) не считаются потерей сессии; unmount снимает обработчик", async () => {
+    const { unmount } = render(
+      <AuthSessionProvider user={USER}>
+        <SessionProbe />
+      </AuthSessionProvider>,
+    );
+    await expect(respondWith(403).get("/me")).rejects.toBeInstanceOf(ApiError);
+    await expect(respondWith(500).get("/me")).rejects.toBeInstanceOf(ApiError);
+    expect(replaceMock).not.toHaveBeenCalled();
     unmount();
-    expect(vi.getTimerCount()).toBe(0);
+    await expect(respondWith(401).get("/me")).rejects.toBeInstanceOf(ApiError);
+    expect(replaceMock).not.toHaveBeenCalled();
   });
 });

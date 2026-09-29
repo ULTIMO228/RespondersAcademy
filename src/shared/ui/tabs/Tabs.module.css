@@ -28,3 +28,35 @@
   outline: none;
   box-shadow: inset 0 0 0 2px var(--color-white);
 }
+
+/* Платформа: вкладки-сегменты вместо тёмных плиток АРМ. */
+:global([data-zone="platform"]) .tabs {
+  gap: var(--pf-space-1);
+  background: transparent;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+:global([data-zone="platform"]) .tabs__tab {
+  height: 40px;
+  background: transparent;
+  color: var(--pf-text-muted);
+  border-bottom: 2px solid transparent;
+  font-size: var(--pf-fs-body);
+  font-weight: var(--pf-fw-medium);
+}
+
+:global([data-zone="platform"]) .tabs__tab:hover {
+  background: var(--pf-bg-hover);
+  color: var(--pf-text);
+}
+
+:global([data-zone="platform"]) .tabs__tab--active,
+:global([data-zone="platform"]) .tabs__tab--active:hover {
+  background: transparent;
+  color: var(--pf-text);
+  border-bottom-color: var(--pf-brand-orange);
+}
+
+:global([data-zone="platform"]) .tabs__tab:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--pf-focus);
+}

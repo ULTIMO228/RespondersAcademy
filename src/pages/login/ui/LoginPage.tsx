@@ -1,8 +1,14 @@
-import { AuthForm } from "@/features/auth-form";
+import { redirect } from "next/navigation";
+
+import { AuthForm, resolvePostLoginRoute } from "@/features/auth-form";
 import { ROLE_TITLES } from "@/entities/user";
+import { getSessionUser } from "@/entities/user/index.server";
 import { APP_ENV } from "@/shared/config";
+import { Alert } from "@/shared/ui/platform";
 
 import {
+  BRAND_FACTS,
+  BRAND_LEAD,
   BRAND_TITLE,
   SESSION_EXPIRED_MESSAGE,
   SUPPORT_CONTACTS,
@@ -20,43 +26,48 @@ type LoginScreenProps = LoginParams & {
 };
 
 /**
- * `/login` — «112 ВХОД В СИСТЕМУ» 1:1 по ДДС_image1.png (spec/000-фронт/04-pages/00-auth.md).
- * Тренажёрные добавления (бренд, пометка ТЗ §4, номер АРМ, подсказки) — в той же типографике.
+ * `/login` — вход платформы (спека 002, T040): логин и пароль, без номера АРМ и шага 2FA (A14). Фон — городская
+ * иллюстрация; текст лежит на сплошных карточках (контраст AA). Плашка «Учебная система…» видна без прокрутки (ТЗ §4).
  */
 export function LoginScreen({ isDemoMode, returnUrl, isSessionExpired, demoRole }: LoginScreenProps) {
   return (
     <main className={styles.login}>
       <CityIllustration />
-      <div className={styles.login__column}>
-        <header className={styles.login__brand}>
-          <p>{BRAND_TITLE}</p>
-          <p className={styles.login__disclaimer}>{TRAINING_DISCLAIMER}</p>
-        </header>
-        <h1 className={styles.login__title}>
-          <span className={styles.login__logo}>112</span>
-          <span className={styles.login__caption}>ВХОД В СИСТЕМУ</span>
-        </h1>
-        {isSessionExpired ? (
-          <p className={styles.login__notice} role="status">
-            {SESSION_EXPIRED_MESSAGE}
-          </p>
-        ) : null}
-        <AuthForm
-          key={demoRole}
-          initialCredentials={isDemoMode ? pickDemoCredentials(demoRole) : undefined}
-          returnUrl={returnUrl}
-        />
-        <address className={styles.login__support}>
-          <span>{SUPPORT_CONTACTS.title}</span>
-          <span>{SUPPORT_CONTACTS.phone}</span>
-          <a href={`mailto:${SUPPORT_CONTACTS.email}`} className={styles["login__support-link"]}>
-            {SUPPORT_CONTACTS.email}
-          </a>
-        </address>
-        {isDemoMode ? (
-          <DemoAccessPanel accounts={pickDemoAccounts()} roleTitles={ROLE_TITLES} returnUrl={returnUrl} />
-        ) : null}
+      <section className={styles.login__intro} aria-label="О тренажёре">
+        <div className={styles.login__mark} aria-hidden="true">
+          112
+        </div>
+        <h1 className={styles.login__heading}>{BRAND_TITLE}</h1>
+        <p className={styles.login__lead}>{BRAND_LEAD}</p>
+        <ul className={styles.login__facts}>
+          {BRAND_FACTS.map((fact) => (
+            <li key={fact.value}>
+              <b>{fact.value}</b>
+              <span>{fact.text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <div className={styles.login__panel}>
+        <div className={styles.login__card}>
+          {isSessionExpired ? <Alert tone="warning">{SESSION_EXPIRED_MESSAGE}</Alert> : null}
+          <AuthForm
+            key={demoRole}
+            initialCredentials={isDemoMode ? pickDemoCredentials(demoRole) : undefined}
+            returnUrl={returnUrl}
+          />
+          {isDemoMode ? (
+            <DemoAccessPanel accounts={pickDemoAccounts()} roleTitles={ROLE_TITLES} returnUrl={returnUrl} />
+          ) : null}
+          <address className={styles.login__support}>
+            {SUPPORT_CONTACTS.title}: {SUPPORT_CONTACTS.phone} ·{" "}
+            <a href={`mailto:${SUPPORT_CONTACTS.email}`} className={styles["login__support-link"]}>
+              {SUPPORT_CONTACTS.email}
+            </a>
+          </address>
+        </div>
       </div>
+      <p className={styles.login__disclaimer}>{TRAINING_DISCLAIMER}</p>
     </main>
   );
 }
@@ -65,8 +76,22 @@ type LoginPageProps = {
   searchParams: Promise<LoginSearchParams>;
 };
 
-/** Роут `/login`: параметры гвардов (returnUrl, reason) и флаг демо-режима. */
+/** Действующая сессия на сервере; нет связи с сервером — вход показывается как обычно. */
+async function readActiveSession() {
+  try {
+    return await getSessionUser();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Роут `/login`: параметры гвардов (returnUrl, reason) и флаг демо-режима. Уже вошедшего пользователя сразу ведём
+ * в свой раздел (или на returnUrl, если роль имеет к нему доступ); недействительная сессия показывает форму.
+ */
 export async function LoginPage({ searchParams }: LoginPageProps) {
   const params = readLoginParams(await searchParams);
+  const session = await readActiveSession();
+  if (session) redirect(resolvePostLoginRoute(session.user.role, params.returnUrl));
   return <LoginScreen {...params} isDemoMode={APP_ENV.isDemoMode} />;
 }

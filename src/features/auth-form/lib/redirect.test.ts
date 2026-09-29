@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { resolvePostLoginRoute, sanitizeReturnUrl } from "./redirect";
 
 describe("resolvePostLoginRoute", () => {
-  it("по умолчанию — раздел роли: student → /arm, teacher → /teacher, admin → /admin/users", () => {
-    expect(resolvePostLoginRoute("student")).toBe("/arm");
+  it("по умолчанию — раздел роли: student → /student, teacher → /teacher, admin → /admin/users", () => {
+    expect(resolvePostLoginRoute("student")).toBe("/student");
     expect(resolvePostLoginRoute("teacher", null)).toBe("/teacher");
     expect(resolvePostLoginRoute("admin", "")).toBe("/admin/users");
   });
@@ -25,13 +25,13 @@ describe("resolvePostLoginRoute", () => {
       "/\\evil.example",
       "javascript:alert(1)",
       "/login?returnUrl=/arm",
-    ].forEach((returnUrl) => expect(resolvePostLoginRoute("student", returnUrl)).toBe("/arm"));
+    ].forEach((returnUrl) => expect(resolvePostLoginRoute("student", returnUrl)).toBe("/student"));
   });
 });
 
 describe("sanitizeReturnUrl", () => {
   it("только внутренние пути", () => {
-    expect(sanitizeReturnUrl("/arm/help#keys")).toBe("/arm/help#keys");
+    expect(sanitizeReturnUrl("/reference#keys")).toBe("/reference#keys");
     expect(sanitizeReturnUrl("/\t/evil.example")).toBeNull();
     expect(sanitizeReturnUrl(undefined)).toBeNull();
   });

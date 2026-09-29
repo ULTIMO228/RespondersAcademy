@@ -5,18 +5,18 @@ import { GET as feedRoute } from "../../../../../app/api/mock/sessions/[id]/feed
 import { POST as startRoute } from "../../../../../app/api/mock/sessions/[id]/start/route";
 import { POST as stopRoute } from "../../../../../app/api/mock/sessions/[id]/stop/route";
 import { GET as listRoute, POST as createRoute } from "../../../../../app/api/mock/sessions/route";
-import type { ApiErrorBody, Session, SessionFeedResponse, UserRole } from "../../types";
+import type { ApiErrorBody, Session, SessionFeedResponse } from "../../types";
 import { readSessions } from "../readers";
+import { buildSessionCookie } from "../session-cookie";
 import { resetMockStore } from "../store";
 
 const FINISHED_ID = "ses-2026-09-16-01";
 const RUNNING_ID = "ses-2026-09-17-demo";
 const NOW = "2026-09-19T12:00:00+03:00";
 
-/** Мок-сессия запроса (cookie arm112_session) — источник истины о зрителе ленты. */
-function sessionCookie(userId: string, role: UserRole): string {
-  const session = { userId, role, token: `mock-${userId}`, twoFactorUsed: true, issuedAt: NOW };
-  return `arm112_session=${encodeURIComponent(JSON.stringify(session))}`;
+/** Мок-сессия запроса (подписанная cookie arm112_session) — источник истины о зрителе ленты. */
+function sessionCookie(userId: string): string {
+  return buildSessionCookie(userId);
 }
 
 type Handler = (request: Request, context: { params: Promise<{ id: string }> }) => Promise<Response>;
@@ -160,26 +160,24 @@ describe("GET /sessions/[id]/feed — доступ монитора (T3.3-09)", 
   }
 
   it("преподаватель своего занятия — 200; чужого преподавателя — 403", async () => {
-    expect((await callAs(RUNNING_ID, sessionCookie("u-002", "teacher"))).status).toBe(200);
-    const foreign = await callAs(RUNNING_ID, sessionCookie("u-003", "teacher"));
+    expect((await callAs(RUNNING_ID, sessionCookie("u-002"))).status).toBe(200);
+    const foreign = await callAs(RUNNING_ID, sessionCookie("u-003"));
     expect(foreign.status).toBe(403);
     expect(((await foreign.json()) as ApiErrorBody).error.code).toBe("forbidden");
   });
 
   it("studentId сужает ленту до одного курсанта (экран монитора)", async () => {
     const query = `?studentId=u-006`;
-    const body: SessionFeedResponse = await (
-      await callAs(RUNNING_ID, sessionCookie("u-002", "teacher"), query)
-    ).json();
+    const body: SessionFeedResponse = await (await callAs(RUNNING_ID, sessionCookie("u-002"), query)).json();
     expect(body.events.length).toBeGreaterThan(0);
     expect(body.events.every((event) => event.studentId === "u-006")).toBe(true);
   });
 
   it("обучающемуся — только свои события; чужой studentId → 403; чужое занятие → 403", async () => {
-    const asStudent = sessionCookie("u-005", "student");
+    const asStudent = sessionCookie("u-005");
     const body: SessionFeedResponse = await (await callAs(RUNNING_ID, asStudent)).json();
     expect(body.events.every((event) => event.studentId === "u-005")).toBe(true);
     expect((await callAs(RUNNING_ID, asStudent, "?studentId=u-006")).status).toBe(403);
-    expect((await callAs(RUNNING_ID, sessionCookie("u-015", "student"))).status).toBe(403);
+    expect((await callAs(RUNNING_ID, sessionCookie("u-015"))).status).toBe(403);
   });
 });

@@ -2,12 +2,14 @@
  * Route handlers мок-слоя для корневого app/api/mock/**. Имя: handle<Метод><Ресурс>.
  * route.ts — одна строка: `export { handleGetReference as GET } from "@/shared/api/mock/routes";`
  */
+export { createAiHandlers } from "./ai";
 export { handleGetAdminServices, handleGetAdminSettings } from "./admin";
 export { handleGetAdminUsers, handlePatchAdminUser, handlePostAdminToggleActive } from "./admin-users";
 export { handlePostAdminUser, handlePostAdminUserBlock, handlePostAdminUserUnblock } from "./admin-users";
 export { handlePostAdminUserResetPassword } from "./admin-users";
 export { handlePostAttemptProgress, handlePostCardAttempt } from "./attempts";
-export { handleGetAuthPolicy, handlePostLogin } from "./auth";
+export { handleGetAuthPolicy, handleGetAuthSession, handlePostLogin, handlePostLogout } from "./auth";
+export { handlePostLogoutAll, handlePostPassword } from "./auth";
 export { handlePostCallReply, handlePostCardCall } from "./calls";
 export { handleGetCardRecordings, handleGetCardSms, handlePostCardLinks } from "./card-actions";
 export { createPostCardStatusHandler, handlePostCardReminder, handlePostCardSms } from "./card-actions";

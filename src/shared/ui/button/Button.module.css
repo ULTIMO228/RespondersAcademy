@@ -96,3 +96,69 @@
 .button--ghost:hover:not(:disabled) {
   background: var(--color-gray-100);
 }
+
+/* Платформа: кнопки со скруглением, цели нажатия не меньше --pf-target-min, затемнённые акценты (контраст AA). */
+:global([data-zone="platform"]) .button {
+  border-radius: var(--pf-radius-control);
+  font-family: var(--pf-font-ui);
+  min-height: var(--pf-target-min);
+}
+
+:global([data-zone="platform"]) .button:focus-visible {
+  box-shadow: var(--pf-focus-ring);
+}
+
+:global([data-zone="platform"]) .button--sm {
+  height: 28px;
+  font-size: var(--pf-fs-caption);
+}
+
+:global([data-zone="platform"]) .button--md {
+  height: var(--pf-control-height);
+  font-size: var(--pf-fs-body);
+}
+
+:global([data-zone="platform"]) .button--primary {
+  background: var(--pf-action);
+  color: var(--pf-text-on-action);
+}
+
+:global([data-zone="platform"]) .button--primary:hover:not(:disabled) {
+  background: var(--pf-action-hover);
+}
+
+:global([data-zone="platform"]) .button--secondary,
+:global([data-zone="platform"]) .button--ghost {
+  background: var(--pf-bg-card);
+  border-color: var(--pf-border-control);
+  color: var(--pf-text);
+}
+
+:global([data-zone="platform"]) .button--secondary:hover:not(:disabled),
+:global([data-zone="platform"]) .button--ghost:hover:not(:disabled) {
+  background: var(--pf-bg-hover);
+}
+
+:global([data-zone="platform"]) .button--blue {
+  background: var(--pf-link);
+  color: var(--pf-text-on-action);
+}
+
+:global([data-zone="platform"]) .button--blue:hover:not(:disabled) {
+  background: var(--pf-link-hover);
+}
+
+:global([data-zone="platform"]) .button--dark {
+  background: var(--pf-shell-bg);
+  color: var(--pf-shell-text);
+}
+
+:global([data-zone="platform"]) .button--danger {
+  border-color: var(--pf-danger);
+  color: var(--pf-danger);
+}
+
+:global([data-zone="platform"]) .button--danger:hover:not(:disabled) {
+  background: var(--pf-danger);
+  color: var(--pf-text-on-action);
+}

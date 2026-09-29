@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: разбор попытки</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M8 8h8M8 12h8M8 16h5" /></svg
+              >Задания</a
+            >
+          </li>
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Результаты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17l6-6 4 4 8-9" />
+                <path d="M15 6h6v6" /></svg
+              >Аналитика</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a class="nav__sim" href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" /></svg
+              >Открыть АРМ</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Кабинет обучающегося</span><span aria-hidden="true">/</span><span>Результаты</span
+            ><span aria-hidden="true">/</span><span aria-current="page">Разбор попытки</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">ИС</span>
+              <div>
+                <div>Иванов С. П.</div>
+                <div class="user__role">Обучающийся · ДДС-01</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Разбор: тренировка «Пожар в жилом доме»</h1>
+              <p>28 сентября 2026 · режим «Специалист-112» · оценщик dds-operator112 v3</p>
+            </div>
+            <span class="chip chip--success">Зачтено · 92 балла</span>
+          </div>
+          <div class="grid" style="grid-template-columns: minmax(0, 3fr) minmax(0, 2fr)">
+            <div class="grid">
+              <section class="card">
+                <div class="card__head">
+                  <h2>Из чего сложилась оценка</h2>
+                  <span class="chip chip--info">ИИ</span>
+                </div>
+                <div class="score-rows">
+                  <div class="score-row">
+                    <span>Корректность</span>
+                    <div class="progress"><i style="width: 95%"></i></div>
+                    <span class="num">38 / 40</span>
+                  </div>
+                  <div class="score-row">
+                    <span>Полнота опроса</span>
+                    <div class="progress"><i style="width: 80%"></i></div>
+                    <span class="num">24 / 30</span>
+                  </div>
+                  <div class="score-row">
+                    <span>Грамматика</span>
+                    <div class="progress"><i style="width: 93%"></i></div>
+                    <span class="num">14 / 15</span>
+                  </div>
+                  <div class="score-row">
+                    <span>Время</span>
+                    <div class="progress"><i style="width: 100%"></i></div>
+                    <span class="num">15 / 15</span>
+                  </div>
+                </div>
+                <p class="caption muted" style="margin-top: 16px">
+                  Оценку выставляет ИИ-модуль; приоритет итогового решения — за преподавателем.
+                </p>
+              </section>
+              <section class="card">
+                <div class="card__head"><h2>Сравнение с эталоном</h2></div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Поле</th>
+                      <th>Вы ввели</th>
+                      <th>Эталон</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Адрес</td>
+                      <td>Москва, Болотниковская ул., <span class="diff-old">14</span></td>
+                      <td>Москва, Болотниковская ул., <span class="diff-new">14к2</span></td>
+                    </tr>
+                    <tr>
+                      <td>Пострадавшие</td>
+                      <td><span class="diff-old">нет</span></td>
+                      <td><span class="diff-new">да, 1 человек</span></td>
+                    </tr>
+                    <tr>
+                      <td>Признак ЕКП</td>
+                      <td>пожар: жилой дом</td>
+                      <td>пожар: жилой дом</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            </div>
+            <div class="grid">
+              <section class="card">
+                <h2 style="margin-bottom: 16px">Время</h2>
+                <div class="stats" style="grid-template-columns: 1fr 1fr">
+                  <div class="stat" style="padding-left: 0; border: 0">
+                    <div class="caps">Реакция</div>
+                    <div class="stat__value ok">21 с</div>
+                    <div class="stat__norm muted">норматив 30 с</div>
+                  </div>
+                  <div class="stat">
+                    <div class="caps">Отработка</div>
+                    <div class="stat__value ok">2:41</div>
+                    <div class="stat__norm muted">норматив 3 мин</div>
+                  </div>
+                </div>
+              </section>
+              <section class="card">
+                <h2 style="margin-bottom: 12px">Ошибки</h2>
+                <ul class="list">
+                  <li><span>Не уточнён номер корпуса</span><span class="chip chip--warning">адрес</span></li>
+                  <li>
+                    <span>Не задан вопрос о пострадавших</span><span class="chip chip--danger">опрос</span>
+                  </li>
+                </ul>
+              </section>
+              <section class="ai-note">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px">
+                  <span class="chip chip--info">ИИ</span><b>Комментарий</b>
+                </div>
+                <p>
+                  Адрес принят без корпуса, из-за чего служба 101 получила неполные данные. Перед передачей
+                  карточки задавайте вопрос о пострадавших.
+                </p>
+                <p class="caption muted" style="margin-top: 8px">Комментарий преподавателя: ожидается</p>
+              </section>
+              <a class="btn btn--secondary" href="#">Изучить материал: «Уточнение адреса»</a>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

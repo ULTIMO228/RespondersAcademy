@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: результаты</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M8 8h8M8 12h8M8 16h5" /></svg
+              >Задания</a
+            >
+          </li>
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Результаты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17l6-6 4 4 8-9" />
+                <path d="M15 6h6v6" /></svg
+              >Аналитика</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a class="nav__sim" href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" /></svg
+              >Открыть АРМ</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Кабинет обучающегося</span><span aria-hidden="true">/</span
+            ><span aria-current="page">Результаты</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">ИС</span>
+              <div>
+                <div>Иванов С. П.</div>
+                <div class="user__role">Обучающийся · ДДС-01</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Результаты</h1>
+              <p>История попыток с разбором</p>
+            </div>
+          </div>
+          <div class="toolbar">
+            <span class="select"
+              >Режим: все
+              <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px">
+                <path d="M6 9l6 6 6-6" /></svg></span
+            ><span class="select"
+              >Формат: все
+              <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px">
+                <path d="M6 9l6 6 6-6" /></svg></span
+            ><span class="select"
+              >Период: месяц
+              <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px">
+                <path d="M6 9l6 6 6-6" /></svg
+            ></span>
+          </div>
+          <section class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Задание</th>
+                  <th>Режим</th>
+                  <th>Формат</th>
+                  <th class="num">Балл</th>
+                  <th class="num">Реакция</th>
+                  <th class="num">Отработка</th>
+                  <th>Итог</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="num">28.09.2026</td>
+                  <td>Пожар в жилом доме</td>
+                  <td>112</td>
+                  <td>Тренировка</td>
+                  <td class="num">92</td>
+                  <td class="num">21 с</td>
+                  <td class="num">2:41</td>
+                  <td><span class="chip chip--success">Зачтено</span></td>
+                  <td><a href="#">Разбор</a></td>
+                </tr>
+                <tr>
+                  <td class="num">27.09.2026</td>
+                  <td>Экзамен, билет 2 из 5</td>
+                  <td>112</td>
+                  <td>Экзамен</td>
+                  <td class="num">64</td>
+                  <td class="num">33 с</td>
+                  <td class="num">3:20</td>
+                  <td><span class="chip chip--danger">Не сдан</span></td>
+                  <td><a href="#">Разбор</a></td>
+                </tr>
+                <tr>
+                  <td class="num">25.09.2026</td>
+                  <td>ДТП с пострадавшими</td>
+                  <td>ДДС</td>
+                  <td>Тренировка</td>
+                  <td class="num">88</td>
+                  <td class="num">26 с</td>
+                  <td class="num">2:58</td>
+                  <td><span class="chip chip--success">Зачтено</span></td>
+                  <td><a href="#">Разбор</a></td>
+                </tr>
+                <tr>
+                  <td class="num">24.09.2026</td>
+                  <td>Экзамен, билет 1 из 5</td>
+                  <td>112</td>
+                  <td>Экзамен</td>
+                  <td class="num">78</td>
+                  <td class="num">24 с</td>
+                  <td class="num">2:47</td>
+                  <td><span class="chip chip--success">Сдан</span></td>
+                  <td><a href="#">Разбор</a></td>
+                </tr>
+                <tr>
+                  <td class="num">22.09.2026</td>
+                  <td>Запах газа в квартире</td>
+                  <td>ДДС</td>
+                  <td>Тренировка</td>
+                  <td class="num">71</td>
+                  <td class="num">29 с</td>
+                  <td class="num">3:05</td>
+                  <td><span class="chip chip--warning">Ниже нормы</span></td>
+                  <td><a href="#">Разбор</a></td>
+                </tr>
+                <tr>
+                  <td class="num">20.09.2026</td>
+                  <td>Цепочка A → B, этап 112</td>
+                  <td>112</td>
+                  <td>Тренировка</td>
+                  <td class="num">90</td>
+                  <td class="num">19 с</td>
+                  <td class="num">2:30</td>
+                  <td><span class="chip chip--success">Зачтено</span></td>
+                  <td><a href="#">Разбор</a></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pager">
+              <span>Записи 1–10 из 24</span>
+              <div class="pager__pages">
+                <span>‹</span><span aria-current="true">1</span><span>2</span><span>3</span><span>›</span>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

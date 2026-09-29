@@ -48,8 +48,13 @@ export type MockApiFetch = ((input: RequestInfo | URL, init?: RequestInit) => Pr
   setOffline: (isOffline: boolean) => void;
 };
 
+export interface MockApiFetchOptions {
+  /** Заголовок Cookie запросов (подписанная сессия мок-слоя); браузерная cookie HttpOnly и в тестах недоступна. */
+  getCookie?: () => string | undefined;
+}
+
 /** Диспетчер fetch → route handler; signal не передаётся (jsdom AbortSignal ≠ undici). */
-export function createMockApiFetch(): MockApiFetch {
+export function createMockApiFetch({ getCookie }: MockApiFetchOptions = {}): MockApiFetch {
   let isOffline = false;
   const calls: string[] = [];
   const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -63,7 +68,8 @@ export function createMockApiFetch(): MockApiFetch {
       return new Response(JSON.stringify({ error: { code: "notFound", message: path } }), { status: 404 });
     const id = decodeURIComponent(found.pattern.exec(path)?.[1] ?? "");
     const headers = new Headers(init?.headers);
-    if (typeof document !== "undefined") headers.set("cookie", document.cookie);
+    const cookie = getCookie?.();
+    if (cookie) headers.set("cookie", cookie);
     const request = new Request(url, { method, headers, body: init?.body });
     return found.handler(request, { params: Promise.resolve({ id }) });
   };

@@ -28,11 +28,14 @@ beforeEach(() => {
 });
 
 describe("login() против handler'а /auth/login", () => {
-  it("верные креды обучающегося → AuthSession", async () => {
-    const session = await login({ login: "ivanov", password: "student112", armNumber: 1 }, handlerClient);
-    expect(session).toMatchObject({ userId: "u-005", role: "student", twoFactorUsed: false });
-    expect(session.token).toMatch(/^mock-u-005-/);
-    expect(Number.isNaN(Date.parse(session.issuedAt))).toBe(false);
+  it("верные креды обучающегося → только { userId, role }: токен из тела клиент не сохраняет", async () => {
+    const result = await login({ login: "ivanov", password: "student112", armNumber: 1 }, handlerClient);
+    expect(result).toEqual({ userId: "u-005", role: "student" });
+  });
+
+  it("номер АРМ не обязателен для входа", async () => {
+    const result = await login({ login: "ivanov", password: "student112" }, handlerClient);
+    expect(result).toEqual({ userId: "u-005", role: "student" });
   });
 
   it("неподдерживаемый код 2FA отклоняется", async () => {

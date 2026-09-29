@@ -69,6 +69,9 @@ export function createSeedCollections() {
     sessionPlans: {},
     // Журнал аудита (T4.1-01): сид mocks/admin/audit-log.json; рантайм-события добавляются сверху.
     auditLog: structuredClone([...readAuditLog()]),
+    // Автономный режим ИИ-панелей (T006): версии AI-сценариев создаются преподавателем в рантайме.
+    aiScenarioVersions: [],
+    aiRequests: {},
     settings: structuredClone(SEED_SYSTEM_SETTINGS),
     // Раздел «Система» (T4.2-01): лента журналов и сводка самопроверки целостности.
     systemLogs: structuredClone([...readSystemLogsMock()]),

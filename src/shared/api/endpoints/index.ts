@@ -9,14 +9,15 @@ export { adminResetUserPassword, adminSetUserActive, adminSetUserRole } from "./
 export { adminUpdateUser, mapAdminUserError } from "./admin-users";
 export type { AdminUserFailure, AdminUserFailureReason } from "./admin-users";
 export { postAttemptProgress, postCardAttempt } from "./attempts";
-export { LOGIN_FAILURE_MESSAGES, getAuthPolicy, login, mapLoginError } from "./auth";
+export { LOGIN_FAILURE_MESSAGES, changePassword, getAuthPolicy, getSession, login, logout } from "./auth";
+export { logoutAll, mapLoginError } from "./auth";
 export { postCallReply, postCardCall } from "./calls";
-export type { LoginFailure, LoginFailureReason } from "./auth";
+export type { LoginFailure, LoginFailureReason, LoginResult } from "./auth";
 export { getCard, getCardRecordings, getCards, getCardSms, postCardLinks } from "./cards";
 export { postCardReminder, postCardSms, postCardStatus, postCardWorkline } from "./cards";
 export { API_PATHS } from "./paths";
 export { getClassifier, getReference } from "./reference";
-export { getReportJournal, postAttemptEvaluation, postReportFeedback } from "./reports";
+export { downloadReportExport, getReportJournal, postAttemptEvaluation, postReportFeedback } from "./reports";
 export {
   createScenario,
   createSession,
@@ -50,3 +51,26 @@ export {
   listAIScenarioVersions,
   reviseAIScenario,
 } from "./scenarios";
+export {
+  createAssignment,
+  finishAssignment,
+  getAssignment,
+  listAssignments,
+  startAssignment,
+  toStartResult,
+} from "./assignments";
+export { acceptRecommendation, getAnalytics, getGroupInsights, getHistory, getMe } from "./lobby";
+export { getStudentProfile, listRecommendations } from "./lobby";
+export { getKbArticle, listKbArticles, updateKbArticle } from "./kb";
+export { listTickets } from "./tickets";
+export {
+  EXAM_REPLAY_DENIED_MESSAGE,
+  STREET_QUERY_MIN_LENGTH,
+  answerAttempt,
+  fetchTicketAudioFile,
+} from "./operator112";
+export { getNotificationList, getOperatorEvaluation, getTicketAudio, searchStreets } from "./operator112";
+export { sendAttemptEvent, submitAttempt, ticketAudioFileUrl } from "./operator112";
+export type { SubmitAttemptResult } from "./operator112";
+export { listWorkMessages, postReportAudio } from "./work-messages";
+export { getHealth } from "./health";

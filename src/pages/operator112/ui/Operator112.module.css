@@ -1,0 +1,170 @@
+/* Рабочее место режима 112: светлая тема АРМ (--color-gray-*), те же панели и типографика, что у карточки ДДС. */
+.work {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: var(--color-gray-150);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.work__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+}
+
+.work__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.work__subtitle {
+  margin: 0;
+  color: var(--color-light-muted);
+  font-size: var(--font-size-sm);
+}
+
+.work__timers {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.work__grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(480px, 1.4fr);
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+.work__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+.work__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 0;
+  background: var(--color-gray-50);
+}
+
+.work__panel:disabled {
+  opacity: 0.75;
+}
+
+.work__legend {
+  padding: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.work__label {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.work__textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.work__textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.work__counter,
+.work__note {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.work__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+}
+
+.work__hint {
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-ai-badge-bg);
+  border: var(--border-width) solid var(--color-ai-badge-border);
+}
+
+.work__notice {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.work__error {
+  margin: 0;
+  color: var(--color-accent-red);
+  font-weight: var(--font-weight-medium);
+}
+
+.work__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-xl);
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  margin: var(--spacing-2xl);
+  padding: var(--spacing-2xl);
+  background: var(--color-gray-50);
+  border: var(--border-width) solid var(--color-gray-200);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+.problem[data-kind="forbidden"],
+.problem[data-kind="error"] {
+  border-color: var(--color-accent-red);
+}
+
+.problem__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.problem__link {
+  color: var(--color-accent-blue);
+  font-weight: var(--font-weight-medium);
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: var(--color-gray-150);
+}
+
+.result__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+}

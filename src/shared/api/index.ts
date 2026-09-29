@@ -6,12 +6,31 @@
  */
 export { armCardFixtures, cards, classifier, groupReport, reference, reports, scenarios } from "./mocks";
 export { sessions, users } from "./mocks";
-export { ApiError, apiClient, buildQuery, createApiClient } from "./client";
+export { STANDALONE_AI_NOTE, STANDALONE_AI_REASON, STANDALONE_AI_RELEASE } from "./ai-standalone-marker";
+export { isStandaloneAiRelease } from "./ai-standalone-marker";
+export { ApiError, SERVER_REQUIRED_MESSAGE, ServerRequiredError, setUnauthorizedHandler } from "./client";
+export { apiClient, buildQuery, createApiClient } from "./client";
 export type { ApiClient, ApiClientConfig, ApiRequestOptions } from "./client";
 // ИИ-модуль: заменить на реальный сервис — вызывающий код зависит от AiGateway, MockAiGateway подменяется инъекцией.
 export type { AiGateway, AiProvider, AiResponse } from "./ai-gateway";
 export { createMockAiGateway, MockAiGateway } from "./ai-gateway.mock";
 export type { MockAiGatewayDeps } from "./ai-gateway.mock";
+export { createAssignment, finishAssignment, getAssignment, listAssignments } from "./endpoints";
+export { downloadReportExport, getGroupInsights, getStudentProfile, listTickets } from "./endpoints";
+export { getHealth, startAssignment, updateKbArticle } from "./endpoints";
+export { acceptRecommendation, getAnalytics, getHistory, getKbArticle, getMe } from "./endpoints";
+export { listKbArticles, listRecommendations } from "./endpoints";
+export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } from "./endpoints";
+export { fetchTicketAudioFile, getNotificationList, getOperatorEvaluation } from "./endpoints";
+export {
+  getTicketAudio,
+  searchStreets,
+  sendAttemptEvent,
+  submitAttempt,
+  ticketAudioFileUrl,
+} from "./endpoints";
+export type { SubmitAttemptResult } from "./endpoints";
+export { listWorkMessages, postReportAudio } from "./endpoints";
 export { API_PATHS, adminGetSettings, adminListAudit, adminListServices, adminListUsers } from "./endpoints";
 export { adminToggleUserActive, createScenario, createSession, getAttemptEvaluation } from "./endpoints";
 export {
@@ -35,7 +54,8 @@ export { getSessionControl, listUsers, postSessionControl } from "./endpoints";
 export { getReportJournal, postAttemptEvaluation, postReportFeedback } from "./endpoints";
 export { postCallReply, postCardCall } from "./endpoints";
 export { postAttemptProgress, postCardAttempt } from "./endpoints";
-export { LOGIN_FAILURE_MESSAGES, getAuthPolicy, mapLoginError } from "./endpoints";
+export { LOGIN_FAILURE_MESSAGES, changePassword, getAuthPolicy, getSession, logout } from "./endpoints";
+export { logoutAll, mapLoginError } from "./endpoints";
 export { checkGrammar, deleteScenario, generateScenarios, getProfileMapping } from "./endpoints";
 export { getScenario, listMaterials, listTrainingCards, saveProfileMapping } from "./endpoints";
 export { updateScenario, uploadMaterial } from "./endpoints";
@@ -49,7 +69,7 @@ export {
 export { ADMIN_USER_FAILURE_MESSAGES, adminCreateUser, adminResetUserPassword } from "./endpoints";
 export { adminSetUserActive, adminSetUserRole, adminUpdateUser, mapAdminUserError } from "./endpoints";
 export type { AdminUserFailure, AdminUserFailureReason } from "./endpoints";
-export type { LoginFailure, LoginFailureReason } from "./endpoints";
+export type { LoginFailure, LoginFailureReason, LoginResult } from "./endpoints";
 export type { ArmCardFixture, CardEvent, NotificationEntry, NotificationStatus } from "./prototype-types";
 export type { Report, Session, StatusRef, WorkLine } from "./prototype-types";
 export type { ApiErrorBody, ApiErrorCode, ArmCardAddress, ArmCardApplicant } from "./types";
@@ -66,7 +86,7 @@ export type { ClassifierQuery, ClassifierRowsRef, DdsStatus, DdsStatusDef, Diffi
 export type { District, ErrorSeverity, Etalon, Evaluation, EvaluationError, GeoPoint } from "./types";
 export type { GrammarError, GrammarErrorType, GroupReport, GroupReportCharts, IncidentCaller } from "./types";
 export type { IncidentCard, IncidentCardId, IncidentVictims, InternalNumber, LabeledSeries } from "./types";
-export type { LoginRequest, NotificationAddedBy } from "./types";
+export type { ChangePasswordRequest, LoginRequest, NotificationAddedBy } from "./types";
 export type { NotificationEntry as NotificationEntryContract, NotificationMode, PageQuery } from "./types";
 export type { PageResponse, PhoneCall, PublicUser, QueryParams, QueryScalar, QueryValue } from "./types";
 export type { ReferenceData, Report as ReportContract, ReportCharts, ReportError } from "./types";
@@ -138,3 +158,80 @@ export type { AttemptProgressRequest, CardAttemptRequest, CardAttemptResponse } 
 export type { AdminUserActionRequest, AdminUserCreateRequest, AdminUserListQuery } from "./types";
 export type { AdminUserPasswordResetResponse, AdminUserRoleFields, AdminUserState } from "./types";
 export type { AdminUserUpdateRequest } from "./types";
+export type {
+  Analytics,
+  AnalyticsDynamics,
+  AnalyticsTopError,
+  Assignment,
+  AssignmentCreateRequest,
+  AssignmentDetail,
+  AssignmentFormat,
+  AssignmentHints,
+  AssignmentLinkState,
+  AssignmentListQuery,
+  AssignmentNorms,
+  AssignmentParams,
+  AssignmentProgress,
+  AssignmentRandomRule,
+  AssignmentScenarioVersion,
+  AssignmentState,
+  ChainReview,
+  ChainSubmitReview,
+  HistoryItem,
+  HistoryQuery,
+  GroupInsight,
+  HealthStatus,
+  GroupInsights,
+  KbArticle,
+  KbArticlePatch,
+  KbArticlesQuery,
+  KbSections,
+  LobbyMode,
+  Recommendation,
+  RecommendationKind,
+  RecommendationReason,
+  ReportAudioResponse,
+  ReportCall,
+  ReportCheck,
+  ReportCheckResult,
+  ReportTranscriptLine,
+  StartAssignmentResult,
+  StudentProfile,
+  Stats,
+  Ticket,
+  TicketOrigin,
+  TicketsQuery,
+  TypicalError,
+  WorkMessage,
+  WorkMessageKind,
+  WorkMessageStatus,
+  TrainingMode,
+} from "./types";
+export type {
+  AddressSource,
+  CardDraft,
+  CardDraftAddress,
+  CardDraftApplicant,
+  CardDraftCasualties,
+  CardDraftEmergency,
+  CardDraftNotification,
+  CardDraftPhones,
+  CardDraftWhat,
+  FieldDiff,
+  NotificationAdder,
+  NotificationListItem,
+  NotificationListPreview,
+  NotificationListResponse,
+  OperatorAttempt,
+  OperatorAttemptState,
+  OperatorEvaluation,
+  OperatorEvent,
+  OperatorEventKind,
+  OperatorEventRequest,
+  OperatorEventType,
+  OperatorHintStep,
+  OperatorHints,
+  Street,
+  TicketAudio,
+  TicketAudioStatus,
+} from "./types";

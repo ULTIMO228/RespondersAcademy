@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTelephonyStore } from "@/entities/service";
 import type { TelephonyStore } from "@/entities/service";
-import { sessionStore } from "@/entities/user";
+import { SessionProvider } from "@/entities/user";
 import type { CallResponder } from "@/features/call-control";
 import { cards, reference, scenarios, sessions } from "@/shared/api";
-import type { CardDetails, IncidentCard, SessionContract } from "@/shared/api";
+import type { CardDetails, IncidentCard, PublicUser, SessionContract } from "@/shared/api";
 import type * as SharedApi from "@/shared/api";
 
 import type { PhoneApi } from "../api/phoneApi";
@@ -42,6 +42,15 @@ const responder: CallResponder = {
   }),
 };
 
+const STUDENT: PublicUser = {
+  id: STUDENT_ID,
+  login: "ivanov",
+  fullName: "Иванов Сергей Петрович",
+  role: "student",
+  armNumber: 1,
+  isActive: true,
+};
+
 let store: TelephonyStore;
 
 async function flush(ms = 0) {
@@ -54,13 +63,15 @@ async function renderScreen(
   props: { cardId?: string | null; mockLine?: "disconnected" | "error" | null } = {},
 ) {
   render(
-    <PhoneScreen
-      cardId={props.cardId ?? null}
-      mockLine={props.mockLine ?? null}
-      api={api}
-      responder={responder}
-      store={store}
-    />,
+    <SessionProvider user={STUDENT}>
+      <PhoneScreen
+        cardId={props.cardId ?? null}
+        mockLine={props.mockLine ?? null}
+        api={api}
+        responder={responder}
+        store={store}
+      />
+    </SessionProvider>,
   );
   await flush();
 }
@@ -70,19 +81,11 @@ const lineStatus = () => screen.getByRole("button", { name: /Статус лин
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-09-17T08:21:00Z"));
-  sessionStore.set({
-    userId: STUDENT_ID,
-    role: "student",
-    token: "mock-u-005",
-    twoFactorUsed: true,
-    issuedAt: "2026-09-17T11:00:00+03:00",
-  });
   store = createTelephonyStore();
   postCardCall.mockReset();
 });
 
 afterEach(() => {
-  sessionStore.clear();
   vi.useRealTimers();
 });
 

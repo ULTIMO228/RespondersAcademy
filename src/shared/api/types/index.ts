@@ -51,7 +51,8 @@ export type { CardDetails, CardId, CardLink, CardLinkRole, CardLinksResponse } f
 export type { CardRecording, CardReminder, CardReminderRequest, CardRuntimeState } from "./card-runtime";
 export type { CardSms, CardSmsRequest, CardStatusEvent, CardStatusRequest } from "./card-runtime";
 export type { CardWorkLine, CardWorkLineRequest, CardsQuery, SmsDirection } from "./card-runtime";
-export type { ClassifierQuery, LoginRequest, ReportsResponse, ScenarioCreateRequest } from "./requests";
+export type { ChangePasswordRequest, ClassifierQuery, LoginRequest } from "./requests";
+export type { ReportsResponse, ScenarioCreateRequest } from "./requests";
 export type { ScenarioListQuery, ScenarioValidateAction, ScenarioValidateRequest } from "./requests";
 export type { SessionCreateRequest, SessionFeedQuery, SessionFeedResponse } from "./requests";
 export type { SessionListQuery, ToggleUserActiveRequest, UserListQuery } from "./requests";
@@ -87,3 +88,67 @@ export type {
   StudentErrorsResponse,
   TopMistakeItem,
 } from "./errors";
+export type {
+  Assignment,
+  AssignmentCreateRequest,
+  AssignmentDetail,
+  AssignmentFormat,
+  AssignmentHints,
+  AssignmentLinkState,
+} from "./assignments";
+export type {
+  AssignmentListQuery,
+  AssignmentNorms,
+  AssignmentParams,
+  AssignmentProgress,
+} from "./assignments";
+export type {
+  AssignmentRandomRule,
+  AssignmentState,
+  ChainReview,
+  ChainSubmitReview,
+  StartAssignmentResult,
+} from "./assignments";
+export type { TrainingMode } from "./assignments";
+export type { AssignmentScenarioVersion } from "./assignments";
+export type { Ticket, TicketOrigin, TicketsQuery } from "./tickets";
+export type { GroupInsight, GroupInsights, StudentProfile, TypicalError } from "./lobby";
+export type { Analytics, AnalyticsDynamics, AnalyticsTopError, HistoryItem, HistoryQuery } from "./lobby";
+export type { LobbyMode, Recommendation, RecommendationKind, RecommendationReason, Stats } from "./lobby";
+export type { KbArticle, KbArticlePatch, KbArticlesQuery, KbSections } from "./kb";
+export type { ReportAudioResponse, ReportCall, ReportCheck, ReportCheckResult } from "./work-messages";
+export type { ReportTranscriptLine, WorkMessage, WorkMessageKind, WorkMessageStatus } from "./work-messages";
+export type {
+  AddressSource,
+  CardDraft,
+  CardDraftAddress,
+  CardDraftApplicant,
+  CardDraftCasualties,
+} from "./operator112";
+export type {
+  CardDraftEmergency,
+  CardDraftNotification,
+  CardDraftPhones,
+  CardDraftWhat,
+} from "./operator112";
+export type {
+  FieldDiff,
+  NotificationAdder,
+  NotificationListItem,
+  NotificationListPreview,
+} from "./operator112";
+export type {
+  NotificationListResponse,
+  OperatorAttempt,
+  OperatorAttemptState,
+  OperatorEvaluation,
+} from "./operator112";
+export type {
+  OperatorEvent,
+  OperatorEventKind,
+  OperatorEventRequest,
+  OperatorEventType,
+} from "./operator112";
+export type { OperatorHintStep } from "./operator112";
+export type { OperatorHints, Street, TicketAudio, TicketAudioStatus } from "./operator112";
+export type { HealthStatus } from "./health";

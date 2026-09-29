@@ -1,0 +1,27 @@
+/* Состояние «нужен сервер»: нейтральный блок в палитре светлой темы АРМ, без акцентных цветов ошибки. */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  background: var(--color-gray-50);
+  border: var(--border-width) solid var(--color-gray-200);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+}
+
+.state__section {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.state__message {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.state__hint {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-md);
+}

@@ -5,11 +5,14 @@ import type { ComponentProps } from "react";
 
 import { ROUTES } from "@/shared/config";
 
-import { useLogout } from "../model/useAuthSession";
+import { useLogout } from "../model/useSessionUser";
 
 type LogoutLinkProps = Omit<ComponentProps<typeof Link>, "href">;
 
-/** Ссылка «выйти»: завершает сессию (очищает cookie) и ведёт на /login. Вид задаёт вызывающий (className). */
+/**
+ * Ссылка «выйти»: запрос на сервер (он отзывает сессию и очищает cookie) уходит по клику, переход на /login идёт как
+ * обычная навигация ссылки — /login вне гварда, поэтому ждать ответа не нужно. Вид задаёт вызывающий (className).
+ */
 export function LogoutLink({ onClick, ...rest }: LogoutLinkProps) {
   const logout = useLogout();
   return (
@@ -17,7 +20,7 @@ export function LogoutLink({ onClick, ...rest }: LogoutLinkProps) {
       href={ROUTES.login}
       prefetch={false}
       onClick={(event) => {
-        logout();
+        void logout();
         onClick?.(event);
       }}
       {...rest}

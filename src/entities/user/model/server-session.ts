@@ -1,62 +1,86 @@
 /*
- * Сессия на сервере (серверные компоненты/лэйауты): cookie SESSION_COOKIE → AuthSession + профиль.
- * Public API — index.server.ts (не импортировать в клиентские компоненты: next/headers + mocks/users.json).
+ * Слой доступа к сессии на сервере Next (DAL, руководство Next.js «Authentication»: оптимистичная проверка — в proxy,
+ * основная — здесь). Cookie выдаёт бэкенд (или мок-слой): подпись и отзыв проверяет он, а не Next. Профиль пользователя
+ * берётся запросом GET /auth/session на СОБСТВЕННЫЙ origin с пробросом cookie: запрос обслуживает бэкенд по rewrite
+ * (задан BACKEND_URL) либо мок-обработчик — один код для обоих режимов, BACKEND_URL здесь не читается (AGENTS §6).
+ * Public API — index.server.ts (не импортировать в клиентские компоненты: next/headers).
  */
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
-import type { AuthSession, PublicUser, UserRole } from "@/shared/api";
-import { ROUTES } from "@/shared/config";
-import { systemClock } from "@/shared/lib";
+import type { PublicUser, UserRole } from "@/shared/api";
+import { APP_ENV, ROUTES } from "@/shared/config";
 
-import { findUser } from "./demoUser";
 import { buildLoginHref } from "./route-access";
-import { isSessionExpired, parseSession, SESSION_COOKIE } from "./session";
+import { RETURN_URL_HEADER, SESSION_COOKIE } from "./session";
 
-const FALLBACK_PROFILE = { armNumber: 0, isActive: true } as const;
+const HTTP_UNAUTHORIZED = 401;
+const SESSION_PATH = "/auth/session";
 
 export interface SessionUser {
-  session: AuthSession;
-  /** Профиль пользователя сессии (без пароля). */
+  /** Профиль пользователя сессии (без пароля) — ответ сервера. */
   user: PublicUser;
 }
 
-/** Текущая сессия из cookie запроса; нет, битая или истекла (24 ч) → null. */
-export async function getServerSession(): Promise<AuthSession | null> {
-  const cookieStore = await cookies();
-  const session = parseSession(cookieStore.get(SESSION_COOKIE)?.value);
-  if (!session || isSessionExpired(session, systemClock.now())) return null;
-  return session;
+/** Ошибка проверки сессии не из-за самой сессии (нет связи с сервером, 5xx): показывается страницей ошибки, не входом. */
+export class SessionVerificationError extends Error {
+  constructor(status: number) {
+    super(`Не удалось проверить сессию: сервер ответил ${status}`);
+    this.name = "SessionVerificationError";
+  }
 }
 
-function toPublicUser(session: AuthSession): PublicUser {
-  const found = findUser(session.userId);
-  // Учётка создана в рантайм-сторе мок-слоя (нет в статике) — показываем идентификатор.
-  if (!found)
-    return {
-      ...FALLBACK_PROFILE,
-      id: session.userId,
-      login: session.userId,
-      fullName: session.userId,
-      role: session.role,
-    };
-  const { id, login, fullName, role, armNumber, isActive, group, service } = found;
-  return { id, login, fullName, role, armNumber, isActive, group, service };
-}
-
-/** Сессия + профиль пользователя (шапка, блок оператора); без сессии → null. */
-export async function getSessionUser(): Promise<SessionUser | null> {
-  const session = await getServerSession();
-  return session ? { session, user: toPublicUser(session) } : null;
+/** Адрес запроса профиля: база API (относительная — от origin текущего запроса; абсолютная — как есть). */
+async function resolveSessionUrl(): Promise<string> {
+  const base = APP_ENV.mockApiBaseUrl.replace(/\/+$/, "");
+  if (/^https?:\/\//.test(base)) return `${base}${SESSION_PATH}`;
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("host") ?? "localhost:3000";
+  const protocol = requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim() || "http";
+  return `${protocol}://${host}${base}${SESSION_PATH}`;
 }
 
 /**
- * Гвард серверного лэйаута раздела (вторая линия после proxy): без сессии → /login,
- * роль не из матрицы раздела → /forbidden. Возвращает сессию и профиль.
+ * Профиль по cookie запроса; нет cookie или сервер ответил 401 (подделка, срок, отзыв, блокировка) → null.
+ * Результат кэшируется на время рендера (React.cache): лэйаут и страница делают один запрос.
  */
-export async function requireSessionUser(role: UserRole): Promise<SessionUser> {
+const fetchSessionUser = cache(async (): Promise<PublicUser | null> => {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const response = await fetch(await resolveSessionUrl(), {
+    headers: { cookie: `${SESSION_COOKIE}=${token}` },
+    cache: "no-store",
+  });
+  if (response.status === HTTP_UNAUTHORIZED) return null;
+  if (!response.ok) throw new SessionVerificationError(response.status);
+  return (await response.json()) as PublicUser;
+});
+
+/** Сессия + профиль (шапка, блок оператора); без действующей сессии → null (без редиректа). */
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const user = await fetchSessionUser();
+  return user ? { user } : null;
+}
+
+/** Куда вернуть после входа: проставляет proxy; в лэйауте вне зоны proxy — без возврата. */
+async function readReturnUrl(): Promise<string | undefined> {
+  return (await headers()).get(RETURN_URL_HEADER) ?? undefined;
+}
+
+/**
+ * Гвард серверного лэйаута/страницы: сервер подтвердил сессию, иначе → /login?reason=expired&returnUrl=….
+ * Кэшируется на рендер.
+ */
+export const verifySession = cache(async (): Promise<SessionUser> => {
   const sessionUser = await getSessionUser();
-  if (!sessionUser) redirect(buildLoginHref());
-  if (sessionUser.session.role !== role) redirect(ROUTES.forbidden);
+  if (!sessionUser) redirect(buildLoginHref(await readReturnUrl(), "expired"));
+  return sessionUser;
+});
+
+/** verifySession + роль раздела (вторая линия после proxy): чужая роль → /forbidden. */
+export async function requireSessionUser(role: UserRole): Promise<SessionUser> {
+  const sessionUser = await verifySession();
+  if (sessionUser.user.role !== role) redirect(ROUTES.forbidden);
   return sessionUser;
 }

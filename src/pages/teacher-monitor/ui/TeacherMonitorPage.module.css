@@ -2,52 +2,63 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-xl);
-  background: var(--color-gray-100);
+  gap: var(--pf-space-4);
+  margin-bottom: var(--pf-space-4);
+  padding: var(--pf-space-4) var(--pf-space-5);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
 }
 
 .monitor__back {
   display: inline-flex;
   align-items: center;
-  height: var(--control-height-md);
-  padding: 0 var(--spacing-lg);
-  border: var(--border-width) solid var(--color-graphite-300);
-  border-radius: var(--radius-sm);
-  background: var(--color-white);
-  color: var(--color-ink);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  min-height: var(--pf-target-min);
+  height: var(--pf-control-height);
+  padding: 0 var(--pf-space-4);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+  color: var(--pf-text);
+  font-size: var(--pf-fs-body);
+  font-weight: var(--pf-fw-medium);
   text-decoration: none;
 }
 
 .monitor__back:hover {
-  background: var(--color-gray-50);
+  background: var(--pf-bg-hover);
+}
+
+.monitor__back:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
 }
 
 .monitor__title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-regular);
+  margin: 0;
+  font-size: var(--pf-fs-h2);
+  font-weight: var(--pf-fw-bold);
 }
 
 .monitor__readonly {
   display: inline-flex;
   align-items: center;
   height: 24px;
-  padding: 0 var(--spacing-md);
-  border-radius: var(--radius-sm);
-  background: var(--color-graphite-900);
-  color: var(--color-white);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
+  padding: 0 var(--pf-space-3);
+  border-radius: var(--pf-radius-chip);
+  background: var(--pf-bg-subtle);
+  border: 1px solid var(--pf-border);
+  color: var(--pf-text);
+  font-size: var(--pf-fs-caption);
+  font-weight: var(--pf-fw-bold);
   text-transform: uppercase;
 }
 
 .monitor__note {
   flex-basis: 100%;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-sm);
+  margin: 0;
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-body);
 }
 
 .monitor__layout {

@@ -64,7 +64,7 @@ check() {
 # req <METHOD> <путь от /api/mock> [<тело JSON>] — с cookie сессии, если она уже получена.
 req() {
   local method="$1" path="$2" body="${3:-}"
-  local args=(-sS -o "$WORK_DIR/body" -w '%{http_code}' -X "$method" "$API$path")
+  local args=(-sS -o "$WORK_DIR/body" -D "$WORK_DIR/headers" -w '%{http_code}' -X "$method" "$API$path")
   [ -n "${SESSION_COOKIE:-}" ] && args+=(-H "Cookie: arm112_session=$SESSION_COOKIE")
   if [ -n "$body" ]; then
     args+=(-H 'Content-Type: application/json' --data-binary "$body")
@@ -76,6 +76,11 @@ req() {
 
 # jq-заменитель: python3 уже нужен проекту (npm run mocks:validate).
 jget() { python3 "$WORK_DIR/jget.py" "$@" <"$WORK_DIR/body"; }
+
+# session_cookie_from_headers — значение arm112_session из Set-Cookie последнего ответа: cookie ставит сервер (HttpOnly).
+session_cookie_from_headers() {
+  grep -i '^set-cookie: arm112_session=' "$WORK_DIR/headers" | head -1 | sed -E 's/^[^=]*=([^;]*).*/\1/' | tr -d '\r'
+}
 
 cat >"$WORK_DIR/jget.py" <<'PY'
 import json
@@ -98,14 +103,6 @@ PY
 cat >"$WORK_DIR/tools.py" <<'PY'
 import json
 import sys
-
-
-def urlencode_cookie() -> None:
-    from urllib.parse import quote
-
-    session = json.load(sys.stdin)
-    fields = ("userId", "role", "token", "twoFactorUsed", "issuedAt")
-    print(quote(json.dumps({key: session[key] for key in fields}, ensure_ascii=False), safe=""))
 
 
 def feed_issued_at() -> None:
@@ -155,7 +152,7 @@ step_login() {
   req POST /auth/login "{\"login\":\"$LOGIN\",\"password\":\"$PASSWORD\",\"armNumber\":$ARM_NUMBER}"
   check "вход $LOGIN / АРМ $ARM_NUMBER / 2FA $TWO_FACTOR" 200 '"role":"student"' || return 1
   STUDENT_ID="$(jget userId)"
-  SESSION_COOKIE="$(python3 "$WORK_DIR/tools.py" urlencode-cookie <"$WORK_DIR/body")"
+  SESSION_COOKIE="$(session_cookie_from_headers)"
   [ -n "$STUDENT_ID" ] && [ -n "$SESSION_COOKIE" ] || {
     fail "cookie сессии arm112_session" "пустая сессия"
     return 1

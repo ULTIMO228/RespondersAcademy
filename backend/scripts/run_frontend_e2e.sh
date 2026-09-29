@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # T074 — гейт волны A: бэкенд с чистым сидом + собранный фронт (rewrite /api/mock → BACKEND_URL) + три сквозных
 # скрипта фронта (scripts/e2e-student.sh, e2e-teacher.sh, e2e-admin.sh). Запуск из корня репозитория или из backend/:
-#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin]
+#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|chain|platform]
+# --only chain (спека 002, T026): чистая БД + фикстура цепочки A → B (backend/scripts/seed_chain_demo.py) + Playwright
+# e2e/two-mode-full-path.spec.ts против этого стенда (штатный Playwright сам поднимает только фронт без бэкенда).
+# --only platform (спека 002, T058): чистая БД + Playwright e2e/platform.spec.ts (путь по платформе) и
+# e2e/auth-security.spec.ts (cookie, подделка, повтор после выхода, две вкладки, смена пароля, лимит попыток) против стенда.
+# PLAYWRIGHT_CONFIG — необязательный путь к другой конфигурации Playwright (например, с другим executablePath браузера).
 # Переменные: BACKEND_PORT (8130), FRONT_PORT (3130), E2E_DB (backend/var/e2e.db).
 # Linux/macOS/WSL/Git Bash. В Git Bash (MSYS) mingw-curl портит кириллицу в argv, поэтому в PATH подставляется
 # системный C:\Windows\System32\curl.exe (он передаёт UTF-8 корректно); сами скрипты фронта не меняются.
@@ -39,10 +44,14 @@ kill_port() { # освободить порт: `uv run`/`npx` — обёртки
     netstat -ano 2>/dev/null | tr -d '\r' | awk -v p=":$port" '$2 ~ p"$" && $4 == "LISTENING" && !seen[$5]++ { print $5 }' | while read -r pid; do  # без sort: в PATH впереди System32, а sort.exe Windows добавляет CR
       [ -n "$pid" ] && taskkill //F //PID "$pid" >/dev/null 2>&1 </dev/null
     done
+  elif command -v lsof >/dev/null 2>&1; then  # только слушающий сокет: клиенты порта (фронт → бэкенд) не должны погибнуть вместе с сервером
+    lsof -ti "tcp:$port" -sTCP:LISTEN | xargs -r kill 2>/dev/null
+    # uvicorn после SIGTERM ждёт закрытия keep-alive соединений фронта и может не завершиться: через 3 с — SIGKILL.
+    for _ in $(seq 1 15); do lsof -ti "tcp:$port" -sTCP:LISTEN >/dev/null 2>&1 || break; sleep 0.2; done
+    lsof -ti "tcp:$port" -sTCP:LISTEN | xargs -r kill -9 2>/dev/null
+    for _ in $(seq 1 25); do lsof -ti "tcp:$port" -sTCP:LISTEN >/dev/null 2>&1 || break; sleep 0.2; done
   elif command -v fuser >/dev/null 2>&1; then
     fuser -k "$port/tcp" >/dev/null 2>&1
-  elif command -v lsof >/dev/null 2>&1; then
-    lsof -ti "tcp:$port" | xargs -r kill 2>/dev/null
   fi
 }
 ENV_LOCAL="$ROOT/.env.local"
@@ -109,6 +118,31 @@ FRONT_PID=$!
 wait_for "http://127.0.0.1:$FRONT_PORT/api/mock/auth/policy" 90 || { tail -50 "$LOG_DIR/front.log"; exit 1; }
 
 STATUS=0
+if [ "$ONLY" = "chain" ]; then
+  echo "▸ фикстура цепочки A → B (seed_chain_demo.py)"
+  CHAIN_JSON="$(cd "$BACKEND_DIR" && uv run python scripts/seed_chain_demo.py)" || { echo "  FAIL фикстура цепочки"; exit 1; }
+  echo "$CHAIN_JSON"
+  # Точный адрес карточки сценария: обучающийся вводит его в «Описательный адрес» (см. e2e/two-mode-full-path.spec.ts).
+  export E2E_CHAIN_ADDRESS="$(printf '%s' "$CHAIN_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("address", ""))')"
+  echo "▸ Playwright: e2e/two-mode-full-path.spec.ts (стенд на :$FRONT_PORT)"
+  if (cd "$ROOT" && E2E_REUSE_SERVER=true E2E_BASE_URL="http://127.0.0.1:$FRONT_PORT" npx playwright test ${PLAYWRIGHT_CONFIG:+--config "$PLAYWRIGHT_CONFIG"} e2e/two-mode-full-path.spec.ts 2>&1 | tee "$LOG_DIR/e2e-chain.log" | tail -25); then
+    echo "  PASS e2e-chain (лог: $LOG_DIR/e2e-chain.log)"
+  else
+    echo "  FAIL e2e-chain (полный вывод: $LOG_DIR/e2e-chain.log)"
+    STATUS=1
+  fi
+  exit "$STATUS"
+fi
+if [ "$ONLY" = "platform" ]; then
+  echo "▸ Playwright: e2e/platform.spec.ts e2e/auth-security.spec.ts (стенд на :$FRONT_PORT)"
+  if (cd "$ROOT" && E2E_BACKEND=1 E2E_REUSE_SERVER=true E2E_BASE_URL="http://127.0.0.1:$FRONT_PORT" npx playwright test ${PLAYWRIGHT_CONFIG:+--config "$PLAYWRIGHT_CONFIG"} e2e/platform.spec.ts e2e/auth-security.spec.ts 2>&1 | tee "$LOG_DIR/e2e-platform.log" | tail -25); then
+    echo "  PASS e2e-platform (лог: $LOG_DIR/e2e-platform.log)"
+  else
+    echo "  FAIL e2e-platform (полный вывод: $LOG_DIR/e2e-platform.log)"
+    STATUS=1
+  fi
+  exit "$STATUS"
+fi
 for name in student teacher admin; do
   [ -n "$ONLY" ] && [ "$ONLY" != "$name" ] && continue
   [ "$name" != "student" ] && start_backend

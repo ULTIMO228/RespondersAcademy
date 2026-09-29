@@ -1,0 +1,21 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-4);
+  margin-bottom: var(--pf-space-4);
+}
+
+.filters > * {
+  min-width: 200px;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--pf-space-4);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+}

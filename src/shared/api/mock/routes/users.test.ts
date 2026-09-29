@@ -4,23 +4,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { GET as usersRoute } from "../../../../../app/api/mock/users/route";
 import type { ApiErrorBody, PublicUser, UserRole } from "../../types";
+import { buildSessionCookie } from "../session-cookie";
 import { resetMockStore } from "../store";
 
 const BASE = "http://localhost/api/mock/users";
 
-function sessionCookie(userId: string, role: UserRole): string {
-  const session = {
-    userId,
-    role,
-    token: `mock-${userId}`,
-    twoFactorUsed: true,
-    issuedAt: new Date().toISOString(),
-  };
-  return `arm112_session=${encodeURIComponent(JSON.stringify(session))}`;
-}
-
 function request(query = "", viewer?: { userId: string; role: UserRole }): Request {
-  const cookie = viewer ? sessionCookie(viewer.userId, viewer.role) : undefined;
+  const cookie = viewer ? buildSessionCookie(viewer.userId) : undefined;
   return new Request(`${BASE}${query}`, { headers: cookie ? { cookie } : {} });
 }
 

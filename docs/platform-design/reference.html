@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: справочник</title>
+    <link rel="stylesheet" href="sketch.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="Разделы">
+        <div class="brand">
+          <span class="brand__mark">112</span
+          ><span class="brand__name">Учебный тренажёр<br />оператора ДДС</span>
+        </div>
+        <ul class="nav">
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" /></svg
+              >Главная</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M8 8h8M8 12h8M8 16h5" /></svg
+              >Задания</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              >Результаты</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17l6-6 4 4 8-9" />
+                <path d="M15 6h6v6" /></svg
+              >Аналитика</a
+            >
+          </li>
+          <li>
+            <a href="#" aria-current="page"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" />
+                <path d="M4 21V5" /></svg
+              >Справочник</a
+            >
+          </li>
+          <li class="nav__sep" role="separator"></li>
+          <li>
+            <a class="nav__sim" href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" /></svg
+              >Открыть АРМ</a
+            >
+          </li>
+          <li>
+            <a href="#"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0116 0" /></svg
+              >Профиль</a
+            >
+          </li>
+        </ul>
+        <p class="sidebar__note">Учебная система. Не является рабочей системой-112</p>
+      </aside>
+      <div>
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Справочник</span><span aria-hidden="true">/</span><span aria-current="page">Статьи</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="search">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по справочнику</span>
+            </div>
+            <div class="user">
+              <span class="user__avatar">ИС</span>
+              <div>
+                <div>Иванов С. П.</div>
+                <div class="user__role">Обучающийся · ДДС-01</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Справочник</h1>
+              <p>Статьи базы знаний, номера, памятки, горячие клавиши АРМ и статусы</p>
+            </div>
+            <div class="search" style="width: 360px">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-4-4" /></svg
+              ><span>Поиск по всем разделам</span>
+            </div>
+          </div>
+          <div class="tabs" role="tablist">
+            <a href="#" aria-current="page">Статьи (105)</a><a href="#">Служебные номера</a
+            ><a href="#">Памятки</a><a href="#">Горячие клавиши</a><a href="#">Статусы</a>
+          </div>
+          <div class="toolbar">
+            <span class="select"
+              >Раздел: все (5)
+              <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px">
+                <path d="M6 9l6 6 6-6" /></svg></span
+            ><span class="select"
+              >Группа: пожары
+              <svg class="icon" viewBox="0 0 24 24" style="width: 16px; height: 16px">
+                <path d="M6 9l6 6 6-6" /></svg
+            ></span>
+          </div>
+          <div class="article-layout">
+            <nav class="card article-list" style="padding: 12px" aria-label="Статьи">
+              <a href="#" aria-current="true"><span>Пожар в жилом доме</span><small>Пожары</small></a
+              ><a href="#"><span>Задымление в подъезде</span><small>Пожары</small></a
+              ><a href="#"><span>Пожар в гаражном кооперативе</span><small>Пожары</small></a
+              ><a href="#"><span>Запах бытового газа</span><small>Газ</small></a
+              ><a href="#"><span>ДТП с пострадавшими</span><small>ДТП</small></a
+              ><a href="#"><span>Течь (прорыв трубы)</span><small>ЖКХ</small></a>
+            </nav>
+            <article class="card article">
+              <div class="caps">Пожары · группа ЕКП</div>
+              <h2>Пожар в жилом доме</h2>
+              <p class="muted">Порядок первичного опроса заявителя и передачи карточки экстренным службам.</p>
+              <h3>Что уточнить у заявителя</h3>
+              <ol>
+                <li>Точный адрес: улица, дом, корпус, подъезд, этаж.</li>
+                <li>Есть ли пострадавшие и сколько.</li>
+                <li>Что горит и где виден дым.</li>
+              </ol>
+              <h3>Кому передать</h3>
+              <p>
+                Служба 101, при пострадавших — 103; при угрозе газа — 104. Порядок подчинён нормативу: реакция
+                30 с, отработка 3 мин.
+              </p>
+              <p style="margin-top: 16px">
+                <a class="btn btn--secondary" href="#">Пройти тренировку по теме</a>
+              </p>
+            </article>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

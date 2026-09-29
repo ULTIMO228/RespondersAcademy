@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useTransition } from "react";
 
-import { getAssessmentReview, getAssessmentState, resolveAssessment } from "@/shared/api";
+import {
+  STANDALONE_AI_NOTE,
+  STANDALONE_AI_REASON,
+  getAssessmentReview,
+  getAssessmentState,
+  resolveAssessment,
+} from "@/shared/api";
 import type {
   AssessmentAxes,
   AssessmentResolveRequest,
@@ -181,6 +187,12 @@ export function AIAssessmentPanel({
         </h3>
         <span className={styles.panel__revision}>rev.{effectiveRevision}</span>
       </div>
+
+      {assessmentState?.reasonCode === STANDALONE_AI_REASON ? (
+        <p className={styles.panel__revision} data-testid="ai-standalone-note">
+          {STANDALONE_AI_NOTE}
+        </p>
+      ) : null}
 
       <div className={styles.panel__statusRow}>
         <span className={[styles.statusBadge, STATUS_BADGE_CLASSES[effectiveStatus]].join(" ")}>

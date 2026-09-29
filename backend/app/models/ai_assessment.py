@@ -177,6 +177,46 @@ BEGIN SELECT RAISE(ABORT, 'evaluation revision is immutable'); END
 """
 
 
+POSTGRES_EVALUATION_GUARD_FUNCTION = (
+    "CREATE OR REPLACE FUNCTION guard_ai_evaluation_revision() RETURNS trigger AS $$ "
+    "DECLARE axis_name text; axis_type text; axis_value text; axis_count integer; distinct_count integer; "
+    "BEGIN "
+    "IF TG_OP = 'INSERT' THEN "
+    "IF jsonb_typeof(NEW.axes) IS DISTINCT FROM 'object' "
+    "OR jsonb_typeof(NEW.available_axes) IS DISTINCT FROM 'array' "
+    "THEN RAISE EXCEPTION 'invalid evaluation axes'; END IF; "
+    "SELECT count(*) INTO axis_count FROM jsonb_object_keys(NEW.axes); "
+    "IF axis_count <> 4 "
+    "OR NOT (NEW.axes ?& ARRAY['timeScore', 'correctnessScore', 'grammarScore', 'semanticScore']) "
+    "THEN RAISE EXCEPTION 'invalid evaluation axes'; END IF; "
+    "SELECT count(*) INTO axis_count FROM jsonb_array_elements_text(NEW.available_axes) AS axes(axis_value); "
+    "SELECT count(DISTINCT axes.axis_value) INTO distinct_count "
+    "FROM jsonb_array_elements_text(NEW.available_axes) AS axes(axis_value); "
+    "IF axis_count <> distinct_count THEN RAISE EXCEPTION 'duplicate available evaluation axes'; END IF; "
+    "FOR axis_name IN SELECT jsonb_array_elements_text(NEW.available_axes) LOOP "
+    "IF axis_name IS NULL OR axis_name NOT IN ('timeScore', 'correctnessScore', 'grammarScore', 'semanticScore') "
+    "THEN RAISE EXCEPTION 'unknown available evaluation axis'; END IF; END LOOP; "
+    "FOR axis_name IN SELECT unnest(ARRAY['timeScore', 'correctnessScore', 'grammarScore', 'semanticScore']) LOOP "
+    "axis_type := COALESCE(jsonb_typeof(NEW.axes -> axis_name), 'missing'); "
+    "IF axis_type = 'number' THEN axis_value := NEW.axes ->> axis_name; "
+    "IF axis_value !~ '^(0|[1-9][0-9]*)$' OR axis_value::integer NOT BETWEEN 0 AND 100 "
+    "THEN RAISE EXCEPTION 'invalid evaluation axis score'; END IF; "
+    "ELSIF axis_type <> 'null' THEN RAISE EXCEPTION 'missing or invalid evaluation axis'; END IF; END LOOP; "
+    "IF NEW.status IN ('pending', 'review_required') AND NEW.total_score IS NOT NULL "
+    "THEN RAISE EXCEPTION 'score is not available'; END IF; "
+    "IF NEW.status IN ('preliminary', 'final') AND (NEW.total_score IS NULL OR NEW.total_score NOT BETWEEN 0 AND 100 "
+    "OR jsonb_array_length(NEW.available_axes) = 0) THEN RAISE EXCEPTION 'total score requires available axes'; END IF; "
+    "FOR axis_name IN SELECT jsonb_array_elements_text(NEW.available_axes) LOOP "
+    "IF jsonb_typeof(NEW.axes -> axis_name) <> 'number' THEN RAISE EXCEPTION 'applicable axis is unresolved'; END IF; END LOOP; "
+    "RETURN NEW; END IF; "
+    "RAISE EXCEPTION 'evaluation revision is immutable'; END; $$ LANGUAGE plpgsql"
+)
+POSTGRES_EVALUATION_GUARD_TRIGGER = (
+    "CREATE TRIGGER trg_ai_evaluation_revision_immutable BEFORE INSERT OR UPDATE OR DELETE ON ai_evaluation_revisions "
+    "FOR EACH ROW EXECUTE FUNCTION guard_ai_evaluation_revision()"
+)
+
+
 def install_ai_assessment_guards(connection: Connection) -> None:
     """Idempotently upgrades SQLite databases created before the guards were added."""
     if connection.dialect.name == "sqlite":
@@ -203,48 +243,12 @@ event.listen(
 event.listen(
     EvaluationRevision.__table__,
     "after_create",
-    DDL(
-        "CREATE OR REPLACE FUNCTION guard_ai_evaluation_revision() RETURNS trigger AS $$ "
-        "DECLARE axis_name text; axis_type text; axis_value text; axis_count integer; distinct_count integer; "
-        "BEGIN "
-        "IF TG_OP = 'INSERT' THEN "
-        "IF jsonb_typeof(NEW.axes) IS DISTINCT FROM 'object' "
-        "OR jsonb_typeof(NEW.available_axes) IS DISTINCT FROM 'array' "
-        "THEN RAISE EXCEPTION 'invalid evaluation axes'; END IF; "
-        "SELECT count(*) INTO axis_count FROM jsonb_object_keys(NEW.axes); "
-        "IF axis_count <> 4 "
-        "OR NOT (NEW.axes ?& ARRAY['timeScore', 'correctnessScore', 'grammarScore', 'semanticScore']) "
-        "THEN RAISE EXCEPTION 'invalid evaluation axes'; END IF; "
-        "SELECT count(*) INTO axis_count FROM jsonb_array_elements_text(NEW.available_axes) AS axes(axis_value); "
-        "SELECT count(DISTINCT axes.axis_value) INTO distinct_count "
-        "FROM jsonb_array_elements_text(NEW.available_axes) AS axes(axis_value); "
-        "IF axis_count <> distinct_count THEN RAISE EXCEPTION 'duplicate available evaluation axes'; END IF; "
-        "FOR axis_name IN SELECT jsonb_array_elements_text(NEW.available_axes) LOOP "
-        "IF axis_name IS NULL OR axis_name NOT IN ('timeScore', 'correctnessScore', 'grammarScore', 'semanticScore') "
-        "THEN RAISE EXCEPTION 'unknown available evaluation axis'; END IF; END LOOP; "
-        "FOR axis_name IN SELECT unnest(ARRAY['timeScore', 'correctnessScore', 'grammarScore', 'semanticScore']) LOOP "
-        "axis_type := COALESCE(jsonb_typeof(NEW.axes -> axis_name), 'missing'); "
-        "IF axis_type = 'number' THEN axis_value := NEW.axes ->> axis_name; "
-        "IF axis_value !~ '^(0|[1-9][0-9]*)$' OR axis_value::integer NOT BETWEEN 0 AND 100 "
-        "THEN RAISE EXCEPTION 'invalid evaluation axis score'; END IF; "
-        "ELSIF axis_type <> 'null' THEN RAISE EXCEPTION 'missing or invalid evaluation axis'; END IF; END LOOP; "
-        "IF NEW.status IN ('pending', 'review_required') AND NEW.total_score IS NOT NULL "
-        "THEN RAISE EXCEPTION 'score is not available'; END IF; "
-        "IF NEW.status IN ('preliminary', 'final') AND (NEW.total_score IS NULL OR NEW.total_score NOT BETWEEN 0 AND 100 "
-        "OR jsonb_array_length(NEW.available_axes) = 0) THEN RAISE EXCEPTION 'total score requires available axes'; END IF; "
-        "FOR axis_name IN SELECT jsonb_array_elements_text(NEW.available_axes) LOOP "
-        "IF jsonb_typeof(NEW.axes -> axis_name) <> 'number' THEN RAISE EXCEPTION 'applicable axis is unresolved'; END IF; END LOOP; "
-        "RETURN NEW; END IF; "
-        "RAISE EXCEPTION 'evaluation revision is immutable'; END; $$ LANGUAGE plpgsql"
-    ).execute_if(dialect="postgresql"),
+    DDL(POSTGRES_EVALUATION_GUARD_FUNCTION).execute_if(dialect="postgresql"),
 )
 event.listen(
     EvaluationRevision.__table__,
     "after_create",
-    DDL(
-        "CREATE TRIGGER trg_ai_evaluation_revision_immutable BEFORE INSERT OR UPDATE OR DELETE ON ai_evaluation_revisions "
-        "FOR EACH ROW EXECUTE FUNCTION guard_ai_evaluation_revision()"
-    ).execute_if(dialect="postgresql"),
+    DDL(POSTGRES_EVALUATION_GUARD_TRIGGER).execute_if(dialect="postgresql"),
 )
 
 

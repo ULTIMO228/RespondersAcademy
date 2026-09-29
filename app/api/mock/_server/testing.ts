@@ -7,3 +7,4 @@
 export { readGroupReport, readReports } from "@/shared/api/mock";
 export { listAuditLog } from "@/shared/api/mock";
 export { resetMockStore } from "@/shared/api/mock";
+export { buildSessionCookie, buildSessionToken, ensureTestStudent } from "@/shared/api/mock";

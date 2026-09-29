@@ -14,3 +14,4 @@ extracted.txt
 package-lock.json
 backend/
 *.md
+.claude/launch.json

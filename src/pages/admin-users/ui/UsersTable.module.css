@@ -30,20 +30,21 @@
 }
 
 .registry__table th {
-  height: 28px;
-  padding: 0 var(--spacing-md);
-  background: var(--color-graphite-900);
-  color: var(--color-light-muted);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-regular);
+  height: 40px;
+  padding: 0 var(--pf-space-4);
+  background: var(--pf-bg-subtle);
+  border-bottom: 1px solid var(--pf-border);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-caption);
+  font-weight: var(--pf-fw-medium);
   text-align: left;
   white-space: nowrap;
 }
 
 .registry__table td {
-  height: 32px;
-  padding: var(--spacing-xxs) var(--spacing-md);
-  border-bottom: var(--border-width) solid var(--color-gray-100);
+  height: 44px;
+  padding: var(--pf-space-2) var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-border);
   vertical-align: middle;
 }
 

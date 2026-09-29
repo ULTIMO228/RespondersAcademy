@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { requireSessionUser } from "@/entities/user/index.server";
+import { SimulatorBar } from "@/widgets/simulator-bar";
 import type { UserRole } from "@/shared/api";
 
 import { AuthSessionProvider } from "../session";
@@ -14,10 +15,13 @@ type GuardedThemeLayoutProps = {
 
 /** Экран раздела без шапки (журнал /arm, карточка): гвард роли + сессия + автовыход. */
 export async function GuardedThemeLayout({ role, theme, children }: GuardedThemeLayoutProps) {
-  const { session } = await requireSessionUser(role);
+  const { user } = await requireSessionUser(role);
   return (
-    <AuthSessionProvider session={session}>
-      <ThemeRoot theme={theme}>{children}</ThemeRoot>
+    <AuthSessionProvider user={user}>
+      <ThemeRoot theme={theme}>
+        <SimulatorBar />
+        {children}
+      </ThemeRoot>
     </AuthSessionProvider>
   );
 }

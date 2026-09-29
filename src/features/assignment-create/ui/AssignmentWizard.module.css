@@ -1,0 +1,153 @@
+/* Мастер назначения в оболочке платформы: только токены --pf-*, цели нажатия не меньше --pf-target-min. */
+.wizard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-5);
+}
+
+.wizard__bar {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+}
+
+.wizard__nav {
+  display: flex;
+  gap: var(--pf-space-3);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-4);
+}
+
+.step__note {
+  margin: 0;
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-caption);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+  margin: 0;
+  padding: var(--pf-space-3) var(--pf-space-4);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-control);
+  min-width: 0;
+}
+
+.group__title {
+  padding: 0 var(--pf-space-2);
+  font-weight: var(--pf-fw-medium);
+  color: var(--pf-text);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pf-space-3);
+  min-height: var(--pf-target-min);
+  padding: var(--pf-space-2) var(--pf-space-2);
+  border-radius: var(--pf-radius-control);
+  cursor: pointer;
+}
+
+.check:hover {
+  background: var(--pf-bg-hover);
+}
+
+.check[data-checked] {
+  background: var(--pf-bg-selected);
+}
+
+.check__input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--pf-action);
+}
+
+.check__input:focus-visible {
+  outline: 2px solid var(--pf-focus);
+  outline-offset: 2px;
+}
+
+.check__label {
+  min-width: 0;
+}
+
+.check__meta {
+  color: var(--pf-text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--pf-space-4);
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--pf-space-4);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.scenario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+  padding: var(--pf-space-2) 0;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.scenario__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+}
+
+.review {
+  display: grid;
+  gap: var(--pf-space-3);
+  margin: 0;
+}
+
+.review > div {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--pf-space-4);
+}
+
+.review dt {
+  color: var(--pf-text-muted);
+}
+
+.review dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .check {
+    transition: none;
+  }
+}

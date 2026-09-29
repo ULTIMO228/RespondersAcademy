@@ -147,6 +147,17 @@ SQLITE_SCENARIO_DELETE_GUARD = (
 )
 
 
+POSTGRES_SCENARIO_GUARD_FUNCTION = (
+    "CREATE OR REPLACE FUNCTION guard_ai_scenario_version() RETURNS trigger AS $$ "
+    "BEGIN IF OLD.approval = 'approved' THEN RAISE EXCEPTION 'approved scenario version is immutable'; "
+    "END IF; IF TG_OP = 'DELETE' THEN RETURN OLD; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql"
+)
+POSTGRES_SCENARIO_GUARD_TRIGGER = (
+    "CREATE TRIGGER trg_ai_scenario_immutable BEFORE UPDATE OR DELETE ON ai_scenario_versions "
+    "FOR EACH ROW EXECUTE FUNCTION guard_ai_scenario_version()"
+)
+
+
 def install_ai_scenario_guards(connection: Connection) -> None:
     """Idempotently upgrades SQLite databases created before the guards were added."""
     if connection.dialect.name == "sqlite":
@@ -157,23 +168,8 @@ def install_ai_scenario_guards(connection: Connection) -> None:
 
 event.listen(ScenarioVersion.__table__, "after_create", DDL(SQLITE_SCENARIO_UPDATE_GUARD).execute_if(dialect="sqlite"))
 event.listen(ScenarioVersion.__table__, "after_create", DDL(SQLITE_SCENARIO_DELETE_GUARD).execute_if(dialect="sqlite"))
-event.listen(
-    ScenarioVersion.__table__,
-    "after_create",
-    DDL(
-        "CREATE OR REPLACE FUNCTION guard_ai_scenario_version() RETURNS trigger AS $$ "
-        "BEGIN IF OLD.approval = 'approved' THEN RAISE EXCEPTION 'approved scenario version is immutable'; "
-        "END IF; IF TG_OP = 'DELETE' THEN RETURN OLD; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql"
-    ).execute_if(dialect="postgresql"),
-)
-event.listen(
-    ScenarioVersion.__table__,
-    "after_create",
-    DDL(
-        "CREATE TRIGGER trg_ai_scenario_immutable BEFORE UPDATE OR DELETE ON ai_scenario_versions "
-        "FOR EACH ROW EXECUTE FUNCTION guard_ai_scenario_version()"
-    ).execute_if(dialect="postgresql"),
-)
+event.listen(ScenarioVersion.__table__, "after_create", DDL(POSTGRES_SCENARIO_GUARD_FUNCTION).execute_if(dialect="postgresql"))
+event.listen(ScenarioVersion.__table__, "after_create", DDL(POSTGRES_SCENARIO_GUARD_TRIGGER).execute_if(dialect="postgresql"))
 
 
 class EtalonVersion(Base):
@@ -207,6 +203,18 @@ SQLITE_ETALON_DELETE_GUARD = (
 )
 
 
+POSTGRES_ETALON_GUARD_FUNCTION = (
+    "CREATE OR REPLACE FUNCTION guard_ai_etalon_version() RETURNS trigger AS $$ "
+    "BEGIN IF EXISTS (SELECT 1 FROM ai_scenario_versions WHERE etalon_version = OLD.id AND approval = 'approved') "
+    "THEN RAISE EXCEPTION 'approved etalon version is immutable'; END IF; "
+    "IF TG_OP = 'DELETE' THEN RETURN OLD; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql"
+)
+POSTGRES_ETALON_GUARD_TRIGGER = (
+    "CREATE TRIGGER trg_ai_etalon_immutable BEFORE UPDATE OR DELETE ON ai_etalon_versions "
+    "FOR EACH ROW EXECUTE FUNCTION guard_ai_etalon_version()"
+)
+
+
 def install_ai_etalon_guards(connection: Connection) -> None:
     if connection.dialect.name == "sqlite":
         connection.exec_driver_sql(SQLITE_ETALON_UPDATE_GUARD)
@@ -215,24 +223,8 @@ def install_ai_etalon_guards(connection: Connection) -> None:
 
 event.listen(EtalonVersion.__table__, "after_create", DDL(SQLITE_ETALON_UPDATE_GUARD).execute_if(dialect="sqlite"))
 event.listen(EtalonVersion.__table__, "after_create", DDL(SQLITE_ETALON_DELETE_GUARD).execute_if(dialect="sqlite"))
-event.listen(
-    EtalonVersion.__table__,
-    "after_create",
-    DDL(
-        "CREATE OR REPLACE FUNCTION guard_ai_etalon_version() RETURNS trigger AS $$ "
-        "BEGIN IF EXISTS (SELECT 1 FROM ai_scenario_versions WHERE etalon_version = OLD.id AND approval = 'approved') "
-        "THEN RAISE EXCEPTION 'approved etalon version is immutable'; END IF; "
-        "IF TG_OP = 'DELETE' THEN RETURN OLD; END IF; RETURN NEW; END; $$ LANGUAGE plpgsql"
-    ).execute_if(dialect="postgresql"),
-)
-event.listen(
-    EtalonVersion.__table__,
-    "after_create",
-    DDL(
-        "CREATE TRIGGER trg_ai_etalon_immutable BEFORE UPDATE OR DELETE ON ai_etalon_versions "
-        "FOR EACH ROW EXECUTE FUNCTION guard_ai_etalon_version()"
-    ).execute_if(dialect="postgresql"),
-)
+event.listen(EtalonVersion.__table__, "after_create", DDL(POSTGRES_ETALON_GUARD_FUNCTION).execute_if(dialect="postgresql"))
+event.listen(EtalonVersion.__table__, "after_create", DDL(POSTGRES_ETALON_GUARD_TRIGGER).execute_if(dialect="postgresql"))
 
 
 class DraftFieldDecision(Base):

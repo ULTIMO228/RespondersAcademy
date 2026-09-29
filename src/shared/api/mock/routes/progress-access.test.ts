@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { GET as evaluationRoute } from "../../../../../app/api/mock/attempts/[id]/evaluation/route";
 import { GET as reportsRoute } from "../../../../../app/api/mock/reports/route";
 import { GET as sessionsRoute } from "../../../../../app/api/mock/sessions/route";
-import type { ApiErrorBody, Evaluation, ReportsResponse, Session, UserRole } from "../../types";
+import type { ApiErrorBody, Evaluation, ReportsResponse, Session } from "../../types";
+import { buildSessionCookie } from "../session-cookie";
 import { resetMockStore } from "../store";
 
 const STUDENT_ID = "u-005";
@@ -13,17 +14,16 @@ const OTHER_STUDENT_ID = "u-006";
 const FINISHED_ID = "ses-2026-09-16-01";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function sessionCookie(userId: string, role: UserRole, issuedAt = new Date().toISOString()): string {
-  const session = { userId, role, token: `mock-${userId}`, twoFactorUsed: true, issuedAt };
-  return `theme=dark; arm112_session=${encodeURIComponent(JSON.stringify(session))}`;
+function sessionCookie(userId: string, issuedAtMs = Date.now()): string {
+  return `theme=dark; ${buildSessionCookie(userId, { issuedAtMs })}`;
 }
 
 function request(path: string, cookie?: string): Request {
   return new Request(`http://localhost/api/mock${path}`, { headers: cookie ? { cookie } : {} });
 }
 
-const asStudent = sessionCookie(STUDENT_ID, "student");
-const asTeacher = sessionCookie("u-002", "teacher");
+const asStudent = sessionCookie(STUDENT_ID);
+const asTeacher = sessionCookie("u-002");
 
 function evaluation(id: string, cookie?: string): Promise<Response> {
   return evaluationRoute(request(`/attempts/${id}/evaluation`, cookie), { params: Promise.resolve({ id }) });
@@ -64,7 +64,7 @@ describe("GET /reports — фильтр по studentId из сессии", () =>
 
   it("аноним по studentId → 401; истёкшая сессия = аноним", async () => {
     expect((await reportsRoute(request(`/reports?studentId=${STUDENT_ID}`))).status).toBe(401);
-    const expired = sessionCookie(STUDENT_ID, "student", new Date(Date.now() - DAY_MS - 1).toISOString());
+    const expired = sessionCookie(STUDENT_ID, Date.now() - DAY_MS - 1000);
     expect((await reportsRoute(request(`/reports?studentId=${STUDENT_ID}`, expired))).status).toBe(401);
   });
 

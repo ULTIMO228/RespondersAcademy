@@ -1,0 +1,11 @@
+import { chromium } from "@playwright/test";
+const b = await chromium.launch({ executablePath: process.env.CHROME });
+const p = await (await b.newContext({ viewport: { width: 1920, height: 1080 }, locale: "ru-RU" })).newPage();
+await p.goto("http://localhost:3130/login");
+await p.getByLabel("Логин").fill("ivanov"); await p.getByLabel("Пароль").fill("student112");
+await p.getByRole("button", { name: "Войти" }).click(); await p.waitForURL(/\/student/);
+await p.goto("http://localhost:3130/arm/operator112?assignmentId=asg-003"); await p.waitForTimeout(3000);
+console.log((await p.locator("main").innerText()).slice(0,800).replace(/\n+/g," | "));
+console.log(await p.getByRole("button").allInnerTexts());
+await p.screenshot({ path: "/private/tmp/claude-501/-Users-seva-Projects-RespondersAcademy/87e6b9bb-a94b-46fd-a51a-c17097920c43/scratchpad/p.png" });
+await b.close();

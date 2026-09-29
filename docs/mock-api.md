@@ -31,7 +31,7 @@
 |------|------|-------|
 | 400 | `badRequest` | не JSON / не объект в теле; мусор в `page`, `perPage`, `status`/`cardStatus`, `createdFrom/To`, `dataset`, `view`, `sort` списка карточек |
 | 400 | `validationFailed` | ошибка полей тела или query (сообщение называет поле); неизвестный статус ДДС; нет обязательного комментария к статусу |
-| 401 | `unauthorized` | неверная тройка логин/пароль/номер АРМ (без уточнения, что именно) |
+| 401 | `unauthorized` | неверная пара логин/пароль (или переданный номер АРМ) — без уточнения, что именно; либо нет действующей сессии |
 | 403 | `accountBlocked` | учётная запись заблокирована (только после верной тройки) |
 | 403 | `forbidden` | действие не администратора |
 | 404 | `notFound` | неизвестный id (карточки, занятия, сценария, попытки, пользователя) |
@@ -47,7 +47,11 @@
 
 | Метод, путь | Вход (query / тело) | Источник данных | Ответ | Коды | Экран |
 |---|---|---|---|---|---|
-| `POST /auth/login` | `{ login, password, armNumber, twoFactorCode? }` (2FA — любые 6 цифр) | `users.json` + store (блокировки) + аудит `auth.login` (завершённый вход: после шага кода, а при выключенной 2FA — сразу) | `AuthSession { userId, role, token, twoFactorUsed, issuedAt }` | 200, 400, 401, 403 `accountBlocked` | `/login` |
+| `POST /auth/login` | `{ login, password, armNumber? }` (номер АРМ необязателен; если передан — сверяется; 2FA не поддерживается, `twoFactorCode` → 400) | `users.json` + store (блокировки) + аудит `auth.login` | `AuthSession { userId, role, token, twoFactorUsed, issuedAt }` — тело для совместимости; **сессию выдаёт заголовок** `Set-Cookie: arm112_session=<JWT>; HttpOnly; SameSite=Lax; Path=/` (+`Secure` при HTTPS), `token` в теле клиент не сохраняет (в мок-слое — заглушка, не credential) | 200, 400, 401, 403 `accountBlocked` | `/login` |
+| `GET /auth/session` | cookie сессии | store (профиль) | `PublicUser` — основа `verifySession()` серверных лэйаутов | 200, 401 (нет, подделана, истекла, отозвана, пользователь заблокирован) | лэйауты |
+| `POST /auth/logout` | cookie сессии (необязательна) | реестр сессий (отзыв по `jti`) + аудит `auth.logout` | 204 + `Set-Cookie: …; Max-Age=0`; идемпотентен | 204 | «выйти» |
+| `POST /auth/logout-all` | cookie сессии | реестр сессий (все сессии пользователя) + аудит `auth.logoutAll` | 204 + очистка cookie | 204, 401 | `/account/security` |
+| `POST /auth/password` | `{ currentPassword, newPassword }` | store (пароль по политике `minPasswordLength`) + отзыв **других** сессий + аудит `auth.passwordChange` | 204 | 204, 400 (неверный текущий — **400**, не 401: 401 фронт понимает как «сессия истекла»; короткий или совпадающий пароль), 401 | `/account/security` |
 | `GET /auth/policy` | — | store настроек (`SystemSettings.security`) | `AuthPolicy { twoFactorRequired, minPasswordLength, lockAfterAttempts }` | 200 | `/login` |
 | `GET /reference` | — | `reference.json` | `ReferenceData` (11 справочников) | 200 | все селекты |
 | `GET /classifier` | `group` — точное совпадение группы (без него — все 1283 записи); `code` — записи группы кода ЕКП (опросная карта карточки) | `classifier.json` | `ClassifierEntry[]`, заголовок `X-Classifier-Version` (URL-encoded) | 200 | опросная карта, конструктор сценариев |

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { RoleLayout } from "./RoleLayout";
+import { PlatformLayout } from "./PlatformLayout";
 
 export function StudentLayout({ children }: { children: ReactNode }) {
-  return <RoleLayout role="student">{children}</RoleLayout>;
+  return <PlatformLayout role="student">{children}</PlatformLayout>;
 }

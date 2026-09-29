@@ -14,10 +14,10 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { telephonyStore } from "@/entities/service";
-import { sessionStore } from "@/entities/user";
 import type { PublicUser } from "@/shared/api";
 import { appConnectivity } from "@/shared/lib";
 
+import { buildSessionCookie, ensureTestStudent } from "../../../../app/api/mock/_server/testing";
 import { createMockApiFetch } from "../lib/mockApiFetch";
 import type { MockApiFetch } from "../lib/mockApiFetch";
 import { IncidentScreen } from "./IncidentScreen";
@@ -29,21 +29,19 @@ vi.setConfig({ testTimeout: 20_000 });
 const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
+/** Cookie мок-сессии текущего обучающегося: серверный fetch мок-слоя определяет пользователя по ней. */
+let sessionCookie: string | undefined;
+
 function student(id: string, armNumber = 1): PublicUser {
-  sessionStore.set({
-    userId: id,
-    role: "student",
-    token: `mock-${id}`,
-    twoFactorUsed: true,
-    issuedAt: new Date().toISOString(),
-  });
+  ensureTestStudent(id);
+  sessionCookie = buildSessionCookie(id);
   return { id, login: id, fullName: "Иванов Сергей Петрович", role: "student", armNumber, isActive: true };
 }
 
 let fetcher: MockApiFetch;
 
 beforeEach(() => {
-  fetcher = createMockApiFetch();
+  fetcher = createMockApiFetch({ getCookie: () => sessionCookie });
   vi.stubGlobal("fetch", fetcher);
   window.localStorage.clear();
   push.mockReset();
@@ -52,7 +50,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   appConnectivity.markOnline();
-  sessionStore.clear();
+  sessionCookie = undefined;
 });
 
 async function renderCard(cardId: string, user: PublicUser, props: { amendLockSeconds?: number } = {}) {

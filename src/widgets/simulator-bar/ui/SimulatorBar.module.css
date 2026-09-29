@@ -1,0 +1,33 @@
+/* Тонкая панель тренажёра над экранами АРМ: только токены АРМ (--color-*), платформенные --pf-* сюда не попадают. */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  min-height: 28px;
+  padding: 0 var(--spacing-xl);
+  background: var(--color-graphite-900);
+  border-bottom: var(--border-width) solid var(--color-graphite-700);
+  color: var(--color-light-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+}
+
+.bar__link {
+  color: var(--color-white);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.bar__link:hover {
+  text-decoration: underline;
+}
+
+.bar__link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.bar__hint {
+  margin-left: auto;
+}

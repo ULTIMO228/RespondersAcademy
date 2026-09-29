@@ -30,3 +30,18 @@
   border-color: var(--color-accent-blue);
   color: var(--color-white);
 }
+
+/* Платформа: чипы со скруглением; выбранный — затемнённый синий. */
+:global([data-zone="platform"]) .chip {
+  min-height: var(--pf-target-min);
+  border-radius: var(--pf-radius-control);
+  border-color: var(--pf-border-control);
+  font-size: var(--pf-fs-body);
+  font-weight: var(--pf-fw-medium);
+}
+
+:global([data-zone="platform"]) .chip--selected {
+  background: var(--pf-link);
+  border-color: var(--pf-link);
+  color: var(--pf-text-on-action);
+}

@@ -1,7 +1,7 @@
 /*
  * Пользователь, от имени которого пришёл запрос к мок-API (T2.5-01; ТЗ §8 «Обучающийся — только свои результаты»).
- * Источник истины — мок-сессия (cookie arm112_session), а не query-параметр клиента. Разбор cookie живёт в
- * entities/user (shared не импортирует entities) — резолвер передаёт серверная сборка app/api/mock/_server.
+ * Источник истины — мок-сессия (HttpOnly-cookie arm112_session), а не query-параметр клиента. Проверка подписанного токена — в
+ * auth-tokens.ts; резолвер передаёт серверная сборка app/api/mock/_server.
  */
 import type { UserRole } from "../types";
 import { forbidden, unauthorized } from "./respond";

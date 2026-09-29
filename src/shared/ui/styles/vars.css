@@ -3,6 +3,7 @@
 @import "./tokens-softphone.css";
 @import "./tokens-teacher.css";
 @import "./tokens-admin.css";
+@import "./tokens-platform.css";
 
 /*
  * Дизайн-токены АРМ-112 (ПОВ-112). Единственное место с hex-значениями в проекте.

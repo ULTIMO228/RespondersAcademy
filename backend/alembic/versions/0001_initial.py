@@ -1,8 +1,11 @@
-"""initial
+"""Полная схема (44 таблицы) и защитные триггеры неизменяемости ИИ-версий.
 
 Revision ID: 0001_initial
 Revises: None
-Create Date: 2026-09-28 23:28:37.999254
+Create Date: 2026-09-29 12:48:15.063370
+
+Автогенерация не создаёт триггеры: они задаются событиями ``after_create`` в моделях, которые ``op.create_table``
+не запускает. Поэтому в конце ``upgrade`` выполняются те же DDL-константы, что и в моделях.
 """
 
 from __future__ import annotations
@@ -11,11 +14,38 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
+from app.models import ai_assessment, ai_scenario
 
 revision = '0001_initial'
 down_revision = None
 branch_labels = None
 depends_on = None
+
+_GUARDS = {
+    "sqlite": (
+        ai_scenario.SQLITE_SCENARIO_UPDATE_GUARD,
+        ai_scenario.SQLITE_SCENARIO_DELETE_GUARD,
+        ai_scenario.SQLITE_ETALON_UPDATE_GUARD,
+        ai_scenario.SQLITE_ETALON_DELETE_GUARD,
+        ai_assessment.SQLITE_EVALUATION_INSERT_GUARD,
+        ai_assessment.SQLITE_EVALUATION_UPDATE_GUARD,
+        ai_assessment.SQLITE_EVALUATION_DELETE_GUARD,
+    ),
+    "postgresql": (
+        ai_scenario.POSTGRES_SCENARIO_GUARD_FUNCTION,
+        ai_scenario.POSTGRES_SCENARIO_GUARD_TRIGGER,
+        ai_scenario.POSTGRES_ETALON_GUARD_FUNCTION,
+        ai_scenario.POSTGRES_ETALON_GUARD_TRIGGER,
+        ai_assessment.POSTGRES_EVALUATION_GUARD_FUNCTION,
+        ai_assessment.POSTGRES_EVALUATION_GUARD_TRIGGER,
+    ),
+}
+_POSTGRES_GUARD_FUNCTIONS = ("guard_ai_scenario_version", "guard_ai_etalon_version", "guard_ai_evaluation_revision")
+
+
+def _install_guards() -> None:
+    for statement in _GUARDS.get(op.get_context().dialect.name, ()):
+        op.execute(sa.DDL(statement))
 
 
 def upgrade() -> None:
@@ -25,6 +55,193 @@ def upgrade() -> None:
     sa.Column('doc', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('ai_assessment_jobs',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('attempt_id', sa.String(length=16), nullable=False),
+    sa.Column('state', sa.String(length=16), nullable=False),
+    sa.Column('base_revision', sa.Integer(), nullable=False),
+    sa.Column('queued_at', sa.String(length=32), nullable=False),
+    sa.Column('completed_at', sa.String(length=32), nullable=True),
+    sa.Column('failure_code', sa.String(length=64), nullable=True),
+    sa.CheckConstraint("state IN ('queued', 'running', 'completed', 'failed')", name='ck_ai_assessment_job_state'),
+    sa.CheckConstraint('base_revision >= 1', name='ck_ai_assessment_job_revision_positive'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_ai_assessment_jobs_attempt_id'), 'ai_assessment_jobs', ['attempt_id'], unique=False)
+    op.create_index(op.f('ix_ai_assessment_jobs_state'), 'ai_assessment_jobs', ['state'], unique=False)
+    op.create_index('uq_ai_assessment_job_active_attempt_revision', 'ai_assessment_jobs', ['attempt_id', 'base_revision'], unique=True, sqlite_where=sa.text("state IN ('queued', 'running')"), postgresql_where=sa.text("state IN ('queued', 'running')"))
+    op.create_table('ai_draft_field_decisions',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('scenario_id', sa.String(length=32), nullable=False),
+    sa.Column('scenario_version', sa.Integer(), nullable=False),
+    sa.Column('field_path', sa.String(length=256), nullable=False),
+    sa.Column('decision', sa.String(length=16), nullable=False),
+    sa.Column('value', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
+    sa.Column('teacher_id', sa.String(length=16), nullable=False),
+    sa.Column('at', sa.String(length=32), nullable=False),
+    sa.Column('comment', sa.String(length=2000), nullable=True),
+    sa.CheckConstraint("decision IN ('accepted', 'edited', 'rejected')", name='ck_ai_field_decision_kind'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('scenario_id', 'scenario_version', 'field_path', name='uq_ai_field_decision_per_version')
+    )
+    op.create_index(op.f('ix_ai_draft_field_decisions_scenario_id'), 'ai_draft_field_decisions', ['scenario_id'], unique=False)
+    op.create_index(op.f('ix_ai_draft_field_decisions_teacher_id'), 'ai_draft_field_decisions', ['teacher_id'], unique=False)
+    op.create_table('ai_error_records',
+    sa.Column('id', sa.String(length=64), nullable=False),
+    sa.Column('attempt_id', sa.String(length=16), nullable=False),
+    sa.Column('mode', sa.String(length=16), nullable=False),
+    sa.Column('rule_id', sa.String(length=64), nullable=False),
+    sa.Column('type', sa.String(length=64), nullable=False),
+    sa.Column('severity', sa.String(length=16), nullable=False),
+    sa.Column('evidence_key', sa.String(length=256), nullable=False),
+    sa.Column('field_path', sa.String(length=256), nullable=True),
+    sa.Column('event_id', sa.String(length=64), nullable=True),
+    sa.Column('observed', sa.String(length=2000), nullable=False),
+    sa.Column('expected', sa.String(length=2000), nullable=True),
+    sa.Column('source_ref', sa.String(length=256), nullable=False),
+    sa.Column('detector', sa.String(length=24), nullable=False),
+    sa.Column('etalon_version', sa.String(length=64), nullable=False),
+    sa.Column('assessor_version', sa.String(length=64), nullable=True),
+    sa.Column('fixed', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.String(length=32), nullable=False),
+    sa.Column('teacher_id', sa.String(length=16), nullable=True),
+    sa.CheckConstraint("detector IN ('rule', 'ml', 'llm_confirmed', 'teacher')", name='ck_ai_error_detector'),
+    sa.CheckConstraint("mode IN ('operator112', 'dds')", name='ck_ai_error_mode'),
+    sa.CheckConstraint("severity IN ('critical', 'major', 'minor')", name='ck_ai_error_severity'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('attempt_id', 'rule_id', 'evidence_key', 'etalon_version', name='uq_ai_error_attempt_rule_evidence_etalon')
+    )
+    op.create_index(op.f('ix_ai_error_records_attempt_id'), 'ai_error_records', ['attempt_id'], unique=False)
+    op.create_index(op.f('ix_ai_error_records_created_at'), 'ai_error_records', ['created_at'], unique=False)
+    op.create_index(op.f('ix_ai_error_records_etalon_version'), 'ai_error_records', ['etalon_version'], unique=False)
+    op.create_index(op.f('ix_ai_error_records_mode'), 'ai_error_records', ['mode'], unique=False)
+    op.create_index(op.f('ix_ai_error_records_rule_id'), 'ai_error_records', ['rule_id'], unique=False)
+    op.create_index(op.f('ix_ai_error_records_severity'), 'ai_error_records', ['severity'], unique=False)
+    op.create_index(op.f('ix_ai_error_records_type'), 'ai_error_records', ['type'], unique=False)
+    op.create_table('ai_etalon_versions',
+    sa.Column('id', sa.String(length=64), nullable=False),
+    sa.Column('scenario_id', sa.String(length=32), nullable=False),
+    sa.Column('mode', sa.String(length=16), nullable=False),
+    sa.Column('expected_fields', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('expected_actions', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('semantic_facts', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('rule_source_ids', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('classifier_version', sa.String(length=64), nullable=False),
+    sa.Column('created_at', sa.String(length=32), nullable=False),
+    sa.CheckConstraint("mode IN ('operator112', 'dds')", name='ck_ai_etalon_mode'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_ai_etalon_versions_mode'), 'ai_etalon_versions', ['mode'], unique=False)
+    op.create_index(op.f('ix_ai_etalon_versions_scenario_id'), 'ai_etalon_versions', ['scenario_id'], unique=False)
+    op.create_table('ai_evaluation_revisions',
+    sa.Column('attempt_id', sa.String(length=16), nullable=False),
+    sa.Column('revision', sa.Integer(), nullable=False),
+    sa.Column('mode', sa.String(length=16), nullable=False),
+    sa.Column('status', sa.String(length=24), nullable=False),
+    sa.Column('available_axes', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('axes', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('total_score', sa.Integer(), nullable=True),
+    sa.Column('errors', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('etalon_version', sa.String(length=64), nullable=False),
+    sa.Column('assessor_version', sa.String(length=64), nullable=False),
+    sa.Column('model_release_id', sa.String(length=64), nullable=True),
+    sa.Column('teacher_override', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
+    sa.Column('created_at', sa.String(length=32), nullable=False),
+    sa.CheckConstraint("(status IN ('pending', 'review_required') AND total_score IS NULL) OR (status IN ('preliminary', 'final') AND total_score IS NOT NULL)", name='ck_ai_evaluation_total_score_status'),
+    sa.CheckConstraint("mode IN ('operator112', 'dds')", name='ck_ai_evaluation_mode'),
+    sa.CheckConstraint("status IN ('pending', 'preliminary', 'review_required', 'final')", name='ck_ai_evaluation_status'),
+    sa.CheckConstraint('revision >= 1', name='ck_ai_evaluation_revision_positive'),
+    sa.CheckConstraint('total_score IS NULL OR total_score BETWEEN 0 AND 100', name='ck_ai_evaluation_total_score_range'),
+    sa.PrimaryKeyConstraint('attempt_id', 'revision')
+    )
+    op.create_index(op.f('ix_ai_evaluation_revisions_mode'), 'ai_evaluation_revisions', ['mode'], unique=False)
+    op.create_index(op.f('ix_ai_evaluation_revisions_status'), 'ai_evaluation_revisions', ['status'], unique=False)
+    op.create_table('ai_sanitized_tickets',
+    sa.Column('source_ticket_id', sa.String(length=64), nullable=False),
+    sa.Column('situation_no', sa.Integer(), nullable=False),
+    sa.Column('sanitized_text', sa.Text(), nullable=False),
+    sa.Column('pii_check', sa.String(length=16), nullable=False),
+    sa.Column('reviewer_id', sa.String(length=16), nullable=False),
+    sa.Column('reviewed_at', sa.String(length=32), nullable=False),
+    sa.Column('source_hash', sa.String(length=64), nullable=False),
+    sa.Column('approved', sa.Boolean(), nullable=False),
+    sa.CheckConstraint("pii_check = 'passed'", name='ck_ai_sanitized_pii_passed'),
+    sa.CheckConstraint('approved IS TRUE', name='ck_ai_sanitized_ticket_approved'),
+    sa.CheckConstraint('length(reviewed_at) > 0', name='ck_ai_sanitized_review_time_required'),
+    sa.CheckConstraint('length(reviewer_id) > 0', name='ck_ai_sanitized_reviewer_required'),
+    sa.CheckConstraint('length(source_hash) = 64', name='ck_ai_sanitized_source_hash_length'),
+    sa.CheckConstraint('situation_no BETWEEN 1 AND 3', name='ck_ai_sanitized_situation_range'),
+    sa.PrimaryKeyConstraint('source_ticket_id', 'situation_no')
+    )
+    op.create_table('ai_scenario_requests',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('actor_id', sa.String(length=16), nullable=False),
+    sa.Column('operation', sa.String(length=24), nullable=False),
+    sa.Column('request_id', sa.String(length=128), nullable=False),
+    sa.Column('request_hash', sa.String(length=64), nullable=False),
+    sa.Column('response', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('actor_id', 'operation', 'request_id', name='uq_ai_scenario_request_actor_operation')
+    )
+    op.create_index(op.f('ix_ai_scenario_requests_actor_id'), 'ai_scenario_requests', ['actor_id'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_requests_operation'), 'ai_scenario_requests', ['operation'], unique=False)
+    op.create_table('ai_scenario_versions',
+    sa.Column('scenario_id', sa.String(length=32), nullable=False),
+    sa.Column('version', sa.Integer(), nullable=False),
+    sa.Column('mode', sa.String(length=16), nullable=False),
+    sa.Column('source_ticket_id', sa.String(length=64), nullable=False),
+    sa.Column('created_by', sa.String(length=16), nullable=False),
+    sa.Column('source_situation_no', sa.Integer(), nullable=False),
+    sa.Column('source_kind', sa.String(length=24), nullable=False),
+    sa.Column('source_hash', sa.String(length=64), nullable=False),
+    sa.Column('source_attempt_id', sa.String(length=32), nullable=True),
+    sa.Column('source_card_id', sa.String(length=32), nullable=True),
+    sa.Column('source_card_version', sa.Integer(), nullable=True),
+    sa.Column('parent_version', sa.Integer(), nullable=True),
+    sa.Column('teacher_comment', sa.String(length=2000), nullable=True),
+    sa.Column('validation', sa.String(length=24), nullable=False),
+    sa.Column('validation_report', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('approval', sa.String(length=24), nullable=False),
+    sa.Column('card_snapshot', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('etalon_version', sa.String(length=64), nullable=False),
+    sa.Column('rule_source_ids', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('approved_by', sa.String(length=16), nullable=True),
+    sa.CheckConstraint("approval != 'approved' OR (validation = 'passed' AND approved_by IS NOT NULL)", name='ck_ai_scenario_approved_is_validated'),
+    sa.CheckConstraint("approval IN ('draft', 'validation_failed', 'pending_review', 'approved', 'rejected')", name='ck_ai_scenario_approval'),
+    sa.CheckConstraint("mode IN ('operator112', 'dds')", name='ck_ai_scenario_mode'),
+    sa.CheckConstraint("source_kind != 'student_card' OR (source_attempt_id IS NOT NULL AND source_card_id IS NOT NULL AND source_card_version IS NOT NULL)", name='ck_ai_scenario_student_card_provenance'),
+    sa.CheckConstraint("source_kind IN ('ticket', 'template', 'llm', 'student_card')", name='ck_ai_scenario_source_kind'),
+    sa.CheckConstraint("validation IN ('pending', 'passed', 'failed')", name='ck_ai_scenario_validation'),
+    sa.CheckConstraint('length(source_hash) = 64', name='ck_ai_scenario_source_hash_length'),
+    sa.CheckConstraint('source_situation_no BETWEEN 1 AND 3', name='ck_ai_scenario_situation_range'),
+    sa.CheckConstraint('version >= 1', name='ck_ai_scenario_version_positive'),
+    sa.PrimaryKeyConstraint('scenario_id', 'version')
+    )
+    op.create_index(op.f('ix_ai_scenario_versions_approval'), 'ai_scenario_versions', ['approval'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_versions_created_by'), 'ai_scenario_versions', ['created_by'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_versions_etalon_version'), 'ai_scenario_versions', ['etalon_version'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_versions_mode'), 'ai_scenario_versions', ['mode'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_versions_source_attempt_id'), 'ai_scenario_versions', ['source_attempt_id'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_versions_source_ticket_id'), 'ai_scenario_versions', ['source_ticket_id'], unique=False)
+    op.create_index(op.f('ix_ai_scenario_versions_validation'), 'ai_scenario_versions', ['validation'], unique=False)
+    op.create_table('ai_semantic_reviews',
+    sa.Column('id', sa.String(length=64), nullable=False),
+    sa.Column('attempt_id', sa.String(length=16), nullable=False),
+    sa.Column('field_path', sa.String(length=256), nullable=False),
+    sa.Column('reference_fact_ids', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('reason', sa.String(length=2000), nullable=False),
+    sa.Column('base_similarity', sa.Float(), nullable=True),
+    sa.Column('threshold_version', sa.String(length=64), nullable=False),
+    sa.Column('decision', sa.String(length=16), nullable=False),
+    sa.Column('explanation', sa.String(length=500), nullable=False),
+    sa.Column('model_release_id', sa.String(length=64), nullable=True),
+    sa.Column('validated_at', sa.String(length=32), nullable=True),
+    sa.CheckConstraint("decision IN ('equivalent', 'different', 'uncertain')", name='ck_ai_semantic_decision'),
+    sa.CheckConstraint('base_similarity IS NULL OR (base_similarity >= 0 AND base_similarity <= 1)', name='ck_ai_semantic_similarity_range'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_ai_semantic_reviews_attempt_id'), 'ai_semantic_reviews', ['attempt_id'], unique=False)
+    op.create_index(op.f('ix_ai_semantic_reviews_decision'), 'ai_semantic_reviews', ['decision'], unique=False)
     op.create_table('arm_card_fixtures',
     sa.Column('id', sa.String(length=24), nullable=False),
     sa.Column('number', sa.Integer(), nullable=False),
@@ -109,6 +326,13 @@ def upgrade() -> None:
     op.create_index(op.f('ix_audit_log_action'), 'audit_log', ['action'], unique=False)
     op.create_index(op.f('ix_audit_log_at'), 'audit_log', ['at'], unique=False)
     op.create_index(op.f('ix_audit_log_user_id'), 'audit_log', ['user_id'], unique=False)
+    op.create_table('auth_throttles',
+    sa.Column('key_hash', sa.String(length=64), nullable=False),
+    sa.Column('window_start', sa.BigInteger(), nullable=False),
+    sa.Column('failures', sa.Integer(), nullable=False),
+    sa.Column('blocked_until', sa.BigInteger(), nullable=True),
+    sa.PrimaryKeyConstraint('key_hash')
+    )
     op.create_table('calibration_samples',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('attempt_id', sa.String(length=16), nullable=False),
@@ -269,10 +493,12 @@ def upgrade() -> None:
     sa.Column('deleted', sa.Boolean(), nullable=False),
     sa.Column('validation_report', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
     sa.Column('history', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=False),
+    sa.Column('created_by', sa.String(length=16), nullable=True),
     sa.Column('updated_by', sa.String(length=16), nullable=True),
     sa.Column('updated_at', sa.String(length=32), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_scenarios_created_by'), 'scenarios', ['created_by'], unique=False)
     op.create_index(op.f('ix_scenarios_source'), 'scenarios', ['source'], unique=False)
     op.create_index(op.f('ix_scenarios_validation_status'), 'scenarios', ['validation_status'], unique=False)
     op.create_table('sessions',
@@ -382,10 +608,41 @@ def upgrade() -> None:
     sa.Column('service', sa.String(length=160), nullable=True),
     sa.Column('assigned_groups', sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), 'postgresql'), nullable=True),
     sa.Column('failed_logins', sa.Integer(), nullable=False),
+    sa.Column('locked_until', sa.BigInteger(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_login'), 'users', ['login'], unique=True)
     op.create_index(op.f('ix_users_role'), 'users', ['role'], unique=False)
+    op.create_table('assignment_scenario_versions',
+    sa.Column('assignment_id', sa.String(length=16), nullable=False),
+    sa.Column('scenario_id', sa.String(length=32), nullable=False),
+    sa.Column('version', sa.Integer(), nullable=False),
+    sa.Column('card_id', sa.String(length=32), nullable=False),
+    sa.Column('mode', sa.String(length=16), nullable=False),
+    sa.ForeignKeyConstraint(['assignment_id'], ['assignments.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['scenario_id', 'version'], ['ai_scenario_versions.scenario_id', 'ai_scenario_versions.version'], ondelete='RESTRICT'),
+    sa.PrimaryKeyConstraint('assignment_id', 'scenario_id', 'version')
+    )
+    op.create_index(op.f('ix_assignment_scenario_versions_card_id'), 'assignment_scenario_versions', ['card_id'], unique=False)
+    op.create_table('assignment_students',
+    sa.Column('assignment_id', sa.String(length=16), nullable=False),
+    sa.Column('student_id', sa.String(length=16), nullable=False),
+    sa.ForeignKeyConstraint(['assignment_id'], ['assignments.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['student_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('assignment_id', 'student_id')
+    )
+    op.create_index(op.f('ix_assignment_students_student_id'), 'assignment_students', ['student_id'], unique=False)
+    op.create_table('auth_sessions',
+    sa.Column('jti_hash', sa.String(length=64), nullable=False),
+    sa.Column('user_id', sa.String(length=16), nullable=False),
+    sa.Column('issued_at', sa.BigInteger(), nullable=False),
+    sa.Column('expires_at', sa.BigInteger(), nullable=False),
+    sa.Column('revoked_at', sa.BigInteger(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('jti_hash')
+    )
+    op.create_index(op.f('ix_auth_sessions_expires_at'), 'auth_sessions', ['expires_at'], unique=False)
+    op.create_index('ix_auth_sessions_user_active', 'auth_sessions', ['user_id', 'revoked_at'], unique=False)
     op.create_table('recommendations',
     sa.Column('id', sa.String(length=40), nullable=False),
     sa.Column('student_id', sa.String(length=16), nullable=False),
@@ -409,6 +666,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('student_id', 'mode')
     )
     # ### end Alembic commands ###
+    _install_guards()
 
 
 def downgrade() -> None:
@@ -416,6 +674,13 @@ def downgrade() -> None:
     op.drop_table('student_ratings')
     op.drop_index(op.f('ix_recommendations_student_id'), table_name='recommendations')
     op.drop_table('recommendations')
+    op.drop_index('ix_auth_sessions_user_active', table_name='auth_sessions')
+    op.drop_index(op.f('ix_auth_sessions_expires_at'), table_name='auth_sessions')
+    op.drop_table('auth_sessions')
+    op.drop_index(op.f('ix_assignment_students_student_id'), table_name='assignment_students')
+    op.drop_table('assignment_students')
+    op.drop_index(op.f('ix_assignment_scenario_versions_card_id'), table_name='assignment_scenario_versions')
+    op.drop_table('assignment_scenario_versions')
     op.drop_index(op.f('ix_users_role'), table_name='users')
     op.drop_index(op.f('ix_users_login'), table_name='users')
     op.drop_table('users')
@@ -437,6 +702,7 @@ def downgrade() -> None:
     op.drop_table('sessions')
     op.drop_index(op.f('ix_scenarios_validation_status'), table_name='scenarios')
     op.drop_index(op.f('ix_scenarios_source'), table_name='scenarios')
+    op.drop_index(op.f('ix_scenarios_created_by'), table_name='scenarios')
     op.drop_table('scenarios')
     op.drop_index(op.f('ix_reports_student_id'), table_name='reports')
     op.drop_index(op.f('ix_reports_session_id'), table_name='reports')
@@ -461,6 +727,7 @@ def downgrade() -> None:
     op.drop_table('card_runtime')
     op.drop_index(op.f('ix_calibration_samples_attempt_id'), table_name='calibration_samples')
     op.drop_table('calibration_samples')
+    op.drop_table('auth_throttles')
     op.drop_index(op.f('ix_audit_log_user_id'), table_name='audit_log')
     op.drop_index(op.f('ix_audit_log_at'), table_name='audit_log')
     op.drop_index(op.f('ix_audit_log_action'), table_name='audit_log')
@@ -478,5 +745,44 @@ def downgrade() -> None:
     op.drop_table('assignment_attempts')
     op.drop_index(op.f('ix_arm_card_fixtures_number'), table_name='arm_card_fixtures')
     op.drop_table('arm_card_fixtures')
+    op.drop_index(op.f('ix_ai_semantic_reviews_decision'), table_name='ai_semantic_reviews')
+    op.drop_index(op.f('ix_ai_semantic_reviews_attempt_id'), table_name='ai_semantic_reviews')
+    op.drop_table('ai_semantic_reviews')
+    op.drop_index(op.f('ix_ai_scenario_versions_validation'), table_name='ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_versions_source_ticket_id'), table_name='ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_versions_source_attempt_id'), table_name='ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_versions_mode'), table_name='ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_versions_etalon_version'), table_name='ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_versions_created_by'), table_name='ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_versions_approval'), table_name='ai_scenario_versions')
+    op.drop_table('ai_scenario_versions')
+    op.drop_index(op.f('ix_ai_scenario_requests_operation'), table_name='ai_scenario_requests')
+    op.drop_index(op.f('ix_ai_scenario_requests_actor_id'), table_name='ai_scenario_requests')
+    op.drop_table('ai_scenario_requests')
+    op.drop_table('ai_sanitized_tickets')
+    op.drop_index(op.f('ix_ai_evaluation_revisions_status'), table_name='ai_evaluation_revisions')
+    op.drop_index(op.f('ix_ai_evaluation_revisions_mode'), table_name='ai_evaluation_revisions')
+    op.drop_table('ai_evaluation_revisions')
+    op.drop_index(op.f('ix_ai_etalon_versions_scenario_id'), table_name='ai_etalon_versions')
+    op.drop_index(op.f('ix_ai_etalon_versions_mode'), table_name='ai_etalon_versions')
+    op.drop_table('ai_etalon_versions')
+    op.drop_index(op.f('ix_ai_error_records_type'), table_name='ai_error_records')
+    op.drop_index(op.f('ix_ai_error_records_severity'), table_name='ai_error_records')
+    op.drop_index(op.f('ix_ai_error_records_rule_id'), table_name='ai_error_records')
+    op.drop_index(op.f('ix_ai_error_records_mode'), table_name='ai_error_records')
+    op.drop_index(op.f('ix_ai_error_records_etalon_version'), table_name='ai_error_records')
+    op.drop_index(op.f('ix_ai_error_records_created_at'), table_name='ai_error_records')
+    op.drop_index(op.f('ix_ai_error_records_attempt_id'), table_name='ai_error_records')
+    op.drop_table('ai_error_records')
+    op.drop_index(op.f('ix_ai_draft_field_decisions_teacher_id'), table_name='ai_draft_field_decisions')
+    op.drop_index(op.f('ix_ai_draft_field_decisions_scenario_id'), table_name='ai_draft_field_decisions')
+    op.drop_table('ai_draft_field_decisions')
+    op.drop_index('uq_ai_assessment_job_active_attempt_revision', table_name='ai_assessment_jobs', sqlite_where=sa.text("state IN ('queued', 'running')"), postgresql_where=sa.text("state IN ('queued', 'running')"))
+    op.drop_index(op.f('ix_ai_assessment_jobs_state'), table_name='ai_assessment_jobs')
+    op.drop_index(op.f('ix_ai_assessment_jobs_attempt_id'), table_name='ai_assessment_jobs')
+    op.drop_table('ai_assessment_jobs')
     op.drop_table('addresses')
     # ### end Alembic commands ###
+    if op.get_context().dialect.name == "postgresql":  # триггеры уходят вместе с таблицами, функции — нет
+        for function in _POSTGRES_GUARD_FUNCTIONS:
+            op.execute(sa.DDL(f"DROP FUNCTION IF EXISTS {function}()"))

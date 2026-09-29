@@ -16,7 +16,9 @@ export type ApiErrorCode =
   | "evaluationPending"
   | "internal"
   /** Только клиент: сеть недоступна / ответ не получен. */
-  | "networkError";
+  | "networkError"
+  /** Только клиент: путь /api/v1/* вне ai/* не обслужен — фронт собран без BACKEND_URL. */
+  | "serverRequired";
 
 /** Единый формат ошибки мок-слоя: `{ error: { code, message } }`, message — по-русски. */
 export interface ApiErrorBody {

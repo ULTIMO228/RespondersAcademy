@@ -20,11 +20,17 @@ import type {
 } from "./session";
 import type { PublicUser, Role } from "./user";
 
-/** POST /api/mock/auth/login. */
+/** POST /api/mock/auth/login. Номер АРМ необязателен: платформа входит по логину и паролю; если передан — сверяется. */
 export interface LoginRequest {
   login: string;
   password: string;
-  armNumber: number;
+  armNumber?: number;
+}
+
+/** POST /api/mock/auth/password. */
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 /**

@@ -104,3 +104,35 @@ async def test_start_progress_and_finish(v1: AsyncClient):
     finished = await v1.post(f"/assignments/{created['id']}/finish")
     assert finished.status_code == 200 and finished.json()["state"] == "finished"
     assert (await v1.post(f"/assignments/{created['id']}/start", json={"studentId": "u-005"})).status_code == 409
+
+
+async def test_assignment_and_logout_actions_are_audited(v1: AsyncClient):
+    """T059: создание/выдача/завершение задания и выход попадают в журнал с пользователем и АРМ."""
+    await login_as(v1, "admin")
+    seen = {e["id"] for e in (await v1.get("/admin/audit", params={"perPage": 100})).json()["items"]}
+    await login_as(v1, "teacher")
+    created = (await v1.post("/assignments", json=fixed_payload(title="T093 аудит"))).json()
+    student = await login_as(v1, "student")
+    assert (await v1.post(f"/assignments/{created['id']}/start")).status_code == 200
+    assert (await v1.post(f"/assignments/{created['id']}/start")).status_code == 200  # повтор возвращает открытую попытку
+    assert (await v1.post("/auth/logout")).status_code == 204
+    await login_as(v1, "teacher")
+    assert (await v1.post(f"/assignments/{created['id']}/finish")).status_code == 200
+    assert (await v1.post(f"/assignments/{created['id']}/finish")).status_code == 200  # идемпотентно, второй записи нет
+    await login_as(v1, "admin")
+    journal = await v1.get("/admin/audit", params={"perPage": 100})
+    assert journal.status_code == 200
+    fresh = [e for e in journal.json()["items"] if e["id"] not in seen]
+    by_action: dict[str, list[dict]] = {}
+    for entry in fresh:
+        by_action.setdefault(entry["action"], []).append(entry)
+    (create,) = by_action["assignment.create"]
+    assert create["userId"] == "u-002" and create["operatorArm"] == 21 and created["id"] in create["details"]
+    (start,) = by_action["assignment.start"]  # повторный start не выдаёт билет — записи нет
+    assert start["userId"] == student["userId"] and start["role"] == "student" and "c-010" in start["details"]
+    (finish,) = by_action["assignment.finish"]
+    assert finish["userId"] == "u-002"
+    (logout,) = by_action["auth.logout"]
+    assert logout["userId"] == student["userId"] and logout["operatorArm"] == 1
+    by_type = (await v1.get("/admin/audit", params={"type": "content", "perPage": 100})).json()["items"]
+    assert {"assignment.create", "assignment.start", "assignment.finish"} <= {e["action"] for e in by_type}

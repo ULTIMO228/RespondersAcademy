@@ -1,0 +1,97 @@
+/* Разбор попытки: светлая тема АРМ, метрики крупным моно-кеглем, статусные цвета — токены vars.css. */
+.eval {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.eval__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+}
+
+.eval__total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eval__value {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.eval__caption,
+.eval__note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.eval__verdict {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.eval__verdict[data-passed="true"] {
+  color: var(--color-status-accepted);
+}
+
+.eval__verdict[data-passed="false"] {
+  color: var(--color-status-new);
+}
+
+.eval__components {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eval__component {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.eval__component strong {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-2xl);
+}
+
+.eval__title {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.eval__errors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding-left: var(--spacing-2xl);
+}
+
+.eval__comment {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-ai-badge-bg);
+  border: var(--border-width) solid var(--color-ai-badge-border);
+}
