@@ -1,7 +1,7 @@
-"""Подключить локальные ElevenLabs MP3 к демо-билетам после загрузки сида.
+"""Подключить демо-MP3 к билетам после загрузки сида.
 
-Положите файлы в backend/var/audio под именами c-XXX-elevenlabs.mp3,
-затем запустите: uv run python scripts/install_demo_recordings.py
+Файлы находятся в backend/data/demo_audio; запустите:
+uv run python scripts/install_demo_recordings.py
 """
 
 from __future__ import annotations
@@ -11,13 +11,13 @@ import os
 import secrets
 from pathlib import Path
 
-from app.config import get_settings
 from app.db.session import get_sessionmaker
 from app.models.card import IncidentCard
 from app.models.ticket_audio import TicketAudio
 from app.services.time import now_iso
 
 os.environ.setdefault("JWT_SECRET", secrets.token_urlsafe(48))
+BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 RECORDINGS = {
     "c-010": (
@@ -98,5 +98,5 @@ async def install(audio_dir: Path) -> list[tuple[str, int]]:
 
 
 if __name__ == "__main__":
-    for card_id, duration_ms in asyncio.run(install(get_settings().var_dir / "audio")):
+    for card_id, duration_ms in asyncio.run(install(BACKEND_DIR / "data" / "demo_audio")):
         print(f"{card_id}: готово ({duration_ms / 1000:.1f} с)")
