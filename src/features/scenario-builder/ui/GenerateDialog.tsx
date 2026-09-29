@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
+import { ROUTES } from "@/shared/config";
 import { AiBadge, Button, Modal, Select, StatusChip } from "@/shared/ui";
 
 import { getValidationView } from "../config/dictionaries";
@@ -13,11 +15,11 @@ type GenerateDialogProps = {
   incidentGroups: string[];
   defaultGroup: string;
   onClose: () => void;
-  /** Мок-генерация через AiGateway (POST /scenarios/generate); возвращает сохранённые сценарии. */
+  /** Генерация через бэкенд (POST /scenarios/generate); возвращает сохранённые сценарии. */
   onGenerate: (category: string) => Promise<ScenarioRow[]>;
 };
 
-/** «Сгенерировать (ИИ)»: выбор категории → 2–3 мок-сценария со статусом «на проверке» и бейджем «ИИ». */
+/** Выбор категории и генерация сценариев со статусом «на проверке». */
 export function GenerateDialog({ incidentGroups, defaultGroup, onClose, onGenerate }: GenerateDialogProps) {
   const [group, setGroup] = useState(defaultGroup);
   const [rows, setRows] = useState<ScenarioRow[] | null>(null);
@@ -48,7 +50,11 @@ export function GenerateDialog({ incidentGroups, defaultGroup, onClose, onGenera
       <Select
         label="Категория событий (группа ЕКП)"
         value={group}
-        onChange={(event) => setGroup(event.target.value)}
+        onChange={(event) => {
+          setGroup(event.target.value);
+          setRows(null);
+          setError(null);
+        }}
         options={incidentGroups.map((incidentGroup) => ({ value: incidentGroup, label: incidentGroup }))}
       />
       {error ? (
@@ -59,17 +65,20 @@ export function GenerateDialog({ incidentGroups, defaultGroup, onClose, onGenera
       {rows ? (
         <section className={styles.catalog__generated} aria-label="Результат генерации">
           <p className={styles.catalog__hint}>
-            <AiBadge /> Мок-результат для «{group}»: сценарии поступили на проверку преподавателю — до
+            <AiBadge /> Результат для «{group}»: сценарии поступили на проверку преподавателю — до
             утверждения их нельзя назначить в занятие.
           </p>
           <ul className={styles.catalog__list}>
             {rows.map((row) => (
               <li key={row.id} className={styles.catalog__generatedItem}>
-                <AiBadge title="Сгенерировано ИИ-модулем (мок)" /> <b>{row.title}</b>{" "}
+                <AiBadge title="Сгенерировано на сервере" /> <b>{row.title}</b>{" "}
                 <StatusChip
                   label={getValidationView(row.status).title}
                   tone={getValidationView(row.status).tone}
                 />
+                <Link href={ROUTES.teacherScenario(row.id)} className={styles.catalog__edit}>
+                  проверить
+                </Link>
               </li>
             ))}
           </ul>

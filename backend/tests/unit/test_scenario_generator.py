@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 
 from app.config import get_settings
-from ml.generate import llm
+from ml.generate import llm, validator
 from ml.generate import scenario_generator as gen
 from ml.nlp import address as address_nlp
 
@@ -56,8 +56,23 @@ def test_template_is_deterministic_and_unknown_category_is_empty(cards, addresse
     first = gen.generate_template(CATEGORY, cards, addresses)
     second = gen.generate_template(CATEGORY, cards, addresses)
     assert first == second
-    assert gen.generate_template("Радиация", cards, addresses) == []
+    # Категория из справочника может не иметь исходной карточки: для неё генератор
+    # использует безопасную базу-заглушку. Случайная неизвестная категория по-прежнему отклоняется.
+    assert len(gen.generate_template("Радиация", cards, addresses)) == 3
+    assert gen.generate_template("__неизвестная категория__", cards, addresses) == []
     assert len(gen.generate_template(CATEGORY, cards, addresses, count=2)) == 2
+
+
+def test_known_category_without_source_has_complete_generated_ticket(cards, addresses):
+    produced = gen.generate_template("Притон", cards, addresses, count=1, traps=[None])
+    assert len(produced) == 1
+    ticket = produced[0]["cards"][0]
+    scenario = produced[0]["scenario"]
+    assert "baseCardId" not in ticket
+    assert scenario["cardIds"] == ["new:0"]
+    assert scenario["generation"]["baseCardId"] is None
+    assert validator.check_required_fields(ticket, tuple(gen._reference()["incidentGroups"])).passed
+    assert "call:102" in scenario["etalon"]["expectedActions"]
 
 
 def test_default_traps_and_etalon_from_expected_services(cards, addresses):

@@ -179,10 +179,33 @@ def usable_addresses(addresses: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def base_cards(category: str, cards: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Карточки-источники группы: исходные билеты (не сгенерированные, не дубли); московские — предпочтительно."""
+    """Карточки-источники группы; для известной категории без билетов создаём базу-заглушку.
+
+    Справочник ЕКП шире стартового набора из 96 учебных карточек. Генерация не должна
+    ломаться только потому, что для новой категории ещё нет исходного билета: в этом
+    случае генератор строит новый билет с нуля, без ссылки на несуществующую карточку.
+    """
     own = [c for c in cards if c.get("group") == category and not c.get("baseCardId") and not c.get("duplicateOf")]
     moscow = [c for c in own if not c.get("crossRegion")]
-    return moscow or own
+    if moscow or own:
+        return moscow or own
+
+    # Не разрешаем случайные/опечатанные категории: fallback доступен только группе,
+    # которая реально присутствует в каноническом справочнике ЕКП.
+    if category not in (_reference().get("incidentGroups") or []):
+        return []
+    main_number = main_number_for_group(category, list(classifier.classifier_entries()))
+    return [{
+        "id": "",
+        "ticketNo": 0,
+        "situationNo": 0,
+        "group": category,
+        "summary": f"Сообщение по категории «{category}»",
+        "address": "",
+        "caller": {"name": "Неизвестный заявитель", "phone": "000-000-00-00", "status": "очевидец"},
+        "expectedServices": [f"{main_number} (главная)"] if main_number else [],
+        "expectedTags": [],
+    }]
 
 
 def compose_summary(source_summary: str, address_entry: dict[str, Any]) -> str:
@@ -217,8 +240,9 @@ def build_ticket(base: dict[str, Any], address_entry: dict[str, Any] | None, tra
         "caller": copy.deepcopy(source.get("caller") or {}),
         "expectedServices": list(source.get("expectedServices") or []),
         "expectedTags": list(source.get("expectedTags") or []),
-        "baseCardId": str(base.get("id") or ""),
     }
+    if base.get("id"):
+        ticket["baseCardId"] = str(base["id"])
     if source is not base:
         ticket["fabulaCardId"] = str(source.get("id") or "")
     for key in ("victims", "noAmbulance"):
@@ -327,7 +351,7 @@ def build_scenario(index: int, category: str, ticket: dict[str, Any], base: dict
         "validation": {"status": "pending"},
         "successCriteria": {"maxGrammarErrors": MAX_GRAMMAR_ERRORS, "requiredFields": list(REQUIRED_FIELDS), "syntaxRequirements": SYNTAX_REQUIREMENTS},
         "source": "generated",
-        "generation": {"provider": provider, "baseCardId": base.get("id"), "trap": trap, "category": category},
+        "generation": {"provider": provider, "baseCardId": base.get("id") or None, "trap": trap, "category": category},
     }
     if call_target:
         scenario["callTarget"] = call_target
@@ -345,7 +369,7 @@ def _traps_for(count: int, traps: list[str | None] | None) -> list[str | None]:
 
 
 def generate_template(category: str, cards: list[dict[str, Any]], addresses: list[dict[str, Any]], *, count: int = DEFAULT_COUNT, traps: list[str | None] | None = None, reference: dict[str, Any] | None = None, entries: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
-    """Шаблонные вариации; [] — у категории нет карточек-источников."""
+    """Шаблонные вариации; [] — категория отсутствует в классификаторе ЕКП."""
     category = category.strip()
     count = max(1, min(int(count), MAX_COUNT))
     bases = base_cards(category, cards)
@@ -364,6 +388,8 @@ def generate_template(category: str, cards: list[dict[str, Any]], addresses: lis
         address_entry = address_pool[(address_start + index) % len(address_pool)] if address_pool else None
         fabula = foreign_fabula(category, cards, rng) if trap == "operatorMistake" else None
         region_source = region_pool[index % len(region_pool)] if trap == "crossRegion" and region_pool else None
+        if trap == "duplicate" and not base.get("id"):
+            trap = None
         if trap == "operatorMistake" and fabula is None:
             trap = None
         if trap == "crossRegion" and region_source is None:
@@ -457,7 +483,7 @@ def generate_llm(category: str, cards: list[dict[str, Any]], addresses: list[dic
 
 
 def generate(category: str, cards: list[dict[str, Any]], addresses: list[dict[str, Any]], *, count: int = DEFAULT_COUNT, traps: list[str | None] | None = None, reference: dict[str, Any] | None = None, entries: list[dict[str, Any]] | None = None, client: llm.OllamaClient | None = None) -> list[dict[str, Any]]:
-    """Вариации по категории: LLM при доступном Ollama, иначе шаблон. [] — нет карточек-источников."""
+    """Вариации по категории: LLM при доступном Ollama, иначе шаблон."""
     category = category.strip()
     count = max(1, min(int(count), MAX_COUNT))
     chosen_traps = _traps_for(count, traps)

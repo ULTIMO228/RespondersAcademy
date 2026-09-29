@@ -150,7 +150,7 @@ async def test_generate_is_idempotent_and_validated(client):
     client.cookies.clear()
     assert (await client.post("/scenarios/generate", json={"category": "  ", "requestedBy": TEACHER_ID})).status_code == 400
     assert (await client.post("/scenarios/generate", json={"category": CATEGORY, "requestedBy": STUDENT_ID})).status_code == 400
-    assert (await client.post("/scenarios/generate", json={"category": "Радиация", "requestedBy": TEACHER_ID})).status_code == 400
+    assert (await client.post("/scenarios/generate", json={"category": "__неизвестная категория__", "requestedBy": TEACHER_ID})).status_code == 400
     before_cards = len((await client.get("/training-cards")).json())
     before_scenarios = len((await client.get("/scenarios")).json())
     response = await client.post("/scenarios/generate", json={"category": CATEGORY, "requestedBy": TEACHER_ID})
