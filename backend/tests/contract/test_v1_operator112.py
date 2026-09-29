@@ -11,6 +11,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import delete, select
@@ -94,10 +95,15 @@ async def test_tickets_list_and_audio_fallback(v1: AsyncClient):
     assert (await v1.post("/tickets/c-050/audio", json={"voice": "loud"})).status_code == 400
 
 
-async def test_ready_applicant_audio_is_playable_from_recordings(v1: AsyncClient, tmp_path: Path):
-    wav = b"RIFFtest-applicant-audio"
-    path = tmp_path / "applicant.wav"
-    path.write_bytes(wav)
+@pytest.mark.parametrize(
+    ("extension", "payload", "content_type"),
+    [("wav", b"RIFFtest-applicant-audio", "audio/wav"), ("mp3", b"ID3test-applicant-audio", "audio/mpeg")],
+)
+async def test_ready_applicant_audio_is_playable_from_recordings(
+    v1: AsyncClient, tmp_path: Path, extension: str, payload: bytes, content_type: str,
+):
+    path = tmp_path / f"applicant.{extension}"
+    path.write_bytes(payload)
     async with get_sessionmaker()() as db:
         row = await db.get(TicketAudio, "c-050")
         previous = None if row is None else (row.path, row.status, row.duration_ms, row.generated_at)
@@ -117,7 +123,9 @@ async def test_ready_applicant_audio_is_playable_from_recordings(v1: AsyncClient
         assert recording["title"] == "Голос заявителя" and recording["duration"] == "00:02"
         assert recording["audioUrl"] == "/api/v1/tickets/c-050/audio/file"
         played = await v1.get("http://test" + recording["audioUrl"])
-        assert played.status_code == 200 and played.content == wav
+        assert played.status_code == 200 and played.content == payload
+        assert played.headers["content-type"] == content_type
+        assert f"c-050.{extension}" in played.headers["content-disposition"]
         assert played.headers["content-disposition"].startswith("inline;")
         await login_as(v1, "student")
         assert all(item["id"] != "ticket-c-050" for item in (await v1.get("/cards/c-050/recordings")).json())
