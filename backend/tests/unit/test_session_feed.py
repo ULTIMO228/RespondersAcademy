@@ -1,7 +1,10 @@
+import asyncio
+
 import pytest
 
 from app.db.session import get_sessionmaker
-from app.models.session import Attempt, Evaluation, TeacherOverride
+from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSession
+from app.services import session_engine
 from app.services.session_engine import (
     build_feed,
     feed_attempts,
@@ -72,6 +75,55 @@ async def test_feed_projection_keeps_evaluation_and_override(seeded_db):
         events = build_feed({"cardFlow": [], "cardEvents": attempts}, None, "2026-09-16T10:06:00+03:00")
         assert events[-1]["status"] == "final" and events[-1]["totalScore"] == 80
         await db.rollback()
+
+
+@pytest.mark.asyncio
+async def test_parallel_feed_polls_share_reads_but_see_later_commits(seeded_db, monkeypatch):
+    session_id = "ses-feed-parallel"
+    async with get_sessionmaker()() as db:
+        db.add(TrainingSession(
+            id=session_id, teacher_id="u-002", student_ids=["u-005"], scenario_ids=[],
+            mode="practice", card_source="generated", card_flow=[], state="running",
+            started_at="2026-09-16T10:00:00+03:00",
+        ))
+        await db.commit()
+
+    calls = {"metadata": 0, "attempts": 0}
+    original_metadata = session_engine.require_session_row
+    original_attempts = session_engine.feed_attempts
+
+    async def read_metadata(*args):
+        calls["metadata"] += 1
+        await asyncio.sleep(0.02)
+        return await original_metadata(*args)
+
+    async def read_attempts(*args):
+        calls["attempts"] += 1
+        await asyncio.sleep(0.02)
+        return await original_attempts(*args)
+
+    monkeypatch.setattr(session_engine, "require_session_row", read_metadata)
+    monkeypatch.setattr(session_engine, "feed_attempts", read_attempts)
+
+    async def poll():
+        async with get_sessionmaker()() as db:
+            return await session_engine.session_feed(db, session_id, None, None, "2026-09-16T11:00:00+03:00", None)
+
+    first = await asyncio.gather(*(poll() for _ in range(20)))
+    assert all(result["events"] == [] for result in first)
+    assert calls == {"metadata": 1, "attempts": 1}
+
+    async with get_sessionmaker()() as db:
+        db.add(Attempt(
+            id="att-feed-parallel", session_id=session_id, card_id="c-063", student_id="u-005",
+            opened_at="2026-09-16T10:02:00+03:00", statuses=[], services_called=[],
+            entered_text={}, calls=[], seq=1,
+        ))
+        await db.commit()
+
+    second = await poll()
+    assert [event["kind"] for event in second["events"]] == ["cardOpened"]
+    assert calls == {"metadata": 2, "attempts": 2}
 
 
 def test_projection():

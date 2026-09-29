@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import math
 from collections.abc import Callable, Coroutine
@@ -53,6 +54,7 @@ FOREIGN_SESSION_MESSAGE = "Занятие ведёт другой препода
 NOT_IN_SESSION_MESSAGE = "Вы не участвуете в этом занятии"
 
 ReportBuilder = Callable[[AsyncSession, str], Coroutine[Any, Any, None]]
+_feed_reads: dict[tuple[asyncio.AbstractEventLoop, Any, str, str], asyncio.Task[Any]] = {}
 
 
 # ─── Загрузка контракта ───────────────────────────────────────────────────────────────────────────
@@ -639,18 +641,44 @@ async def feed_attempts(db: AsyncSession, session_id: str) -> list[dict[str, Any
     return events
 
 
-async def session_feed(db: AsyncSession, session_id: str, viewer: Viewer | None, since: str | None, at: str | None, student_id: str | None) -> dict[str, Any]:
+async def _read_feed_metadata(db: AsyncSession, session_id: str) -> dict[str, Any]:
     row = await require_session_row(db, session_id)
-    if viewer is not None and viewer.role == "teacher" and row.teacher_id != viewer.user_id:
+    return {
+        "teacherId": row.teacher_id,
+        "studentIds": list(row.student_ids or []),
+        "cardFlow": row.card_flow or [],
+    }
+
+
+async def _shared_feed_read(db: AsyncSession, session_id: str, stage: str, read: Callable[[], Coroutine[Any, Any, Any]]) -> Any:
+    """Merge concurrent polls; completed reads are never cached."""
+    key = (asyncio.get_running_loop(), db.get_bind(), session_id, stage)
+    task = _feed_reads.get(key)
+    if task is None or task.done():
+        task = asyncio.create_task(read())
+        _feed_reads[key] = task
+
+        def discard(completed: asyncio.Task[Any]) -> None:
+            if _feed_reads.get(key) is completed:
+                _feed_reads.pop(key, None)
+
+        task.add_done_callback(discard)
+    return await asyncio.shield(task)
+
+
+async def session_feed(db: AsyncSession, session_id: str, viewer: Viewer | None, since: str | None, at: str | None, student_id: str | None) -> dict[str, Any]:
+    metadata = await _shared_feed_read(db, session_id, "metadata", lambda: _read_feed_metadata(db, session_id))
+    if viewer is not None and viewer.role == "teacher" and metadata["teacherId"] != viewer.user_id:
         raise forbidden(FOREIGN_SESSION_MESSAGE)
-    if viewer is not None and viewer.is_student and viewer.user_id not in (row.student_ids or []):
+    if viewer is not None and viewer.is_student and viewer.user_id not in metadata["studentIds"]:
         raise forbidden(NOT_IN_SESSION_MESSAGE)
     scope = resolve_student_scope(viewer, student_id)
     for key, value in (("since", since), ("at", at)):
         if value is not None and not is_iso(value):
             raise validation_failed(f"Некорректная метка времени «{key}»: {value}")
     at_value = at or now_iso()
-    events = build_feed({"cardFlow": row.card_flow or [], "cardEvents": await feed_attempts(db, session_id)}, since, at_value)
+    card_events = await _shared_feed_read(db, session_id, "attempts", lambda: feed_attempts(db, session_id))
+    events = build_feed({"cardFlow": metadata["cardFlow"], "cardEvents": card_events}, since, at_value)
     if scope:
         events = [e for e in events if e["studentId"] == scope]
     return {"sessionId": session_id, "at": at_value, "events": events}
