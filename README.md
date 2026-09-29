@@ -11,9 +11,9 @@
 Стек: Next.js (App Router) + React + TypeScript strict, архитектура Feature-Sliced Design в `src/`,
 данные — собственный мок-слой `/api/mock/*` поверх JSON. Внешних сервисов, CDN и сетевых вызовов нет.
 
-| 🎬 Демо-видео | 🧠 ИИ-модель | 📊 Презентация |
+| 🎬 Демо-видео | 🧠 Веса ИИ-модели (GGUF, 4 бит) | 📊 Презентация |
 |:---:|:---:|:---:|
-| [Смотреть на Google Drive](https://drive.google.com/file/d/1Yug-Fk055mn_m6pWqyqFOKM5Q_wp8oME/view?usp=sharing) | [Скачать с Google Drive](https://drive.google.com/file/d/1Yug-Fk055mn_m6pWqyqFOKM5Q_wp8oME/view?usp=sharing) | [Открыть в Google Slides](https://docs.google.com/presentation/d/1L6EC4AJEkSB8At1SAymVtG-2M4BhsrOn/edit?usp=sharing&ouid=107397258586226076996&rtpof=true&sd=true) |
+| [Смотреть на Google Drive](https://drive.google.com/file/d/1Yug-Fk055mn_m6pWqyqFOKM5Q_wp8oME/view?usp=sharing) | [Qwen3.5-0.8B · Q4_K_M · 542 МБ](https://drive.google.com/file/d/1o9RHSYpA09TGPlkU2WP5b_VhTRwUEjcH/view?usp=sharing) | [Открыть в Google Slides](https://docs.google.com/presentation/d/1L6EC4AJEkSB8At1SAymVtG-2M4BhsrOn/edit?usp=sharing&ouid=107397258586226076996&rtpof=true&sd=true) |
 
 **Содержание:** [Архитектура](#архитектура-два-контура) · [Быстрый старт с ИИ](#быстрый-старт-с-ии-две-команды) ·
 [Демо-стенд](#быстрый-старт-демо-стенд-одной-командой-sc-015) · [Разработка](#установка-вручную-и-разработка) ·
