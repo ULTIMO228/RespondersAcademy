@@ -9,7 +9,7 @@
   улицы (МКАД, метро, ж/д, парк, «дорога от…», Московская область) — ручная проверка; названная улица не найдена — не пройдено.
 - `requiredFields` — группа из `reference.incidentGroups`, фабула, адрес, заявитель (ФИО, телефон, статус),
   ожидаемые службы (`spec/05` §5).
-- `duplicate` — косинус «фабула + адрес» к существующим билетам ≥ 0,92 (`ml.nlp.dedup`); объявленные связи
+- `duplicate` — косинус «фабула + адрес» к билетам с похожим адресом ≥ 0,92 (`ml.nlp.dedup`); объявленные связи
   (`duplicateOf`, `baseCardId`, `fabulaCardId` — источники вариации) исключаются из сравнения и показываются отдельно.
 - `grammar` — орфография фабулы и адреса (R2); опечатки — не пройдено, список в `details`.
 - `consistency` — факты фабулы ↔ признаки: «пострадавшие» без отрицания ↔ `victims`; «03 не требуется» ↔
@@ -27,9 +27,11 @@ from ml.classify import ekp_group_classifier as classifier
 from ml.nlp import address as address_nlp
 from ml.nlp import dedup
 from ml.nlp import grammar as grammar_nlp
+from ml.nlp.semantic import lexical_similarity
 
 VALIDATOR_VERSION = "validator-1.0.0"
 CHECK_IDS = ("category", "address", "requiredFields", "duplicate", "grammar", "consistency")
+ADDRESS_DUPLICATE_THRESHOLD = 0.5
 
 VICTIMS_MENTION = re.compile(r"пострадав|ранен|травм|погиб|сознани", re.IGNORECASE)
 VICTIMS_NEGATION = re.compile(r"пострадавших нет|без пострадавших|нет пострадавших|не пострадал|пострадавших не |информации нет|без раненых|погибших нет", re.IGNORECASE)
@@ -153,10 +155,16 @@ def check_duplicate(ticket: dict[str, Any], existing: list[dict[str, Any]]) -> C
     links = _declared_links(ticket)
     # Связь, объявленная с другой стороны (c-047.duplicateOf = c-003), тоже не считается неожиданным дублем.
     others = [c for c in existing if c.get("id") != own_id and c.get("id") not in links and not (own_id and c.get("duplicateOf") == own_id)]
+    # E5 высоко оценивает происшествия одного типа даже на разных улицах. Дубль должен относиться к тому же месту.
+    address = _text(ticket.get("address"))
+    if address:
+        others = [c for c in others if lexical_similarity(address, _text(c.get("address"))) >= ADDRESS_DUPLICATE_THRESHOLD]
     text = dedup.ticket_text(ticket)
     if not others or not text:
         message = "Объявленный дубль карточки " + ", ".join(sorted(links)) if ticket.get("duplicateOf") else "Похожих билетов нет"
-        return Check("duplicate", True, message, available=dedup.available(), details={"declared": sorted(links)})
+        is_available = dedup.available()
+        return Check("duplicate", True, message, needsReview=not is_available, available=is_available,
+                     details={"declared": sorted(links)})
     nearest = dedup.nearest(text, [dedup.ticket_text(c) for c in others])
     nearest_id = others[nearest.index].get("id") if nearest.index >= 0 else None
     details = {"nearest": nearest_id, "similarity": round(nearest.similarity, 4), "threshold": dedup.DUPLICATE_THRESHOLD if nearest.available else dedup.LEXICAL_THRESHOLD, "declared": sorted(links), "model": dedup.model_name()}

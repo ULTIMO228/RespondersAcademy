@@ -1,4 +1,5 @@
 export { IncidentCardView } from "./ui/IncidentCardView";
+export { RecordingsButton } from "./ui/RecordingsButton";
 export type { IncidentCardViewProps, LinkedCard } from "./model/types";
 export type { AmendControl, DispatcherControl, FlagsControl, IncidentCardControls } from "./model/types";
 export type { IncidentCardData, WorkLineData, WorkLineFormValues, WorkLinesControl } from "./model/types";

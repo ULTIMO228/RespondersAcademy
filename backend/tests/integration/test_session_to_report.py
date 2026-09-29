@@ -12,6 +12,7 @@ from sqlalchemy import select
 from app.db.session import get_sessionmaker
 from app.models.audit import AuditLog
 from app.models.report import CalibrationSample
+from app.models.session import Attempt
 from tests.conftest import login_as
 
 TEACHER_ID = "u-002"
@@ -35,10 +36,12 @@ async def test_session_to_report_flow(client):
     started = await client.post(f"/sessions/{session_id}/start")
     assert started.status_code == 200
     flow = [i for i in started.json()["cardFlow"] if i["studentId"] == student_id]
-    # card_runtime общий на карточку: берём карточку, которую другие тесты ещё не закрывали.
+    async with get_sessionmaker()() as db:
+        attempted_cards = set((await db.execute(select(Attempt.card_id).where(Attempt.student_id == student_id))).scalars().all())
+    # card_runtime общий на карточку; старая попытка этого курсанта вернулась бы как created: false.
     for item in flow:
         details = await client.get(f"/cards/{item['cardId']}")
-        if not details.json()["runtime"]["statusEvents"]:
+        if item["cardId"] not in attempted_cards and not details.json()["runtime"]["statusEvents"]:
             card_id, issued_at = item["cardId"], item["issuedAt"]
             break
     else:
@@ -50,6 +53,7 @@ async def test_session_to_report_flow(client):
 
     opened = await client.post(f"/cards/{card_id}/attempt", json={"studentId": student_id, "issuedAt": issued_at})
     assert opened.status_code == 201, opened.text
+    assert opened.json()["sessionId"] == session_id and opened.json()["created"] is True
     attempt_id = opened.json()["attempt"]["id"]
     for status in ("accepted", "responseStarted", "arrived", "workInProgress", "workDone"):
         posted = await client.post(f"/cards/{card_id}/status", json={"ddsStatus": status})
