@@ -271,3 +271,7 @@ export type {
   TicketAudio,
   TicketAudioStatus,
 } from "./types";
+export { liveCallApi } from "./endpoints/live-call";
+export type { LiveCallRecord, LiveTranscriptLine } from "./endpoints/live-call";
+export { realtimeCallApi } from "./endpoints/realtime-call";
+export type { RealtimeEvent, RealtimeConnection } from "./endpoints/realtime-call";

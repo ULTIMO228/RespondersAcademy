@@ -42,6 +42,23 @@ class Settings(BaseSettings):
     ml_warmup: bool = Field(default=True, alias="ML_WARMUP")  # прогрев моделей при старте (в тестах выключен)
     tts_enabled: bool = Field(default=True, alias="TTS_ENABLED")  # синтез аудио билетов (Silero); 0 — только расшифровка
     app_env: str = Field(default="dev", alias="APP_ENV")
+    live_calls_enabled: bool = Field(default=False, alias="LIVE_CALLS_ENABLED")
+    live_call_realtime_transport: Literal["omni", "cascade", "speechkit"] = Field(default="omni", alias="LIVE_CALL_REALTIME_TRANSPORT")
+    speechkit_api_key: SecretStr | None = Field(default=None, alias="SPEECHKIT_API_KEY", repr=False)
+    speechkit_folder_id: str | None = Field(default=None, alias="SPEECHKIT_FOLDER_ID")
+    speechkit_tts_model: Literal["general", "livetts"] = Field(default="livetts", alias="SPEECHKIT_TTS_MODEL")
+    speechkit_voice: str = Field(default="denis", min_length=1, max_length=80, alias="SPEECHKIT_VOICE")
+    speechkit_role: str = Field(default="casual", min_length=1, max_length=80, alias="SPEECHKIT_ROLE")
+    live_call_realtime_url: str | None = Field(default=None, alias="LIVE_CALL_REALTIME_URL")
+    live_call_realtime_key: SecretStr | None = Field(default=None, alias="LIVE_CALL_REALTIME_KEY", repr=False)
+    live_call_public_ws_url: str | None = Field(default=None, alias="LIVE_CALL_PUBLIC_WS_URL")
+    live_call_llm_url: str | None = Field(default=None, alias="LIVE_CALL_LLM_URL")
+    live_call_llm_model: str = Field(default="caller", alias="LIVE_CALL_LLM_MODEL")
+    live_call_llm_ollama: bool = Field(default=False, alias="LIVE_CALL_LLM_OLLAMA")
+    live_call_llm_transport: Literal["local", "api"] = Field(default="local", alias="LIVE_CALL_LLM_TRANSPORT")
+    live_call_llm_api_key: SecretStr | None = Field(default=None, alias="LIVE_CALL_LLM_API_KEY", repr=False)
+    live_call_reply_mode: Literal["auto", "facts", "dialogue"] = Field(default="auto", alias="LIVE_CALL_REPLY_MODE")
+    live_call_max_sec: int = Field(default=180, ge=30, le=600, alias="LIVE_CALL_MAX_SEC")
 
     @field_validator("jwt_secret")
     @classmethod

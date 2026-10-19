@@ -23,6 +23,7 @@ SAMPLE_RATE = 24_000
 SPEAKERS = {"male": "aidar", "female": "kseniya"}
 MAX_CHUNK_CHARS = 800
 _lock = threading.Lock()
+_synthesis_lock = threading.Lock()
 _model = None
 _load_error: str | None = None
 
@@ -176,6 +177,19 @@ def synthesize(text: str, voice: str, out_path: Path) -> Synthesis:
     samples = np.concatenate(pieces) if pieces else np.zeros(SAMPLE_RATE // 2, dtype=np.float32)
     write_wav(out_path, samples)
     return Synthesis(path=out_path, duration_ms=int(len(samples) * 1000 / SAMPLE_RATE), speaker=speaker)
+
+
+def synthesize_pcm(text: str, voice: str = "female") -> bytes:
+    """Короткий фрагмент → PCM16 LE 24 кГц в памяти, без WAV и искусственной паузы."""
+    model = _load()
+    import torch
+
+    prepared = prepare_text(text)
+    if not prepared:
+        return b""
+    with _synthesis_lock, torch.inference_mode():
+        audio = model.apply_tts(text=prepared, speaker=SPEAKERS.get(voice, SPEAKERS["female"]), sample_rate=SAMPLE_RATE)
+        return (np.clip(audio.numpy(), -1.0, 1.0) * 32767).astype("<i2").tobytes()
 
 
 def write_wav(path: Path, samples: np.ndarray, sample_rate: int = SAMPLE_RATE) -> None:
