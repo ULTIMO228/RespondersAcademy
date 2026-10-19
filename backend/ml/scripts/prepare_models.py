@@ -34,6 +34,12 @@ MODELS = {
         "sha256": "961d5ff98a17f4aa6de69864d0aa71fa5bac682301d2b5d17a3f24c5c99a46d4",
         "dir": "vosk-model-small-ru-0.22",
     },
+    "vad": {
+        "url": "https://raw.githubusercontent.com/snakers4/silero-vad/1e261b036686cd0017d500ee96acd1c4ba572a9d/src/silero_vad/data/silero_vad.jit",
+        "sha256": "e1122837f4154c511485fe0b9c64455f7b929c96fbb8d79fbdb336383ebd3720",
+        "dir": "silero-vad",
+        "file": "silero_vad.jit",
+    },
 }
 DEFAULT_MODELS = ("embedder", "dedup", "symspell")
 HF_PATTERNS = ("*.json", "*.txt", "*.safetensors", "*.model", "*.bin")

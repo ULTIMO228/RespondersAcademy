@@ -11,8 +11,10 @@ def build_router() -> APIRouter:
         ai_errors,
         ai_scenarios,
         assignments,
+        live_calls,
         lobby,
         operator112,
+        realtime_calls,
         recommendations,
         reports_export,
         tickets,
@@ -22,6 +24,8 @@ def build_router() -> APIRouter:
 
     router = APIRouter()
     for module in (
+        realtime_calls,
+        live_calls,
         ai_assessments,
         ai_errors,
         ai_scenarios,
