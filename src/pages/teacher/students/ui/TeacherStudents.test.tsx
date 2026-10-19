@@ -60,7 +60,11 @@ describe("groupStudents", () => {
     expect(
       groupStudents(STUDENTS, ["Г-1"]).map(([group, members]) => [group, members.map((m) => m.id)]),
     ).toEqual([["Г-1", ["u-5", "u-7"]]]);
-    expect(groupStudents(STUDENTS).map(([group]) => group)).toEqual(["Г-1", "Г-2"]);
+  });
+
+  it("без закреплённых групп групп нет", () => {
+    expect(groupStudents(STUDENTS)).toEqual([]);
+    expect(groupStudents(STUDENTS, [])).toEqual([]);
   });
 });
 
@@ -90,6 +94,17 @@ describe("страница «Обучающиеся»", () => {
     );
     expect(await screen.findByText("Обучающихся нет")).toBeInTheDocument();
   });
+
+  it("группы не закреплены вовсе — «Нет закреплённых групп», а не все обучающиеся", async () => {
+    render(
+      <SessionProvider user={{ ...teacher, assignedGroups: [] }}>
+        <TeacherStudentsScreen api={makeApi()} />
+      </SessionProvider>,
+    );
+    expect(await screen.findByText("Нет закреплённых групп")).toBeInTheDocument();
+    expect(screen.queryByText("Иванов")).not.toBeInTheDocument();
+    expect(screen.queryByText("Петров")).not.toBeInTheDocument();
+  });
 });
 
 describe("профиль обучающегося", () => {
@@ -102,6 +117,14 @@ describe("профиль обучающегося", () => {
     expect(within(table).getByText("address")).toBeInTheDocument();
     expect(screen.getByText("Ошибок в этом режиме пока нет.")).toBeInTheDocument();
     expect(screen.getByText("Повторить статью")).toBeInTheDocument();
+  });
+
+  it("ссылка «Карта ошибок» ведёт на карту этого обучающегося", async () => {
+    render(<TeacherStudentScreen studentId="u-5" api={makeApi()} />);
+    expect(await screen.findByRole("link", { name: "Карта ошибок" })).toHaveAttribute(
+      "href",
+      "/teacher/error-map/students/u-5",
+    );
   });
 
   it("без истории — пустые состояния; 403/404 профиля — ошибка", async () => {

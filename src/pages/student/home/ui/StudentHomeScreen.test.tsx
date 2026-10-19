@@ -17,6 +17,9 @@ import type {
 import type { StudentHomeApi } from "../api/homeApi";
 import { StudentHomeScreen } from "./StudentHomeScreen";
 
+/** Блок «Над чем поработать» в этих тестах ничего не показывает: он проверяется отдельно, в виджете. */
+const focusApi = { focus: () => Promise.reject(new ServerRequiredError()) };
+
 const USER: PublicUser = {
   id: "u-005",
   login: "ivanov",
@@ -111,12 +114,26 @@ function makeApi(overrides: Partial<StudentHomeApi> = {}): StudentHomeApi {
 function renderHome(api: StudentHomeApi) {
   return render(
     <SessionProvider user={USER}>
-      <StudentHomeScreen api={api} nowMs={NOW} />
+      <StudentHomeScreen api={api} focusApi={focusApi} nowMs={NOW} />
     </SessionProvider>,
   );
 }
 
 describe("главная обучающегося", () => {
+  it("блок «Над чем поработать» показан, когда сервер ответил, и скрыт без сервера", async () => {
+    const shown = { focus: async () => ({ mode: "dds" as const, items: [], message: "Пока замечаний нет" }) };
+    const { unmount } = render(
+      <SessionProvider user={USER}>
+        <StudentHomeScreen api={makeApi()} focusApi={shown} nowMs={NOW} />
+      </SessionProvider>,
+    );
+    expect(await screen.findByRole("heading", { name: "Над чем поработать" })).toBeInTheDocument();
+    unmount();
+    renderHome(makeApi());
+    await screen.findByRole("region", { name: "Мои показатели" });
+    expect(screen.queryByRole("heading", { name: "Над чем поработать" })).not.toBeInTheDocument();
+  });
+
   it("приветствие по имени-отчеству и все блоки с данными", async () => {
     renderHome(makeApi());
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Здравствуйте, Сергей Петрович");

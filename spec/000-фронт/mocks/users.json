@@ -7,8 +7,8 @@
   },
   "users": [
     { "id": "u-001", "login": "admin", "password": "admin112", "fullName": "Соколов Андрей Викторович", "role": "admin", "armNumber": 24, "isActive": true },
-    { "id": "u-002", "login": "morozova", "password": "teacher112", "fullName": "Морозова Елена Сергеевна", "role": "teacher", "armNumber": 21, "isActive": true },
-    { "id": "u-003", "login": "kovalev", "password": "teacher112", "fullName": "Ковалёв Дмитрий Павлович", "role": "teacher", "armNumber": 22, "isActive": true },
+    { "id": "u-002", "login": "morozova", "password": "teacher112", "fullName": "Морозова Елена Сергеевна", "role": "teacher", "armNumber": 21, "isActive": true, "assignedGroups": ["ДДС-01"] },
+    { "id": "u-003", "login": "kovalev", "password": "teacher112", "fullName": "Ковалёв Дмитрий Павлович", "role": "teacher", "armNumber": 22, "isActive": true, "assignedGroups": ["ДДС-02"] },
     { "id": "u-004", "login": "vinogradova", "password": "teacher112", "fullName": "Виноградова Ирина Николаевна", "role": "teacher", "armNumber": 23, "isActive": true },
     { "id": "u-005", "login": "ivanov", "password": "student112", "fullName": "Иванов Сергей Петрович", "role": "student", "armNumber": 1, "isActive": true, "group": "ДДС-01", "service": "ДДС района Чертаново Южное" },
     { "id": "u-006", "login": "petrova", "password": "student112", "fullName": "Петрова Анна Дмитриевна", "role": "student", "armNumber": 2, "isActive": true, "group": "ДДС-01", "service": "ДДС района Чертаново Южное" },

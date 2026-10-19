@@ -55,7 +55,7 @@ describe("buildSessionFeed — завершённое занятие", () => {
       at: "2026-09-16T10:07:58+03:00",
       totalScore: 66,
       /* errors + grammarErrors — счётчик ошибок плитки «на лету». */
-      errorCount: 5,
+      errorCount: 9,
     });
     /* Попытка без Evaluation (идущее занятие) событие оценки не порождает. */
     const pending = { ...finished, cardEvents: [{ ...finished.cardEvents[0], evaluation: undefined }] };

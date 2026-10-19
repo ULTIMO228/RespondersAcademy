@@ -9,6 +9,7 @@
 #   1. Проверяет наличие локальных моделей (Silero, Vosk, RuBERT) и сообщает о статусе/фолбэках.
 #   2. Создаёт чистую БД (backend/var/demo.db, вне git), загружает сид (app.seed.load --reset).
 #   3. Применяет фикстуру цепочки A → B (backend/scripts/seed_chain_demo.py, T031).
+#   3a. Добавляет демо-набор карты ошибок (backend/scripts/seed_error_map_demo.py, спека 003, T019).
 #   4. Запускает бэкенд на порту 8130 (или BACKEND_PORT).
 #   5. Сохраняет .env.local (если задан) и собирает фронт с BACKEND_URL=http://127.0.0.1:BACKEND_PORT.
 #   6. Запускает Next.js фронт на порту 3130 (или FRONT_PORT).
@@ -161,6 +162,13 @@ echo "▸ Загрузка фикстуры сквозной цепочки A �
 (cd "$BACKEND_DIR" && uv run python scripts/seed_chain_demo.py >"$LOG_DIR/chain_seed.log" 2>&1) || {
   echo "❌ Ошибка фикстуры цепочки! Лог:" >&2
   cat "$LOG_DIR/chain_seed.log" >&2
+  exit 1
+}
+
+echo "▸ Демо-набор карты ошибок (T019, спека 003)..."
+(cd "$BACKEND_DIR" && uv run python scripts/seed_error_map_demo.py >"$LOG_DIR/error_map_demo.log" 2>&1) || {
+  echo "❌ Ошибка демо-набора карты ошибок! Лог:" >&2
+  cat "$LOG_DIR/error_map_demo.log" >&2
   exit 1
 }
 

@@ -40,6 +40,7 @@ const RULES: CrumbRule[] = [
     prefix: "/teacher/groups",
     crumbs: [{ title: "Обучающиеся", href: ROUTES.teacherStudents }, { title: "Аналитика группы" }],
   },
+  { prefix: ROUTES.teacherErrorMap, crumbs: [{ title: "Карта ошибок" }] },
   { prefix: ROUTES.teacherScenarios, exact: true, crumbs: [{ title: "Сценарии" }] },
   {
     prefix: ROUTES.teacherScenarios,

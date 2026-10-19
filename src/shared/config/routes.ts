@@ -1,4 +1,18 @@
 /* Карта роутов приложения (spec/000-фронт/03-architecture.md «Карта роутов»). */
+
+const TEACHER_ASSIGNMENT_NEW = "/teacher/assignments/new";
+
+/**
+ * Имена query-параметров мастера назначения при переходе из карты ошибок (спека 003, US2). Собирает
+ * `ROUTES.teacherAssignmentNewPrefilled`, разбирает `assignmentPrefillFromQuery` (features/assignment-create).
+ */
+export const ASSIGNMENT_NEW_QUERY = {
+  studentIds: "studentIds",
+  mode: "mode",
+  title: "title",
+  focusStage: "focusStage",
+} as const;
+
 export const ROUTES = {
   login: "/login",
   /** Страница 403 «Доступ запрещён» (гварды ролей, spec/000-фронт/02-roles.md). */
@@ -12,6 +26,26 @@ export const ROUTES = {
   armOperator112: "/arm/operator112",
   armOperator112ForAssignment: (assignmentId: string) =>
     `/arm/operator112?assignmentId=${encodeURIComponent(assignmentId)}`,
+  /**
+   * Мастер назначения, предзаполненный из карты ошибок (спека 003, US2). Пустые поля в ссылку не попадают.
+   * В `title` и `focusStage` передаётся отображаемое название этапа: словарь этапов живёт только на бэкенде.
+   */
+  teacherAssignmentNewPrefilled: (prefill: {
+    studentIds?: string[];
+    mode?: string;
+    title?: string;
+    focusStage?: string;
+  }): string => {
+    const query = new URLSearchParams();
+    if (prefill.studentIds && prefill.studentIds.length > 0) {
+      query.set(ASSIGNMENT_NEW_QUERY.studentIds, prefill.studentIds.join(","));
+    }
+    if (prefill.mode) query.set(ASSIGNMENT_NEW_QUERY.mode, prefill.mode);
+    if (prefill.title) query.set(ASSIGNMENT_NEW_QUERY.title, prefill.title);
+    if (prefill.focusStage) query.set(ASSIGNMENT_NEW_QUERY.focusStage, prefill.focusStage);
+    const search = query.toString();
+    return search ? `${TEACHER_ASSIGNMENT_NEW}?${search}` : TEACHER_ASSIGNMENT_NEW;
+  },
   /** Задания обучающегося (спека 002, T017). */
   studentAssignments: "/student/assignments",
   /** Прежние вкладки симулятора: редиректы в платформу (next.config.ts). */
@@ -46,6 +80,13 @@ export const ROUTES = {
   teacherGroup: (groupId: string) => `/teacher/groups/${encodeURIComponent(groupId)}`,
   teacherReports: "/teacher/reports",
   teacherReport: (sessionId: string) => `/teacher/reports/${sessionId}`,
+  /** Карта ошибок (спека 003): фильтры периода, режима и этапа — в query текущего экрана, хелперы их не собирают. */
+  teacherErrorMap: "/teacher/error-map",
+  teacherErrorMapGroup: (groupId: string) => `/teacher/error-map/${encodeURIComponent(groupId)}`,
+  teacherErrorMapJournal: (groupId: string) => `/teacher/error-map/${encodeURIComponent(groupId)}/journal`,
+  teacherErrorMapStudent: (studentId: string) =>
+    `/teacher/error-map/students/${encodeURIComponent(studentId)}`,
+  teacherErrorMapPresent: (groupId: string) => `/teacher/error-map/${encodeURIComponent(groupId)}/present`,
   adminHome: "/admin",
   adminAudit: "/admin/audit",
   adminSecurity: "/admin/security",

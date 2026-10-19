@@ -181,3 +181,5 @@ uv run python -m ml.scripts.build_labeled_tickets    # 20 корректных +
 ## Переменные окружения
 
 См. `.env.example`. Ключевые: `DATABASE_URL`, `JWT_SECRET`, `SEED_DIR`, `MODELS_DIR`, `OLLAMA_URL`.
+
+**Внешний провайдер Polza.ai (опция, фича 004).** По умолчанию `AI_PROVIDER=local` — сеть не используется. Для `AI_PROVIDER=polza` обязателен `POLZA_API_KEY` (иначе бэкенд не стартует); дополнительно `POLZA_BASE_URL` (`https://polza.ai/api/v1`), `POLZA_MODEL`, `POLZA_TIMEOUT_SEC`, лимиты `POLZA_RPM` и `POLZA_DAILY_LIMIT`. Внешней модели отдаются только генерация сценариев и пояснение этапа карты ошибок; при сбое, ошибке провайдера или превышении лимита работают шаблонные фолбэки. Каждое обращение пишется в аудит (`ai.external_call`) без текстов и ключа. Статус для администратора — `GET /api/v1/admin/ai/provider`.

@@ -46,7 +46,12 @@ export function TeacherStudentScreen({ studentId, api = teacherStudentsApi }: Te
             <PageHeader
               title={name}
               description="Профиль обучающегося по итогам всех попыток"
-              actions={<LinkButton href={ROUTES.teacherStudents}>К списку</LinkButton>}
+              actions={
+                <>
+                  <LinkButton href={ROUTES.teacherErrorMapStudent(studentId)}>Карта ошибок</LinkButton>
+                  <LinkButton href={ROUTES.teacherStudents}>К списку</LinkButton>
+                </>
+              }
             />
             <StatGroup>
               {(Object.keys(MODE_LABELS) as LobbyMode[]).map((mode) => (

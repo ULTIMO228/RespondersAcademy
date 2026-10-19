@@ -501,7 +501,7 @@ def generate(category: str, cards: list[dict[str, Any]], addresses: list[dict[st
     chosen_traps = _traps_for(count, traps)
     reference = reference if reference is not None else _reference()
     entries = entries if entries is not None else list(classifier.classifier_entries())
-    client = client if client is not None else llm.configured_client()
+    client = client if client is not None else llm.generation_client()
     if client is not None:
         produced = generate_llm(category, cards, addresses, count=count, traps=chosen_traps, reference=reference, entries=entries, client=client)
         if produced:

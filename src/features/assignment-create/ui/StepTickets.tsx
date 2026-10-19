@@ -31,12 +31,17 @@ type StepTicketsProps = {
   onChange: (patch: Partial<WizardDraft>) => void;
 };
 
+type StepTicketsViewProps = StepTicketsProps & {
+  /** Название этапа из карты ошибок: только подсказка, билеты мастер по нему не подбирает (решение D3). */
+  focusStage?: string;
+};
+
 const DIFFICULTIES = [1, 2, 3, 4, 5];
 
 const toggleItem = <T,>(items: T[], item: T, checked: boolean): T[] =>
   checked ? [...items, item] : items.filter((value) => value !== item);
 
-export function StepTickets({ api, draft, errors, onChange }: StepTicketsProps) {
+export function StepTickets({ api, draft, errors, onChange, focusStage }: StepTicketsViewProps) {
   const isChain = draft.trainingMode === "chain";
   const sourceOptions: { value: TicketSource; label: string }[] = [
     { value: "cards", label: isChain ? "Версии сценариев" : "Перечень билетов" },
@@ -44,6 +49,7 @@ export function StepTickets({ api, draft, errors, onChange }: StepTicketsProps) 
   ];
   return (
     <div className={styles.step}>
+      {focusStage ? <Alert tone="info">{`Подберите билеты на тему «${focusStage}»`}</Alert> : null}
       <SegmentedControl
         label="Источник билетов"
         options={sourceOptions}

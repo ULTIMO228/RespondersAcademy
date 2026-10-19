@@ -154,3 +154,31 @@ export type {
 export type { OperatorHintStep } from "./operator112";
 export type { OperatorHints, Street, TicketAudio, TicketAudioStatus } from "./operator112";
 export type { HealthStatus } from "./health";
+export type {
+  ErrorMapChainLink,
+  ErrorMapExplanation,
+  ErrorMapHeadline,
+  ErrorMapJournalResponse,
+  ErrorMapJournalRow,
+  ErrorMapMode,
+  ErrorMapPeriod,
+  ErrorMapResponse,
+  ErrorMapScope,
+  ErrorMapSettings,
+  ErrorMapSeverity,
+  ErrorMapGroup,
+  ErrorMapStage,
+  ErrorMapStageDetail,
+  ErrorMapStageLevel,
+  ErrorMapStudentRef,
+  ErrorMapTypicalError,
+  ErrorMapVerdictRequest,
+  ExplanationSource,
+  HeadlineKind,
+  MyFocusItem,
+  MyFocusResponse,
+  ScopeKind,
+  StageComparison,
+  StageLevelWord,
+  VerdictKind,
+} from "./error-map";

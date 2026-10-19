@@ -34,10 +34,9 @@ export function TeacherHomeSummary({ api = teacherHomeApi }: Props) {
 
   const risk = useResource<RiskResult>(async () => {
     const all = await api.listStudents();
-    const allowed = assignedGroups && assignedGroups.length > 0 ? new Set(assignedGroups) : null;
+    const allowed = new Set(assignedGroups ?? []);
     const students = all.filter(
-      (student: PublicUser) =>
-        student.isActive && (!allowed || (student.group && allowed.has(student.group))),
+      (student: PublicUser) => student.isActive && student.group !== undefined && allowed.has(student.group),
     );
     const settled = await mapLimit(students, PROFILE_CONCURRENCY, (student) => api.profile(student.id));
     /* Без бэкенда все запросы профилей одинаково не проходят: это «нужен сервер», а не «профили не загрузились». */

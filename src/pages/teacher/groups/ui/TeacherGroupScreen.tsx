@@ -41,7 +41,12 @@ export function TeacherGroupScreen({ groupId, api = teacherGroupsApi }: TeacherG
       <PageHeader
         title={`Группа ${groupId}`}
         description="Типичные ошибки группы и предлагаемая тема для повторения"
-        actions={<LinkButton href={ROUTES.teacherStudents}>К обучающимся</LinkButton>}
+        actions={
+          <>
+            <LinkButton href={ROUTES.teacherErrorMapGroup(groupId)}>Карта ошибок группы</LinkButton>
+            <LinkButton href={ROUTES.teacherStudents}>К обучающимся</LinkButton>
+          </>
+        }
       />
       <Card>
         <SelectField

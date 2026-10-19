@@ -16,6 +16,13 @@
 Контракт `call_script` (US3, решение 2026-09-22): вход — билет (`IncidentCard`) и `context = { "voice": male|female,
 "reference": Reference }`; выход — текст реплики заявителя (все факты билета разговорным языком) либо `None`, тогда
 берётся шаблон `ml.generate.call_script`. Озвучивание (Silero) и оценка карточки остаются на стороне бэкенда.
+Контракт `explain_stage` (фича 003, US6; необязательный метод — реализация шлюза без него тоже допустима): вход —
+режим `operator112`/`dds`, этап `{ id, title }`, типовые ошибки этапа `[{ ruleId, plainText, severity, studentCount }]`
+(не больше трёх, самая частая первой) и `context = { subject: group|student, level: { level, share, attempts,
+attemptsWithError, affectedStudents } }`; выход — текст из одной-двух фраз на русском о вероятной причине либо `None`,
+тогда бэкенд берёт шаблон «справочное пояснение». Бэкенд сам ограничивает длину и число фраз, пометку «ИИ» и вердикт
+преподавателя ставит интерфейс; ответ никогда не меняет светофор и оценки. Реализация обязана работать локально:
+внешних обращений (облачные LLM, онлайн-сервисы) контур не допускает (конституция, принцип I).
 """
 
 from __future__ import annotations
@@ -42,6 +49,8 @@ class AiGateway(Protocol):
     def call_reply(self, to_number: str, turn: str, context: dict[str, Any]) -> dict[str, Any] | None: ...
 
     def call_script(self, ticket: dict[str, Any], context: dict[str, Any]) -> str | None: ...
+
+    def explain_stage(self, mode: str, stage: dict[str, Any], errors: list[dict[str, Any]], context: dict[str, Any]) -> str | None: ...
 
     def resolve_semantic_dispute(
         self,
@@ -81,6 +90,28 @@ class LocalAiGateway:
     def call_script(self, ticket: dict[str, Any], context: dict[str, Any]) -> str | None:
         # Точка подключения LLM-генерации реплики заявителя (US3, команда ИИ-агентов); None → ml.generate.call_script.
         return None
+
+    def explain_stage(self, mode: str, stage: dict[str, Any], errors: list[dict[str, Any]], context: dict[str, Any]) -> str | None:
+        # Внешний провайдер (спека 004, `AI_PROVIDER=polza`) — единственный источник текста; иначе None → шаблон
+        # в error_map_explain. Имена обучающихся не передаются: только название этапа, формулировки правил и числа.
+        from ml.generate import llm
+
+        client = llm.external_client()
+        if client is None or not client.healthy():
+            return None
+        client.purpose = "error_map_explain"
+        listing = "\n".join(f"- {item['plainText']} (обучающихся: {item['studentCount']})" for item in errors)
+        user = (
+            f"Режим: {mode}. Этап: «{stage['title']}». Типовые ошибки:\n{listing or '- нет'}\n"
+            "Объясни в одной-двух фразах, почему так может происходить."
+        )
+        system = (
+            "Ты помощник преподавателя диспетчеров. Отвечай по-русски, одной-двумя короткими фразами, "
+            "без оценок людей, без терминов и списков. Ответ — JSON {\"text\": \"...\"}."
+        )
+        answer = client.chat_json(system, user, {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}, max_tokens=200)
+        text = answer.get("text") if isinstance(answer, dict) else None
+        return text if isinstance(text, str) and text.strip() else None
 
     def get_active_release_id(self) -> str | None:
         try:

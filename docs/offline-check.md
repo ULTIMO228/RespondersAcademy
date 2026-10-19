@@ -62,3 +62,20 @@ cd backend && uv run pytest -q && uv run ruff check . && cd ..
 ```
 
 **Дата проверки:** 2026-09-29. Проверка пройдена успешно.
+
+---
+
+## 5. Фича 003 «Карта ошибок» (проверено 19.10.2026)
+
+- `grep -rn "http"` по `src/widgets/error-map`, `src/widgets/my-focus`, `src/pages/teacher/error-map`, `src/entities/error-map`, `src/features/error-map-assign` и `backend/app/{services/error_map_*.py,api/v1/error_map.py,models/error_map.py}` (без тестов) внешних адресов не находит.
+- Новых зависимостей нет: `git diff -- package.json package-lock.json backend/pyproject.toml backend/uv.lock` пуст, `docs/LIBRARIES.md` не меняется. PDF строится имеющимся `reportlab` с локальным шрифтом `backend/data/fonts/DejaVuSans.ttf`.
+- Пояснение «Почему так происходит» берётся из локального шлюза `explain_stage` (по умолчанию `None`) либо из шаблона; внешних провайдеров нет.
+
+---
+
+## 6. Внешний провайдер Polza.ai (фича 004, опция)
+
+- По умолчанию `AI_PROVIDER=local`: исходящих запросов нет, поведение прежнее. Проверка: `uv run pytest tests/unit/test_polza_client.py` (клиент не создаётся при `local`, тесты идут через `httpx.MockTransport`, без сети).
+- При `AI_PROVIDER=polza` контур перестаёт быть изолированным только для двух функций: генерация сценариев и пояснение карты ошибок. Оценка попыток и разбор споров остаются локальными. В запрос не попадают имена и персональные данные.
+- Ключ хранится только в окружении, не логируется, не отдаётся в API и не пишется в аудит. Каждое обращение фиксируется в аудите как `ai.external_call` (назначение, модель, размер запроса, результат).
+- Реальный ключ в этой проверке **не использовался**: работа с настоящим Polza.ai не проверена (T007 спеки 004 остаётся открытой).

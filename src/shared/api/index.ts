@@ -18,6 +18,40 @@ export type { MockAiGatewayDeps } from "./ai-gateway.mock";
 export { createAssignment, finishAssignment, getAssignment, listAssignments } from "./endpoints";
 export { downloadReportExport, getGroupInsights, getStudentProfile, listTickets } from "./endpoints";
 export { getHealth, startAssignment, updateKbArticle } from "./endpoints";
+export {
+  errorMapPdfUrl,
+  getErrorMapGroup,
+  getErrorMapJournal,
+  getErrorMapSettings,
+  getErrorMapStage,
+  getErrorMapStudent,
+  getErrorMapStudentStage,
+  getMyFocus,
+  listErrorMapGroups,
+  saveErrorMapSettings,
+  saveErrorMapVerdict,
+} from "./endpoints";
+export type { ErrorMapPdfParams, ErrorMapQuery } from "./endpoints";
+export type { ErrorMapGroup, ErrorMapHeadline, ErrorMapMode, ErrorMapPeriod } from "./types";
+export type { ErrorMapJournalResponse, ErrorMapJournalRow } from "./types";
+export type {
+  ErrorMapExplanation,
+  ErrorMapVerdictRequest,
+  MyFocusItem,
+  MyFocusResponse,
+  VerdictKind,
+} from "./types";
+export type {
+  ErrorMapChainLink,
+  ErrorMapResponse,
+  ErrorMapSettings,
+  ErrorMapSeverity,
+  ErrorMapStage,
+  ErrorMapStageDetail,
+  ErrorMapStageLevel,
+  ErrorMapTypicalError,
+  HeadlineKind,
+} from "./types";
 export { acceptRecommendation, getAnalytics, getHistory, getKbArticle, getMe } from "./endpoints";
 export { listKbArticles, listRecommendations } from "./endpoints";
 export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } from "./endpoints";

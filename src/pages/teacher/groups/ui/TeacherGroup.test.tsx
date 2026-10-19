@@ -23,6 +23,15 @@ describe("страница группы", () => {
     expect(screen.getByText("Пожар")).toBeInTheDocument();
   });
 
+  it("ссылка «Карта ошибок группы» ведёт на карту этой группы", async () => {
+    render(<TeacherGroupScreen groupId="Г-1" api={makeApi()} />);
+    await screen.findByText("67%");
+    expect(screen.getByRole("link", { name: "Карта ошибок группы" })).toHaveAttribute(
+      "href",
+      "/teacher/error-map/%D0%93-1",
+    );
+  });
+
   it("выбор задания перезапрашивает инсайты с assignmentId", async () => {
     const api = makeApi();
     render(<TeacherGroupScreen groupId="Г-1" api={api} />);

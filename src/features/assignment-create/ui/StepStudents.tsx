@@ -7,6 +7,7 @@ import { Alert, EmptyState, ErrorState, Skeleton, ServerRequiredState } from "@/
 import { useResource } from "@/shared/ui/platform";
 
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
+import { NO_GROUP, assignableStudents } from "../model/students";
 import type { StepErrors } from "../model/types";
 import { CheckRow } from "./CheckRow";
 
@@ -22,8 +23,6 @@ type StepStudentsProps = {
   /** Загруженный состав — мастер показывает имена на шаге проверки. */
   onLoaded: (students: PublicUser[]) => void;
 };
-
-const NO_GROUP = "Без группы";
 
 export function StepStudents({
   api,
@@ -41,12 +40,9 @@ export function StepStudents({
 
   const groups = useMemo(() => {
     if (state.status !== "ready") return [];
-    const allowed = assignedGroups && assignedGroups.length > 0 ? new Set(assignedGroups) : null;
     const byGroup = new Map<string, PublicUser[]>();
-    for (const user of state.data) {
-      if (!user.isActive || user.role !== "student") continue;
+    for (const user of assignableStudents(state.data, assignedGroups)) {
       const group = user.group ?? NO_GROUP;
-      if (allowed && !allowed.has(group)) continue;
       byGroup.set(group, [...(byGroup.get(group) ?? []), user]);
     }
     return [...byGroup.entries()].sort(([left], [right]) => left.localeCompare(right, "ru"));

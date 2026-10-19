@@ -3,12 +3,13 @@
 import { useState } from "react";
 
 import type { Assignment, PublicUser } from "@/shared/api";
-import { Card, PlatformButton, Stepper } from "@/shared/ui/platform";
+import { Alert, Card, PlatformButton, Stepper } from "@/shared/ui/platform";
 
 import { assignmentCreateApi } from "../api/assignmentCreateApi";
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
+import { assignableStudents } from "../model/students";
 import { WIZARD_STEPS, createDraft } from "../model/types";
-import type { StepErrors, WizardDraft } from "../model/types";
+import type { StepErrors, WizardDraft, WizardInitial } from "../model/types";
 import { buildRequest, validateAll, validateStep } from "../model/validate";
 import { StepMode } from "./StepMode";
 import { StepParams } from "./StepParams";
@@ -22,6 +23,10 @@ type AssignmentWizardProps = {
   api?: AssignmentCreateApi;
   /** Закреплённые за преподавателем группы (профиль сессии). */
   assignedGroups?: string[];
+  /** Начальные значения из карты ошибок; обучающихся мастер берёт только из списка доступных. */
+  initial?: WizardInitial;
+  /** Название этапа карты ошибок для подсказки на шаге билетов. */
+  focusStage?: string;
   onCreated: (assignment: Assignment) => void;
   onCancel: () => void;
 };
@@ -40,15 +45,33 @@ const FIRST_ERROR_STEP: Record<string, number> = {
 export function AssignmentWizard({
   api = assignmentCreateApi,
   assignedGroups,
+  initial,
+  focusStage,
   onCreated,
   onCancel,
 }: AssignmentWizardProps) {
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<WizardDraft>(createDraft);
+  const [draft, setDraft] = useState<WizardDraft>(() => createDraft(initial));
   const [errors, setErrors] = useState<StepErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const [students, setStudents] = useState<PublicUser[]>([]);
+  /** Список обучающихся загружен хотя бы раз: до этого предвыбор из ссылки не проверен и «Далее» недоступна. */
+  const [studentsLoaded, setStudentsLoaded] = useState(false);
+  /** Сколько предвыбранных из ссылки обучающихся недоступны; считается при каждой загрузке, не уменьшается после снятия. */
+  const [unavailableInitial, setUnavailableInitial] = useState(0);
+
+  const handleStudentsLoaded = (loaded: PublicUser[]) => {
+    const available = new Set(assignableStudents(loaded, assignedGroups).map((user) => user.id));
+    setStudents(loaded);
+    setStudentsLoaded(true);
+    setUnavailableInitial((initial?.studentIds ?? []).filter((id) => !available.has(id)).length);
+    // Пересечение, а не замена: снятый вручную обучающийся не возвращается при повторной загрузке шага.
+    setDraft((current) => ({
+      ...current,
+      studentIds: current.studentIds.filter((id) => available.has(id)),
+    }));
+  };
 
   const patch = (change: Partial<WizardDraft>) => {
     setDraft((current) => ({ ...current, ...change }));
@@ -96,14 +119,21 @@ export function AssignmentWizard({
       <Stepper steps={[...WIZARD_STEPS]} current={step} />
       <Card title={WIZARD_STEPS[step]} aria-label={`Шаг ${step + 1}: ${WIZARD_STEPS[step]}`}>
         {step === 0 ? (
-          <StepStudents
-            api={api}
-            assignedGroups={assignedGroups}
-            selected={draft.studentIds}
-            errors={errors}
-            onChange={(studentIds) => patch({ studentIds })}
-            onLoaded={setStudents}
-          />
+          <>
+            {unavailableInitial > 0 ? (
+              <Alert tone="warning">
+                {`Из карты ошибок предвыбраны недоступные обучающиеся, они не выбраны: ${unavailableInitial}`}
+              </Alert>
+            ) : null}
+            <StepStudents
+              api={api}
+              assignedGroups={assignedGroups}
+              selected={draft.studentIds}
+              errors={errors}
+              onChange={(studentIds) => patch({ studentIds })}
+              onLoaded={handleStudentsLoaded}
+            />
+          </>
         ) : null}
         {step === 1 ? (
           <StepMode
@@ -115,7 +145,9 @@ export function AssignmentWizard({
             onFormat={(format) => patch({ format })}
           />
         ) : null}
-        {step === 2 ? <StepTickets api={api} draft={draft} errors={errors} onChange={patch} /> : null}
+        {step === 2 ? (
+          <StepTickets api={api} draft={draft} errors={errors} onChange={patch} focusStage={focusStage} />
+        ) : null}
         {step === 3 ? <StepParams draft={draft} errors={errors} onChange={patch} /> : null}
         {step === REVIEW_STEP ? (
           <StepReview draft={draft} studentNames={studentNames} serverError={serverError} />
@@ -134,7 +166,7 @@ export function AssignmentWizard({
             Назад
           </PlatformButton>
           {step < REVIEW_STEP ? (
-            <PlatformButton variant="primary" onClick={next}>
+            <PlatformButton variant="primary" onClick={next} disabled={step === 0 && !studentsLoaded}>
               Далее
             </PlatformButton>
           ) : (

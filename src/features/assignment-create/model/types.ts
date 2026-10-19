@@ -39,12 +39,25 @@ export type WizardDraft = {
 /** Ошибки по полям шага; ключ — имя поля черновика. */
 export type StepErrors = Partial<Record<string, string>>;
 
+/** Совпадает с лимитом поля `StepMode` и колонкой `String(200)` с запасом; сервер не ограничивает длину. */
+export const TITLE_MAX = 120;
+
+/**
+ * Начальные значения мастера (переход из карты ошибок). Идентификаторы обучающихся здесь ещё не проверены:
+ * мастер отбрасывает всё, что нет в загруженном списке доступных (см. `assignableStudents`).
+ */
+export type WizardInitial = {
+  studentIds?: string[];
+  trainingMode?: TrainingMode;
+  title?: string;
+};
+
 /** Значения по умолчанию совпадают с нормативами ТЗ (30 сек / 3 мин) и серверным DEFAULT_INTERVALS_SEC. */
-export function createDraft(): WizardDraft {
+export function createDraft(initial?: WizardInitial): WizardDraft {
   return {
-    title: "",
-    studentIds: [],
-    trainingMode: "operator112",
+    title: (initial?.title ?? "").slice(0, TITLE_MAX),
+    studentIds: [...(initial?.studentIds ?? [])],
+    trainingMode: initial?.trainingMode ?? "operator112",
     format: "training",
     ticketSource: "cards",
     cardIds: [],

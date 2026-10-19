@@ -31,6 +31,7 @@ from app.models.teacher import ProfileMappingRow
 from app.schemas.v1.ai import ScenarioDraftRequest
 from app.services import reference as reference_service
 from app.services.audit import record
+from app.services.external_ai_audit import flush_external_calls
 from app.services.time import now_iso
 from ml import source_gate
 from ml.generate import llm, scenario_generator, validator
@@ -249,7 +250,7 @@ def generate_from_approved_source(
             entries=classifier_entries,
         )
     if generator == "ai":
-        client = llm.configured_client()
+        client = llm.generation_client()
         if client is None or not client.healthy():
             raise unprocessable("ИИ недоступен: модель не настроена (LLAMA_URL / OLLAMA_URL) или не отвечает")
         produced = scenario_generator.generate_llm(
@@ -483,17 +484,20 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
     addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
     reference = await reference_service.read_reference(db)
     started = time.perf_counter()
-    produced = await asyncio.to_thread(
-        generate_from_approved_source,
-        source,
-        body.category,
-        classifier_entry,
-        addresses,
-        reference,
-        classifier_entries,
-        count=body.count,
-        generator=body.generator,
-    )
+    try:
+        produced = await asyncio.to_thread(
+            generate_from_approved_source,
+            source,
+            body.category,
+            classifier_entry,
+            addresses,
+            reference,
+            classifier_entries,
+            count=body.count,
+            generator=body.generator,
+        )
+    finally:
+        await flush_external_calls(db, viewer)
     generation_ms = round((time.perf_counter() - started) * 1000)
     if len(produced) < body.count:
         base = _safe_base_card(source, body.category, classifier_entry, addresses)

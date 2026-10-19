@@ -1067,6 +1067,189 @@
    "optional": [],
    "extends": []
   },
+  "ErrorMapChainLink": {
+   "file": "error-map.ts",
+   "required": [
+    "from",
+    "to",
+    "caption"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapExplanation": {
+   "file": "error-map.ts",
+   "required": [
+    "text",
+    "source",
+    "textHash"
+   ],
+   "optional": [
+    "verdict"
+   ],
+   "extends": []
+  },
+  "ErrorMapGroup": {
+   "file": "error-map.ts",
+   "required": [
+    "groupId",
+    "title",
+    "studentCount"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapHeadline": {
+   "file": "error-map.ts",
+   "required": [
+    "kind",
+    "stageIds",
+    "text"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapJournalResponse": {
+   "file": "error-map.ts",
+   "required": [
+    "mode",
+    "period",
+    "groupId",
+    "stages",
+    "rows"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapJournalRow": {
+   "file": "error-map.ts",
+   "required": [
+    "studentId",
+    "name",
+    "attempts",
+    "levels"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapResponse": {
+   "file": "error-map.ts",
+   "required": [
+    "scope",
+    "mode",
+    "period",
+    "attempts",
+    "stages",
+    "levels",
+    "headline",
+    "generatedAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapScope": {
+   "file": "error-map.ts",
+   "required": [
+    "kind",
+    "groupId",
+    "title"
+   ],
+   "optional": [
+    "studentId"
+   ],
+   "extends": []
+  },
+  "ErrorMapSettings": {
+   "file": "error-map.ts",
+   "required": [
+    "sometimesFrom",
+    "oftenFrom",
+    "minAttemptsGroup",
+    "minAttemptsStudent",
+    "sameBandPoints"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapStage": {
+   "file": "error-map.ts",
+   "required": [
+    "id",
+    "order",
+    "title"
+   ],
+   "optional": [
+    "articleId"
+   ],
+   "extends": []
+  },
+  "ErrorMapStageDetail": {
+   "file": "error-map.ts",
+   "required": [
+    "stage",
+    "level",
+    "typicalErrors",
+    "chain",
+    "explanation"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapStageLevel": {
+   "file": "error-map.ts",
+   "required": [
+    "stageId",
+    "attempts",
+    "attemptsWithError",
+    "share",
+    "level",
+    "affectedStudents"
+   ],
+   "optional": [
+    "comparison"
+   ],
+   "extends": []
+  },
+  "ErrorMapStudentRef": {
+   "file": "error-map.ts",
+   "required": [
+    "id",
+    "name"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ErrorMapTypicalError": {
+   "file": "error-map.ts",
+   "required": [
+    "ruleId",
+    "plainText",
+    "severity",
+    "studentCount",
+    "students"
+   ],
+   "optional": [
+    "exampleAttemptId",
+    "exampleSessionId"
+   ],
+   "extends": []
+  },
+  "ErrorMapVerdictRequest": {
+   "file": "error-map.ts",
+   "required": [
+    "groupId",
+    "mode",
+    "period",
+    "stageId",
+    "textHash",
+    "source",
+    "verdict"
+   ],
+   "optional": [
+    "studentId"
+   ],
+   "extends": []
+  },
   "ErrorRecord": {
    "file": "errors.ts",
    "required": [
@@ -1397,6 +1580,29 @@
    ],
    "optional": [
     "sizeBytes"
+   ],
+   "extends": []
+  },
+  "MyFocusItem": {
+   "file": "error-map.ts",
+   "required": [
+    "stageId",
+    "title",
+    "hint"
+   ],
+   "optional": [
+    "articleId"
+   ],
+   "extends": []
+  },
+  "MyFocusResponse": {
+   "file": "error-map.ts",
+   "required": [
+    "mode",
+    "items"
+   ],
+   "optional": [
+    "message"
    ],
    "extends": []
   },
