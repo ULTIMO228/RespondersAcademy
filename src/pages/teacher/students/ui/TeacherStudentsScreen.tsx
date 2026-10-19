@@ -23,14 +23,14 @@ import styles from "./TeacherStudents.module.css";
 
 const NO_GROUP = "Без группы";
 
-/** Обучающиеся преподавателя по группам; группы — из `assignedGroups` профиля, без них показываются все. */
+/** Обучающиеся преподавателя по группам; группы — из `assignedGroups` профиля, без них групп нет. */
 export function groupStudents(students: PublicUser[], assignedGroups?: string[]): [string, PublicUser[]][] {
-  const allowed = assignedGroups && assignedGroups.length > 0 ? new Set(assignedGroups) : null;
+  const allowed = new Set(assignedGroups ?? []);
   const byGroup = new Map<string, PublicUser[]>();
   for (const student of students) {
     if (student.role !== "student") continue;
     const group = student.group ?? NO_GROUP;
-    if (allowed && !allowed.has(group)) continue;
+    if (!allowed.has(group)) continue;
     byGroup.set(group, [...(byGroup.get(group) ?? []), student]);
   }
   return [...byGroup.entries()]
@@ -46,6 +46,7 @@ type TeacherStudentsScreenProps = { api?: TeacherStudentsApi };
 export function TeacherStudentsScreen({ api = teacherStudentsApi }: TeacherStudentsScreenProps) {
   const user = useSessionUser();
   const assignedGroups = user?.assignedGroups;
+  const hasAssignedGroups = (assignedGroups?.length ?? 0) > 0;
   const { state, reload } = useResource(() => api.listStudents(), [api]);
   const groups = useMemo(
     () => (state.status === "ready" ? groupStudents(state.data, assignedGroups) : []),
@@ -66,8 +67,12 @@ export function TeacherStudentsScreen({ api = teacherStudentsApi }: TeacherStude
         {() =>
           groups.length === 0 ? (
             <EmptyState
-              title="Обучающихся нет"
-              text="За вами не закреплено ни одной группы с обучающимися."
+              title={hasAssignedGroups ? "Обучающихся нет" : "Нет закреплённых групп"}
+              text={
+                hasAssignedGroups
+                  ? "В закреплённых за вами группах нет обучающихся."
+                  : "За вами не закреплено ни одной группы. Обратитесь к администратору."
+              }
             />
           ) : (
             <div className={styles.groups}>

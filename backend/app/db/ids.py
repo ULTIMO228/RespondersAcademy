@@ -26,6 +26,7 @@ PREFIX = {
     "assignment": "asg",
     "call": "call",
     "card": "c",
+    "errorMapVerdict": "emv",
 }
 
 

@@ -55,7 +55,7 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
     with sqlite3.connect(database) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert set(Base.metadata.tables) <= tables
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0004_ai_guards"
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0005_error_map_verdicts"
     _run("-m", "alembic", "check", environment=environment)
     _run("-m", "app.seed.load", environment=environment)
     with sqlite3.connect(database) as connection:
@@ -132,3 +132,23 @@ def test_postgresql_offline_upgrade_compiles_jsonb():
     assert "JSONB" in ddl
     assert "CREATE TABLE ai_assessment_jobs" in ddl
     assert "0004_ai_guards" in ddl
+
+
+def test_error_map_verdicts_are_unique_per_target_even_without_student(migrated_database: Path):
+    """Фича 003: `student_id` пуст как '' (не NULL), поэтому дубль вердикта по группе отсекается уникальным ключом."""
+    row = ("t-1", "G-1", "", "dds", "address", "1m", "ai", "h" * 64, "agree", "2026-10-19T10:00:00+03:00")
+    insert = (
+        "INSERT INTO error_map_verdicts (id, teacher_id, group_id, student_id, mode, stage_id, period, source, "
+        "text_hash, verdict, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    )
+    with sqlite3.connect(migrated_database) as connection:
+        connection.execute(insert, ("emv-001", *row))
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(insert, ("emv-002", *row))  # тот же ключ: вторая строка не создаётся
+        other = ("t-1", "G-1", "u-5", *row[3:])  # с обучающимся — другой ключ
+        connection.execute(insert, ("emv-003", *other))
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(insert, ("emv-004", *row[:3], "bogus", *row[4:]))  # режим вне списка
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(insert, ("emv-005", "t-1", "G-1", "", "dds", "other", "1m", "ai", "x" * 64, "maybe", "2026"))
+        connection.rollback()

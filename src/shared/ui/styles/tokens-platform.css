@@ -71,6 +71,9 @@
   --pf-fs-h2: 20px;
   --pf-fs-h1: 28px;
   --pf-fs-kpi: 32px; /* всегда с tabular-nums */
+  --pf-fs-present: 28px; /* режим «Показать на экране» (проектор, чтение с 3 м): основной текст */
+  --pf-fs-present-lead: 32px; /* то же: подзаголовки и числа */
+  --pf-fs-present-title: 48px; /* то же: вывод и название этапа */
   --pf-fw-regular: 400;
   --pf-fw-medium: 500;
   --pf-fw-bold: 700;
@@ -102,6 +105,7 @@
   /* ——— Размеры ——— */
   --pf-control-height: 36px;
   --pf-target-min: 24px; /* WCAG 2.2 SC 2.5.8 */
+  --pf-target-touch: 44px; /* WCAG 2.2 SC 2.5.5 (AAA): цель для кнопок-ссылок карты ошибок */
   --pf-sidebar-width: 248px;
   --pf-sidebar-width-collapsed: 64px;
   --pf-topbar-height: 56px;

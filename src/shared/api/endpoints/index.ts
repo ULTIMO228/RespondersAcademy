@@ -74,3 +74,17 @@ export { sendAttemptEvent, submitAttempt, ticketAudioFileUrl } from "./operator1
 export type { SubmitAttemptResult } from "./operator112";
 export { listWorkMessages, postReportAudio } from "./work-messages";
 export { getHealth } from "./health";
+export {
+  errorMapPdfUrl,
+  getErrorMapGroup,
+  getErrorMapJournal,
+  getErrorMapSettings,
+  getErrorMapStage,
+  getErrorMapStudent,
+  getErrorMapStudentStage,
+  getMyFocus,
+  listErrorMapGroups,
+  saveErrorMapSettings,
+  saveErrorMapVerdict,
+} from "./error-map";
+export type { ErrorMapPdfParams, ErrorMapQuery } from "./error-map";

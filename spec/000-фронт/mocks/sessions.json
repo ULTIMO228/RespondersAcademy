@@ -53,7 +53,11 @@
           "evaluation": {
             "timeScore": 100, "correctnessScore": 95, "grammarScore": 100, "semanticScore": 96, "totalScore": 98,
             "grammarErrors": [],
-            "errors": [],
+            "errors": [
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 102 (Учебный номер Службы 102 (МВД)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:102"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 101 (Учебный номер Службы 101 (МЧС)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:101"},
+              {"type": "keyPhraseMissing", "severity": "minor", "message": "В действиях диспетчера не отражено: «наряд полиции направлен»; «ребёнок заперт в автомобиле» — эталон сценария (Scenario.etalon): keyPhrases; Q&A «сравнение смысловое, не побуквенное»", "ruleId": "c1"}
+            ],
             "aiComment": "Нормативы соблюдены. Реакция 14 с (норма 30 с), отработка 178 с (норма 180 с). Формулировка соответствует эталону. Рекомендуется переход на следующий уровень сложности."
           }
         },
@@ -86,7 +90,10 @@
           "evaluation": {
             "timeScore": 96, "correctnessScore": 92, "grammarScore": 100, "semanticScore": 94, "totalScore": 95,
             "grammarErrors": [],
-            "errors": [],
+            "errors": [
+              {"type": "timeProcessingExceeded", "severity": "major", "message": "Превышено время полной отработки: 232 с (норма 180 с) — Q&A заказчика: норматив первичной реакции 30 с, полной отработки 3 мин", "ruleId": "t2"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 104 (Учебный номер Службы 104 (МОСГАЗ)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:104"}
+            ],
             "aiComment": "Все этапы пройдены с комментариями. Небольшая пауза перед звонком — в пределах нормы."
           }
         },
@@ -112,9 +119,13 @@
               { "field": "dispatcherAction", "fragment": "механик напрален", "wrong": "напрален", "expected": "направлен", "type": "spelling" }
             ],
             "errors": [
-              { "type": "timeReactionExceeded", "severity": "major", "message": "Превышен норматив реакции: 48 с (норма 30 с)" },
-              { "type": "timeProcessingExceeded", "severity": "major", "message": "Превышено время отработки: 310 с (норма 180 с)" },
-              { "type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок руководителю смены (301)" }
+              {"type": "timeReactionExceeded", "severity": "major", "message": "Превышен норматив первичной реакции: 48 с (норма 30 с) — Q&A заказчика: норматив первичной реакции 30 с, полной отработки 3 мин", "ruleId": "t1"},
+              {"type": "timeProcessingExceeded", "severity": "major", "message": "Превышено время полной отработки: 310 с (норма 180 с) — Q&A заказчика: норматив первичной реакции 30 с, полной отработки 3 мин", "ruleId": "t2"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 102 (Учебный номер Службы 102 (МВД)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:102"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 101 (Учебный номер Службы 101 (МЧС)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:101"},
+              {"type": "keyPhraseMissing", "severity": "minor", "message": "В действиях диспетчера не отражено: «наряд полиции направлен»; «ребёнок заперт в автомобиле» — эталон сценария (Scenario.etalon): keyPhrases; Q&A «сравнение смысловое, не побуквенное»", "ruleId": "c1"},
+              {"type": "grammarLimitExceeded", "severity": "major", "message": "Грамматических ошибок: 2 (допустимо 1) — критерии успеха сценария (Scenario.successCriteria): maxGrammarErrors", "ruleId": "g1"},
+              {"type": "parallelCardIgnored", "severity": "major", "message": "Параллельная карточка c-093 не открыта в норматив реакции (30 с) во время работы с текущей — решение команды (spec 002-two-mode-simulator, FR-035f): реакция на параллельные карточки", "ruleId": "m1", "step": "issued:c-093"}
             ],
             "aiComment": "Две орфографические ошибки в ключевом поле — риск искажения смысла. Рекомендуется повторная отработка карточки базового уровня и тренировка ручного ввода."
           }
@@ -147,7 +158,13 @@
           "evaluation": {
             "timeScore": 90, "correctnessScore": 93, "grammarScore": 100, "semanticScore": 97, "totalScore": 94,
             "grammarErrors": [],
-            "errors": [],
+            "errors": [
+              {"type": "timeProcessingExceeded", "severity": "major", "message": "Превышено время полной отработки: 223 с (норма 180 с) — Q&A заказчика: норматив первичной реакции 30 с, полной отработки 3 мин", "ruleId": "t2"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 103 (Учебный номер Службы 103 (СМП)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:103"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 102 (Учебный номер Службы 102 (МВД)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:102"},
+              {"type": "missedRequiredCall", "severity": "critical", "message": "Пропущен ожидаемый звонок точке C: 101 (Учебный номер Службы 101 (МЧС)) — классификатор ЕКП и эталон сценария (список оповещения карточки)", "ruleId": "d1", "step": "call:101"},
+              {"type": "keyPhraseMissing", "severity": "minor", "message": "В действиях диспетчера не отражено: «3 пострадавших»; «пожарный расчёт направлен» — эталон сценария (Scenario.etalon): keyPhrases; Q&A «сравнение смысловое, не побуквенное»", "ruleId": "c1"}
+            ],
             "aiComment": "Хорошая отработка. Отработка 223 с — немного за нормативом 180 с, но в пределах допуска для сложности 2."
           }
         }

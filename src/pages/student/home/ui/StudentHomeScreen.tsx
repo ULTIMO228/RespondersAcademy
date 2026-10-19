@@ -37,6 +37,8 @@ import {
   useResource,
 } from "@/shared/ui/platform";
 import type { DataColumn } from "@/shared/ui/platform";
+import { MyFocus } from "@/widgets/my-focus";
+import type { MyFocusApi } from "@/widgets/my-focus";
 import { RecommendationList } from "@/widgets/recommendation-list";
 
 import { studentHomeApi } from "../api/homeApi";
@@ -48,6 +50,8 @@ const HISTORY_LIMIT = 3;
 
 type StudentHomeScreenProps = {
   api?: StudentHomeApi;
+  /** Источник блока «Над чем поработать»; в тестах подменяется. */
+  focusApi?: MyFocusApi;
   /** Текущее время (мс) — для подписи срока; в тестах фиксируется. */
   nowMs?: number;
 };
@@ -149,7 +153,11 @@ const HISTORY_COLUMNS: DataColumn<HistoryItem>[] = [
  * Главная обучающегося (T042): «Продолжить», «Ближайшее задание», показатели против нормативов АРМ, рекомендации и последние
  * результаты. Каждый блок грузится независимо: ошибка одного не роняет страницу, без бэкенда блоки показывают «нужен сервер».
  */
-export function StudentHomeScreen({ api = studentHomeApi, nowMs = Date.now() }: StudentHomeScreenProps) {
+export function StudentHomeScreen({
+  api = studentHomeApi,
+  focusApi,
+  nowMs = Date.now(),
+}: StudentHomeScreenProps) {
   const user = useSessionUser();
   const assignments = useResource((signal) => api.assignments(signal), [api]);
   const analytics = useResource((signal) => api.analytics(signal), [api]);
@@ -274,6 +282,8 @@ export function StudentHomeScreen({ api = studentHomeApi, nowMs = Date.now() }: 
           </ResourceView>
         </Card>
       </div>
+
+      <MyFocus api={focusApi} />
 
       <Card title="Последние результаты" actions={<Link href={ROUTES.studentResults}>Все результаты</Link>}>
         <ResourceView

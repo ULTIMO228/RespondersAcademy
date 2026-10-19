@@ -1,9 +1,10 @@
-import type { SettingsForm } from "../../model/useSettingsForm";
+import type { SettingsFormState } from "../../model/useSettingsForm";
 
 import styles from "./SettingsSection.module.css";
 
 type SectionStatusProps = {
-  form: SettingsForm;
+  /** Только статус и текст: секция может вести сохранение без общего `useSettingsForm` (карта ошибок). */
+  form: Pick<SettingsFormState, "status" | "message">;
   savedText?: string;
 };
 

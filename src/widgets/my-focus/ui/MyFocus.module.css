@@ -1,0 +1,33 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--pf-fs-lead);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--pf-fs-lead);
+  font-weight: var(--pf-fw-bold);
+}
+
+.hint,
+.message {
+  margin: 0;
+  font-size: var(--pf-fs-lead);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--pf-target-touch);
+}

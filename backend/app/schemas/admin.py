@@ -44,6 +44,7 @@ AUDIT_TYPE_BY_PREFIX = {
     "profileMapping": "content",
     "kb": "content",
     "ai": "content",
+    "error_map": "settings",
 }
 AUDIT_ACTION_TITLES = {
     "auth.login": "Вход в систему",
@@ -61,6 +62,9 @@ AUDIT_ACTION_TITLES = {
     "settings.update": "Смена настроек",
     "service.action": "Управление сервисом",
     "backup.run": "Резервное копирование",
+    "error_map.settings": "Смена порогов карты ошибок",
+    "error_map.verdict": "Вердикт по пояснению карты ошибок",
+    "ai.external_call": "Обращение к внешней модели",
     "card.registered": "Зарегистрирована",
     "card.processed": "Отработана",
     "card.checked": "Проверена",

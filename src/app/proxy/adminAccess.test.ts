@@ -32,6 +32,8 @@ const ROUTES_UNDER_TEST = [
   "/teacher/scenarios",
   "/teacher/reports",
   "/teacher/session",
+  "/teacher/error-map",
+  "/teacher/error-map/g-1",
   "/teacher/monitor/u-005",
   "/arm",
   "/arm/card/card-881412",

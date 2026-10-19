@@ -12,6 +12,7 @@ from app.models.auth_session import AuthSession
 from app.models.auth_throttle import AuthThrottle
 from app.models.card import Address, ArmCardFixture, CardRuntime, IncidentCard
 from app.models.classifier import ClassifierEntry
+from app.models.error_map import ErrorMapVerdict
 from app.models.kb import KbArticle
 from app.models.recommendation import Recommendation, StudentRating
 from app.models.reference import ReferenceEntry, SystemSettings
@@ -46,6 +47,7 @@ __all__ = [
     "GroupReport",
     "Evaluation",
     "EvaluationRevision",
+    "ErrorMapVerdict",
     "ErrorRecord",
     "IncidentCard",
     "KbArticle",

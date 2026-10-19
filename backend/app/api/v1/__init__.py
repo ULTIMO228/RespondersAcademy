@@ -11,8 +11,10 @@ def build_router() -> APIRouter:
     from app.api.v1 import (
         ai_assessments,
         ai_errors,
+        ai_provider,
         ai_scenarios,
         assignments,
+        error_map,
         lobby,
         operator112,
         recommendations,
@@ -26,6 +28,7 @@ def build_router() -> APIRouter:
     for module in (
         ai_assessments,
         ai_errors,
+        ai_provider,
         ai_scenarios,
         lobby,
         recommendations,
@@ -38,6 +41,7 @@ def build_router() -> APIRouter:
         recommendations,
         work_messages,
         validation,
+        error_map,
     ):
         # Без действующей сессии — 401 (ТЗ §9); /api/v1/health объявлен в main.py и остаётся открытым.
         router.include_router(module.router, dependencies=[Depends(require_viewer)])

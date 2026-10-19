@@ -86,6 +86,7 @@ describe("каркас раздела «Система» (T4.2-07)", () => {
     expect(await screen.findByText("Статистика использования системы")).toBeInTheDocument();
     openTab("Настройки");
     expect(screen.getByRole("heading", { name: "Резервное копирование" })).toBeInTheDocument();
+    expect(screen.getByText("Карта ошибок")).toBeInTheDocument();
     openTab("Журналы и аудит");
     expect(screen.getByRole("heading", { name: "Системные журналы" })).toBeInTheDocument();
   });
