@@ -1,36 +1,31 @@
 ## Facts
-Proj:RespondersAcademy | Branch:main | Mode:normal | HEAD:abc6347 pushed to origin/main | tree:only docs/demo.mp4 + docs/demo-new.mp4 untracked (not ours)
-Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ T001-T071 | 004 polza-provider ✅ T001-T006, T007 open}
-Stand:demo-up.sh running @2026-10-19 (front :3130, back :8130, db backend/var/demo.db) | stop: lsof -ti tcp:3130 tcp:8130 -sTCP:LISTEN | xargs kill
-Tests@2026-10-19:{pytest:911 passed/2 skipped/3 red(known debt, docs/FINAL-GATE.md),ruff:clean,vitest:1912 passed (234 files; 1 flaky IncidentScreen run, passes alone),steiger:pass,tsc:pass,build:pass,mocks:validate:pass}
-E2E@2026-10-19:{scripts/e2e-error-map.sh via run_frontend_e2e.sh --only error-map: 20/20} | not run:{simulator-visual playwright,e2e-student/teacher/admin since 002}
-npm run check:⚠️ stops at prettier on 2 foreign files (scripts/demo-video/record.mjs, GenerateDialog.tsx) | steiger/tsc/build run separately
+Proj:RespondersAcademy | Branch:claude/pensive-feynman-smkr22 (main + AMIR merged, not merged to main) | Mode:normal
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
+Finals:2026-10-23 online pitch | rule(moderator 17–19.10): API only for open-weight models deployable on TZ server (CPU≥6c,32GB,no GPU), no hardcode
+Tests@2026-10-19 (cloud, uv run pytest -q):{pytest:987 passed/3 skipped/0 red, ruff:clean}
+Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanceOf red on clean main too (env), 1 more flaky in first run} | not run:{npm run check, e2e, simulator-visual}
 Updated:2026-10-19
 
 ## Story
-1 003 error-map: stages w/ traffic light (icon+word, thresholds 0.10/0.30, min 5/3, band ±10pp), stage detail, student map vs group, group journal, present mode, PDF, AI explain w/ agree/disagree verdict (migration 0005 error_map_verdicts, audit error_map.verdict), /me/focus + widget my-focus, thresholds in admin settings
-2 004 polza: AI_PROVIDER=local|polza (default local), PolzaClient in ml/generate/llm.py (OpenAI-compat, Bearer, rpm+daily limits, any error → None → template fallback), only scenario generation + explain_stage go external, audit ai.external_call (no texts/key), GET /api/v1/admin/ai/provider (admin), no admin UI; AGENTS §2 amended w/ owner OK
-3 docs: AGENTS §14-15 + .ai/LESSONS.md + PROJECT_MAP.md added; CLAUDE.md = Claude layer + @AGENTS.md
+1 3 red backend tests fixed: manifest CRLF hashes → LF + pack.py text_sha256 | applicant-audio test now creates own attempt
+2 AMIR (live caller: cascade/speechkit/omni + softphone realtime UI) merged into own branch; spec renamed 005-live-caller
+3 v1 router duplicates removed (test_v1_router_unique)
+4 polza transport: app/services/realtime_polza.py (VAD segmentation → /audio/transcriptions; /chat/completions stream; /audio/speech + instructions) | persona: app/services/caller_persona.py
+5 POLZA_MODEL default removed; AGENTS §2 + spec 004 amended
 
 ## Reasoning
-verdict key omitted when none (dump() exclude_none for optional TS fields) > null
-explanation None when level==noData (model not called)
-external LLM only via llm.external_client(); configured_client() stays local (warmup must not hit network)
-audit events buffered in llm.py, flushed async by external_ai_audit.flush_external_calls (client is sync)
-polza without key → Settings validator fails startup (no silent switch)
+tags kept in LLM history (style continuity), stripped from shown text/transcript
+STT batch per utterance (Polza has no streaming STT) → VAD end-silence 700ms; voiced <200ms not sent
+model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configured()=False until all 3 set
 
 ## Action
-!1 T007 polza real-key check: owner puts POLZA_API_KEY in backend/.env, then says ready; run 1 scenario gen + 1 explain, check audit rows
-!2 T072 usability check w/ ≥3 teachers + T073 manual scenarios 1-14 (quickstart.md) NOT done
- 3 simulator-visual playwright (SC-010) NOT run
- 4 backend/var/dev.db lacks error_map_verdicts → alembic upgrade head or app.seed.load --reset (ask owner first)
- 5 `npm run mocks:sync` — spec mocks (sessions/users) changed, mocks/ copy not refreshed
- 6 owner checklist (screenshot): 5.1 filter sizes 44/16px (a11y.test only scans cursor:pointer rules → fields may be missed), 5.3 group assignments in existing DB, 5.4 student recommendations rating race (old phase-14 code, not ours)
- 7 T061 docs/demo.mp4 — owner records; never fabricate
+!1 owner: POLZA_API_KEY + `uv run python -m scripts.smoke_polza_caller --models` → set LIVE_CALL_POLZA_{CHAT,STT,TTS}_MODEL(+VOICE) → smoke → headset call
+!2 sound library for [вздох]/[всхлип]/[кашель]/[тяжело дышит] (license!) → LIVE_CALL_SOUNDS_DIR
+ 3 latency on TZ-like CPU box; Silero TTS license CC BY-NC (risk) if used
+ 4 PR from this branch to main — team decision; not opened
+ 5 old open items: T072/T073, simulator-visual, T061 demo.mp4, dev.db migration 0005
 
 ## Caution
-⚠️ .next baked with BACKEND_URL=127.0.0.1:8130 after run_frontend_e2e.sh / demo-up → rebuild before plain `next dev`/start
-⚠️ e2e sh scripts need fresh servers/db each run (in-memory store, verdict rows)
-⚠️ other sessions may edit same checkout: git status first, test -e before creating files
-❌ NEVER git add . | never Co-Authored-By/agent signature in commits | never fabricate docs/demo.mp4 | never read/print backend/.env
-🧠 pre-existing red tests proven on clean HEAD via git archive, not by assumption
+⚠️ cloud container: polza.ai, huggingface.co blocked → no real provider calls verified
+⚠️ .next baked with BACKEND_URL after demo-up → rebuild
+❌ NEVER git add . | never Co-Authored-By/agent signature | never read/print backend/.env

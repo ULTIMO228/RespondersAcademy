@@ -60,3 +60,11 @@
 
 ## L013 | flaky tests
 ⚠️ IncidentScreen "card-881412" failed once in full vitest run, passes alone → rerun file before blaming own change
+
+## L014 | hashes of text artifacts
+❌ sha256 over raw bytes of text files built on Windows (CRLF) → manifest red on Linux/mac
+✅ hash LF-normalized content for text artifacts (pack.py text_sha256); raw bytes only for binaries/zip
+
+## L015 | order-dependent tests
+❌ test relies on state left by another test (attempt created elsewhere)
+✅ test creates and removes its own state; module-scoped restore is not isolation between tests

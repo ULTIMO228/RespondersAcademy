@@ -39,3 +39,25 @@ Next:
 Caution:
   ⚠️ Do not use git add .
   ⚠️ no Co-Authored-By trailer
+
+## 2026-10-19T23:30:00+03:00 | @claude (cloud) | branch:claude/pensive-feynman-smkr22 | mode:normal
+Focus: finals prep → 3 red backend tests, AMIR merge, live caller via Polza.ai
+Done: ✅
+  - fix: dataset manifest hashes were CRLF (Windows build) → LF; pack.py text_sha256
+  - fix: test_ready_applicant_audio order-dependent → creates+deletes own attempt, paired negative
+  - merge origin/AMIR into own branch (not main); spec 003-live-caller → 005-live-caller
+  - fix: lobby/recommendations/work_messages routers included twice (Duplicate Operation ID)
+  - feat: LIVE_CALL_REALTIME_TRANSPORT=polza (default): Silero VAD → Polza STT → stream LLM → Polza TTS
+  - feat: caller_persona: mood tags + nonverbal tags, TagFilter hides tags, TTS instructions, sounds dir
+  - POLZA_MODEL no default (was openai/gpt-4o-mini, closed) → required for AI_PROVIDER=polza
+Decisions: 🧠
+  - organizers rule (moderator 17–19.10): API ok only for models deployable on TZ server (CPU 6c/32GB, no GPU), no hardcode
+  - owner: everything via Polza.ai; Qwen family (ASR 1.7B, 3.6-35B-A3B, TTS 1.7B CustomVoice) candidates
+  - speechkit/omni = prototypes outside rule
+Next:
+  !1: owner runs scripts.smoke_polza_caller --models, sets IDs, runs smoke + headset call
+  !2: nonverbal sound library (sigh/sob/cough/breath wav, licensed)
+   3: latency benchmark on TZ-like hardware
+Caution:
+  ⚠️ polza.ai + huggingface.co blocked from cloud container → no real calls made
+  ⚠️ vitest teacher-v1 Blob instanceOf red on clean main in cloud (Node 22/jsdom), not ours
