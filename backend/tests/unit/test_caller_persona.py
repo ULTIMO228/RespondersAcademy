@@ -64,3 +64,12 @@ def test_dispatcher_pcm_is_wrapped_into_wav_for_stt():
     data = persona.pcm16_to_wav(b"\x01\x00" * 160)
     with wave.open(io.BytesIO(data)) as source:
         assert (source.getframerate(), source.getnchannels(), source.getnframes()) == (16000, 1, 160)
+
+
+def test_streaming_wav_with_unknown_size_is_read_to_the_end():
+    # Polza отдаёт WAV из потока: в заголовках RIFF и data размер 0xFFFFFFFF.
+    import struct
+    pcm = np.arange(240, dtype="<i2").tobytes()
+    header = (b"RIFF" + struct.pack("<I", 0xFFFFFFFF) + b"WAVEfmt " + struct.pack("<IHHIIHH", 16, 1, 1, 24000, 48000, 2, 16)
+              + b"data" + struct.pack("<I", 0xFFFFFFFF))
+    assert persona.wav_to_pcm24(header + pcm) == pcm

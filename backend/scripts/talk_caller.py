@@ -89,7 +89,7 @@ async def main() -> int:
         started, first, raw = time.monotonic(), None, ""
         shown = persona.TagFilter()
         print("Заявитель: ", end="", flush=True)
-        async for delta in stream_reply(messages, session.client, session.llm_endpoint()):
+        async for delta in stream_reply(messages, session.client, session.llm_endpoint(), session.llm_options()):
             first = first or time.monotonic() - started
             raw += delta
             print(delta if args.tags else shown.feed(delta), end="", flush=True)

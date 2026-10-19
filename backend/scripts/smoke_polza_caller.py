@@ -69,7 +69,7 @@ async def main() -> int:
         started = time.monotonic()
         first = None
         raw = ""
-        async for delta in stream_reply(messages, session.client, session.llm_endpoint()):
+        async for delta in stream_reply(messages, session.client, session.llm_endpoint(), session.llm_options()):
             first = first or time.monotonic() - started
             raw += delta
         report["llm"] = {"firstTokenSec": round(first or 0, 2), "totalSec": round(time.monotonic() - started, 2),

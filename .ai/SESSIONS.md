@@ -61,3 +61,20 @@ Next:
 Caution:
   ⚠️ polza.ai + huggingface.co blocked from cloud container → no real calls made
   ⚠️ vitest teacher-v1 Blob instanceOf red on clean main in cloud (Node 22/jsdom), not ours
+
+## 2026-10-20T03:30:00+03:00 | @claude (cloud) | branch:claude/pensive-feynman-smkr22 | mode:normal
+Focus: live caller on real Polza API
+Done: ✅
+  - catalog: STT open {gigaam-v3, qwen3-asr}; TTS 12/12 closed; glm-5.3-flash reasoning mandatory
+  - gigaam-v3 2.6s accurate vs qwen3-asr 33.8s; glm capped median 1.4s first token vs qwen3-30b-instruct 2.2s
+  - fixes: TTS JSON base64 + voice; reasoning.max_tokens setting; token limit 1500 (finish=length); retry/partial; fillers; parallel TTS; interrupted reply memory; persona exact numbers
+  - tests no longer read backend/.env (were going to real Polza config)
+  - backend/.env written by owner request (keys in chat) → gitignored
+Decisions: 🧠
+  - reasoning.max_tokens > reasoning_effort for GLM (effort=low → up to 1500 reasoning tokens)
+  - TTS gpt-4o-mini-tts coral for demo only, flagged closed
+Next:
+  !1 owner decisions: TTS rule, GLM vs TZ hardware, transcript of interrupted lines
+  !2 headset call: ./scripts/demo-up.sh --live
+Caution:
+  ⚠️ rotate Polza/Groq/SpeechKit keys after finals (posted in chat)

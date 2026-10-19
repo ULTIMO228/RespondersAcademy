@@ -9,7 +9,10 @@ Silero VAD (границы реплик и перебивание).
 from __future__ import annotations
 
 import asyncio
+import base64
 import importlib.util
+import logging
+import random
 from collections import deque
 from uuid import uuid4
 
@@ -19,13 +22,16 @@ from pydantic import SecretStr
 from app.api.errors import ApiError
 from app.config import get_settings
 from app.services import caller_persona as persona
-from app.services.realtime_cascade import CascadeSession
+from app.services.realtime_cascade import CascadeSession, stream_reply
 from ml.speech import vad
 
 PROVIDER = "Polza.ai"
+logger = logging.getLogger(__name__)
 MIN_VOICED_MS = 200  # щелчок/стук короче не отправляем в STT
 MAX_UTTERANCE_MS = 15000
 PREROLL_MS = 300
+# Короткие отклики сразу после реплики оператора, пока готовится ответ (озвучка через API — секунды).
+FILLERS = ("Да-да…", "Ой…", "Так…")
 
 
 def configured() -> bool:
@@ -58,6 +64,8 @@ class PolzaSession(CascadeSession):
         self.mood = persona.DEFAULT_MOOD
         self.stt_lock = asyncio.Lock()
         self.transcriptions: set[asyncio.Task] = set()
+        self.fillers: list[bytes] = []
+        self.filler_task: asyncio.Task | None = None
 
     async def __aenter__(self):
         settings = get_settings()
@@ -66,14 +74,22 @@ class PolzaSession(CascadeSession):
         self.detector = await asyncio.to_thread(vad.SpeechDetector)
         self.client = httpx.AsyncClient(timeout=httpx.Timeout(settings.polza_timeout_sec, connect=10),
                                         follow_redirects=False)
+        if settings.live_call_fillers:
+            self.filler_task = asyncio.create_task(self.prepare_fillers())
         await self.emit("session.created", session={"capabilities": {"turn_detection": ["server_vad"]}})
         return self
 
     async def __aexit__(self, *_args):
-        for task in self.transcriptions:
+        tasks = [*self.transcriptions, *([self.filler_task] if self.filler_task else [])]
+        for task in tasks:
             task.cancel()
-        await asyncio.gather(*self.transcriptions, return_exceptions=True)
+        await asyncio.gather(*tasks, return_exceptions=True)
         await super().__aexit__()
+
+    async def prepare_fillers(self):
+        """Один раз за звонок, в фоне; сбой не мешает разговору — просто без откликов."""
+        results = await asyncio.gather(*(self.tts(text, "тревожно") for text in FILLERS), return_exceptions=True)
+        self.fillers = [pcm for pcm in results if isinstance(pcm, bytes) and pcm]
 
     # --- общие параметры запросов ---
     def _base(self) -> str:
@@ -86,6 +102,40 @@ class PolzaSession(CascadeSession):
     def llm_endpoint(self) -> tuple[str, SecretStr | None, str, str]:
         settings = get_settings()
         return settings.polza_base_url, settings.polza_api_key, settings.live_call_polza_chat_model or "", PROVIDER
+
+    def llm_options(self) -> dict:
+        # Размышление (у GLM-5.3 обязательное) тратит тот же лимит: при 400 токенах после перебитой
+        # реплики модель «думала» до лимита и не успевала ответить (finish=length). Длину самой
+        # реплики ограничивает respond() — 600 символов.
+        options: dict = {"max_completion_tokens": 1500}
+        settings = get_settings()
+        if settings.live_call_polza_reasoning_max_tokens:
+            options["reasoning"] = {"max_tokens": settings.live_call_polza_reasoning_max_tokens}
+        elif settings.live_call_polza_reasoning_effort:
+            options["reasoning_effort"] = settings.live_call_polza_reasoning_effort
+        return options
+
+    async def reply_stream(self, messages: list[dict[str, str]]):
+        """Сбой до первого слова — один повтор; после — оставляем сказанное, звонок не рвём."""
+        for attempt in (1, 2):
+            produced = False
+            try:
+                async for delta in stream_reply(messages, self.client, self.llm_endpoint(), self.llm_options()):
+                    produced = True
+                    yield delta
+                return
+            except ApiError:
+                if produced:
+                    logger.warning("Ответ заявителя оборван провайдером; сказанное сохранено")
+                    return
+                if attempt == 2:
+                    raise
+
+    def on_interrupted(self, text: str) -> None:
+        # Оператор уже слышал начало: без этого модель «забывает» сказанное и здоровается заново.
+        if text.strip():
+            self.history.append({"role": "assistant", "content": text.rstrip() + " … (оператор перебил)"})
+            self.history = self.history[-16:]
 
     def text_filter(self):
         return persona.TagFilter()
@@ -176,39 +226,72 @@ class PolzaSession(CascadeSession):
             await self.emit("error", code="polza", message="Распознавание речи прервалось. Подключитесь повторно")
 
     # --- озвучка: текст без меток + инструкция эмоции, неречевые звуки — вставками ---
-    async def tts(self, text: str) -> bytes:
+    async def tts(self, text: str, mood: str | None = None) -> bytes:
         settings = get_settings()
         body: dict[str, str] = {"model": settings.live_call_polza_tts_model or "", "input": text,
                                 "response_format": settings.live_call_polza_tts_format}
         if settings.live_call_polza_tts_voice:
             body["voice"] = settings.live_call_polza_tts_voice
         if settings.live_call_polza_tts_instructions:
-            body["instructions"] = persona.MOODS[self.mood]
+            body["instructions"] = persona.MOODS[mood or self.mood]
         try:
             response = await self.client.post(self._base() + "/audio/speech", headers=self._headers(), json=body)
         except httpx.HTTPError as exc:
             raise ApiError(503, "internal", f"Нет связи с {PROVIDER} (синтез речи)") from exc
         if not response.is_success:
             raise provider_error(response.status_code, "синтезу речи")
+        audio = response.content
+        if response.headers.get("content-type", "").startswith("application/json"):
+            # Polza отдаёт {"audio": base64, "contentType": ..., "usage": ...}, а не байты звука.
+            try:
+                audio = base64.b64decode(response.json()["audio"])
+            except (ValueError, KeyError, TypeError) as exc:
+                raise ApiError(503, "internal", f"{PROVIDER} вернул некорректный ответ синтеза речи") from exc
         if settings.live_call_polza_tts_format == "pcm":
-            return response.content  # OpenAI-совместимый pcm: 24 кГц, 16 бит, моно
+            return audio  # OpenAI-совместимый pcm: 24 кГц, 16 бит, моно
         try:
-            return persona.wav_to_pcm24(response.content)
+            return persona.wav_to_pcm24(audio)
         except Exception as exc:
             raise ApiError(503, "internal", f"{PROVIDER} вернул звук в неожиданном формате; "
                            "проверьте LIVE_CALL_POLZA_TTS_FORMAT") from exc
 
+    async def render(self, part: persona.Segment, mood: str) -> bytes:
+        if part.kind == "speech":
+            return await self.tts(part.text, mood)
+        if part.kind == "sound" and part.path is not None:
+            return await asyncio.to_thread(persona.wav_to_pcm24, part.path.read_bytes())
+        return persona.silence(part.ms)
+
     async def synthesize(self, phrases: asyncio.Queue[str | None]):
+        """Каждая фраза уходит в TTS сразу, как готова; звучат строго по порядку."""
         sounds_dir = get_settings().live_call_sounds_dir
-        while True:
-            phrase = await phrases.get()
-            if phrase is None:
-                return
-            parts, self.mood = persona.segments(phrase, sounds_dir, self.mood)
-            for part in parts:
-                if part.kind == "speech":
-                    yield await self.tts(part.text)
-                elif part.kind == "sound" and part.path is not None:
-                    yield await asyncio.to_thread(lambda path=part.path: persona.wav_to_pcm24(path.read_bytes()))
-                elif part.kind == "silence":
-                    yield persona.silence(part.ms)
+        order: asyncio.Queue[asyncio.Task | None] = asyncio.Queue()
+        started: list[asyncio.Task] = []
+
+        async def feed():
+            while True:
+                phrase = await phrases.get()
+                if phrase is None:
+                    await order.put(None)
+                    return
+                parts, self.mood = persona.segments(phrase, sounds_dir, self.mood)
+                for part in parts:
+                    task = asyncio.create_task(self.render(part, self.mood))
+                    started.append(task)
+                    await order.put(task)
+
+        feeder = asyncio.create_task(feed())
+        try:
+            if self.fillers and self.history and self.history[-1]["role"] == "user":
+                yield random.choice(self.fillers)
+            while True:
+                task = await order.get()
+                if task is None:
+                    break
+                yield await task
+            await feeder
+        finally:
+            # Перебивание/ошибка: не ждём и не оплачиваем озвучку уже ненужных фраз.
+            for task in (feeder, *started):
+                task.cancel()
+            await asyncio.gather(feeder, *started, return_exceptions=True)

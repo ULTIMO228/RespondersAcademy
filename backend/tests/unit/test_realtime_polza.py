@@ -176,8 +176,8 @@ async def test_caller_text_shown_to_operator_has_no_tags(settings, monkeypatch):
         for token in ("[тре", "вожно] Алло, ", "[вздох] у нас пожар!"):
             yield token
 
-    monkeypatch.setattr("app.services.realtime_cascade.stream_reply", tokens)
     session = _session(lambda _: httpx.Response(200, content=_wav24(10)))
+    monkeypatch.setattr(session, "reply_stream", tokens)
     await session.respond(initial=True)
     events = [session.events.get_nowait() for _ in range(session.events.qsize())]
     shown = "".join(event["delta"] for event in events if event["type"] == "response.text.delta")
@@ -205,3 +205,152 @@ def test_polza_prompt_allows_emotion_tags_but_plain_prompt_forbids_them():
     plain = call.session_update(created, {"summary": "пожар"})["session"]["instructions"]
     assert "[вздох]" in lively and "сценические ремарки" not in lively
     assert "сценические ремарки" in plain and "[вздох]" not in plain
+
+
+async def test_reasoning_effort_and_token_limit_come_from_settings(settings, monkeypatch):
+    # У GLM-5.3 размышление обязательно (по умолчанию max → лишние секунды до первого слова);
+    # уровень задаётся настройкой, а не угадывается по имени модели.
+    monkeypatch.setattr(settings, "live_call_polza_chat_model", "qwen/open-chat")
+    monkeypatch.setattr(settings, "live_call_polza_reasoning_effort", "low")
+    bodies = []
+
+    def handler(request):
+        bodies.append(json.loads(request.content))
+        return httpx.Response(200, text='data: {"choices":[{"delta":{"content":"Да."},"finish_reason":"stop"}]}\n\ndata: [DONE]\n')
+
+    session = _session(handler)
+    async with session.client:
+        from app.services.realtime_cascade import stream_reply
+        assert [d async for d in stream_reply([], session.client, session.llm_endpoint(), session.llm_options())] == ["Да."]
+        monkeypatch.setattr(settings, "live_call_polza_reasoning_effort", None)
+        _ = [d async for d in stream_reply([], session.client, session.llm_endpoint(), session.llm_options())]
+    assert bodies[0]["reasoning_effort"] == "low" and bodies[0]["max_completion_tokens"] == 1500
+    assert "reasoning_effort" not in bodies[1]  # не задано — не отправляем, даже для qwen
+
+
+async def test_tts_json_response_with_base64_audio_is_decoded(settings):
+    import base64
+
+    def handler(_request):
+        return httpx.Response(200, json={"audio": base64.b64encode(_wav24(100)).decode(), "contentType": "audio/wav",
+                                         "usage": {"characters": 3}})
+
+    session = _session(handler)
+    assert len(await session.tts("Да.")) == 200
+    await session.client.aclose()
+
+
+async def test_phrases_are_synthesized_in_parallel_but_played_in_order(settings):
+    # Озвучка через агрегатор — секунды на фразу: следующие фразы запрашиваются сразу,
+    # иначе между предложениями заявителя дыры по несколько секунд.
+    started: list[str] = []
+    release = asyncio.Event()
+
+    session = polza.PolzaSession()
+
+    async def tts(text, mood=None):
+        started.append(text)
+        if text == "Первая.":
+            await release.wait()  # первая фраза «тормозит» дольше второй
+        return text.encode()
+
+    session.tts = tts
+    phrases: asyncio.Queue = asyncio.Queue()
+    for item in ("Первая.", "Вторая.", None):
+        await phrases.put(item)
+    stream = session.synthesize(phrases)
+    first = asyncio.ensure_future(stream.__anext__())
+    for _ in range(50):
+        if len(started) == 2:
+            break
+        await asyncio.sleep(0.01)
+    assert started == ["Первая.", "Вторая."]  # вторая запрошена, пока первая ещё не готова
+    release.set()
+    assert await first == "Первая.".encode()
+    assert await stream.__anext__() == "Вторая.".encode()
+    await stream.aclose()
+
+
+async def test_filler_is_played_right_after_operator_speaks(settings):
+    session = polza.PolzaSession()
+    session.fillers = [b"filler"]
+
+    async def tts(text, mood=None):
+        return b"answer"
+
+    session.tts = tts
+    for history, expected in (([], [b"answer"]), ([{"role": "user", "content": "Адрес?"}], [b"filler", b"answer"])):
+        session.history = history
+        phrases: asyncio.Queue = asyncio.Queue()
+        for item in ("Улица Грина.", None):
+            await phrases.put(item)
+        assert [chunk async for chunk in session.synthesize(phrases)] == expected
+
+
+def _sse(*chunks: str, finish: str | None = "stop") -> str:
+    lines = [f'data: {{"choices":[{{"delta":{{"content":{json.dumps(c, ensure_ascii=False)}}}}}]}}\n\n' for c in chunks]
+    if finish:
+        lines.append(f'data: {{"choices":[{{"delta":{{}},"finish_reason":"{finish}"}}]}}\n\n')
+    return "".join(lines) + "data: [DONE]\n\n"
+
+
+async def test_empty_failed_stream_is_retried_once(settings):
+    calls = []
+
+    def handler(_request):
+        calls.append(1)
+        return httpx.Response(200, text=_sse(finish=None) if len(calls) == 1 else _sse("Да, горит."))
+
+    session = _session(handler)
+    assert [d async for d in session.reply_stream([])] == ["Да, горит."]
+    assert len(calls) == 2
+    await session.client.aclose()
+
+
+async def test_partial_answer_is_kept_and_call_survives(settings, caplog):
+    # Обрыв после первых слов: сказанное уже звучит у оператора — не рвём звонок ошибкой.
+    session = _session(lambda _: httpx.Response(200, text=_sse("Улица Грина, ", "дом", finish="length")))
+    assert "".join([d async for d in session.reply_stream([])]) == "Улица Грина, дом"
+    assert "length" in caplog.text  # причина обрыва видна в логе сервера
+    await session.client.aclose()
+
+
+async def test_repeated_failure_is_reported(settings):
+    session = _session(lambda _: httpx.Response(200, text=_sse(finish=None)))
+    with pytest.raises(ApiError, match="не закончила"):
+        _ = [d async for d in session.reply_stream([])]
+    await session.client.aclose()
+
+
+def test_reasoning_cap_replaces_effort(settings, monkeypatch):
+    # Замер 19.10 на GLM-5.3-Flash: effort=low после перебивания думал до 1500 токенов (ответа нет),
+    # reasoning.max_tokens=64 — 14–78 токенов; вместе с effort провайдер возвращал пустой ответ.
+    monkeypatch.setattr(settings, "live_call_polza_reasoning_effort", "low")
+    monkeypatch.setattr(settings, "live_call_polza_reasoning_max_tokens", 64)
+    options = polza.PolzaSession().llm_options()
+    assert options["reasoning"] == {"max_tokens": 64} and "reasoning_effort" not in options
+
+
+async def test_interrupted_reply_stays_in_memory_so_caller_does_not_greet_again(settings, monkeypatch):
+    # Звонок 19.10: приветствие перебили → модель «забыла» его и на вопрос об адресе снова сказала «Здравствуйте!».
+    gate = asyncio.Event()
+
+    async def tokens(*_args):
+        yield "[паника] Алло! Горит балкон."
+        await gate.wait()  # перебивают посреди ответа
+        yield " Ещё дым."
+
+    session = _session(lambda _: httpx.Response(200, content=_wav24(10)))
+    monkeypatch.setattr(session, "reply_stream", tokens)
+    task = asyncio.create_task(session.respond(initial=True))
+    for _ in range(100):
+        if any(event["type"] == "response.text.delta" for event in list(session.events._queue)):
+            break
+        await asyncio.sleep(0.01)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert session.history[-1]["role"] == "assistant"
+    assert session.history[-1]["content"].startswith("[паника] Алло! Горит балкон.")
+    assert "перебил" in session.history[-1]["content"]
+    await session.client.aclose()

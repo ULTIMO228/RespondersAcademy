@@ -5,6 +5,7 @@ import asyncio
 import base64
 import importlib.util
 import json
+import logging
 import re
 import time
 from contextlib import aclosing, suppress
@@ -16,6 +17,8 @@ from pydantic import SecretStr
 from app.api.errors import ApiError
 from app.config import get_settings
 from ml.speech import stt, tts, vad
+
+logger = logging.getLogger(__name__)
 
 
 def configured() -> bool:
@@ -42,7 +45,9 @@ def llm_endpoint() -> tuple[str, SecretStr | None, str, str]:
 
 
 async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient,
-                       endpoint: tuple[str, SecretStr | None, str, str] | None = None):
+                       endpoint: tuple[str, SecretStr | None, str, str] | None = None,
+                       options: dict | None = None):
+    """options — параметры запроса провайдера; None — прежнее поведение каскада (Groq/Qwen)."""
     url, key, model, provider = endpoint or llm_endpoint()
     if key is None:
         raise ApiError(503, "internal", "Не настроен доступ к разговорной модели")
@@ -56,8 +61,10 @@ async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient
             normalized.append(dict(message))
     body = {"model": model, "messages": normalized,
             "stream": True, "temperature": 0.3, "max_completion_tokens": 180}
-    # У Qwen reasoning выключен для коротких ответов по телефону.
-    if "qwen" in model.lower():
+    if options is not None:
+        body.update(options)
+    elif "qwen" in model.lower():
+        # У Qwen в Groq reasoning выключен для коротких ответов по телефону.
         body["reasoning_effort"] = "none"
     try:
         async with client.stream("POST", url.rstrip("/") + "/chat/completions",
@@ -71,6 +78,8 @@ async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient
             if not response.is_success:
                 raise ApiError(503, "internal", "Разговорная модель отклонила запрос")
             finished = False
+            reasons: list[str] = []
+            error = ""
             async for line in response.aiter_lines():
                 if not line.startswith("data:"):
                     continue
@@ -78,13 +87,19 @@ async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient
                 if payload == "[DONE]":
                     break
                 event = json.loads(payload)
+                if isinstance(event.get("error"), dict):
+                    error = str(event["error"].get("code") or event["error"].get("type") or "error")[:60]
                 for choice in event.get("choices", []):
+                    if choice.get("finish_reason"):
+                        reasons.append(str(choice["finish_reason"])[:30])
                     if choice.get("finish_reason") == "stop":
                         finished = True
                     delta = choice.get("delta", {}).get("content")
                     if isinstance(delta, str) and delta:
                         yield delta
             if not finished:
+                # Только служебные поля: без текста реплик и ключей.
+                logger.warning("Поток %s закончился без stop: finish=%s error=%s", provider, reasons or "—", error or "—")
                 raise ApiError(503, "internal", "Модель не закончила ответ. Повторите подключение")
     except httpx.HTTPError as exc:
         raise ApiError(503, "internal", "Нет связи с разговорной моделью") from exc
@@ -232,6 +247,16 @@ class CascadeSession:
     def llm_endpoint(self) -> tuple[str, SecretStr | None, str, str]:
         return llm_endpoint()
 
+    def llm_options(self) -> dict | None:
+        return None
+
+    def on_interrupted(self, text: str) -> None:
+        """Ответ отменён (перебивание); каскад прежнему поведению не меняет."""
+
+    async def reply_stream(self, messages: list[dict[str, str]]):
+        async for delta in stream_reply(messages, self.client, self.llm_endpoint(), self.llm_options()):
+            yield delta
+
     def reply_rules(self) -> str:
         return ("Верни только произносимую реплику, без markdown, кавычек и служебных меток. "
                 "Не читай названия полей карточки. Обращайся к оператору естественно.")
@@ -261,7 +286,7 @@ class CascadeSession:
             messages = [{"role": "system", "content": self.instructions}, *self.history]
             if initial:
                 messages.append({"role": "user", "content": "Соединение установлено. Начни звонок как заявитель: коротко поздоровайся и своими словами попроси помощь по происшествию. Не перечисляй адрес и контакты заранее."})
-            async for delta in stream_reply(messages, self.client, self.llm_endpoint()):
+            async for delta in self.reply_stream(messages):
                 text += delta
                 buffer += delta
                 visible = shown.feed(delta) if shown else delta
@@ -308,6 +333,7 @@ class CascadeSession:
             await self.emit("response.audio.done", response_id=rid)
             await self.emit("response.done", response={"id": rid, "status": "completed"})
         except asyncio.CancelledError:
+            self.on_interrupted(text)
             await self.emit("response.done", response={"id": rid, "status": "cancelled"})
             raise
         except Exception as exc:
