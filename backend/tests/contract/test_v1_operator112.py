@@ -116,6 +116,7 @@ async def test_ready_applicant_audio_is_playable_from_recordings(
         row.duration_ms = 2100
         row.generated_at = now_iso()
         await db.commit()
+    started_id: str | None = None
     try:
         await login_as(v1, "teacher")
         listed = await v1.get("/cards/c-050/recordings")
@@ -128,7 +129,15 @@ async def test_ready_applicant_audio_is_playable_from_recordings(
         assert played.headers["content-type"] == content_type
         assert f"c-050.{extension}" in played.headers["content-disposition"]
         assert played.headers["content-disposition"].startswith("inline;")
+        # Обучающемуся голос заявителя виден только в собственной активной попытке
+        # по карточке; тест сам создаёт попытку и не зависит от порядка запуска.
         await login_as(v1, "student")
+        before = await v1.get("/cards/c-050/recordings")
+        assert before.status_code == 200, before.text
+        assert all(item["id"] != "ticket-c-050" for item in before.json())
+        started = await v1.post("/operator112/attempts", json={"assignmentId": TRAINING, "cardId": "c-050"})
+        assert started.status_code in (200, 201), started.text
+        started_id = started.json()["id"]
         student_listed = await v1.get("/cards/c-050/recordings")
         assert any(item["id"] == "ticket-c-050" for item in student_listed.json())
         assert (await v1.get("http://test" + recording["audioUrl"])).status_code == 200
@@ -139,6 +148,10 @@ async def test_ready_applicant_audio_is_playable_from_recordings(
                 await db.delete(row)
             else:
                 row.path, row.status, row.duration_ms, row.generated_at = previous
+            if started_id is not None:
+                await db.execute(delete(Evaluation).where(Evaluation.attempt_id == started_id))
+                await db.execute(delete(AssignmentAttempt).where(AssignmentAttempt.attempt_id == started_id))
+                await db.execute(delete(Attempt).where(Attempt.id == started_id))
             await db.commit()
 
 
