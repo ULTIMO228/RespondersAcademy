@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-import { ApiError, errorMapPdfUrl, ServerRequiredError } from "@/shared/api";
+import { ApiError, errorMapPdfUrl, errorMapXlsxUrl, ServerRequiredError } from "@/shared/api";
 import type { ErrorMapGroup, ErrorMapJournalResponse } from "@/shared/api";
 import { EmptyState, PageHeader, ResourceView, Skeleton, useResource } from "@/shared/ui/platform";
 import {
@@ -19,6 +19,8 @@ import type { ErrorMapFilters } from "@/widgets/error-map";
 import { journalApi } from "../api/errorMapApi";
 import type { JournalApi } from "../api/errorMapApi";
 import { groupMapHref, journalHref, presentHref, studentMapHref } from "../lib/links";
+
+import styles from "./ErrorMapPage.module.css";
 
 type JournalScreenProps = {
   /** Группа из адреса `/teacher/error-map/[groupId]/journal`. */
@@ -67,7 +69,7 @@ function JournalContent({ groupId, api = journalApi }: JournalScreenProps) {
   );
 
   return (
-    <section aria-labelledby="teacher-error-map-journal-title">
+    <section className={styles.page} aria-labelledby="teacher-error-map-journal-title">
       <PageHeader
         title="Журнал группы"
         description="Кто на каком этапе приёма вызова ошибается: обучающиеся и этапы в одной таблице"
@@ -77,6 +79,7 @@ function JournalContent({ groupId, api = journalApi }: JournalScreenProps) {
         <ErrorMapActions
           presentHref={presentHref(filters, { view: "journal" })}
           pdfHref={errorMapPdfUrl({ scope: "journal", groupId, mode, period })}
+          xlsxHref={errorMapXlsxUrl({ scope: "journal", groupId, mode, period })}
         />
       </ErrorMapToolbar>
       <ResourceView state={groups.state} onRetry={groups.reload}>

@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-import { errorMapPdfUrl } from "@/shared/api";
+import { errorMapPdfUrl, errorMapXlsxUrl } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import { EmptyState, PageHeader, ResourceView, Skeleton, useResource } from "@/shared/ui/platform";
 import type { ErrorMapGroup, ErrorMapResponse } from "@/shared/api";
@@ -24,6 +24,8 @@ import type { ErrorMapFilters } from "@/widgets/error-map";
 import { errorMapApi } from "../api/errorMapApi";
 import type { ErrorMapApi } from "../api/errorMapApi";
 import { groupMapHref, journalHref, presentHref, studentMapHref, STAGE_PARAM } from "../lib/links";
+
+import styles from "./ErrorMapPage.module.css";
 
 type ErrorMapScreenProps = {
   /** Группа из адреса `/teacher/error-map/[groupId]`; без неё берётся `?group=` или первая доступная. */
@@ -55,7 +57,7 @@ function ErrorMapContent({ groupId: routeGroupId, api = errorMapApi }: ErrorMapS
   };
 
   return (
-    <section aria-labelledby="teacher-error-map-title">
+    <section className={styles.page} aria-labelledby="teacher-error-map-title">
       <PageHeader
         title="Карта ошибок"
         description="Где в работе оператора группа теряет баллы: этапы от приёма вызова до завершения"
@@ -118,6 +120,7 @@ function GroupMap({
         <ErrorMapActions
           presentHref={presentHref(filters)}
           pdfHref={errorMapPdfUrl({ scope: "group", groupId, mode, period })}
+          xlsxHref={errorMapXlsxUrl({ scope: "group", groupId, mode, period })}
         />
       </ErrorMapToolbar>
       <Filters groups={groups} value={filters} onChange={(next) => onFilters(next, next.mode === mode)} />

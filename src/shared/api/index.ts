@@ -20,6 +20,7 @@ export { downloadReportExport, getGroupInsights, getStudentProfile, listTickets 
 export { getHealth, startAssignment, updateKbArticle } from "./endpoints";
 export {
   errorMapPdfUrl,
+  errorMapXlsxUrl,
   getErrorMapGroup,
   getErrorMapJournal,
   getErrorMapSettings,

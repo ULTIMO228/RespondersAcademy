@@ -76,6 +76,7 @@ export { listWorkMessages, postReportAudio } from "./work-messages";
 export { getHealth } from "./health";
 export {
   errorMapPdfUrl,
+  errorMapXlsxUrl,
   getErrorMapGroup,
   getErrorMapJournal,
   getErrorMapSettings,

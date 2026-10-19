@@ -2,19 +2,21 @@ import csv
 import io
 
 import pytest
+from openpyxl import load_workbook
 
 from app.api.deps import Viewer
 from app.db.session import get_sessionmaker
 from app.models.report import Report
 from app.models.session import Attempt, TeacherOverride, TrainingSession
 from app.services.report_export import HEADERS, export_data, render_csv
+from app.services.xlsx_export import XLSX_MEDIA_TYPE
 from tests.conftest import login_as
 
 REPORT_ID = 'rep-2026-09-16-01-u-005'
 GROUP_ID = 'rep-2026-09-16-group'
 
 
-@pytest.mark.parametrize('extension', ['csv', 'pdf'])
+@pytest.mark.parametrize('extension', ['csv', 'pdf', 'xlsx'])
 async def test_export_access_and_format(client, extension):
     url = f'http://test/api/v1/reports/{REPORT_ID}/export.{extension}'
     assert (await client.get(url)).status_code == 401
@@ -30,6 +32,13 @@ async def test_export_access_and_format(client, extension):
         rows = list(csv.reader(io.StringIO(response.content.decode('utf-8-sig'))))
         assert rows[0] == HEADERS and len(rows) > 1
         assert all(len(row) == len(HEADERS) for row in rows)
+    elif extension == 'xlsx':
+        assert response.headers['content-type'] == XLSX_MEDIA_TYPE
+        sheets = load_workbook(io.BytesIO(response.content))
+        ws = sheets.worksheets[0]
+        header_row = next(row for row in ws.iter_rows(values_only=True) if row[0] == HEADERS[0])
+        assert list(header_row[: len(HEADERS)]) == HEADERS
+        assert ws.max_row > 2
     else:
         assert response.content.startswith(b'%PDF-') and b'/FontFile2' in response.content
     group_url = f'http://test/api/v1/reports/{GROUP_ID}/export.{extension}'
@@ -82,3 +91,22 @@ def test_csv_quotes_and_formula_text():
     raw = render_csv({'rows': [['=SUM(1,2)', 'Иванов, "Иван"\nстрока', -1000]]})
     rows = list(csv.reader(io.StringIO(raw.decode('utf-8-sig'))))
     assert rows[1] == ["'=SUM(1,2)", 'Иванов, "Иван"\nстрока', '-1000']
+
+
+async def test_xlsx_has_the_same_rows_as_csv(client):
+    await login_as(client, 'student')
+    url = f'http://test/api/v1/reports/{REPORT_ID}/export'
+    csv_rows = list(csv.reader(io.StringIO((await client.get(f'{url}.csv')).content.decode('utf-8-sig'))))
+    ws = load_workbook(io.BytesIO((await client.get(f'{url}.xlsx')).content)).worksheets[0]
+    table = [row for row in ws.iter_rows(values_only=True) if row[0] is not None]
+    start = next(i for i, row in enumerate(table) if row[0] == HEADERS[0])
+    xlsx_rows = [[('' if v is None else str(v)) for v in row[: len(HEADERS)]] for row in table[start : start + len(csv_rows)]]
+    assert xlsx_rows == csv_rows
+
+
+def test_xlsx_never_turns_text_into_formula():
+    from app.services.report_export import render_xlsx
+
+    ws = load_workbook(io.BytesIO(render_xlsx({'id': 'r', 'sessionId': 's', 'generatedAt': 't', 'rows': [['=SUM(1,2)'] + [''] * (len(HEADERS) - 1)], 'insights': []}))).worksheets[0]
+    cells = [cell for row in ws.iter_rows() for cell in row if cell.value == '=SUM(1,2)']
+    assert cells and all(cell.data_type == 's' for cell in cells)

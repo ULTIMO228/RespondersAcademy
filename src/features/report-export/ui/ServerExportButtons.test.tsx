@@ -6,7 +6,7 @@ import { ApiError } from "@/shared/api";
 import { ServerExportButtons } from "./ServerExportButtons";
 
 describe("ServerExportButtons", () => {
-  it("скачивает CSV и PDF отчёта с именем reportId.расширение", async () => {
+  it("скачивает CSV, PDF и Excel отчёта с именем reportId.расширение", async () => {
     const blob = new Blob(["x"]);
     const download = vi.fn().mockResolvedValue(blob);
     const saver = { save: vi.fn() };
@@ -15,6 +15,9 @@ describe("ServerExportButtons", () => {
     await waitFor(() => expect(saver.save).toHaveBeenCalledWith(blob, "grp-001.csv"));
     fireEvent.click(screen.getByRole("button", { name: "PDF с сервера" }));
     await waitFor(() => expect(saver.save).toHaveBeenCalledWith(blob, "grp-001.pdf"));
+    fireEvent.click(screen.getByRole("button", { name: "Excel с сервера" }));
+    await waitFor(() => expect(saver.save).toHaveBeenCalledWith(blob, "grp-001.xlsx"));
+    expect(download).toHaveBeenNthCalledWith(3, "grp-001", "xlsx");
     expect(download).toHaveBeenNthCalledWith(1, "grp-001", "csv");
     expect(download).toHaveBeenNthCalledWith(2, "grp-001", "pdf");
   });

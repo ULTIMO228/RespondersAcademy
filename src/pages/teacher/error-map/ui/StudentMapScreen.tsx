@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-import { ApiError, errorMapPdfUrl, ServerRequiredError } from "@/shared/api";
+import { ApiError, errorMapPdfUrl, errorMapXlsxUrl, ServerRequiredError } from "@/shared/api";
 import type { ErrorMapGroup, ErrorMapResponse } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import {
@@ -30,6 +30,8 @@ import type { ErrorMapFilters } from "@/widgets/error-map";
 import { studentMapApi } from "../api/errorMapApi";
 import type { StudentMapApi } from "../api/errorMapApi";
 import { FROM_PARAM, groupMapHref, STAGE_PARAM } from "../lib/links";
+
+import styles from "./ErrorMapPage.module.css";
 
 type StudentMapScreenProps = {
   /** Обучающийся из адреса `/teacher/error-map/students/[studentId]`. */
@@ -88,7 +90,7 @@ function StudentMapContent({ studentId, api = studentMapApi }: StudentMapScreenP
   const groupList = groups.state.status === "ready" ? groups.state.data : [];
 
   return (
-    <section aria-labelledby="teacher-error-map-student-title">
+    <section className={styles.page} aria-labelledby="teacher-error-map-student-title">
       <PageHeader
         title="Карта ошибок обучающегося"
         description="Где в работе обучающийся теряет баллы в сравнении с группой"
@@ -96,7 +98,10 @@ function StudentMapContent({ studentId, api = studentMapApi }: StudentMapScreenP
       />
       <ErrorMapToolbar>
         <span />
-        <ErrorMapActions pdfHref={errorMapPdfUrl({ scope: "student", studentId, mode, period })} />
+        <ErrorMapActions
+          pdfHref={errorMapPdfUrl({ scope: "student", studentId, mode, period })}
+          xlsxHref={errorMapXlsxUrl({ scope: "student", studentId, mode, period })}
+        />
       </ErrorMapToolbar>
       <ResourceView
         state={map.state}

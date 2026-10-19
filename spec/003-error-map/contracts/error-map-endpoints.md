@@ -20,6 +20,7 @@
 | `GET /error-map/students/{studentId}` | teacher*, admin | Карта обучающегося с сравнением «лучше / как у группы / хуже» | 200, 401, 403, 404 |
 | `GET /error-map/students/{studentId}/stages/{stageId}` | teacher*, admin | Разбор этапа для обучающегося | 200, 401, 403, 404 |
 | `PUT /error-map/verdicts` | teacher*, admin | Сохранить вердикт «Согласен / Не согласен» | 200, 400, 401, 403 |
+| `GET /error-map/export.xlsx` | teacher*, admin | Те же данные, что в PDF, в Excel (`attachment`); параметры и ошибки как у `export.pdf` | 200, 400, 401, 403, 404 |
 | `GET /error-map/export.pdf` | teacher*, admin | PDF карты или журнала (`scope=group\|student\|journal`, `groupId` или `studentId`, `mode`, `period`) | 200, 400, 401, 403, 404 |
 | `GET /me/focus` | student | «Над чем поработать»: до трёх этапов обучающегося | 200, 401, 403 |
 | `GET /error-map/settings` | admin | Пороги светофора | 200, 401, 403 |

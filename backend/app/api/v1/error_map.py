@@ -38,6 +38,7 @@ from app.schemas.error_map import ErrorMapSettings as ErrorMapSettingsSchema
 from app.services import audit, error_map_access, error_map_pdf, error_map_service, error_map_settings
 from app.services.error_map_stages import get_stage
 from app.services.time import now_iso
+from app.services.xlsx_export import XLSX_MEDIA_TYPE
 
 router = APIRouter()
 teacher_or_admin = require_role("teacher", "admin")
@@ -140,16 +141,15 @@ async def group_journal(
 PDF_SCOPES = ("group", "student", "journal")
 
 
-@router.get("/error-map/export.pdf", response_class=Response)
-async def export_pdf(
-    scope: Annotated[str | None, Query(description="group, student или journal")] = None,
-    group_id: Annotated[str | None, Query(alias="groupId", description="Группа: для scope=group и journal")] = None,
-    student_id: Annotated[str | None, Query(alias="studentId", description="Обучающийся: для scope=student")] = None,
-    params: MapParams = Depends(map_params),
-    db: AsyncSession = Depends(get_db),
-    viewer: Viewer = Depends(teacher_or_admin),
-) -> Response:
-    """PDF карты группы, карты обучающегося или журнала для печати (FR-022). 400 — нет scope или id, 403/404 — как у экранов."""
+async def _export_document(
+    scope: str | None,
+    group_id: str | None,
+    student_id: str | None,
+    params: MapParams,
+    db: AsyncSession,
+    viewer: Viewer,
+) -> tuple[error_map_pdf.PdfDocument, error_map_pdf.Scope, str | None, str | None]:
+    """Общая часть PDF и Excel: проверка параметров и сборка документа (доступ и 404 — как у экранов)."""
     chosen = cast(error_map_pdf.Scope, _choose("scope", scope, PDF_SCOPES, ""))
     if not chosen:
         raise validation_failed(f"Не указан параметр «scope»: допустимо {', '.join(PDF_SCOPES)}")
@@ -162,12 +162,46 @@ async def export_pdf(
     document = await error_map_pdf.build_document(
         db, viewer, scope=chosen, group_id=group, student_id=student, mode=params.mode, period=params.period
     )
+    return document, chosen, group, student
+
+
+@router.get("/error-map/export.pdf", response_class=Response)
+async def export_pdf(
+    scope: Annotated[str | None, Query(description="group, student или journal")] = None,
+    group_id: Annotated[str | None, Query(alias="groupId", description="Группа: для scope=group и journal")] = None,
+    student_id: Annotated[str | None, Query(alias="studentId", description="Обучающийся: для scope=student")] = None,
+    params: MapParams = Depends(map_params),
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(teacher_or_admin),
+) -> Response:
+    """PDF карты группы, карты обучающегося или журнала для печати (FR-022). 400 — нет scope или id, 403/404 — как у экранов."""
+    document, chosen, group, student = await _export_document(scope, group_id, student_id, params, db, viewer)
     content = await run_in_threadpool(error_map_pdf.render_pdf, document)
     name = quote(error_map_pdf.pdf_filename(chosen, group, student), safe="")
     return Response(
         content,
         media_type="application/pdf",
         headers={"Content-Disposition": f"inline; filename*=UTF-8''{name}", "Cache-Control": "no-store"},
+    )
+
+
+@router.get("/error-map/export.xlsx", response_class=Response)
+async def export_xlsx(
+    scope: Annotated[str | None, Query(description="group, student или journal")] = None,
+    group_id: Annotated[str | None, Query(alias="groupId", description="Группа: для scope=group и journal")] = None,
+    student_id: Annotated[str | None, Query(alias="studentId", description="Обучающийся: для scope=student")] = None,
+    params: MapParams = Depends(map_params),
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(teacher_or_admin),
+) -> Response:
+    """Те же данные, что в PDF, в Excel (.xlsx); параметры, доступ и ошибки — как у `export.pdf`."""
+    document, chosen, group, student = await _export_document(scope, group_id, student_id, params, db, viewer)
+    content = await run_in_threadpool(error_map_pdf.render_xlsx, document)
+    name = quote(error_map_pdf.xlsx_filename(chosen, group, student), safe="")
+    return Response(
+        content,
+        media_type=XLSX_MEDIA_TYPE,
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{name}", "Cache-Control": "no-store"},
     )
 
 

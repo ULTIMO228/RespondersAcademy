@@ -17,10 +17,12 @@ export interface ErrorMapActionsProps {
   presentHref?: string;
   /** Адрес PDF с бэкенда (`errorMapPdfUrl`): обычная ссылка, открывается в новой вкладке, откуда печатается. */
   pdfHref: string;
+  /** Адрес Excel (`errorMapXlsxUrl`): обычная ссылка со скачиванием; без него кнопки нет. */
+  xlsxHref?: string;
 }
 
 /** Кнопки «Показать на экране» и «Распечатать» (PDF) для разбора на занятии (FR-021, FR-022); высота ≥ 44 px. */
-export function ErrorMapActions({ presentHref, pdfHref }: ErrorMapActionsProps) {
+export function ErrorMapActions({ presentHref, pdfHref, xlsxHref }: ErrorMapActionsProps) {
   return (
     <div className={styles.actions}>
       {presentHref ? (
@@ -37,6 +39,11 @@ export function ErrorMapActions({ presentHref, pdfHref }: ErrorMapActionsProps) 
       >
         Распечатать
       </a>
+      {xlsxHref ? (
+        <a className={styles.actions__link} href={xlsxHref} download>
+          Скачать в Excel
+        </a>
+      ) : null}
     </div>
   );
 }

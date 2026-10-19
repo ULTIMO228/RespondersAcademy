@@ -4,7 +4,7 @@
  */
 import type { CardSource, ErrorSeverity, GrammarErrorType, ScenarioMode } from "./session";
 
-export type ReportExportFormat = "csv" | "pdf";
+export type ReportExportFormat = "csv" | "pdf" | "xlsx";
 
 export interface ReportStudent {
   studentId: string;
