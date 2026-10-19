@@ -33,7 +33,8 @@ class Settings(BaseSettings):
     ai_provider: Literal["local", "polza"] = Field(default="local", alias="AI_PROVIDER")
     polza_api_key: SecretStr | None = Field(default=None, alias="POLZA_API_KEY")
     polza_base_url: str = Field(default="https://polza.ai/api/v1", alias="POLZA_BASE_URL")
-    polza_model: str = Field(default="openai/gpt-4o-mini", alias="POLZA_MODEL")
+    # Без значения по умолчанию: только модель с открытыми весами, выбранная явно (решение организаторов 19.10).
+    polza_model: str | None = Field(default=None, alias="POLZA_MODEL")
     polza_timeout_sec: float = Field(default=60.0, alias="POLZA_TIMEOUT_SEC")
     polza_rpm: int = Field(default=20, ge=1, alias="POLZA_RPM")  # запросов в минуту
     polza_daily_limit: int = Field(default=500, ge=1, alias="POLZA_DAILY_LIMIT")  # запросов в сутки
@@ -43,7 +44,17 @@ class Settings(BaseSettings):
     tts_enabled: bool = Field(default=True, alias="TTS_ENABLED")  # синтез аудио билетов (Silero); 0 — только расшифровка
     app_env: str = Field(default="dev", alias="APP_ENV")
     live_calls_enabled: bool = Field(default=False, alias="LIVE_CALLS_ENABLED")
-    live_call_realtime_transport: Literal["omni", "cascade", "speechkit"] = Field(default="omni", alias="LIVE_CALL_REALTIME_TRANSPORT")
+    live_call_realtime_transport: Literal["polza", "omni", "cascade", "speechkit"] = Field(default="polza", alias="LIVE_CALL_REALTIME_TRANSPORT")
+    # Живой заявитель через Polza.ai: ключ и адрес — POLZA_API_KEY/POLZA_BASE_URL, модели только из окружения
+    # (условие организаторов: модели с открытыми весами, разворачиваемые позже локально; без хардкода).
+    live_call_polza_chat_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_CHAT_MODEL")
+    live_call_polza_stt_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_STT_MODEL")
+    live_call_polza_tts_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_MODEL")
+    live_call_polza_tts_voice: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_VOICE")
+    live_call_polza_tts_format: Literal["wav", "pcm"] = Field(default="wav", alias="LIVE_CALL_POLZA_TTS_FORMAT")
+    live_call_polza_tts_instructions: bool = Field(default=True, alias="LIVE_CALL_POLZA_TTS_INSTRUCTIONS")
+    live_call_end_silence_ms: int = Field(default=700, ge=300, le=2000, alias="LIVE_CALL_END_SILENCE_MS")
+    live_call_sounds_dir: Path | None = Field(default=None, alias="LIVE_CALL_SOUNDS_DIR")
     speechkit_api_key: SecretStr | None = Field(default=None, alias="SPEECHKIT_API_KEY", repr=False)
     speechkit_folder_id: str | None = Field(default=None, alias="SPEECHKIT_FOLDER_ID")
     speechkit_tts_model: Literal["general", "livetts"] = Field(default="livetts", alias="SPEECHKIT_TTS_MODEL")
@@ -72,6 +83,8 @@ class Settings(BaseSettings):
     def _polza_needs_key(self) -> Settings:
         if self.ai_provider == "polza" and not (self.polza_api_key and self.polza_api_key.get_secret_value().strip()):
             raise ValueError("AI_PROVIDER=polza требует POLZA_API_KEY")
+        if self.ai_provider == "polza" and not (self.polza_model or "").strip():
+            raise ValueError("AI_PROVIDER=polza требует POLZA_MODEL (модель с открытыми весами)")
         return self
 
     @property
