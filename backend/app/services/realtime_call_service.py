@@ -52,6 +52,9 @@ def configured() -> bool:
     elif settings.live_call_realtime_transport == "speechkit":
         from app.services.realtime_speechkit import configured as speechkit_configured
         available = speechkit_configured()
+    elif settings.live_call_realtime_transport == "polza":
+        from app.services.realtime_polza import configured as polza_configured
+        available = polza_configured()
     return bool(settings.live_calls_enabled and available and public.scheme in ("ws", "wss")
                 and public.hostname and not public.username)
 
@@ -66,6 +69,10 @@ async def open_upstream():
     elif settings.live_call_realtime_transport == "speechkit":
         from app.services.realtime_speechkit import SpeechKitSession
         async with SpeechKitSession() as session:
+            yield session
+    elif settings.live_call_realtime_transport == "polza":
+        from app.services.realtime_polza import PolzaSession
+        async with PolzaSession() as session:
             yield session
     else:
         headers = {}
@@ -140,7 +147,12 @@ def client_event(event: Any) -> dict:
     raise ValueError("Недопустимое событие")
 
 
-def session_update(created: dict, facts: dict) -> dict:
+EMOTION_PLAIN = ("Тревожься соразмерно происшествию: при пожаре/опасности звучат просьба о помощи, "
+                 "растерянность, естественные восклицания; при спокойном обращении говори спокойно. "
+                 "Не вставляй описание эмоций или действий в скобках и не используй сценические ремарки.")
+
+
+def session_update(created: dict, facts: dict, style: str | None = None) -> dict:
     supported = created.get("session", {}).get("capabilities", {}).get("turn_detection", [])
     detector = ({"type": "semantic_vad", "eagerness": "medium", "interrupt_response": True}
                 if "semantic_vad" in supported else {"type": "server_vad", "interrupt_response": True})
@@ -150,9 +162,7 @@ def session_update(created: dict, facts: dict) -> dict:
         "ассистентом или диктором и не объясняй свою роль.\n"
         "При соединении сам поздоровайся и коротко сообщи главную беду своими словами. "
         "Не зачитывай всю карточку. Адрес и контакты сообщай по вопросу оператора. "
-        "Тревожься соразмерно происшествию: при пожаре/опасности звучат просьба о помощи, "
-        "растерянность, естественные восклицания; при спокойном обращении говори спокойно. "
-        "Не вставляй описание эмоций или действий в скобках и не используй сценические ремарки.\n"
+        + (style or EMOTION_PLAIN) + "\n"
         "Слушай смысл ПОСЛЕДНЕЙ реплики с учётом разговора. Если в ней несколько вопросов, "
         "кратко ответь на каждый. Не повторяй фабулу или адрес в ответ на другой вопрос. "
         "На «алло/вы меня слышите?» подтвердить связь; на просьбу подождать — согласиться; "
@@ -181,7 +191,10 @@ async def relay(browser: WebSocket, upstream, record: dict) -> None:
     created = json.loads(await asyncio.wait_for(upstream.recv(), 20))
     if created.get("type") != "session.created":
         raise ValueError("Сервер не поддерживает realtime")
-    await upstream.send(json.dumps(session_update(created, record.pop("facts"))))
+    style = None
+    if get_settings().live_call_realtime_transport == "polza":
+        from app.services.caller_persona import STYLE as style
+    await upstream.send(json.dumps(session_update(created, record.pop("facts"), style)))
     updated = json.loads(await asyncio.wait_for(upstream.recv(), 20))
     if updated.get("type") != "session.updated" or set(updated.get("session", {}).get("modalities", [])) != {"text", "audio"}:
         raise ValueError("Сервер не поддерживает речевой выход")
@@ -219,7 +232,7 @@ async def relay(browser: WebSocket, upstream, record: dict) -> None:
             kind = event.get("type", "")
             rid = event.get("response_id") or event.get("response", {}).get("id", "")
             if kind == "error":
-                if get_settings().live_call_realtime_transport in {"cascade", "speechkit"}:
+                if get_settings().live_call_realtime_transport in {"cascade", "speechkit", "polza"}:
                     raise ApiError(503, "internal", event.get("message", "Ошибка голосового сервиса"))
                 raise ValueError("Ошибка голосового сервера")
             if kind == "response.created":

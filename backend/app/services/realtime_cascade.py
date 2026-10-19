@@ -11,6 +11,7 @@ from contextlib import aclosing, suppress
 from uuid import uuid4
 
 import httpx
+from pydantic import SecretStr
 
 from app.api.errors import ApiError
 from app.config import get_settings
@@ -34,9 +35,15 @@ def warmup():
     return recognizer
 
 
-async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient):
+def llm_endpoint() -> tuple[str, SecretStr | None, str, str]:
+    """(base URL, ключ, модель, имя провайдера в сообщениях) разговорной модели каскада."""
     settings = get_settings()
-    key = settings.live_call_llm_api_key
+    return settings.live_call_llm_url or "", settings.live_call_llm_api_key, settings.live_call_llm_model, "Groq"
+
+
+async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient,
+                       endpoint: tuple[str, SecretStr | None, str, str] | None = None):
+    url, key, model, provider = endpoint or llm_endpoint()
     if key is None:
         raise ApiError(503, "internal", "Не настроен доступ к разговорной модели")
     # После отмены ответа возможны соседние user-сообщения. Развёрнутый Qwen в Groq
@@ -47,18 +54,20 @@ async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient
             normalized[-1]["content"] += "\nСледующая реплика оператора: " + message["content"]
         else:
             normalized.append(dict(message))
-    body = {"model": settings.live_call_llm_model, "messages": normalized,
+    body = {"model": model, "messages": normalized,
             "stream": True, "temperature": 0.3, "max_completion_tokens": 180}
     # У Qwen reasoning выключен для коротких ответов по телефону.
-    if "qwen" in settings.live_call_llm_model.lower():
+    if "qwen" in model.lower():
         body["reasoning_effort"] = "none"
     try:
-        async with client.stream("POST", (settings.live_call_llm_url or "").rstrip("/") + "/chat/completions",
+        async with client.stream("POST", url.rstrip("/") + "/chat/completions",
                                  headers={"Authorization": "Bearer " + key.get_secret_value()}, json=body) as response:
             if response.status_code == 429:
-                raise ApiError(503, "internal", "Достигнут лимит Groq. Повторите подключение позже")
+                raise ApiError(503, "internal", f"Достигнут лимит {provider}. Повторите подключение позже")
+            if response.status_code == 402:
+                raise ApiError(503, "internal", f"У {provider} недостаточно средств для разговорной модели")
             if response.status_code in (401, 403):
-                raise ApiError(503, "internal", "Groq отклонил доступ к разговорной модели")
+                raise ApiError(503, "internal", f"{provider} отклонил доступ к разговорной модели")
             if not response.is_success:
                 raise ApiError(503, "internal", "Разговорная модель отклонила запрос")
             finished = False
@@ -151,10 +160,7 @@ class CascadeSession:
     async def send(self, raw: str):
         event = json.loads(raw)
         if event["type"] == "session.update":
-            self.instructions = event["session"]["instructions"] + (
-                "\nВерни только произносимую реплику, без markdown, кавычек и служебных меток. "
-                "Не читай названия полей карточки. Обращайся к оператору естественно."
-            )
+            self.instructions = event["session"]["instructions"] + "\n" + self.reply_rules()
             await self.emit("session.updated", session={"modalities": ["text", "audio"]})
             self.listener = asyncio.create_task(self.listen())
             self.response = asyncio.create_task(self.respond(initial=True))
@@ -223,6 +229,17 @@ class CascadeSession:
         except Exception:
             await self.emit("error", code="cascade", message="Распознавание речи прервалось. Подключитесь повторно")
 
+    def llm_endpoint(self) -> tuple[str, SecretStr | None, str, str]:
+        return llm_endpoint()
+
+    def reply_rules(self) -> str:
+        return ("Верни только произносимую реплику, без markdown, кавычек и служебных меток. "
+                "Не читай названия полей карточки. Обращайся к оператору естественно.")
+
+    def text_filter(self):
+        """Фильтр показываемого текста (feed/flush); None — показывать как есть."""
+        return None
+
     async def synthesize(self, phrases: asyncio.Queue[str | None]):
         """Локальный TTS; облачный конвейер переопределяет этот поток."""
         while True:
@@ -240,19 +257,25 @@ class CascadeSession:
         async def generate():
             nonlocal text
             buffer = ""
+            shown = self.text_filter()
             messages = [{"role": "system", "content": self.instructions}, *self.history]
             if initial:
                 messages.append({"role": "user", "content": "Соединение установлено. Начни звонок как заявитель: коротко поздоровайся и своими словами попроси помощь по происшествию. Не перечисляй адрес и контакты заранее."})
-            async for delta in stream_reply(messages, self.client):
+            async for delta in stream_reply(messages, self.client, self.llm_endpoint()):
                 text += delta
                 buffer += delta
-                await self.emit("response.text.delta", response_id=rid, delta=delta)
+                visible = shown.feed(delta) if shown else delta
+                if visible:
+                    await self.emit("response.text.delta", response_id=rid, delta=visible)
                 phrase, buffer = take_phrase(buffer)
                 while phrase:
                     await phrases.put(phrase)
                     phrase, buffer = take_phrase(buffer)
                 if len(text) > 600:
                     raise ApiError(503, "internal", "Модель превысила длину телефонного ответа")
+            tail = shown.flush() if shown else ""
+            if tail:
+                await self.emit("response.text.delta", response_id=rid, delta=tail)
             if buffer.strip():
                 await phrases.put(buffer.strip())
             await phrases.put(None)
