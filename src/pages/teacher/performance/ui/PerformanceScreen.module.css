@@ -109,3 +109,8 @@
   color: var(--pf-text-muted);
   font-size: var(--pf-fs-lead);
 }
+
+/* Название группы и ФИО в таблице не переносятся посреди строки. */
+.nowrap {
+  white-space: nowrap;
+}

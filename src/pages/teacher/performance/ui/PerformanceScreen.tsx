@@ -288,7 +288,11 @@ function ReportBody({
           <DataTable
             caption="Сравнение групп"
             columns={[
-              { key: "group", title: "Группа", render: (row) => row.title },
+              {
+                key: "group",
+                title: "Группа",
+                render: (row) => <span className={styles.nowrap}>{row.title}</span>,
+              },
               { key: "students", title: "Обучающихся", numeric: true, render: (row) => row.stats.students },
               ...statColumns((row: PerformanceReport["groups"][number]) => row.stats),
             ]}
@@ -302,7 +306,11 @@ function ReportBody({
           <DataTable
             caption="Успеваемость обучающихся"
             columns={[
-              { key: "name", title: "ФИО", render: (row) => row.name },
+              {
+                key: "name",
+                title: "ФИО",
+                render: (row) => <span className={styles.nowrap}>{row.name}</span>,
+              },
               { key: "group", title: "Группа", render: (row) => row.groupId ?? "Без группы" },
               ...statColumns((row: PerformanceReport["students"][number]) => row.stats),
             ]}
