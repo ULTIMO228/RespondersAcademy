@@ -22,10 +22,12 @@ const DETECTOR_NAMES: Record<string, string> = {
 export function SessionErrorSummaryPanel({ summary, attempts }: SessionErrorSummaryPanelProps) {
   // Вычисляем из attempts, если серверная сводка не поступила
   const allIssues = attempts.flatMap((a) => a.issues);
-  const total = summary ? summary.totalErrors : allIssues.length;
-  const critical = summary ? summary.critical : allIssues.filter((i) => i.severity === "critical").length;
-  const major = summary ? summary.major : allIssues.filter((i) => i.severity === "major").length;
-  const minor = summary ? summary.minor : allIssues.filter((i) => i.severity === "minor").length;
+  const total = summary?.totalErrors ?? allIssues.length;
+  const critical = summary?.critical ?? allIssues.filter((i) => i.severity === "critical").length;
+  const major = summary?.major ?? allIssues.filter((i) => i.severity === "major").length;
+  const minor = summary?.minor ?? allIssues.filter((i) => i.severity === "minor").length;
+  // Неполная сводка (старый бэкенд без byDetector) не должна ронять страницу отчёта.
+  const byDetector = summary?.byDetector ?? {};
 
   return (
     <Panel title="Сводка ошибок (AI-контроль)" headerTone="dark">
@@ -57,7 +59,7 @@ export function SessionErrorSummaryPanel({ summary, attempts }: SessionErrorSumm
         </div>
       </div>
 
-      {summary && Object.keys(summary.byDetector).length > 0 ? (
+      {Object.keys(byDetector).length > 0 ? (
         <div
           style={{
             display: "flex",
@@ -70,7 +72,7 @@ export function SessionErrorSummaryPanel({ summary, attempts }: SessionErrorSumm
           <span>
             <strong>Детекторы:</strong>
           </span>
-          {Object.entries(summary.byDetector).map(([det, count]) => (
+          {Object.entries(byDetector).map(([det, count]) => (
             <span key={det} style={{ marginRight: "8px" }}>
               {DETECTOR_NAMES[det] || det}: {count}
             </span>

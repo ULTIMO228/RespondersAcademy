@@ -15,6 +15,7 @@ STATIC_SESSION = "ses-2026-09-16-01"
 
 @pytest.mark.asyncio
 async def test_get_evaluation_seeded(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     response = await client.get("/attempts/att-01/evaluation")
     assert response.status_code == 200
     body = response.json()
@@ -25,6 +26,7 @@ async def test_get_evaluation_seeded(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_get_evaluation_not_found(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     response = await client.get("/attempts/att-999/evaluation")
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "notFound"
@@ -43,6 +45,7 @@ async def test_get_evaluation_student_isolation(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_override_validation_and_roles(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     bad_score = await client.post("/attempts/att-02/evaluation", json={"teacherId": "u-002", "score": 101, "comment": "x"})
     assert bad_score.status_code == 400 and bad_score.json()["error"]["code"] == "validationFailed"
     no_comment = await client.post("/attempts/att-02/evaluation", json={"teacherId": "u-002", "score": 80, "comment": "  "})
@@ -58,7 +61,41 @@ async def test_override_validation_and_roles(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_override_requires_own_session_teacher(client: AsyncClient):
+    """ТЗ §9 / 02-roles: без входа — 401; администратор и чужой преподаватель оценку не меняют; автор — из сессии."""
+    body = {"teacherId": "u-002", "score": 11, "comment": "попытка чужой правки"}
+    anonymous = await client.post("/attempts/att-01/evaluation", json=body)
+    assert anonymous.status_code == 401
+    await login_as(client, "admin")
+    as_admin = await client.post("/attempts/att-01/evaluation", json=body)
+    assert as_admin.status_code == 403
+    client.cookies.clear()
+    await login_as(client, "teacher2")
+    other_teacher = await client.post("/attempts/att-01/evaluation", json={"score": 11, "comment": "чужое занятие"})
+    assert other_teacher.status_code == 403
+    impersonation = await client.post("/attempts/att-01/evaluation", json=body)
+    assert impersonation.status_code == 403
+    client.cookies.clear()
+    evaluation = await client.get("/attempts/att-01/evaluation")
+    assert evaluation.status_code == 401
+    await login_as(client, "teacher")
+    unchanged = (await client.get("/attempts/att-01/evaluation")).json()
+    assert (unchanged.get("teacherOverride") or {}).get("score") != 11
+    client.cookies.clear()
+
+
+@pytest.mark.asyncio
+async def test_sensitive_reads_require_login(client: AsyncClient):
+    for path in ("/admin/audit", "/users", "/reports/journal", "/reports?sessionId=ses-2026-09-16-01", "/sessions", "/scenarios"):
+        response = await client.get(path)
+        assert response.status_code == 401, f"{path}: {response.status_code}"
+    created = await client.post("/scenarios", json={"title": "аноним", "level": "basic"})
+    assert created.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_reports_static_session(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     response = await client.get("/reports", params={"sessionId": STATIC_SESSION})
     assert response.status_code == 200
     body = response.json()
@@ -75,8 +112,10 @@ async def test_reports_static_session(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_reports_requires_params_and_session_exists(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     assert (await client.get("/reports")).status_code == 400
     assert (await client.get("/reports", params={"sessionId": "ses-none"})).status_code == 404
+    client.cookies.clear()
     assert (await client.get("/reports", params={"studentId": "u-005"})).status_code == 401
 
 
@@ -96,6 +135,7 @@ async def test_reports_student_scope(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_reports_journal(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     response = await client.get("/reports/journal")
     assert response.status_code == 200
     body = response.json()
@@ -115,6 +155,7 @@ async def test_reports_journal(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_feedback_upsert(client: AsyncClient):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     payload = {"reportId": "rep-2026-09-16-01-u-006", "teacherId": "u-002", "text": "Повторить регламент точки C", "recommendations": ["Звонок 301", ""]}
     created = await client.post("/reports/feedback", json=payload)
     assert created.status_code == 201

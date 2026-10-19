@@ -47,6 +47,7 @@ async def test_auth_policy(client):
 
 
 async def test_reference_keys(client):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     response = await client.get("/reference")
     assert response.status_code == 200
     body = response.json()
@@ -57,6 +58,7 @@ async def test_reference_keys(client):
 
 
 async def test_classifier(client):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     all_rows = await client.get("/classifier")
     assert all_rows.status_code == 200 and len(all_rows.json()) == 1283
     assert "x-classifier-version" in all_rows.headers
@@ -73,10 +75,13 @@ async def test_classifier(client):
 
 async def test_users_roles(client):
     anonymous = await client.get("/users", params={"role": "student"})
-    assert anonymous.status_code == 200
-    assert all("password" not in user for user in anonymous.json())
+    assert anonymous.status_code == 401  # ТЗ §9: без входа данные пользователей не отдаются
+    await login_as(client, "teacher")
+    listed = await client.get("/users", params={"role": "student"})
+    assert listed.status_code == 200 and all("password" not in user for user in listed.json())
     bad_role = await client.get("/users", params={"role": "boss"})
     assert bad_role.status_code == 400
+    client.cookies.clear()
     await login_as(client, "student")
     forbidden = await client.get("/users")
     assert forbidden.status_code == 403 and forbidden.json()["error"]["code"] == "forbidden"

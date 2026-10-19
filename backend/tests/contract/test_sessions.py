@@ -77,6 +77,7 @@ async def test_student_journey(client):
 
 
 async def test_session_validation_and_feed_access(client):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     bad = await client.post("/sessions", json={"teacherId": "u-005", "studentIds": ["u-005"], "scenarioIds": [SCENARIO_ID], "mode": "practice", "cardSource": "generated"})
     assert bad.status_code == 400
     unapproved = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-005"], "scenarioIds": ["s-999"], "mode": "practice", "cardSource": "generated"})
@@ -105,7 +106,6 @@ async def test_session_validation_and_feed_access(client):
     await login_as(client, "teacher")
     own = await client.get(f"/sessions/{session_id}/feed")
     assert own.status_code == 200
-    client.cookies.clear()
     stopped = await client.post(f"/sessions/{session_id}/stop")
     assert stopped.json()["state"] == "finished" and stopped.json()["finishedAt"]
     await login_as(client, "teacher")
@@ -116,6 +116,7 @@ async def test_session_validation_and_feed_access(client):
 
 
 async def test_card_actions(client):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     card = "card-881412"
     links = await client.post(f"/cards/{card}/links")
     assert links.status_code == 200 and links.json() == {"cardId": card, "chain": []}

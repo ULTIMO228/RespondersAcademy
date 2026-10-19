@@ -120,6 +120,11 @@ async def get_session_summary(
         ),
         by_severity=summary["by_severity"],
         by_student=summary["by_student"],
+        critical=summary["by_severity"].get("critical", 0),
+        major=summary["by_severity"].get("major", 0),
+        minor=summary["by_severity"].get("minor", 0),
+        by_rule=summary["by_rule"],
+        by_detector=summary["by_detector"],
         error_record_ids=summary["error_record_ids"],
     )
 

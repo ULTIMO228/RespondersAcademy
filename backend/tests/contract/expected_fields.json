@@ -2160,12 +2160,13 @@
     "critical",
     "major",
     "minor",
-    "byCategory",
     "byRule",
     "byDetector",
     "byStudent"
    ],
-   "optional": [],
+   "optional": [
+    "byCategory"
+   ],
    "extends": []
   },
   "SessionFeedQuery": {

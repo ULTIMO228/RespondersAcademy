@@ -11,6 +11,7 @@ from tests.conftest import login_as, token_for
 
 
 async def test_mapping_contract_and_atomic_save(client):
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     original = (await client.get('/profile-mapping')).json()
     assert len(original) == 6
     async with get_sessionmaker()() as db:

@@ -227,6 +227,21 @@ async def test_get_session_error_summary_contract(v1):
     assert data["bySeverity"] == {"critical": 2, "major": 1, "minor": 0}
     assert data["byStudent"] == {"u-005": 2, "u-006": 1}
     assert set(data["errorRecordIds"]) == {"err-t027-1", "err-t027-2", "err-t027-3"}
+    # Поля, которые читает панель отчёта занятия на фронте (без них страница падала).
+    assert (data["critical"], data["major"], data["minor"]) == (2, 1, 0)
+    assert data["byRule"] == {"v1": 1, "t1": 1, "op-f0": 1}
+    assert data["byDetector"] == {"rule": 3}
+
+
+@pytest.mark.asyncio
+async def test_empty_session_error_summary_has_frontend_fields(v1):
+    """Пустое занятие: честные нули и пустые словари, а не отсутствующие поля."""
+    await login_as(v1, "teacher")
+    resp = await v1.get("/ai/sessions/ses-2026-09-16-01/error-summary")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert (data["critical"], data["major"], data["minor"]) == (0, 0, 0)
+    assert data["byRule"] == {} and data["byDetector"] == {}
 
 
 @pytest.mark.asyncio

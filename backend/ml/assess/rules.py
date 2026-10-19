@@ -153,6 +153,7 @@ OP_NOT_SUBMITTED = _register(Rule("op-t3", "timeNotCompleted", "critical", f"{ME
 OP_WRONG_FINAL_TYPE = _register(Rule("op-f1", "wrongFinalType", "critical", MEMO_POLL, "Неверный итоговый тип: выбрано «{actual}», по билету ожидался тип группы «{expected}»{missing}"))
 OP_NO_FINAL_TYPE = _register(Rule("op-f0", "wrongFinalType", "critical", MEMO_POLL, "Итоговый тип не определён: опросная карта не заполнена (ожидался тип группы «{expected}»)"))
 OP_MISSING_SERVICE = _register(Rule("op-f2", "missingService", "major", f"{EKP}; {MEMO_CARD}", "В списке оповещения нет ожидаемой службы: {services}"))
+OP_EXTRA_SERVICE = _register(Rule("op-f3", "extraService", "major", f"{EKP}; {MEMO_CARD}", "Лишняя служба в списке оповещения (по билету не требуется): {services}"))
 OP_MISSING_SIGN = _register(Rule("op-s1", "missingSign", "major", MEMO_POLL, "Не выставлен признак «{sign}» из билета"))
 OP_MISSING_FLAG = _register(Rule("op-s2", "missingSign", "major", f"{MEMO_CARD}: флаги «Пострадавшие» / «Отказ от СМП»", "Не выставлен признак «{flag}», хотя по билету {reason}"))
 OP_EXTRA_FLAG = _register(Rule("op-s3", "extraFlag", "minor", f"{MEMO_CARD}: флаги ЧС/ЧП", "Флаг «{flag}» выставлен без оснований по билету"))

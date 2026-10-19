@@ -201,6 +201,8 @@ async def get_session_error_summary(
             "by_mode": {"operator112": 0, "dds": 0},
             "by_severity": {"critical": 0, "major": 0, "minor": 0},
             "by_student": {},
+            "by_rule": {},
+            "by_detector": {},
             "error_record_ids": [],
         }
 
@@ -215,9 +217,13 @@ async def get_session_error_summary(
     by_mode: dict[str, int] = {"operator112": 0, "dds": 0}
     by_severity: dict[str, int] = {"critical": 0, "major": 0, "minor": 0}
     by_student: dict[str, int] = {}
+    by_rule: dict[str, int] = {}
+    by_detector: dict[str, int] = {}
 
     for rec in records:
         by_type[rec.type] = by_type.get(rec.type, 0) + 1
+        by_rule[rec.rule_id] = by_rule.get(rec.rule_id, 0) + 1
+        by_detector[rec.detector] = by_detector.get(rec.detector, 0) + 1
         if rec.mode in by_mode:
             by_mode[rec.mode] += 1
         if rec.severity in by_severity:
@@ -234,6 +240,8 @@ async def get_session_error_summary(
         "by_mode": by_mode,
         "by_severity": by_severity,
         "by_student": by_student,
+        "by_rule": by_rule,
+        "by_detector": by_detector,
         "error_record_ids": [r.id for r in records],
     }
 

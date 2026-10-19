@@ -45,6 +45,7 @@ async def revise_summary(v1: AsyncClient, scenario_id: str, base_version: int, t
 
 async def test_legacy_contract_without_scenario_is_unchanged(client: AsyncClient) -> None:
     client.cookies.clear()
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     response = await client.post("/grammar-check", json={"text": TYPO_TEXT, "field": "summary"})
     assert response.status_code == 200
     body = response.json()
@@ -57,6 +58,7 @@ async def test_legacy_contract_without_scenario_is_unchanged(client: AsyncClient
 
 async def test_empty_text_and_professional_terms_give_no_remarks(client: AsyncClient) -> None:
     client.cookies.clear()
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     for text in ("", "   "):
         response = await client.post("/grammar-check", json={"text": text, "field": "summary"})
         assert response.status_code == 200 and response.json()["data"] == []
@@ -68,6 +70,7 @@ async def test_empty_text_and_professional_terms_give_no_remarks(client: AsyncCl
 
 async def test_remarks_point_to_source_fragment_without_rewriting_text(client: AsyncClient) -> None:
     client.cookies.clear()
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     text = "Сообщение, пренято;  механик напрален"
     response = await client.post("/grammar-check", json={"text": text, "field": "dispatcherAction"})
     data = response.json()["data"]

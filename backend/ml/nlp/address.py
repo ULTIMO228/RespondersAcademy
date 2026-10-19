@@ -171,6 +171,10 @@ def match(text: str, *, limit: int = 3) -> AddressMatch:
     best_norm, best_ratio, _ = max(candidates, key=lambda c: (c[1], fuzz.ratio(query, c[0])))
     if best_norm != query and best_ratio >= EXACT_RATIO:
         best_ratio = max(LOOKALIKE_MIN_RATIO, min(EXACT_RATIO - 1, int(fuzz.ratio(query, best_norm))))
+    if best_ratio < LOOKALIKE_MIN_RATIO:
+        # Не улица справочника («жилой дом», «у метро»): ближайшую улицу не подставляем, иначе оценка
+        # сравнивает с выдуманным адресом («Жилой дом» → «Домниковский переулок»).
+        return AddressMatch(query=query_raw, street=None, ratio=int(best_ratio))
     streets = index[best_norm]
     street = next((s for s in streets if not query_type or s.type == query_type), streets[0])
     return AddressMatch(query=query_raw, street=street, ratio=int(best_ratio))
@@ -209,7 +213,7 @@ def compare(entered: str, expected: str) -> AddressCheck:
     """
     exact — та же улица справочника; lookalike — другая существующая улица, похожая на эталон
     (ratio ≥ 85: «Дубнинская» vs «Дубининская»); typo — улицы нет в справочнике, но она похожа на эталон;
-    mismatch — другая улица; unknown — не распознано ни то, ни другое.
+    mismatch — другая улица; unknown — эталон не является улицей справочника (сверка по справочнику невозможна).
     """
     entered_match = match(entered)
     expected_match = match(expected)
@@ -223,6 +227,7 @@ def compare(entered: str, expected: str) -> AddressCheck:
     if ratio >= LOOKALIKE_MIN_RATIO:
         kind = "lookalike" if entered_match.exact else "typo"
         return AddressCheck(kind, entered_match, expected_match, ratio)
-    if expected_match.street is None and entered_match.street is None:
+    if expected_match.street is None:
+        # Эталон вне справочника (описательный адрес, регион) — по справочнику не сверить, решает вызывающий.
         return AddressCheck("unknown", entered_match, expected_match, ratio)
     return AddressCheck("mismatch", entered_match, expected_match, ratio)
