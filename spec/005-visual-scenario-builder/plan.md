@@ -51,6 +51,7 @@ spec/005-visual-scenario-builder/
 ├── research.md             # решения R1–R12
 ├── data-model.md           # блоки, входы/выходы, соединения, проверки, движок, оценка, права, версии, таблицы
 ├── quickstart.md           # сценарии проверки
+├── design-concept.md       # дизайн-концепция: сравнение трёх вариантов, гибрид, экран, состояния, доступность
 ├── contracts/
 │   ├── flows-api.md        # REST /api/v1/flows*, /flow-runs*, расширение /assignments
 │   └── ui-constructor.md   # компоновка, вид блоков, управление, словарь
