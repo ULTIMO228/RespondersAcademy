@@ -87,6 +87,9 @@ export const ROUTES = {
   teacherErrorMapStudent: (studentId: string) =>
     `/teacher/error-map/students/${encodeURIComponent(studentId)}`,
   teacherErrorMapPresent: (groupId: string) => `/teacher/error-map/${encodeURIComponent(groupId)}/present`,
+  /** Сводная успеваемость (спека 005): преподавателю — свои группы, администратору (руководству) — все. */
+  teacherPerformance: "/teacher/performance",
+  adminPerformance: "/admin/performance",
   adminHome: "/admin",
   adminAudit: "/admin/audit",
   adminSecurity: "/admin/security",

@@ -40,6 +40,7 @@ const RULES: CrumbRule[] = [
     prefix: "/teacher/groups",
     crumbs: [{ title: "Обучающиеся", href: ROUTES.teacherStudents }, { title: "Аналитика группы" }],
   },
+  { prefix: ROUTES.teacherPerformance, crumbs: [{ title: "Успеваемость" }] },
   { prefix: ROUTES.teacherErrorMap, crumbs: [{ title: "Карта ошибок" }] },
   { prefix: ROUTES.teacherScenarios, exact: true, crumbs: [{ title: "Сценарии" }] },
   {
@@ -52,6 +53,7 @@ const RULES: CrumbRule[] = [
     crumbs: [{ title: "Отчёты", href: ROUTES.teacherReports }, { title: "Отчёт о занятии" }],
   },
   { prefix: ROUTES.adminHome, exact: true, crumbs: [{ title: "Главная" }] },
+  { prefix: ROUTES.adminPerformance, crumbs: [{ title: "Успеваемость" }] },
   { prefix: ROUTES.adminAudit, crumbs: [{ title: "Аудит" }] },
   { prefix: ROUTES.adminSecurity, crumbs: [{ title: "Безопасность" }] },
   { prefix: ROUTES.adminUsers, crumbs: [{ title: "Пользователи" }] },

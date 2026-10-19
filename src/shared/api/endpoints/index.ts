@@ -89,3 +89,5 @@ export {
   saveErrorMapVerdict,
 } from "./error-map";
 export type { ErrorMapPdfParams, ErrorMapQuery } from "./error-map";
+export { getPerformanceReport, performancePdfUrl, performanceXlsxUrl } from "./performance";
+export type { PerformanceQuery } from "./performance";

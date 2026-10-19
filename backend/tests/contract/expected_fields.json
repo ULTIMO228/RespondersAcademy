@@ -1768,6 +1768,82 @@
    "optional": [],
    "extends": []
   },
+  "PerformanceError": {
+   "file": "performance.ts",
+   "required": [
+    "label",
+    "attempts"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceFilters": {
+   "file": "performance.ts",
+   "required": [
+    "mode",
+    "period"
+   ],
+   "optional": [
+    "from",
+    "to",
+    "groupId"
+   ],
+   "extends": []
+  },
+  "PerformanceGroupRow": {
+   "file": "performance.ts",
+   "required": [
+    "groupId",
+    "title",
+    "stats"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceReport": {
+   "file": "performance.ts",
+   "required": [
+    "filters",
+    "generatedAt",
+    "thresholds",
+    "totals",
+    "groups",
+    "students",
+    "topErrors"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceStats": {
+   "file": "performance.ts",
+   "required": [
+    "students",
+    "activeStudents",
+    "attempts",
+    "avgScore",
+    "previousAvgScore",
+    "delta",
+    "reactionInNormShare",
+    "processingInNormShare",
+    "exams",
+    "examsPassed",
+    "weakStage",
+    "level"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceStudentRow": {
+   "file": "performance.ts",
+   "required": [
+    "studentId",
+    "name",
+    "groupId",
+    "stats"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "PhoneCall": {
    "file": "session.ts",
    "required": [

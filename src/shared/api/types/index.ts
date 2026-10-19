@@ -182,3 +182,14 @@ export type {
   StageLevelWord,
   VerdictKind,
 } from "./error-map";
+export type {
+  PerformanceError,
+  PerformanceFilters,
+  PerformanceGroupRow,
+  PerformanceLevel,
+  PerformanceMode,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceStats,
+  PerformanceStudentRow,
+} from "./performance";

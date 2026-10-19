@@ -21,6 +21,9 @@ export { getHealth, startAssignment, updateKbArticle } from "./endpoints";
 export {
   errorMapPdfUrl,
   errorMapXlsxUrl,
+  getPerformanceReport,
+  performancePdfUrl,
+  performanceXlsxUrl,
   getErrorMapGroup,
   getErrorMapJournal,
   getErrorMapSettings,
@@ -271,4 +274,12 @@ export type {
   Street,
   TicketAudio,
   TicketAudioStatus,
+} from "./types";
+export type { PerformanceQuery } from "./endpoints";
+export type {
+  PerformanceLevel,
+  PerformanceMode,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceStats,
 } from "./types";

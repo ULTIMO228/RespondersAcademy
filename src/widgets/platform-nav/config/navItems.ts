@@ -57,6 +57,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
       icon: "users",
       activeOn: [ROUTES.teacherStudents, "/teacher/groups"],
     },
+    { href: ROUTES.teacherPerformance, title: "Успеваемость", icon: "results" },
     { href: ROUTES.teacherErrorMap, title: "Карта ошибок", icon: "analytics" },
     { href: ROUTES.teacherScenarios, title: "Сценарии", icon: "doc" },
     { href: ROUTES.teacherReports, title: "Отчёты", icon: "results" },
@@ -66,6 +67,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
   admin: [
     { href: ROUTES.adminHome, title: "Главная", icon: "home", exact: true },
     { href: ROUTES.adminUsers, title: "Пользователи", icon: "users" },
+    { href: ROUTES.adminPerformance, title: "Успеваемость", icon: "results" },
     { href: ROUTES.adminAudit, title: "Аудит", icon: "log" },
     { href: ROUTES.adminSecurity, title: "Безопасность", icon: "shield" },
     { href: ROUTES.adminSystem, title: "Система", icon: "server" },
