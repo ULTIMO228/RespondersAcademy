@@ -221,8 +221,8 @@
       <header>
         <h1>Конструктор сценариев: три концепции и рекомендуемый гибрид</h1>
         <p class="muted">
-          Один и тот же фрагмент билета 4.1: «Дом газифицирован?» → Да: оповестить службу 104 · Нет: подсказка. Оценки — из
-          spec/005-visual-scenario-builder/design-concept.md §2.
+          Один и тот же фрагмент билета 4.1: «Дом газифицирован?» → Да: оповестить службу 104 · Нет:
+          подсказка. Оценки — из spec/005-visual-scenario-builder/design-concept.md §2.
         </p>
       </header>
       <div class="board-grid board-grid--4">
@@ -231,29 +231,60 @@
           <div class="frame__cap"><b>1. Node-редактор (Unreal Blueprints)</b></div>
           <div class="mini bp">
             <svg class="w" aria-hidden="true">
-              <path d="M200,96 C250,96 220,180 262,180" stroke="var(--pf-shell-text)" stroke-width="2.5" fill="none" />
-              <path d="M200,118 C250,118 220,300 262,300" stroke="var(--pf-shell-text)" stroke-width="2.5" fill="none" />
-              <path d="M146,262 C180,262 150,150 180,138" stroke="var(--color-status-new)" stroke-width="2" fill="none" />
+              <path
+                d="M200,96 C250,96 220,180 262,180"
+                stroke="var(--pf-shell-text)"
+                stroke-width="2.5"
+                fill="none"
+              />
+              <path
+                d="M200,118 C250,118 220,300 262,300"
+                stroke="var(--pf-shell-text)"
+                stroke-width="2.5"
+                fill="none"
+              />
+              <path
+                d="M146,262 C180,262 150,150 180,138"
+                stroke="var(--color-status-new)"
+                stroke-width="2"
+                fill="none"
+              />
             </svg>
             <div class="bp-node" style="left: 20px; top: 60px">
               <div class="bp-node__head" style="background: var(--color-graphite-600)">◆ Branch</div>
-              <div class="bp-row"><span><span class="tri"></span> Exec</span><span>True <span class="tri"></span></span></div>
-              <div class="bp-row"><span></span><span>False <span class="tri"></span></span></div>
-              <div class="bp-row" style="color: var(--color-status-new)"><span><span class="pin"></span> Condition</span></div>
+              <div class="bp-row">
+                <span><span class="tri"></span> Exec</span><span>True <span class="tri"></span></span>
+              </div>
+              <div class="bp-row">
+                <span></span><span>False <span class="tri"></span></span>
+              </div>
+              <div class="bp-row" style="color: var(--color-status-new)">
+                <span><span class="pin"></span> Condition</span>
+              </div>
             </div>
             <div class="bp-node" style="left: 20px; top: 230px; width: 126px">
               <div class="bp-node__head" style="background: var(--color-service-02)">ƒ IsGasified</div>
-              <div class="bp-row" style="color: var(--color-status-new)"><span></span><span>Return <span class="pin"></span></span></div>
+              <div class="bp-row" style="color: var(--color-status-new)">
+                <span></span><span>Return <span class="pin"></span></span>
+              </div>
             </div>
             <div class="bp-node" style="left: 262px; top: 156px; width: 170px">
               <div class="bp-node__head" style="background: var(--color-accent-orange)">ƒ NotifyService</div>
-              <div class="bp-row"><span><span class="tri"></span></span><span><span class="tri"></span></span></div>
-              <div class="bp-row" style="color: var(--color-status-accepted)"><span><span class="pin"></span> ServiceId: 104</span></div>
+              <div class="bp-row">
+                <span><span class="tri"></span></span><span><span class="tri"></span></span>
+              </div>
+              <div class="bp-row" style="color: var(--color-status-accepted)">
+                <span><span class="pin"></span> ServiceId: 104</span>
+              </div>
             </div>
             <div class="bp-node" style="left: 262px; top: 282px; width: 170px">
               <div class="bp-node__head" style="background: var(--color-service-at)">ƒ ShowHint</div>
-              <div class="bp-row"><span><span class="tri"></span></span><span><span class="tri"></span></span></div>
-              <div class="bp-row" style="color: var(--color-status-created)"><span><span class="pin"></span> Text (String)</span></div>
+              <div class="bp-row">
+                <span><span class="tri"></span></span><span><span class="tri"></span></span>
+              </div>
+              <div class="bp-row" style="color: var(--color-status-created)">
+                <span><span class="pin"></span> Text (String)</span>
+              </div>
             </div>
           </div>
           <div class="cmp-body">
@@ -279,7 +310,9 @@
               <div class="sc-b sc-ctrl">если <span class="sc-slot">дом газифицирован?</span> то</div>
               <div class="sc-c">
                 <div class="bar"></div>
-                <div><div class="sc-b sc-act">оповестить службу <span class="sc-slot">104</span></div></div>
+                <div>
+                  <div class="sc-b sc-act">оповестить службу <span class="sc-slot">104</span></div>
+                </div>
               </div>
               <div class="sc-b sc-ctrl">иначе</div>
               <div class="sc-c">
@@ -313,7 +346,15 @@
             <div class="bpmn-lane"><div class="bpmn-lane__name">Диспетчер</div></div>
             <svg class="w" aria-hidden="true">
               <defs>
-                <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <marker
+                  id="ah"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto"
+                >
                   <path d="M0,0 L10,5 L0,10 z" fill="var(--pf-text)" />
                 </marker>
               </defs>
@@ -351,7 +392,9 @@
 
         <!-- 4. Гибрид -->
         <section class="frame frame--pick">
-          <div class="frame__cap"><b>Рекомендуем: гибрид «Схема-инструкция»</b><span class="chip chip--success">выбор</span></div>
+          <div class="frame__cap">
+            <b>Рекомендуем: гибрид «Схема-инструкция»</b><span class="chip chip--success">выбор</span>
+          </div>
           <div class="mini hy">
             <svg class="wires" aria-hidden="true">
               <path d="M172,152 C172,182 112,170 112,200" />
@@ -360,33 +403,44 @@
             <div class="node cat-logic" style="left: 120px; top: 20px">
               <span class="port port--in"></span>
               <div class="node__head">
-                <span class="tile"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 9-9 9-9-9z" /></svg></span
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3l9 9-9 9-9-9z" /></svg></span
                 ><span class="node__type">Условие</span><span class="node__step">5</span>
               </div>
               <div class="node__sum">Дом газифицирован?</div>
               <div class="node__outs">
-                <span class="node__out">Да<span class="port"></span></span><span class="node__out">Нет<span class="port"></span></span>
+                <span class="node__out">Да<span class="port"></span></span
+                ><span class="node__out">Нет<span class="port"></span></span>
               </div>
             </div>
             <div class="node cat-action" style="left: 8px; top: 200px">
               <span class="port port--in"></span>
               <div class="node__head">
-                <span class="tile"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l5 5L20 6" /></svg></span
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 12l5 5L20 6" /></svg></span
                 ><span class="node__type">Действие</span><span class="node__step">6</span>
               </div>
               <div class="node__sum">Оповестить службу 104</div>
-              <div class="node__outs"><span class="node__out">Выполнено<span class="port"></span></span></div>
+              <div class="node__outs">
+                <span class="node__out">Выполнено<span class="port"></span></span>
+              </div>
             </div>
             <div class="node cat-learn" style="left: 226px; top: 200px">
               <span class="port port--in"></span>
               <div class="node__head">
                 <span class="tile"
                   ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z" /></svg></span
+                    <path
+                      d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"
+                    /></svg></span
                 ><span class="node__type">Подсказка</span><span class="node__step">7</span>
               </div>
               <div class="node__sum">«Уточните газификацию»</div>
-              <div class="node__outs"><span class="node__out">Следующий шаг<span class="port"></span></span></div>
+              <div class="node__outs">
+                <span class="node__out">Следующий шаг<span class="port"></span></span>
+              </div>
             </div>
             <span class="plus" style="left: 112px; top: 370px">+</span>
           </div>

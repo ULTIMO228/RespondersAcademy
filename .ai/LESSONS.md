@@ -60,3 +60,22 @@
 
 ## L013 | flaky tests
 ⚠️ IncidentScreen "card-881412" failed once in full vitest run, passes alone → rerun file before blaming own change
+
+## L014 | e2e vs jsdom (feature 005)
+❌ trust jsdom-green UI with pointer/drag/scroll/hit-testing
+✅ run real Chromium e2e for canvas-like UI before claiming done; screenshot + eyeball
+! found only in browser: overflow:hidden canvas scrolled on focus, invisible «+» covering short wires, toolbar wrap, simplified nodes unreadable
+
+## L015 | Playwright viewport
+❌ assume use.viewport 1920 from playwright.config
+✅ project devices["Desktop Chrome"] overrides it → 1280×720; set test.use({ viewport }) explicitly; also test narrow width
+! layout overflow at 1280 hid the library and broke all drag tests
+
+## L016 | React status state vs effects
+❌ store derived UI status (dirty/saved) in state and also set it from an effect
+✅ derive status from source of truth (revision vs savedRevision) during render
+! effect overwrote «saved» → first save after edit showed «есть несохранённые» (e2e)
+
+## L017 | container browsers
+❌ npx playwright install / download browsers
+✅ temp config in repo root importing playwright.config + launchOptions.executablePath=/opt/pw-browsers/chromium; delete after run, never commit

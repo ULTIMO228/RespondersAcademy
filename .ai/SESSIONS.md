@@ -39,3 +39,23 @@ Next:
 Caution:
   ⚠️ Do not use git add .
   ⚠️ no Co-Authored-By trailer
+
+---
+## 2026-10-19T23:55:00+03:00 | @claude | branch:claude/gracious-darwin-x0znyd | mode:normal
+Focus: feature 005 visual scenario builder — audit → spec/plan → design concept → clickable frontend prototype
+Done: ✅
+  - spec/005-visual-scenario-builder: spec, data-model (11 blocks, ports, rules E/W, engine, scoring, roles, versions), research R1-R12, plan, contracts, quickstart, design-concept + 3 sketches
+  - prototype /teacher/constructor: library (search, ready actions), canvas (drag, connect, «+», zoom, minimap, keyboard), inspector, validation panel + history, outline view, preview run w/ scoring, localStorage draft
+  - shell workspace mode (64px rail), nav «Конструктор», tokens --pf-flow-* w/ contrast tests
+  - e2e/constructor.spec.ts 8 tests (real Chromium); unit tests entities/features/pages
+Decisions: 🧠
+  - hybrid «Схема-инструкция» (Unreal cards + Scratch phrases/+ + BPMN light flow) > pure concepts: owner approved
+  - own SVG/HTML canvas > React Flow: no new deps (AGENTS §7)
+  - roles unchanged: expert/group lead = teachers (owner)
+  - prototype logic in TS, server later (owner: no server/DB now)
+Next:
+  !1: owner review + В1-В5
+  !2: speckit-tasks for Ф1-Ф7
+Caution:
+  ⚠️ Desktop Chrome device overrides viewport in playwright.config
+  ⚠️ temp playwright config w/ system chromium must not be committed

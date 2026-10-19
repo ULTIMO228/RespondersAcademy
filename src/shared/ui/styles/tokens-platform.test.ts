@@ -85,6 +85,15 @@ const NON_TEXT_PAIRS: [string, string, string][] = [
   ["--pf-chart-duration", "--pf-bg-card", "линия отработки"],
   ["--pf-chart-other", "--pf-bg-card", "прочие серии"],
   ["--pf-chart-norm", "--pf-bg-card", "линия норматива"],
+  ["--pf-flow-cat-edge", "--pf-bg-card", "группа «Начало и конец»"],
+  ["--pf-flow-cat-call", "--pf-bg-card", "группа «Вызов и заявитель»"],
+  ["--pf-flow-cat-action", "--pf-bg-card", "группа «Действия диспетчера»"],
+  ["--pf-flow-cat-logic", "--pf-bg-card", "группа «Логика»"],
+  ["--pf-flow-cat-learn", "--pf-bg-card", "группа «Обучение»"],
+  ["--pf-flow-wire", "--pf-bg-page", "линия связи на поле"],
+  ["--pf-flow-wire-selected", "--pf-bg-page", "выделенная связь"],
+  ["--pf-text-on-action", "--pf-flow-cat-action", "значок на плитке «Действия диспетчера»"],
+  ["--pf-text-on-action", "--pf-flow-cat-learn", "значок на плитке «Обучение»"],
 ];
 
 describe("tokens-platform.css — контраст (WCAG 2.2 AA)", () => {

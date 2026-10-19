@@ -249,3 +249,50 @@
   top: var(--pf-space-3);
   box-shadow: var(--pf-focus-ring);
 }
+
+/* ——— Рабочее место во весь экран (конструктор сценариев, фича 005) ——— */
+.shell--workspace {
+  grid-template-columns: var(--pf-sidebar-width-collapsed) minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.shell--workspace .sidebar {
+  padding: var(--pf-space-3) var(--pf-space-2);
+  align-items: center;
+}
+
+.shell--workspace .brand {
+  padding: 0;
+}
+
+.nav--compact .nav__link {
+  justify-content: center;
+  width: var(--pf-target-touch);
+  min-height: var(--pf-target-touch);
+  padding: 0;
+}
+
+.nav--compact .nav__link[aria-current="page"]::before {
+  left: calc(var(--pf-space-2) * -1);
+}
+
+.sidebar__note--vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: var(--pf-space-2) var(--pf-space-1);
+}
+
+.workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  height: 100dvh;
+}
+
+.shell--workspace .main {
+  padding: 0;
+  max-width: none;
+  min-height: 0;
+  overflow: hidden;
+}

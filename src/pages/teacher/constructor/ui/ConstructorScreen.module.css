@@ -1,0 +1,539 @@
+/* Экран конструктора (design-concept.md §4): верхняя панель, библиотека | поле | свойства, нижняя панель. */
+.screen {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  font-size: var(--pf-fs-lead);
+  color: var(--pf-text);
+}
+
+.button {
+  min-height: var(--pf-target-touch);
+  white-space: nowrap;
+}
+
+/* ——— верхняя панель действий ——— */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+  min-height: 64px;
+  padding: var(--pf-space-2) var(--pf-space-5);
+  background: var(--pf-bg-card);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.toolbar:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--pf-focus);
+}
+
+.toolbar__left,
+.toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-width: 0;
+}
+
+/* Название и чип — первой строкой, статус сохранения — под ними: кнопки помещаются в одну строку при 1920 px. */
+.toolbar__left {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  align-items: center;
+  column-gap: var(--pf-space-3);
+  row-gap: 0;
+}
+
+.toolbar__left .saveState {
+  grid-column: 1 / -1;
+}
+
+.toolbar__right {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.toolbar {
+  flex-wrap: wrap;
+}
+
+.toolbar__title {
+  margin: 0;
+  max-width: 280px;
+  font-size: var(--pf-fs-h2);
+  line-height: var(--pf-lh-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip {
+  padding: 2px var(--pf-space-2);
+  border-radius: var(--pf-radius-chip);
+  background: var(--pf-bg-subtle);
+  font-size: var(--pf-fs-body);
+  white-space: nowrap;
+}
+
+.saveState {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  white-space: nowrap;
+}
+
+.saveState--ok {
+  color: var(--pf-success);
+}
+
+.saveState--dirty {
+  color: var(--pf-warning);
+}
+
+.saveState--bad {
+  color: var(--pf-danger);
+}
+
+.saveState--muted {
+  color: var(--pf-text-muted);
+}
+
+.square {
+  width: var(--pf-target-touch);
+  min-height: var(--pf-target-touch);
+  padding: 0;
+}
+
+.separator {
+  width: 1px;
+  height: 32px;
+  background: var(--pf-border);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  overflow: hidden;
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  min-height: 42px;
+  padding: 0 var(--pf-space-4);
+  border: 0;
+  background: var(--pf-bg-card);
+  color: var(--pf-link);
+  font: inherit;
+  cursor: pointer;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--pf-border-control);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--pf-bg-selected);
+  color: var(--pf-text);
+  font-weight: var(--pf-fw-medium);
+}
+
+.segmented button:focus-visible,
+.more__summary:focus-visible,
+.panel__tab:focus-visible,
+.outline__item:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.more {
+  position: relative;
+}
+
+.more__summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+  color: var(--pf-link);
+  cursor: pointer;
+  list-style: none;
+}
+
+.more__summary::-webkit-details-marker {
+  display: none;
+}
+
+.more__summary::after {
+  content: "▾";
+  margin-left: var(--pf-space-1);
+}
+
+.more__menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  gap: var(--pf-space-1);
+  min-width: 280px;
+  padding: var(--pf-space-2);
+  background: var(--pf-bg-card);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-overlay);
+}
+
+.more__menu button {
+  justify-content: flex-start;
+}
+
+/* ——— плашки ——— */
+.banner {
+  margin: 0;
+  padding: var(--pf-space-2) var(--pf-space-5);
+  background: var(--pf-info-bg);
+  color: var(--pf-info);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+  padding: var(--pf-space-2) var(--pf-space-5);
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+  font-weight: var(--pf-fw-medium);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+/* ——— тело ——— */
+.body {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 380px;
+  min-height: 0;
+}
+
+.region {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.region > * {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ——— нижняя панель ——— */
+.panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
+  height: 168px;
+  background: var(--pf-bg-card);
+  border-top: 1px solid var(--pf-border);
+}
+
+.panel:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--pf-focus);
+}
+
+.panel--collapsed {
+  height: auto;
+}
+
+.panel__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--pf-space-1);
+  padding: 0 var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.panel__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-4);
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--pf-text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel__tab[aria-selected="true"] {
+  color: var(--pf-text);
+  font-weight: var(--pf-fw-medium);
+  border-bottom-color: var(--pf-brand-orange);
+}
+
+.panel__meta {
+  margin-left: auto;
+  align-self: center;
+  color: var(--pf-text-muted);
+}
+
+.count--error,
+.count--warning {
+  padding: 0 var(--pf-space-2);
+  border-radius: var(--pf-radius-chip);
+  font-size: var(--pf-fs-body);
+  font-weight: var(--pf-fw-medium);
+  white-space: nowrap;
+}
+
+.count--error {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+
+.count--warning {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+
+.issues,
+.history {
+  margin: 0;
+  padding: 0 var(--pf-space-4);
+  list-style: none;
+  overflow-y: auto;
+}
+
+.issues li {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-height: 52px;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.issues__text {
+  flex: 1;
+}
+
+.issueIcon,
+.issueIcon--error,
+.issueIcon--warning {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: var(--pf-fw-bold);
+}
+
+.issueIcon {
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+}
+
+.issueIcon--error {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+
+.issueIcon--warning {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+
+.ok {
+  display: flex;
+  align-items: center;
+  align-self: start;
+  gap: var(--pf-space-3);
+  margin: 0;
+  padding: var(--pf-space-3) var(--pf-space-4);
+}
+
+.history li {
+  padding: var(--pf-space-2) 0;
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.history__time {
+  color: var(--pf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.history__note {
+  color: var(--pf-text-muted);
+}
+
+/* ——— вид «Список шагов» ——— */
+.outline {
+  overflow-y: auto;
+  padding: var(--pf-space-5);
+  background: var(--pf-bg-page);
+}
+
+.outline__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--pf-space-2);
+  max-width: 960px;
+}
+
+.outline__item {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--pf-space-3);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+  color: var(--pf-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.outline__item[aria-pressed="true"] {
+  border: 2px solid var(--pf-link);
+}
+
+.outline__item--error {
+  border-color: var(--pf-danger);
+}
+
+.outline__num {
+  min-width: 64px;
+  color: var(--pf-text-muted);
+}
+
+.outline__summary {
+  min-width: 0;
+  color: var(--pf-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outline__branch,
+.outline__ref {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  color: var(--pf-text-muted);
+  font-weight: var(--pf-fw-bold);
+}
+
+.outline__ref {
+  font-weight: var(--pf-fw-regular);
+}
+
+/* ——— сообщение «Шаг удалён · Вернуть» ——— */
+.snackbar {
+  position: absolute;
+  left: 50%;
+  bottom: 184px;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-4);
+  padding: var(--pf-space-2) var(--pf-space-2) var(--pf-space-2) var(--pf-space-4);
+  background: var(--pf-shell-bg);
+  color: var(--pf-shell-text);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-overlay);
+}
+
+.snackbar__button {
+  min-height: 40px;
+  background: transparent;
+  color: var(--pf-shell-text);
+  border-color: var(--pf-shell-muted);
+}
+
+/* ——— окно «Клавиши» ——— */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: var(--color-overlay);
+}
+
+.dialog {
+  display: grid;
+  gap: var(--pf-space-4);
+  max-width: 720px;
+  padding: var(--pf-space-5);
+  background: var(--pf-bg-card);
+  border-radius: var(--pf-radius-modal);
+  box-shadow: var(--pf-shadow-overlay);
+}
+
+.dialog__title {
+  margin: 0;
+  font-size: var(--pf-fs-h2);
+}
+
+.keys {
+  margin: 0;
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.keys__row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--pf-space-4);
+}
+
+.keys dd {
+  margin: 0;
+}
+
+.keys kbd {
+  font-family: var(--pf-font-mono);
+  font-size: var(--pf-fs-body);
+  padding: 0 var(--pf-space-1);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-chip);
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Узкий экран (меньше 1600 px, масштаб браузера 125%+): колонки уже, кнопки переносятся, горизонтальной прокрутки нет.
+   Выезжающие панели вместо колонок (design-concept.md §4) — следующая итерация. */
+@media (max-width: 1599px) {
+  .body {
+    grid-template-columns: 264px minmax(0, 1fr) 320px;
+  }
+
+  .toolbar__title {
+    max-width: 240px;
+  }
+
+  .panel__meta {
+    display: none;
+  }
+}

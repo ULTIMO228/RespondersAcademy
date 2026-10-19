@@ -464,7 +464,9 @@
 }
 .node--active {
   border: 3px solid var(--pf-link);
-  box-shadow: 0 0 0 6px var(--pf-info-bg), var(--pf-shadow-overlay);
+  box-shadow:
+    0 0 0 6px var(--pf-info-bg),
+    var(--pf-shadow-overlay);
 }
 .node__badge {
   position: absolute;
