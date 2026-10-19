@@ -68,3 +68,12 @@
 ## L015 | order-dependent tests
 ❌ test relies on state left by another test (attempt created elsewhere)
 ✅ test creates and removes its own state; module-scoped restore is not isolation between tests
+
+## L016 | settings isolation in tests
+❌ pydantic Settings reads backend/.env in tests → AI_PROVIDER=polza/keys leak into test run (real paid calls)
+✅ conftest: Settings.model_config["env_file"]=None before first get_settings(); test_settings_isolation
+
+## L017 | provider facts over docs
+❌ assume OpenAI-compatible /audio/speech returns raw audio and Qwen TTS exists in catalog
+✅ probe real API (catalog GET /models, one request) before choosing; Polza TTS → JSON base64, voice required
+! reasoning models: cap via reasoning.max_tokens; effort=low not bounded (finish=length, empty answer)
