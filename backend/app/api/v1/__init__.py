@@ -39,9 +39,6 @@ def build_router() -> APIRouter:
         tickets,
         operator112,
         assignments,
-        lobby,
-        recommendations,
-        work_messages,
         validation,
         error_map,
     ):
