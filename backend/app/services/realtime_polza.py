@@ -12,7 +12,6 @@ import asyncio
 import base64
 import importlib.util
 import logging
-import random
 from collections import deque
 from uuid import uuid4
 
@@ -30,8 +29,6 @@ logger = logging.getLogger(__name__)
 MIN_VOICED_MS = 200  # щелчок/стук короче не отправляем в STT
 MAX_UTTERANCE_MS = 15000
 PREROLL_MS = 300
-# Короткие отклики сразу после реплики оператора, пока готовится ответ (озвучка через API — секунды).
-FILLERS = ("Да-да…", "Ой…", "Так…")
 
 
 def configured() -> bool:
@@ -64,8 +61,7 @@ class PolzaSession(CascadeSession):
         self.mood = persona.DEFAULT_MOOD
         self.stt_lock = asyncio.Lock()
         self.transcriptions: set[asyncio.Task] = set()
-        self.fillers: list[bytes] = []
-        self.filler_task: asyncio.Task | None = None
+
 
     async def __aenter__(self):
         settings = get_settings()
@@ -74,22 +70,16 @@ class PolzaSession(CascadeSession):
         self.detector = await asyncio.to_thread(vad.SpeechDetector)
         self.client = httpx.AsyncClient(timeout=httpx.Timeout(settings.polza_timeout_sec, connect=10),
                                         follow_redirects=False)
-        if settings.live_call_fillers:
-            self.filler_task = asyncio.create_task(self.prepare_fillers())
         await self.emit("session.created", session={"capabilities": {"turn_detection": ["server_vad"]}})
         return self
 
     async def __aexit__(self, *_args):
-        tasks = [*self.transcriptions, *([self.filler_task] if self.filler_task else [])]
+        tasks = [*self.transcriptions]
         for task in tasks:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
         await super().__aexit__()
 
-    async def prepare_fillers(self):
-        """Один раз за звонок, в фоне; сбой не мешает разговору — просто без откликов."""
-        results = await asyncio.gather(*(self.tts(text, "тревожно") for text in FILLERS), return_exceptions=True)
-        self.fillers = [pcm for pcm in results if isinstance(pcm, bytes) and pcm]
 
     # --- общие параметры запросов ---
     def _base(self) -> str:
@@ -282,8 +272,6 @@ class PolzaSession(CascadeSession):
 
         feeder = asyncio.create_task(feed())
         try:
-            if self.fillers and self.history and self.history[-1]["role"] == "user":
-                yield random.choice(self.fillers)
             while True:
                 task = await order.get()
                 if task is None:

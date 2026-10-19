@@ -271,22 +271,6 @@ async def test_phrases_are_synthesized_in_parallel_but_played_in_order(settings)
     await stream.aclose()
 
 
-async def test_filler_is_played_right_after_operator_speaks(settings):
-    session = polza.PolzaSession()
-    session.fillers = [b"filler"]
-
-    async def tts(text, mood=None):
-        return b"answer"
-
-    session.tts = tts
-    for history, expected in (([], [b"answer"]), ([{"role": "user", "content": "Адрес?"}], [b"filler", b"answer"])):
-        session.history = history
-        phrases: asyncio.Queue = asyncio.Queue()
-        for item in ("Улица Грина.", None):
-            await phrases.put(item)
-        assert [chunk async for chunk in session.synthesize(phrases)] == expected
-
-
 def _sse(*chunks: str, finish: str | None = "stop") -> str:
     lines = [f'data: {{"choices":[{{"delta":{{"content":{json.dumps(c, ensure_ascii=False)}}}}}]}}\n\n' for c in chunks]
     if finish:

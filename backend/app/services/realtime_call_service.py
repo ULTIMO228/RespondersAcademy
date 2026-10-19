@@ -340,7 +340,9 @@ async def serve(browser: WebSocket) -> None:
         with suppress(Exception):
             await browser.send_json({"type": "error", "message": exc.message})
     except Exception:
-        # Не отдаём адрес провайдера, инструкции, raw ошибки/заголовки с ключами.
+        # Браузеру — общее сообщение (без адреса провайдера, инструкций, raw ошибок);
+        # в лог сервера — причина, иначе обрыв звонка не диагностировать.
+        logger.exception("Голосовое соединение прервано")
         with suppress(Exception):
             await browser.send_json({"type": "error", "message": "Голосовое соединение прервано. Проверьте подключение сервера и повторите."})
     finally:
