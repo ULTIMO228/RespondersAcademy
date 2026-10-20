@@ -16,6 +16,7 @@ from app.scenario_runtime.graph import Graph, Node, evaluate
 
 DEFAULT_MAX_STEPS = 200
 MAX_FACTS = 256
+MAX_REJECTED_RECORDED = 100
 Scalar = (str, int, float, bool, type(None))
 
 
@@ -44,7 +45,7 @@ class LoopLimitError(EngineError):
 @dataclass(frozen=True)
 class Event:
     seq: int
-    kind: str  # started | action | branch | ended | faulted
+    kind: str  # started | action | branch | rejected | ended | faulted
     node: str | None
     data: dict[str, Any]
 
@@ -149,6 +150,13 @@ class ScenarioEngine:
         self._record(run, "action", node.id, data)
         self._enter(run, str(node.next))
         self._advance(run)
+
+    def reject(self, run: ScenarioRun, action: str) -> None:
+        """Фиксирует неверное действие обучающегося: прогон не двигается, событие учитывается в штрафе."""
+        self._require_waiting(run)
+        if sum(1 for event in run.events if event.kind == "rejected") >= MAX_REJECTED_RECORDED:
+            return  # журнал не растёт бесконечно; штраф при таком числе попыток уже максимальный
+        self._record(run, "rejected", run.current, {"action": action})
 
     def finish(self, run: ScenarioRun, outcome: str = "aborted") -> None:
         self._require_waiting(run)

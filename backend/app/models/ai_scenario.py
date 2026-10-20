@@ -332,5 +332,7 @@ class ScenarioRunRecord(Base):
     status: Mapped[str] = mapped_column(String(16), index=True)
     snapshot: Mapped[dict[str, Any]] = mapped_column(JSONVariant)
     revision: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSONVariant, nullable=True)
+    finished_at: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[str] = mapped_column(String(32))
     updated_at: Mapped[str] = mapped_column(String(32))

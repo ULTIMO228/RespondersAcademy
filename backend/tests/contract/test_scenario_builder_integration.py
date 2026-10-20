@@ -273,7 +273,7 @@ async def test_обучающийся_проходит_только_опубли
     assert (await v1.get(f"/ai/scenario-runs/{run_id}")).json()["status"] == "completed"
     await login_as(v1, "teacher")  # автор видит журнал событий
     staff = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()
-    assert [event["kind"] for event in staff["events"]] == ["started", "action", "branch", "action", "ended"]
+    assert [event["kind"] for event in staff["events"]] == ["started", "rejected", "action", "branch", "action", "ended"]
     assert [e["data"].get("branch") for e in staff["events"] if e["kind"] == "branch"] == ["urgent"]
     await login_as(v1, "student")
     assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "x", "expectedSteps": 4})).status_code == 409
@@ -837,3 +837,78 @@ async def test_права_текущего_пользователя_для_кн�
     assert (await v1.get(url)).json() == {"permissions": ["scenario.review"]}
     await login_as(v1, "admin")
     assert sorted((await v1.get(url)).json()["permissions"]) == ["scenario.publish", "scenario.review"]
+
+
+async def start_rich(v1: AsyncClient, tag: str) -> tuple[str, dict[str, Any]]:
+    scenario_id = await prepare_with_graph(v1, tag, RICH)
+    run = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
+    return scenario_id, run
+
+
+async def act(v1: AsyncClient, run_id: str, action: str, steps: int, **extra: Any):
+    return await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": action, "expectedSteps": steps, **extra})
+
+
+async def test_студент_видит_текст_шага_кнопки_и_варианты_без_штрафов_и_порядка(v1: AsyncClient) -> None:
+    _, run = await start_rich(v1, "view")
+    assert run["step"] == {"title": "Приём вызова", "prompt": "Заявитель сообщает о дереве.", "input": None}
+    assert [a["label"] for a in run["actions"]] == ["Вызвать полицию", "Записать заявителя", "Определить тип"]
+    assert "result" not in run and "events" not in run
+    second = (await act(v1, run["runId"], "captureCaller", run["steps"])).json()
+    assert second["step"]["input"] == {"options": [{"value": "tree", "label": "Падение дерева"}, {"value": "fire", "label": "Пожар"}]}
+    assert "penalty" not in str(second) and "next" not in str(second["step"])
+
+
+async def test_неверное_действие_фиксируется_штрафует_и_результат_сохраняется(v1: AsyncClient) -> None:
+    _, run = await start_rich(v1, "score")
+    run_id = run["runId"]
+    for _ in range(2):  # два неверных действия: прогон не двигается, но попытки записаны
+        wrong = await act(v1, run_id, "callPolice", run["steps"])
+        assert wrong.status_code == 409
+    assert (await v1.get(f"/ai/scenario-runs/{run_id}")).json()["steps"] == run["steps"]
+    step = (await act(v1, run_id, "captureCaller", run["steps"])).json()
+    done = await act(v1, run_id, "classify", step["steps"], choice="tree")
+    assert done.status_code == 200
+    result = done.json()["result"]
+    assert result["score"] == 90 and result["passed"] is True and result["wrongAttempts"] == 2
+    assert "path" not in result and "branches" not in result  # маршрут студенту не раскрывается до разбора преподавателем
+    async with get_sessionmaker()() as db:
+        row = await db.get(ScenarioRunRecord, run_id)
+        assert row.result["score"] == 90 and row.result["path"] == ["n1", "n2", "n3", "n4"] and row.result["branches"] == ["Дерево"]
+        assert row.finished_at and row.status == "completed"
+    again = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()
+    assert again["result"]["score"] == 90  # результат неизменяем и читается повторно
+    await login_as(v1, "teacher")
+    staff = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()
+    assert [e["kind"] for e in staff["events"]].count("rejected") == 2 and staff["result"]["path"][-1] == "n4"
+
+
+async def test_неверный_вариант_даёт_штраф_и_незачёт_а_прерывание_ноль(v1: AsyncClient) -> None:
+    _, run = await start_rich(v1, "fail")
+    step = (await act(v1, run["runId"], "captureCaller", run["steps"])).json()
+    done = (await act(v1, run["runId"], "classify", step["steps"], choice="fire")).json()
+    assert done["result"]["score"] == 20 and done["result"]["passed"] is False and done["result"]["outcome"] == "wrongCategory"  # 40 − 20
+
+    scenario_id = (await v1.get(f"/ai/scenario-runs/{run['runId']}")).json()["scenarioId"]
+    second = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
+    aborted = (await v1.post(f"/ai/scenario-runs/{second['runId']}/finish")).json()
+    assert aborted["result"]["score"] == 0 and aborted["result"]["passed"] is False and aborted["result"]["outcome"] == "abandoned"
+
+
+async def test_списки_прогонов_разграничены_по_ролям(v1: AsyncClient) -> None:
+    scenario_id, run = await start_rich(v1, "runs")
+    step = (await act(v1, run["runId"], "captureCaller", run["steps"])).json()
+    await act(v1, run["runId"], "classify", step["steps"], choice="tree")
+    mine = await v1.get("/ai/scenario-runs")
+    assert mine.status_code == 200 and [r["runId"] for r in mine.json()] == [run["runId"]]
+    assert mine.json()[0]["result"]["score"] == 100 and mine.json()[0]["scenarioId"] == scenario_id and "path" not in mine.json()[0]["result"]
+    await login_as(v1, "student2")
+    assert (await v1.get("/ai/scenario-runs")).json() == []  # чужих прогонов нет
+    assert (await v1.get("/ai/scenario-runs", params={"scenarioId": scenario_id})).json() == []
+    await login_as(v1, "teacher")
+    listed = (await v1.get("/ai/scenario-runs", params={"scenarioId": scenario_id})).json()
+    assert [r["runId"] for r in listed] == [run["runId"]] and listed[0]["result"]["path"]  # автор видит маршрут
+    await login_as(v1, "admin")
+    assert any(r["runId"] == run["runId"] for r in (await v1.get("/ai/scenario-runs")).json())
+    v1.cookies.clear()
+    assert (await v1.get("/ai/scenario-runs")).status_code == 401
