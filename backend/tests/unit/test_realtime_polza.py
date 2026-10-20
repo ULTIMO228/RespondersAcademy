@@ -541,3 +541,40 @@ async def test_turn_latency_is_logged_by_stage(settings, monkeypatch, caplog):
     assert "распознавание" in caplog.text and "первое слово" in caplog.text and "первый звук" in caplog.text
     assert "Что горит" not in caplog.text and "балкон" not in caplog.text
     await session.__aexit__()
+
+
+async def _played_greeting(session, text, audio_ms):
+    message = {"role": "assistant", "content": text}
+    session.history.append(message)
+    session.assistant_items["caller-1"] = message
+    import base64
+
+    pcm = b"\0\0" * (24 * audio_ms)  # 24 кГц, 16 бит
+    await session.emit("response.audio.delta", response_id="r", item_id="caller-1", delta=base64.b64encode(pcm).decode())
+    return message
+
+
+async def test_greeting_cut_by_operator_stays_in_memory_up_to_heard_part(settings):
+    # Звонок 20.10: «Как вас зовут?» поверх приветствия → браузер truncate → приветствие удалялось из истории,
+    # модель «начинала звонок» заново: «Алло, здравствуйте, пожар на улице Грина».
+    session = polza.PolzaSession()
+    await _played_greeting(session, "[паника] Алло, здравствуйте! У нас пожар, горит балкон на тринадцатом этаже!", 4000)
+    await session.send(json.dumps({"type": "conversation.item.truncate", "item_id": "caller-1",
+                                   "content_index": 0, "audio_end_ms": 2000}))
+    assert len(session.history) == 1
+    content = session.history[0]["content"]
+    assert content.startswith("[паника] Алло, здравствуйте!") and content.endswith(polza.INTERRUPTED)
+    assert "тринадцатом" not in content  # недослушанное оператор не слышал
+
+
+async def test_fully_heard_reply_is_not_marked_as_interrupted(settings):
+    session = polza.PolzaSession()
+    await _played_greeting(session, "[тревожно] Алло, у нас пожар!", 1000)
+    await session.send(json.dumps({"type": "conversation.item.truncate", "item_id": "caller-1",
+                                   "content_index": 0, "audio_end_ms": 1500}))
+    assert session.history == [{"role": "assistant", "content": "[тревожно] Алло, у нас пожар!"}]
+
+
+def test_prompt_says_answer_operator_question_even_before_greeting():
+    instructions = call.session_update({}, {"summary": "пожар"})["session"]["instructions"]
+    assert "уже задал вопрос" in instructions

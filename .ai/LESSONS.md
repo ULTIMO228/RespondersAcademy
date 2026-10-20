@@ -81,3 +81,8 @@
 ## L018 | reasoning params differ per model on aggregator
 ❌ assume top-level reasoning_effort=none disables thinking
 ✅ probe: qwen3.8-27b needs reasoning.enabled=false; GLM-5.3 mandatory → reasoning.max_tokens; never combine effort+max_tokens (empty answer)
+
+## L019 barge-in must not erase caller memory
+❌ truncate → delete assistant msg from LLM history → caller greets again on any question
+✅ keep heard part + [перебили]; test «operator speaks over greeting»
+! «плохо отвечает» was state bug, not prompt wording → check history before rewriting prompt

@@ -2,11 +2,12 @@
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
 Finals:2026-10-23 online pitch | rule(moderator 17–19.10): API only for open-weight models deployable on TZ server (CPU≥6c,32GB,no GPU), no hardcode
-Tests@2026-10-20 (cloud, uv run pytest -q):{pytest:1013 passed/3 skipped/0 red, ruff:clean}
+Tests@2026-10-20 (cloud, uv run pytest -q):{pytest:1016 passed/3 skipped/0 red, ruff:clean}
 Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanceOf red on clean main too (env), 1 more flaky in first run} | not run:{npm run check, e2e, simulator-visual}
 Updated:2026-10-19
 
 ## Story
+000000 2026-10-20 bug «Как вас зовут?» → «Алло, здравствуйте, пожар на улице Грина»: browser truncate on barge-in deleted caller reply from LLM history (realtime_cascade send) → model restarted call | fix: PolzaSession.send keeps heard part (audio_end_ms/sent audio) + [перебили]; prompt: operator asked first → answer, no re-greeting | not checked live
 00000 2026-10-20 prompt fix (owner: «плохо отвечает»): facts → plain RU first-person text (facts_text, abbreviations expanded, no JSON keys) | STT-noise rule | answer-first, ≤1 filler | interrupted mark → tag [перебили] (stripped/not voiced) | ⚠️ NOT compared on live GLM (auto-mode denied using pasted key)
 0000 2026-10-20 latency: early STT at LIVE_CALL_EARLY_COMMIT_MS=250 silence (reply gated until END_SILENCE 700; speech resumes → cancel, re-STT whole) ~−0.45s | first phrase split at comma ≥20 chars (not for address/digits/phone) → Silero starts earlier | INFO log per turn: STT ready / first word / first sound ms (no text) | ⚠️ NOT measured live (no key/models in cloud)
 000 2026-10-20 tried qwen/qwen3.8-27b (cerebras/fp16, reasoning.enabled=false): first token ~0.9s vs GLM ~2.2s, BUT wrong phone («двести шесть»), «библиотека рядом», empty answer once → GLM kept as default; LIVE_CALL_POLZA_REASONING_OFF + LIVE_CALL_POLZA_PROVIDER added; empty answer retried once; pytest last full 1002 passed (+3 targeted since)

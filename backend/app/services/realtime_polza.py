@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import importlib.util
+import json
 import logging
 import time
 from collections import deque
@@ -94,6 +95,7 @@ class PolzaSession(CascadeSession):
         self.first_clause_from = 20  # первая фраза — до запятой: голос раньше на время дописывания предложения
         self.turn_mark: float | None = None  # конец речи оператора — для замера задержки ответа
         self.turn_marks: set[str] = set()
+        self.item_audio_ms: dict[str, float] = {}  # сколько звука реплики ушло в браузер
 
 
     async def __aenter__(self):
@@ -179,7 +181,26 @@ class PolzaSession(CascadeSession):
         return ("Верни только произносимую реплику с метками из списка выше, без markdown и кавычек. "
                 "Не читай названия полей карточки. Обращайся к оператору естественно.")
 
+    async def send(self, raw: str):
+        event = json.loads(raw)
+        if event.get("type") != "conversation.item.truncate":
+            return await super().send(raw)
+        # Оператор заговорил поверх реплики. Раньше она удалялась из истории целиком, и модель,
+        # не видя своего приветствия, на «Как вас зовут?» заново начинала звонок. Оставляем услышанное.
+        item = str(event.get("item_id", ""))
+        message = self.assistant_items.pop(item, None)
+        total = self.item_audio_ms.pop(item, 0.0)
+        heard = float(event.get("audio_end_ms") or 0)
+        if message is None or not total or heard >= total * 0.95:
+            return
+        content = message["content"]
+        cut = content.rfind(" ", 0, int(len(content) * heard / total))
+        message["content"] = (content[:cut].rstrip(" ,") + "… " if cut > 0 else "") + INTERRUPTED
+
     async def emit(self, kind: str, **fields):
+        if kind == "response.audio.delta":
+            item = fields.get("item_id", "")
+            self.item_audio_ms[item] = self.item_audio_ms.get(item, 0.0) + len(fields.get("delta", "")) * 3 / 4 / 48
         # Замер хода: от конца речи оператора до первого слова модели и первого звука (без текста реплик).
         if self.turn_mark is not None and kind in ("response.text.delta", "response.audio.delta"):
             stage = "первое слово" if kind == "response.text.delta" else "первый звук"
