@@ -60,3 +60,13 @@
 
 ## L013 | flaky tests
 ⚠️ IncidentScreen "card-881412" failed once in full vitest run, passes alone → rerun file before blaming own change
+
+## L014 | migrations on SQLite with triggers
+❌ op.batch_alter_table on ai_scenario_versions in downgrade (recreates table, triggers reference it → "no such table")
+✅ op.drop_column directly; add upgrade→downgrade→upgrade + `alembic check` test
+! 0006 downgrade was broken until audit; found only by running it, not by upgrade tests
+
+## L015 | tests that cannot fail
+❌ negative test where another rule gives the same 403 (author-cannot-review hid a removed permission check)
+✅ mutate the guard (remove it) and see the test go red; make actor differ from author
+! also: negative test whose graph fails for another reason (unreachable nodes) proves nothing
