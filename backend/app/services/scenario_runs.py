@@ -15,6 +15,7 @@ from app.api.errors import conflict, forbidden, not_found, validation_failed
 from app.api.v1.ai_access import require_scenario_access
 from app.models.ai_scenario import ScenarioRunRecord, ScenarioVersion
 from app.models.assignment import Assignment, AssignmentScenarioVersion, AssignmentStudent
+from app.models.scenario import Scenario
 from app.scenario_runtime import (
     EngineError,
     Graph,
@@ -302,3 +303,62 @@ async def list_runs(db: AsyncSession, viewer: Viewer, scenario_id: str | None) -
         }
         for row in rows
     ]
+
+
+async def assigned_scenarios(db: AsyncSession, viewer: Viewer) -> list[dict[str, Any]]:
+    """Опубликованные версии с графом из активных заданий обучающегося: что пройти, активный прогон и последний результат."""
+    if viewer.role != "student":
+        raise forbidden("Назначенные сценарии показываются обучающемуся")
+    rows = (
+        await db.execute(
+            select(Assignment, AssignmentScenarioVersion, ScenarioVersion, Scenario)
+            .join(AssignmentScenarioVersion, AssignmentScenarioVersion.assignment_id == Assignment.id)
+            .join(AssignmentStudent, AssignmentStudent.assignment_id == Assignment.id)
+            .join(
+                ScenarioVersion,
+                (ScenarioVersion.scenario_id == AssignmentScenarioVersion.scenario_id)
+                & (ScenarioVersion.version == AssignmentScenarioVersion.version),
+            )
+            .join(Scenario, Scenario.id == ScenarioVersion.scenario_id)
+            .where(
+                Assignment.state == "active",
+                AssignmentStudent.student_id == viewer.user_id,
+                ScenarioVersion.approval == "approved",
+                ScenarioVersion.validation == "passed",
+                ScenarioVersion.graph.is_not(None),
+                Scenario.deleted.is_(False),
+            )
+            .order_by(Assignment.created_at.desc(), Assignment.id)
+        )
+    ).all()
+    items: list[dict[str, Any]] = []
+    for assignment, _link, version, scenario in rows:
+        runs = (
+            await db.execute(
+                select(ScenarioRunRecord)
+                .where(
+                    ScenarioRunRecord.scenario_id == version.scenario_id,
+                    ScenarioRunRecord.version == version.version,
+                    ScenarioRunRecord.student_id == viewer.user_id,
+                )
+                .order_by(ScenarioRunRecord.created_at.desc(), ScenarioRunRecord.id)
+            )
+        ).scalars().all()
+        active = next((r for r in runs if r.status == "waiting"), None)
+        finished = next((r for r in runs if r.result), None)
+        item: dict[str, Any] = {
+            "assignmentId": assignment.id,
+            "assignmentTitle": assignment.title,
+            "scenarioId": version.scenario_id,
+            "version": version.version,
+            "title": scenario.title,
+            "mode": version.mode,
+            "attempts": len(runs),
+            "activeRunId": active.id if active else None,
+        }
+        if assignment.due_at:
+            item["dueAt"] = assignment.due_at
+        if finished is not None and finished.result:
+            item["lastResult"] = _student_result(finished.result)
+        items.append(item)
+    return items

@@ -28,6 +28,14 @@ async def start(
     return JSONResponse(result, status_code=201 if created else 200)
 
 
+@router.get("/scenario-assignments")
+async def assigned(
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> list[dict[str, Any]]:
+    return await scenario_runs.assigned_scenarios(db, viewer)
+
+
 @router.get("/scenario-runs")
 async def list_(
     scenarioId: str | None = None,  # noqa: N803 - имя параметра запроса контракта

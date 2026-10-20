@@ -969,3 +969,29 @@ async def test_derive_только_из_опубликованной_верси�
     await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 1, "requestId": "t009-dguard-p"})
     assert (await v1.post(url, json={})).status_code == 400  # requestId обязателен
     assert (await v1.post(url, json={"requestId": "t009-dguard-ok"})).status_code == 201  # администратор может
+
+
+async def test_студент_видит_свои_назначенные_сценарии_с_графом_и_результатом(v1: AsyncClient) -> None:
+    url = "/ai/scenario-assignments"
+    scenario_id, run = await start_rich(v1, "assigned")
+    row = next(item for item in (await v1.get(url)).json() if item["scenarioId"] == scenario_id)
+    assert row["version"] == 1 and row["activeRunId"] == run["runId"] and row["attempts"] == 1 and "lastResult" not in row
+    assert row["title"] and row["assignmentTitle"] == "t009-assigned" and "graph" not in row
+    step = (await act(v1, run["runId"], "captureCaller", run["steps"])).json()
+    await act(v1, run["runId"], "classify", step["steps"], choice="tree")
+    row = next(item for item in (await v1.get(url)).json() if item["scenarioId"] == scenario_id)
+    assert row["activeRunId"] is None and row["lastResult"]["score"] == 100 and "path" not in row["lastResult"] and row["attempts"] == 1
+
+    await login_as(v1, "student2")  # другому обучающемуся не назначено
+    assert [i for i in (await v1.get(url)).json() if i["scenarioId"] == scenario_id] == []
+    await login_as(v1, "teacher")
+    assert (await v1.get(url)).status_code == 403
+    v1.cookies.clear()
+    assert (await v1.get(url)).status_code == 401
+
+    async with get_sessionmaker()() as db:  # завершённое задание исчезает из списка
+        for assignment in (await db.execute(select(Assignment).where(Assignment.title == "t009-assigned"))).scalars().all():
+            assignment.state = "finished"
+        await db.commit()
+    await login_as(v1, "student")
+    assert [i for i in (await v1.get(url)).json() if i["scenarioId"] == scenario_id] == []
