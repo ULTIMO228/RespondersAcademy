@@ -155,3 +155,14 @@ Done: ✅ merge d08ce53 (doc conflicts only) | owner: live caller in training AN
 Decisions: 🧠 build-flag selects impl at module level (no conditional hooks) | no recording fallback when live server unconfigured (develop rule kept) | trainerText only for trainer strip (FR-027)
 Next: !1 T008 | owner: renumber 005 dup, T009 texts, Polza key + polza.ai allowed for real call
 ---
+## 2026-10-20 (6) | @claude | branch:SASHA | mode:normal
+Focus: 009 T073 docs (spec/README row, AGENTS §3 map) + T074 handoff after executor commits
+Done: ✅ spec/README 009 status (MVP phases 1–6 in code, open T-ids) | ✅ AGENTS §3: widgets/features, /arm/operator112 group, v1 endpoints, migrations 0001…0007, 46 tables | ✅ SESSION_STATE Handoff rewritten (other blocks untouched, 67 lines equal to HEAD) | ✅ tasks.md T073, T074 [X] | not run: npm run check / test / e2e, pytest, ruff (docs only)
+Verified: 46 tables = Base.metadata.tables (backend/.venv python import, no DB) | slices/routes/v1 endpoints by ls/grep | ArmOperator112Layout imports SimulatorBar, no AppNav | git fetch: HEAD = origin/SASHA (0/0)
+Decisions: 🧠
+  - L024 already states git fetch + HEAD..origin rule → duplicate lesson NOT added
+  - baseline.txt / affected-tests.md kept (no owner consent)
+  - AGENTS §3 drift outside 009 not touched: widgets error-map, my-focus; features arm-reference, error-map-assign absent
+  - another executor's uncommitted backend/front edits in tree: untouched, unstaged, not in this docs change
+Next: !1–!8 owner decisions (SESSION_STATE Handoff) | T051/T052 | T072 | T069/T070
+---
