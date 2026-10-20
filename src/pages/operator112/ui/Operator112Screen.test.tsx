@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mocked } from "vitest";
 
 import { ApiError, ServerRequiredError } from "@/shared/api";
+import { getOpenAttempt } from "@/shared/lib";
 import type {
   AssignmentDetail,
   ClassifierEntry,
@@ -491,6 +492,7 @@ describe("Operator112Screen: цепочка 112 → ДДС", () => {
       await submitChain(api);
       api.startAssignment.mockRejectedValueOnce(new ApiError(409, "conflict", message));
       fireEvent.click(screen.getByRole("button", { name: "Начать этап ДДС" }));
+      fireEvent.click(screen.getByRole("button", { name: /Перейти: Оператор ДДС/ }));
       expect(await screen.findByRole("alert")).toHaveTextContent(message);
       expect(replace).not.toHaveBeenCalled();
     },
@@ -506,6 +508,53 @@ describe("Operator112Screen: цепочка 112 → ДДС", () => {
       created: true,
     });
     fireEvent.click(screen.getByRole("button", { name: "Начать этап ДДС" }));
+    fireEvent.click(screen.getByRole("button", { name: /Перейти: Оператор ДДС/ }));
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/arm/card/c-777"));
+  });
+
+  it("«Начать этап ДДС» — явная смена зоны: диалог с ролями, без подтверждения start не вызывается (FR-014)", async () => {
+    const api = makeApi();
+    await submitChain(api);
+    const startCalls = api.startAssignment.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "Начать этап ДДС" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent("Специалист 112");
+    expect(dialog).toHaveTextContent("Оператор ДДС");
+    fireEvent.click(screen.getByRole("button", { name: "Остаться на разборе" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(api.startAssignment.mock.calls.length).toBe(startCalls);
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("парная проверка: «Следующий билет» вне цепочки идёт без диалога смены зоны", async () => {
+    const api = makeApi();
+    api.submitAttempt.mockResolvedValue({
+      attempt: attempt({ state: "submitted", completedAt: "2026-09-29T10:01:00+03:00" }),
+      card: {} as never,
+      evaluationId: "att-100",
+    } as never);
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await answerCall();
+    await confirmSave();
+    await screen.findByLabelText("Разбор попытки");
+    fireEvent.click(screen.getByRole("button", { name: "Следующий билет" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("Operator112Screen: реестр открытой попытки (FR-014)", () => {
+  it("пока попытка идёт — отмечена как открытая; после передачи — снята", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await answerCall();
+    expect(getOpenAttempt()?.title).toMatch(/билет 112/);
+    api.submitAttempt.mockResolvedValue({
+      attempt: attempt({ state: "submitted", completedAt: "2026-09-29T10:01:00+03:00" }),
+      card: {} as never,
+      evaluationId: "att-100",
+    } as never);
+    await confirmSave();
+    await screen.findByLabelText("Разбор попытки");
+    expect(getOpenAttempt()).toBeNull();
   });
 });

@@ -30,7 +30,11 @@ async def group_scope() -> AsyncIterator[None]:
         student.group = "Группа 007"
         before = list(student.specializations or [])
         await db.commit()
-        yield
+    yield
+    # Свежая сессия: PATCH менял строку в другой сессии, объект выше устарел и откат не записал бы
+    async with get_sessionmaker()() as db:
+        student = await db.get(User, "u-006")
+        teacher = await db.get(User, "u-002")
         student.specializations = before
         student.group = "ДДС-01"
         teacher.assigned_groups = ["ДДС-01"]

@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { EXPIRY_RECHECK_MS, useOperator112 } from "../model/useOperator112";
 import { examRemainingSec, resolveTimeLimitSec, useNow } from "@/entities/operator112-attempt";
+import { setOpenAttempt } from "@/shared/lib";
 import type { Clock } from "@/shared/lib";
 import { ROUTES } from "@/shared/config";
 
@@ -33,6 +34,16 @@ export function Operator112Screen({ assignmentId, api = operator112Api, clock }:
   useEffect(() => {
     if (screen.status === "redirect") router.replace(ROUTES.armCard(screen.cardId));
   }, [router, screen]);
+
+  // Пока попытка идёт, переключатель зон просит подтверждение перед уходом в другую роль (FR-014).
+  const openTitle =
+    isWorking && attempt && screen.status === "ready"
+      ? `билет 112 «${screen.assignment.title || "задание"}»`
+      : null;
+  useEffect(() => {
+    setOpenAttempt(openTitle ? { title: openTitle } : null);
+    return () => setOpenAttempt(null);
+  }, [openTitle]);
 
   // Лимит экзамена на попытку: по нулю индикатора спрашиваем сервер (он применяет истечение при чтении задания).
   const limitSec = screen.status === "ready" ? resolveTimeLimitSec(screen.assignment.params) : null;

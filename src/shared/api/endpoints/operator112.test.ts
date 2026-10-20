@@ -54,6 +54,7 @@ const DRAFT: CardDraft = {
   description: "Горит балкон",
   emergency: { chs: false, chp: false },
   notificationList: [{ serviceId: "101", addedBy: "auto" }],
+  notificationConfirmed: true,
 };
 
 afterEach(() => {

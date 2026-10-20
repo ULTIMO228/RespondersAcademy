@@ -3,6 +3,9 @@
  * вход ДДС → этап ДДС: карточка, принятая обучающимся, и сообщения служб. Голосовой доклад в прогоне не участвует (нужна модель
  * Vosk и микрофон; поведение доклада покрыто тестами `features/report-recorder`).
  *
+ * Обучающийся — `ivanov` с обеими специализациями (112 и ДДС): смена зоны между этапами явная — подпись текущей роли в панели «В кабинет»
+ * и диалог подтверждения «Смена рабочей зоны» перед этапом ДДС (спека 007, FR-014).
+ *
  * Требует стенда с БЭКЕНДОМ и фикстурой цепочки: `backend/scripts/run_frontend_e2e.sh --only chain` (сам поднимает бэкенд на чистой БД,
  * применяет `backend/scripts/seed_chain_demo.py`, собирает фронт с BACKEND_URL и запускает этот файл). Против фронта без бэкенда
  * тест пропускается.
@@ -39,6 +42,16 @@ test("цепочка A → B: этап 112 → подтверждение пре
   /* Этап A: рабочее место 112. */
   await card.getByRole("button", { name: "Начать" }).click();
   await page.waitForURL(/\/arm\/operator112\?assignmentId=/);
+  /* Зона 112: подпись роли и ссылка на вторую зону (переключатель только у обучающегося с двумя специализациями). */
+  const zones = page.getByRole("navigation", { name: "Рабочая зона" });
+  await expect(zones).toContainText("Специалист 112");
+  await expect(zones.getByRole("link", { name: "Оператор ДДС" })).toBeVisible();
+  await page.getByRole("button", { name: "Ответить на вызов" }).waitFor();
+  /* Пока вызов не завершён, уход в зону ДДС требует подтверждения; «Остаться» ничего не меняет. */
+  await zones.getByRole("link", { name: "Оператор ДДС" }).click();
+  await expect(page.getByRole("dialog", { name: "Смена рабочей зоны" })).toBeVisible();
+  await page.getByRole("button", { name: "Остаться" }).click();
+  await expect(page).toHaveURL(/\/arm\/operator112\?assignmentId=/);
   await page.getByRole("button", { name: "Ответить на вызов" }).click();
   await expect(page.getByLabel("Описание")).toBeEnabled();
   await page.getByLabel("ФИО").fill("Учебный заявитель");
@@ -64,6 +77,8 @@ test("цепочка A → B: этап 112 → подтверждение пре
 
   /* До подтверждения этап ДДС не открывается: причина сервера показана дословно. */
   await page.getByRole("button", { name: "Начать этап ДДС" }).click();
+  await expect(page.getByRole("dialog", { name: "Смена рабочей зоны" })).toContainText("Оператор ДДС");
+  await page.getByRole("button", { name: /Перейти: Оператор ДДС/ }).click();
   await expect(page.getByRole("alert").filter({ hasText: "подтверждения преподавателя" })).toBeVisible();
 
   /* Преподаватель подтверждает вход ДДС (допущение A8: через API тем же эндпоинтом, что кнопка «Утвердить версию»). */
@@ -86,7 +101,12 @@ test("цепочка A → B: этап 112 → подтверждение пре
 
   /* Этап B: карточка обучающегося открывается, после «Принята» приходят сообщения служб. */
   await page.getByRole("button", { name: "Начать этап ДДС" }).click();
+  await page.getByRole("button", { name: /Перейти: Оператор ДДС/ }).click();
   await page.waitForURL(/\/arm\/card\//, { timeout: 30_000 });
+  /* Зона ДДС: подпись роли сменилась, вторая зона доступна обратной ссылкой. */
+  const ddsZones = page.getByRole("navigation", { name: "Рабочая зона" });
+  await expect(ddsZones).toContainText("Оператор ДДС");
+  await expect(ddsZones.getByRole("link", { name: "Специалист 112" })).toBeVisible();
   await expect(page.getByLabel("Действие диспетчера")).toBeVisible({ timeout: 30_000 });
   await setStatus(page, "Принята", { dutyNumber: "32" });
   await expect(page.getByText(/Расчёт выехал к месту вызова/)).toBeVisible({ timeout: 30_000 });

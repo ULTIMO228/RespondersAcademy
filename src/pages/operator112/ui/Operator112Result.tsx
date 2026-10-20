@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { useState } from "react";
 
+import { SPECIALIZATION_TITLES } from "@/entities/user";
 import type { AssignmentDetail, OperatorEvaluation } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
-import { Button } from "@/shared/ui";
+import { Button, Modal } from "@/shared/ui";
 
 import type { Expired, Result } from "../model/useOperator112";
 import { Operator112Evaluation } from "./Operator112Evaluation";
@@ -31,6 +33,8 @@ export function Operator112Result({
   onCardStatus,
 }: Operator112ResultProps) {
   const evaluation: OperatorEvaluation | null = result?.evaluation ?? null;
+  const [isConfirmingZone, setConfirmingZone] = useState(false);
+  const isChain = Boolean(result?.chainReview);
   return (
     <div className={styles.result}>
       {expired ? (
@@ -74,13 +78,41 @@ export function Operator112Result({
         </Button>
       ) : null}
       <div className={styles.result__actions}>
-        <Button variant="primary" onClick={onNext}>
-          {result?.chainReview ? "Начать этап ДДС" : "Следующий билет"}
+        <Button variant="primary" onClick={isChain ? () => setConfirmingZone(true) : onNext}>
+          {isChain ? "Начать этап ДДС" : "Следующий билет"}
         </Button>
         <Link href={ROUTES.studentAssignments} className={styles.problem__link}>
           К заданиям
         </Link>
       </div>
+      {isConfirmingZone ? (
+        /* Передача 112 → ДДС — явная смена зоны и роли (FR-014): без подтверждения этап ДДС не открывается. */
+        <Modal
+          title="Смена рабочей зоны"
+          onClose={() => setConfirmingZone(false)}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setConfirmingZone(false)}>
+                Остаться на разборе
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setConfirmingZone(false);
+                  onNext();
+                }}
+              >
+                Перейти: {SPECIALIZATION_TITLES.dds}
+              </Button>
+            </>
+          }
+        >
+          <p>
+            Этап «{SPECIALIZATION_TITLES.operator112}» завершён, карточка сохранена. Дальше вы работаете в
+            роли «{SPECIALIZATION_TITLES.dds}»: журнал и карточка ДДС, поля 112 только для просмотра.
+          </p>
+        </Modal>
+      ) : null}
     </div>
   );
 }

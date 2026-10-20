@@ -285,3 +285,42 @@ async def test_dds_fields_are_read_only_but_dds_status_remains_writable(http: As
             await db.execute(delete(CardRuntime).where(CardRuntime.card_id == card_id))
             await db.execute(delete(IncidentCard).where(IncidentCard.id == card_id))
             await db.commit()
+
+
+async def test_112_field_write_on_existing_attempt_is_refused_for_dds_student(http: AsyncClient):
+    """T043: запись полей 112 (`fieldChanged`) в чужую попытку 112 от обучающегося только с ДДС → 403; владелец попытки → 201."""
+    await _login(http, BOTH)
+    created = await http.post("/api/v1/operator112/attempts", json={"assignmentId": TRAINING_112, "cardId": "c-010"})
+    assert created.status_code == 201, created.text
+    attempt_id = created.json()["id"]
+    CREATED_ATTEMPTS.append(attempt_id)
+    assert (await http.post(f"/api/v1/operator112/attempts/{attempt_id}/answer")).status_code == 200
+    field = {"type": "fieldChanged", "payload": {"field": "address.formal", "value": "Москва, улица Грина"}}
+    await _login(http, DDS_ONLY)
+    _assert_zone_denied(await http.post(f"/api/v1/operator112/attempts/{attempt_id}/events", json=field))
+    await _login(http, BOTH)  # пара: владелец попытки с специализацией 112 пишет поле — 201
+    assert (await http.post(f"/api/v1/operator112/attempts/{attempt_id}/events", json=field)).status_code == 201
+
+
+async def test_112_card_notes_and_sms_are_open_for_112_pair_and_refused_for_dds_student(http: AsyncClient):
+    """T043: «Напоминание» и SMS по карточке — от ДДС-обучающегося 403; пара — обучающийся со специализацией 112 получает 201."""
+    card_id = "c-996"
+    async with get_sessionmaker()() as db:
+        db.add(IncidentCard(id=card_id, ticket_no=996007, situation_no=1, group="Тест", summary="", address="",
+                            caller={}, expected_services=[], expected_tags=[], mode_origin="seed"))
+        await db.commit()
+    reminder = {"text": "Перезвонить", "remindAt": "2026-10-20T14:00:00+03:00"}
+    try:
+        await _login(http, DDS_ONLY)
+        _assert_zone_denied(await http.post(f"/api/mock/cards/{card_id}/reminders", json=reminder))
+        _assert_zone_denied(await http.post(f"/api/mock/cards/{card_id}/sms", json={"text": "На место выехали"}))
+        await _login(http, ONE_112)
+        created_reminder = await http.post(f"/api/mock/cards/{card_id}/reminders", json=reminder)
+        assert created_reminder.status_code == 201, created_reminder.text
+        created_sms = await http.post(f"/api/mock/cards/{card_id}/sms", json={"text": "На место выехали"})
+        assert created_sms.status_code == 201, created_sms.text
+    finally:
+        async with get_sessionmaker()() as db:
+            await db.execute(delete(CardRuntime).where(CardRuntime.card_id == card_id))
+            await db.execute(delete(IncidentCard).where(IncidentCard.id == card_id))
+            await db.commit()

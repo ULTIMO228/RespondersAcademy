@@ -228,3 +228,23 @@ describe("«Результаты»: разбор попытки", () => {
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Разбор: Попытка att-x");
   });
 });
+
+describe("подписи нормативов по режиму (T053, FR-011)", () => {
+  it("список: под таблицей нормативы только тех режимов, что есть в истории", async () => {
+    render(<StudentResultsScreen api={makeApi()} />);
+    const norms = await screen.findByRole("list", { name: "Нормативы по режимам" });
+    expect(within(norms).getByText(/Режим 112: ответ на вызов и отправка карточки/)).toBeInTheDocument();
+    expect(within(norms).getByText(/Режим ДДС: реакция на новую карточку/)).toBeInTheDocument();
+  });
+
+  it("парная проверка: без попыток ДДС норматив ДДС не показывается", async () => {
+    render(<StudentResultsScreen api={makeApi({ history: vi.fn(async () => page(ITEMS.slice(0, 2))) })} />);
+    const norms = await screen.findByRole("list", { name: "Нормативы по режимам" });
+    expect(within(norms).queryByText(/Режим ДДС/)).not.toBeInTheDocument();
+  });
+
+  it("разбор: подпись норматива соответствует режиму попытки", async () => {
+    render(<StudentResultDetailScreen attemptId="att-3" mode="dds" api={makeApi()} />);
+    expect(await screen.findByTestId("norm-scope-note")).toHaveTextContent(/реакция на новую карточку/);
+  });
+});

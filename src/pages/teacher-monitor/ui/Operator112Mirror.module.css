@@ -1,0 +1,55 @@
+.mirror {
+  min-width: 0;
+  margin: 0;
+  padding: var(--spacing-md);
+  border: 2px solid var(--color-graphite-600);
+  background: var(--color-gray-150);
+}
+
+.mirror__state {
+  margin: 0 0 var(--spacing-md);
+  font-weight: 600;
+}
+
+.mirror__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.mirror__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-gray-50);
+}
+
+.mirror__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mirror__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mirror__field input,
+.mirror__field textarea {
+  width: 100%;
+  font: inherit;
+}
+
+.mirror__flag {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.mirror__empty {
+  margin: 0;
+  padding: var(--spacing-xl);
+  background: var(--color-gray-50);
+}

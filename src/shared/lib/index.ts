@@ -30,3 +30,5 @@ export type { EventStream, EventStreamFactory, RealtimeDeps } from "./realtime";
 export { MAX_RECORDING_SEC, RECORDER_MESSAGES, RecorderError, TARGET_SAMPLE_RATE } from "./audio-recorder";
 export { createAudioRecorder, encodeWav, isRecordingSupported, toReportWav } from "./audio-recorder";
 export type { AudioRecorder, RecorderErrorCode } from "./audio-recorder";
+export { getOpenAttempt, setOpenAttempt, useOpenAttempt } from "./open-attempt/open-attempt";
+export type { OpenAttempt } from "./open-attempt/open-attempt";

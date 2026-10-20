@@ -6,6 +6,7 @@ import { RecordingsButton } from "@/widgets/incident-card";
 import { compareWithEtalon, StudentActions } from "@/widgets/monitor-grid";
 import { getCardEtalonSegment, STUDENT_STATE_TITLES } from "@/entities/session";
 import { formatShortName } from "@/entities/user";
+import type { Specialization } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import { formatDuration } from "@/shared/lib";
 import { ConnectionBanner } from "@/shared/ui";
@@ -27,6 +28,20 @@ type MonitorScreenProps = {
 
 const BACK_LABEL = "Вернуться к классу";
 
+/**
+ * Какое рабочее место зеркалить (FR-015): обучающийся только со специализацией 112 — рабочее место 112;
+ * с обеими — ДДС, если у него открыта карточка ДДС, иначе 112; без поля специализаций — ДДС (миграция бэкенда).
+ */
+function resolveMirrorMode(
+  specializations: Specialization[] | undefined,
+  hasDdsCard: boolean,
+): "dds" | "operator112" {
+  const own = specializations ?? ["dds"];
+  if (!own.includes("operator112")) return "dds";
+  if (!own.includes("dds")) return "operator112";
+  return hasDdsCard ? "dds" : "operator112";
+}
+
 /** `/teacher/monitor/[studentId]` — живое зеркало экрана курсанта, только просмотр (spec/000-фронт/04-pages/10). */
 export function MonitorScreen({ teacherId, studentId }: MonitorScreenProps) {
   const view = useStudentMonitor(teacherId, studentId);
@@ -46,6 +61,7 @@ export function MonitorScreen({ teacherId, studentId }: MonitorScreenProps) {
     isCardFinished: current?.state === "finished",
     dictionary: buildActionDictionary(reference, current?.cardId ?? "", cardNumber),
   });
+  const mirrorMode = resolveMirrorMode(view.student?.specializations, Boolean(mirror));
   return (
     <>
       <ConnectionBanner isOnline={view.isOnline} />
@@ -62,7 +78,10 @@ export function MonitorScreen({ teacherId, studentId }: MonitorScreenProps) {
         </p>
       </div>
       <div className={styles.monitor__layout}>
-        {mirror ? (
+        {mirrorMode === "operator112" ? (
+          /* Канала чтения попыток 112 для преподавателя нет: зеркало честно сообщает об отсутствии данных. */
+          <StudentMirror mode="operator112" attempt={null} />
+        ) : mirror ? (
           <StudentMirror
             card={mirror.card}
             classifierEntries={mirror.classifierEntries}

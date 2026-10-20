@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { describeNorms } from "@/entities/report";
 import type { LobbyMode } from "@/shared/api";
 import { ApiError } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
@@ -84,6 +85,9 @@ export function StudentResultDetailScreen({
                 ) : undefined
               }
             />
+            <p className={styles.norms} data-testid="norm-scope-note">
+              Нормативы этой попытки. {describeNorms(mode).summary}
+            </p>
             {loaded.review ? (
               <AttemptReview model={loaded.review} />
             ) : (

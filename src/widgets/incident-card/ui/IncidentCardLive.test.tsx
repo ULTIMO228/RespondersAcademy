@@ -63,7 +63,7 @@ function createControls(overrides: Partial<IncidentCardControls> = {}): Incident
 function renderLive(
   id: string,
   controls = createControls(),
-  extra: { isExceeded?: boolean; reaction?: string } = {},
+  extra: { isExceeded?: boolean; reaction?: string; isDdsLearner?: boolean } = {},
 ) {
   const card = getFixture(id);
   render(
@@ -73,6 +73,7 @@ function renderLive(
       linkedCards={[]}
       controls={controls}
       isExceeded={extra.isExceeded}
+      isDdsLearner={extra.isDdsLearner}
       timerValue={extra.isExceeded ? "3:01" : "0:42"}
       reactionValue={extra.reaction ?? "0:18"}
       serviceNames={["Служба 101", "Служба 102", "Упр. Чертаново Южное"]}
@@ -326,5 +327,67 @@ describe("записи разговоров и SMS (T2.3-17, T2.3-18)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Отправить СМС" }));
     expect(await within(history).findByText("Помощь направлена")).toBeInTheDocument();
     expect(api.postCardSms).toHaveBeenCalledWith("card-36814859", { text: "Помощь направлена" });
+  });
+});
+
+describe("обучающийся-ДДС в живом режиме (T042): поля 112 неактивны, отработки службы активны", () => {
+  it("парная проверка: обычный живой режим — «дополнение», ввод диспетчера и флаги активны", () => {
+    renderLive("card-36814850");
+    expect(screen.getByRole("button", { name: "дополнение" })).toBeEnabled();
+    expect(screen.getByLabelText("Действие диспетчера")).toBeEnabled();
+    expect(screen.getByLabelText("Номер наряда")).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Копировать АОН" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Отключение" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Изменить (Alt + E)" })).toBeEnabled();
+  });
+
+  it("телефоны, заявитель/флаги, описание и «дополнение» заблокированы; «Дополнить» (AmendBlock) не выводится", () => {
+    renderLive("card-36814850", createControls(), { isDdsLearner: true });
+    expect(screen.getByRole("button", { name: "Отключение" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Копировать АОН" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "дополнение" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Изменить (Alt + E)" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /ЧС/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /ЧП/ })).toBeDisabled();
+    expect(screen.getByLabelText("Действие диспетчера")).toBeDisabled();
+    expect(screen.getByLabelText("Номер наряда")).toBeDisabled();
+    expect(screen.queryByRole("region", { name: "Дополнение карточки" })).toBeNull();
+  });
+
+  it("клик по заблокированному карандашу и «дополнению» не вызывает controls", () => {
+    const controls = createControls();
+    renderLive("card-36814850", controls, { isDdsLearner: true });
+    fireEvent.click(screen.getByRole("button", { name: "Изменить (Alt + E)" }));
+    fireEvent.click(screen.getByRole("button", { name: "дополнение" }));
+    fireEvent.click(screen.getByRole("button", { name: /ЧС/ }));
+    expect(controls.amend.onStart).not.toHaveBeenCalled();
+    expect(controls.flags.onToggle).not.toHaveBeenCalled();
+  });
+
+  it("SmsPanel открывается только для чтения: история есть, формы отправки нет; у обычного обучающегося форма есть", async () => {
+    api.getCardSms.mockResolvedValue([
+      {
+        id: "sms-1",
+        cardId: "card-36814859",
+        direction: "incoming",
+        text: "Дым в квартире",
+        at: "2026-09-17T11:50:44+03:00",
+      },
+    ]);
+    renderLive("card-36814859", createControls(), { isDdsLearner: true });
+    fireEvent.click(screen.getByRole("button", { name: "список SMS" }));
+    expect(await screen.findByRole("list", { name: "История сообщений" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Текст СМС")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Отправить СМС" })).toBeNull();
+    expect(api.postCardSms).not.toHaveBeenCalled();
+  });
+
+  it("отработки службы остаются активными: добавление доступно и уходит в controls", async () => {
+    const controls = renderLive("card-881412", createControls(), { isDdsLearner: true });
+    const add = screen.getByRole("button", { name: "Добавить отработку" });
+    expect(add).toBeEnabled();
+    fireEvent.click(add);
+    expect(screen.getByRole("combobox", { name: "Служба" })).toBeEnabled();
+    expect(controls.workLines.onAdd).not.toHaveBeenCalled();
   });
 });

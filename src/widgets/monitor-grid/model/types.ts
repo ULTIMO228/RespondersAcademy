@@ -1,3 +1,4 @@
+import type { Specialization } from "@/shared/api";
 import type { StudentLiveState } from "@/entities/session";
 
 /** Действие курсанта для сверки с эталоном: «openCard:c-095», «status:accepted», «call:102». */
@@ -12,6 +13,8 @@ export type MonitorStudent = {
   fullName: string;
   armNumber: number;
   group?: string;
+  /** Специализации обучающегося (спека 007); без поля — только ДДС. */
+  specializations?: Specialization[];
 };
 
 /** Подпись карточки «№ + тип» (загружается по GET /cards/[id]); ключ — cardId занятия. */

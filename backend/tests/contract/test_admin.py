@@ -206,7 +206,7 @@ async def test_audit_filters_and_pagination(client: AsyncClient):
     assert any(e["id"].startswith("audit-") for e in everything)
 
     users_only = (await client.get("/admin/audit", params={"type": "users", "perPage": 100})).json()["items"]
-    assert users_only and all(e["action"].startswith("user.") for e in users_only)
+    assert users_only and all(e["action"].startswith(("user.", "access.")) for e in users_only)
     by_operator = (await client.get("/admin/audit", params={"operator": "admin", "perPage": 100})).json()["items"]
     assert by_operator and all(e["userId"] == ADMIN_ID for e in by_operator)
     with_card = next((e for e in everything if e.get("cardId")), None)

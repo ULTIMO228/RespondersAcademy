@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { describeNorms } from "@/entities/report";
 import { performancePdfUrl, performanceXlsxUrl } from "@/shared/api";
 import type {
   PerformanceLevel,
@@ -72,18 +73,28 @@ function Level({ level }: { level: PerformanceLevel }) {
   );
 }
 
-const statColumns = <TRow,>(pick: (row: TRow) => PerformanceStats): DataColumn<TRow>[] => [
+/** Заголовки колонок нормативов по режиму среза (FR-011): 112 и ДДС измеряют разное. */
+const NORM_COLUMN_TITLES: Record<PerformanceMode, { reaction: string; processing: string }> = {
+  operator112: { reaction: "Ответ на вызов в норме", processing: "Отправка карточки в норме" },
+  dds: { reaction: "Реакция на карточку в норме", processing: "Полная отработка в норме" },
+  all: { reaction: "Ответ/реакция в норме", processing: "Отправка/отработка в норме" },
+};
+
+const statColumns = <TRow,>(
+  pick: (row: TRow) => PerformanceStats,
+  mode: PerformanceMode,
+): DataColumn<TRow>[] => [
   { key: "attempts", title: "Попыток", numeric: true, render: (row) => pick(row).attempts },
   { key: "avg", title: "Средний балл", numeric: true, render: (row) => score(pick(row).avgScore) },
   {
     key: "reaction",
-    title: "Реакция в норме",
+    title: NORM_COLUMN_TITLES[mode].reaction,
     numeric: true,
     render: (row) => percent(pick(row).reactionInNormShare),
   },
   {
     key: "processing",
-    title: "Отработка в норме",
+    title: NORM_COLUMN_TITLES[mode].processing,
     numeric: true,
     render: (row) => percent(pick(row).processingInNormShare),
   },
@@ -247,6 +258,7 @@ function ReportBody({
     );
   }
   const { totals } = data;
+  const norms = describeNorms(data.filters.mode === "all" ? "all" : data.filters.mode);
   return (
     <>
       <section className={styles.section} aria-label="Итого">
@@ -265,15 +277,16 @@ function ReportBody({
           <StatTile
             label="Реакция в норме"
             value={percent(totals.reactionInNormShare)}
-            note="норматив 30 с"
+            note={norms.reaction}
           />
           <StatTile
             label="Отработка в норме"
             value={percent(totals.processingInNormShare)}
-            note="норматив 3 мин"
+            note={norms.processing}
           />
           <StatTile label="Экзамены" value={`${totals.examsPassed} из ${totals.exams}`} note="сдано" />
         </StatGroup>
+        <p className={styles.note}>{norms.summary}</p>
         <p className={styles.note}>
           «Мало данных» — меньше {data.thresholds.minAttemptsStudent} попыток у обучающегося или{" "}
           {data.thresholds.minAttemptsGroup} у группы; зона риска — средний балл ниже{" "}
@@ -294,7 +307,7 @@ function ReportBody({
                 render: (row) => <span className={styles.nowrap}>{row.title}</span>,
               },
               { key: "students", title: "Обучающихся", numeric: true, render: (row) => row.stats.students },
-              ...statColumns((row: PerformanceReport["groups"][number]) => row.stats),
+              ...statColumns((row: PerformanceReport["groups"][number]) => row.stats, data.filters.mode),
             ]}
             rows={data.groups}
             getRowKey={(row) => row.groupId}
@@ -316,7 +329,7 @@ function ReportBody({
                 title: "Группа",
                 render: (row) => <span className={styles.nowrap}>{row.groupId ?? "Без группы"}</span>,
               },
-              ...statColumns((row: PerformanceReport["students"][number]) => row.stats),
+              ...statColumns((row: PerformanceReport["students"][number]) => row.stats, data.filters.mode),
             ]}
             rows={data.students}
             getRowKey={(row) => row.studentId}
