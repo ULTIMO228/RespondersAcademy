@@ -688,6 +688,16 @@ async def _create_drafts_reserved(
         )
     profiles = await _profile_groups(db)
     allowed_addresses = _address_allowlist(addresses)
+    # Проверка маркера владельца ДО записи версий: условный UPDATE заодно открывает транзакцию. Без него SAVEPOINT в
+    # `_save_draft_retrying` на SQLite (pysqlite) сам начинает транзакцию, и RELEASE фиксирует версию раньше fence.
+    still_owner = await db.execute(
+        update(AIRequest)
+        .where(AIRequest.id == marker_id, AIRequest.started_at == token)
+        .values(started_at=token)
+        .execution_options(synchronize_session=False)
+    )
+    if still_owner.rowcount != 1:
+        raise conflict("Запрос с таким requestId перехвачен повторной отправкой после таймаута; повторите")
     template_fallback: list[dict[str, Any]] | None = None
     responses: list[dict[str, Any]] = []
     for index, item in enumerate(produced[: body.count]):
