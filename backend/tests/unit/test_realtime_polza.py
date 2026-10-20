@@ -377,3 +377,18 @@ def test_silero_engine_does_not_need_polza_tts_model(settings, monkeypatch):
     assert polza.configured()
     monkeypatch.setattr(silero, "live_model_path", lambda name: type("P", (), {"exists": lambda self: False})())
     assert not polza.configured()
+
+
+async def test_silero_voice_is_warmed_once_before_the_call_is_ready(settings, monkeypatch):
+    # Холодный Silero: загрузка ~12 с + первая озвучка ~5 с — приветствие пропадало. Прогрев до «ready», один раз.
+    from ml.speech import tts as silero
+
+    monkeypatch.setattr(settings, "live_call_tts_engine", "silero")
+    monkeypatch.setattr(settings, "live_call_silero_model", "v5_6_ru.pt")
+    monkeypatch.setattr(settings, "live_call_silero_speaker", "xenia")
+    calls = []
+    monkeypatch.setattr(silero, "synthesize_live", lambda *args, **_kw: calls.append(args) or b"\0\0")
+    monkeypatch.setattr(polza, "_voice_warm", False)
+    await asyncio.gather(polza.warm_voice(), polza.warm_voice())
+    await polza.warm_voice()
+    assert len(calls) == 1 and calls[0][1:3] == ("v5_6_ru.pt", "xenia")

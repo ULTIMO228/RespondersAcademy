@@ -18,6 +18,7 @@ import numpy as np
 
 MODEL_FILE = "v4_ru.pt"
 MODEL_SUBDIR = "silero"
+LIVE_SUBDIR = "silero-live"  # модель живого заявителя (prepare_models --only tts-live)
 MODEL_URL = "https://models.silero.ai/models/tts/ru/v4_ru.pt"
 SAMPLE_RATE = 24_000
 SPEAKERS = {"male": "aidar", "female": "kseniya"}
@@ -199,7 +200,7 @@ def live_model_path(name: str) -> Path:
     """Модель живого заявителя (например, Silero v5) — отдельно от v4 для аудио билетов."""
     from app.config import get_settings
 
-    return get_settings().models_dir / MODEL_SUBDIR / name
+    return get_settings().models_dir / LIVE_SUBDIR / name
 
 
 def load_live_model(name: str):

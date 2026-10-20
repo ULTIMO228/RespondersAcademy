@@ -46,6 +46,27 @@ def configured() -> bool:
                 and importlib.util.find_spec("torch") and vad.model_path().exists())
 
 
+_voice_warm = False
+_voice_lock = asyncio.Lock()
+
+
+async def warm_voice() -> None:
+    """Локальный голос: загрузка модели (~12 с) и первая озвучка (~5 с) — один раз на процесс,
+    иначе первое приветствие звонка теряется. Облачному голосу прогрев не нужен."""
+    global _voice_warm
+    settings = get_settings()
+    if settings.live_call_tts_engine != "silero" or _voice_warm:
+        return
+    async with _voice_lock:
+        if _voice_warm:
+            return
+        from ml.speech import tts as silero
+
+        await asyncio.to_thread(silero.synthesize_live, "Да.", settings.live_call_silero_model or "",
+                                settings.live_call_silero_speaker or "")
+        _voice_warm = True
+
+
 def provider_error(status: int, what: str) -> ApiError:
     """Читаемая ошибка без тела ответа провайдера (там могут быть детали аккаунта)."""
     if status in (401, 403):
@@ -74,6 +95,10 @@ class PolzaSession(CascadeSession):
         if not (settings.polza_api_key and settings.polza_api_key.get_secret_value().strip()):
             raise ApiError(503, "internal", "Добавьте POLZA_API_KEY в backend/.env")
         self.detector = await asyncio.to_thread(vad.SpeechDetector)
+        try:
+            await warm_voice()  # до «ready»: иначе приветствие ждёт загрузку модели
+        except Exception as exc:
+            raise ApiError(503, "internal", "Локальный голос Silero недоступен: проверьте LIVE_CALL_SILERO_*") from exc
         self.client = httpx.AsyncClient(timeout=httpx.Timeout(settings.polza_timeout_sec, connect=10),
                                         follow_redirects=False)
         await self.emit("session.created", session={"capabilities": {"turn_detection": ["server_vad"]}})

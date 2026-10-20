@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     live_call_polza_stt_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_STT_MODEL")
     live_call_polza_tts_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_MODEL")
     live_call_polza_tts_voice: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_VOICE")
-    # Движок голоса заявителя: polza (облако) или silero (локально на CPU, без сети; модель — MODELS_DIR/silero/<файл>).
+    # Движок голоса заявителя: polza (облако) или silero (локально на CPU, без сети; модель — MODELS_DIR/silero-live/<файл>).
     live_call_tts_engine: Literal["polza", "silero"] = Field(default="polza", alias="LIVE_CALL_TTS_ENGINE")
     live_call_silero_model: str | None = Field(default=None, alias="LIVE_CALL_SILERO_MODEL")
     live_call_silero_speaker: str | None = Field(default=None, alias="LIVE_CALL_SILERO_SPEAKER")
