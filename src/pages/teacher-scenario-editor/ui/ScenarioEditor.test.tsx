@@ -76,6 +76,14 @@ function createApi(overrides: Partial<ScenarioEditorApi> = {}): ScenarioEditorAp
     checkGrammar: vi.fn(async () => ({ data: [] })),
     listAIScenarioVersions: vi.fn(async () => []),
     createAIScenarioDrafts: vi.fn(async () => []),
+    getScenarioPermissions: vi.fn(async () => ({ permissions: [] })),
+    listScenarioSources: vi.fn(async () => []),
+    validateScenarioGraph: vi.fn(async () => ({ valid: true, errors: [] })),
+    createGraphScenario: vi.fn(async () => aiVersion),
+    reviseGraphScenario: vi.fn(async () => aiVersion),
+    submitGraphScenario: vi.fn(async () => aiVersion),
+    reviewGraphScenario: vi.fn(async () => aiVersion),
+    publishGraphScenario: vi.fn(async () => aiVersion),
     reviseAIScenario: vi.fn(async () => aiVersion),
     approveAIScenario: vi.fn(async () => ({
       ...aiVersion,
@@ -442,5 +450,63 @@ describe("Проверка ручного текста версии (US3)", () =
 
     fireEvent.change(summary, { target: { value: "   " } });
     expect(screen.getByRole("button", { name: "Проверить текст" })).toBeDisabled();
+  });
+});
+
+describe("Вкладка «Граф» редактора сценария (спека 005, этап S4)", () => {
+  it("по умолчанию открыт «Сценарий»; граф не грузится, пока вкладку не открыли", async () => {
+    const { api } = await renderEditor();
+    expect(screen.getByRole("tab", { name: "Сценарий" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Название")).toBeVisible();
+    expect(api.getScenarioPermissions).not.toHaveBeenCalled();
+  });
+
+  it("у сценария с AI-версией с графом вкладка открывает последнюю версию на холсте", async () => {
+    const graphVersion: AIScenarioVersion = {
+      ...aiVersion,
+      graph: {
+        schemaVersion: "scenario-graph/1",
+        start: "a",
+        nodes: [
+          { id: "a", type: "action", title: "Приём", action: "x", next: "b" },
+          { id: "b", type: "end", outcome: "completed", score: 100, passed: true },
+        ],
+      },
+    };
+    const { api } = await renderEditor(
+      createApi({ listAIScenarioVersions: vi.fn(async () => [graphVersion]) }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    expect(await screen.findByRole("group", { name: "Холст графа сценария, блоков: 2" })).toBeVisible();
+    expect(api.getScenarioPermissions).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("tab", { name: "Сценарий" }));
+    expect(screen.getByLabelText("Название")).toBeVisible();
+  });
+
+  it("у сценария без графа вкладка предлагает форму создания; сбой источников не ломает страницу", async () => {
+    await renderEditor(
+      createApi({
+        listScenarioSources: vi.fn(async () => [
+          { sourceTicketId: "t-1", situationNo: 1, preview: "Дерево" },
+        ]),
+      }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    expect(await screen.findByText("У сценария ещё нет графа")).toBeInTheDocument();
+    expect(await screen.findByRole("form", { name: "Создание графа сценария" })).toBeInTheDocument();
+  });
+
+  it("ошибка загрузки версий показана внутри вкладки, остальные секции работают", async () => {
+    await renderEditor(
+      createApi({
+        listAIScenarioVersions: vi.fn(async () => {
+          throw new Error("Сервис версий недоступен");
+        }),
+      }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    expect((await screen.findAllByText(/Сервис версий недоступен/)).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("tab", { name: "Сценарий" }));
+    expect(screen.getByLabelText("Название")).toHaveValue(scenario.title);
   });
 });

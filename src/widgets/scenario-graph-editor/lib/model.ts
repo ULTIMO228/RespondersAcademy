@@ -183,7 +183,8 @@ export function addNode(
 function retarget(node: GraphNode, mapTarget: (target: string) => string): GraphNode {
   const next: GraphNode = { ...node };
   if (node.next !== undefined) next.next = mapTarget(node.next);
-  if (node.branches) next.branches = node.branches.map((branch) => ({ ...branch, next: mapTarget(branch.next) }));
+  if (node.branches)
+    next.branches = node.branches.map((branch) => ({ ...branch, next: mapTarget(branch.next) }));
   if (node.else) next.else = { ...node.else, next: mapTarget(node.else.next) };
   if (next.next === "") delete next.next;
   return next;
@@ -238,7 +239,8 @@ export function setConnection(state: EditorGraph, from: string, slot: EdgeSlot, 
         else delete copy.next;
         return copy;
       }
-      if (slot.kind === "else") return { ...node, else: { name: node.else?.name ?? DEFAULT_ELSE_NAME, next: target } };
+      if (slot.kind === "else")
+        return { ...node, else: { name: node.else?.name ?? DEFAULT_ELSE_NAME, next: target } };
       return {
         ...node,
         branches: (node.branches ?? []).map((branch, index) =>
@@ -266,12 +268,9 @@ export function removeBranch(state: EditorGraph, id: string, index: number): Edi
   return updateNode(state, id, { branches: (node.branches ?? []).filter((_, i) => i !== index) });
 }
 
-export function updateBranch(
-  state: EditorGraph,
-  id: string,
-  index: number,
-  patch: Partial<{ name: string; when: GraphPredicate }>,
-): EditorGraph {
+export type BranchPatch = Partial<{ name: string; when: GraphPredicate }>;
+
+export function updateBranch(state: EditorGraph, id: string, index: number, patch: BranchPatch): EditorGraph {
   const node = findNode(state, id);
   if (!node || node.type !== "condition") return state;
   return updateNode(state, id, {
@@ -289,14 +288,38 @@ export function listEdges(state: EditorGraph): GraphEdge[] {
   const edges: GraphEdge[] = [];
   for (const node of state.nodes) {
     if (node.type === "action") {
-      edges.push({ key: `${node.id}:next`, from: node.id, to: node.next ?? "", slot: { kind: "next" }, label: "", index: 0, count: 1 });
+      edges.push({
+        key: `${node.id}:next`,
+        from: node.id,
+        to: node.next ?? "",
+        slot: { kind: "next" },
+        label: "",
+        index: 0,
+        count: 1,
+      });
     } else if (node.type === "condition") {
       const branches = node.branches ?? [];
       const count = branches.length + 1;
       branches.forEach((branch, index) =>
-        edges.push({ key: `${node.id}:b${index}`, from: node.id, to: branch.next, slot: { kind: "branch", index }, label: branch.name, index, count }),
+        edges.push({
+          key: `${node.id}:b${index}`,
+          from: node.id,
+          to: branch.next,
+          slot: { kind: "branch", index },
+          label: branch.name,
+          index,
+          count,
+        }),
       );
-      edges.push({ key: `${node.id}:else`, from: node.id, to: node.else?.next ?? "", slot: { kind: "else" }, label: node.else?.name ?? DEFAULT_ELSE_NAME, index: branches.length, count });
+      edges.push({
+        key: `${node.id}:else`,
+        from: node.id,
+        to: node.else?.next ?? "",
+        slot: { kind: "else" },
+        label: node.else?.name ?? DEFAULT_ELSE_NAME,
+        index: branches.length,
+        count,
+      });
     }
   }
   return edges;

@@ -29,13 +29,11 @@ import {
   updateBranch,
   updateNode,
 } from "../lib/model";
-import type { EdgeSlot, EditorGraph } from "../lib/model";
+import type { BranchPatch, EdgeSlot, EditorGraph } from "../lib/model";
 import { newRequestId, templateGraph, workflowActions } from "../lib/workflow";
 
 export type LoadState =
-  | { status: "loading" }
-  | { status: "error"; message: string; serverRequired: boolean }
-  | { status: "ready" };
+  { status: "loading" } | { status: "error"; message: string; serverRequired: boolean } | { status: "ready" };
 
 export type ValidationState =
   | { status: "idle" }
@@ -86,7 +84,9 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
       const state = ensureLayout(fromGraph(version.graph));
       setGraph(state);
       setSavedSignature(graphSignature(state));
-      setSelectedId((current) => (current && state.nodes.some((node) => node.id === current) ? current : null));
+      setSelectedId((current) =>
+        current && state.nodes.some((node) => node.id === current) ? current : null,
+      );
     }
   }, []);
 
@@ -98,7 +98,11 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
         const [list, perms] = await Promise.all([
           api.listAIScenarioVersions(initialScenarioId, controller.signal).catch((error: unknown) => {
             // Сценария без AI-версий в бэкенде может не быть вовсе — это «пусто», а не сбой.
-            if (error instanceof ApiError && !(error instanceof ServerRequiredError) && NO_GRAPH_SCENARIO_ERRORS.includes(error.status)) {
+            if (
+              error instanceof ApiError &&
+              !(error instanceof ServerRequiredError) &&
+              NO_GRAPH_SCENARIO_ERRORS.includes(error.status)
+            ) {
               return [] as AIScenarioVersion[];
             }
             throw error;
@@ -165,7 +169,11 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
   }, [graph, local.length, runCheck]);
 
   const perform = useCallback(
-    async (task: () => Promise<AIScenarioVersion>, success: string, afterwards?: (version: AIScenarioVersion) => void) => {
+    async (
+      task: () => Promise<AIScenarioVersion>,
+      success: string,
+      afterwards?: (version: AIScenarioVersion) => void,
+    ) => {
       setBusy(true);
       setNotice(null);
       try {
@@ -220,7 +228,12 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
   const attachTemplate = useCallback(async () => {
     if (!latest) return null;
     return perform(
-      () => api.reviseGraphScenario(scenarioId, { baseVersion: latest.version, graph: templateGraph(), requestId: newRequestId() }),
+      () =>
+        api.reviseGraphScenario(scenarioId, {
+          baseVersion: latest.version,
+          graph: templateGraph(),
+          requestId: newRequestId(),
+        }),
       "Шаблонный граф добавлен новой версией",
       (version) => adopt({ ...version, graph: version.graph ?? templateGraph() }, [...versions, version]),
     );
@@ -230,7 +243,12 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
     if (!graph || !latest || !actions.canSave) return null;
     const payload = toGraph(graph);
     return perform(
-      () => api.reviseGraphScenario(scenarioId, { baseVersion: latest.version, graph: payload, requestId: newRequestId() }),
+      () =>
+        api.reviseGraphScenario(scenarioId, {
+          baseVersion: latest.version,
+          graph: payload,
+          requestId: newRequestId(),
+        }),
       "Сохранено новой версией",
       (version) => {
         replaceVersion(version);
@@ -292,10 +310,11 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
     updateNode: (id: string, patch: Partial<GraphNode>) => edit((state) => updateNode(state, id, patch)),
     moveNode: (id: string, x: number, y: number) =>
       edit((state) => moveNode(state, id, { x: Math.max(0, Math.round(x)), y: Math.max(0, Math.round(y)) })),
-    connect: (from: string, slot: EdgeSlot, target: string) => edit((state) => setConnection(state, from, slot, target)),
+    connect: (from: string, slot: EdgeSlot, target: string) =>
+      edit((state) => setConnection(state, from, slot, target)),
     addBranch: (id: string) => edit((state) => addBranch(state, id)),
     removeBranch: (id: string, index: number) => edit((state) => removeBranch(state, id, index)),
-    updateBranch: (id: string, index: number, patch: Parameters<typeof updateBranch>[3]) =>
+    updateBranch: (id: string, index: number, patch: BranchPatch) =>
       edit((state) => updateBranch(state, id, index, patch)),
     patchGraph: (patch: Partial<EditorGraph>) => edit((state) => ({ ...state, ...patch })),
     /** Переименование id; возвращает текст ошибки или null. */

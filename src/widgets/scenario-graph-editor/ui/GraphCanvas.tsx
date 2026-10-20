@@ -46,7 +46,14 @@ function nodeCaption(node: GraphNode): string {
 
 function hexagon(width: number, height: number): string {
   const cut = 26;
-  return [`${cut},0`, `${width - cut},0`, `${width},${height / 2}`, `${width - cut},${height}`, `${cut},${height}`, `0,${height / 2}`].join(" ");
+  return [
+    `${cut},0`,
+    `${width - cut},0`,
+    `${width},${height / 2}`,
+    `${width - cut},${height}`,
+    `${cut},${height}`,
+    `0,${height / 2}`,
+  ].join(" ");
 }
 
 function portPoint(graph: EditorGraph, edge: { from: string; index: number; count: number }) {
@@ -98,7 +105,14 @@ export function GraphCanvas({
     const origin = graph.layout[node.id] ?? { x: 0, y: 0 };
     const point = toModel(event);
     svgRef.current?.setPointerCapture?.(event.pointerId);
-    setDrag({ kind: "move", id: node.id, startX: point.x, startY: point.y, originX: origin.x, originY: origin.y });
+    setDrag({
+      kind: "move",
+      id: node.id,
+      startX: point.x,
+      startY: point.y,
+      originX: origin.x,
+      originY: origin.y,
+    });
   };
 
   const startConnect = (event: ReactPointerEvent, edge: GraphEdge) => {
@@ -171,7 +185,13 @@ export function GraphCanvas({
   };
 
   const connectingLine = drag?.kind === "connect" ? drag : null;
-  const connectingEdge = connectingLine ? edges.find((edge) => edge.from === connectingLine.from && JSON.stringify(edge.slot) === JSON.stringify(connectingLine.slot)) : null;
+  const connectingEdge = connectingLine
+    ? edges.find(
+        (edge) =>
+          edge.from === connectingLine.from &&
+          JSON.stringify(edge.slot) === JSON.stringify(connectingLine.slot),
+      )
+    : null;
 
   return (
     <div className={styles.canvas}>
@@ -182,7 +202,11 @@ export function GraphCanvas({
         <span className={styles.canvas__zoom} aria-live="polite">
           {Math.round(zoom * 100)}%
         </span>
-        <Btn onClick={() => changeZoom(1)} disabled={zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1]} aria-label="Увеличить масштаб">
+        <Btn
+          onClick={() => changeZoom(1)}
+          disabled={zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1]}
+          aria-label="Увеличить масштаб"
+        >
           +
         </Btn>
         <Btn onClick={() => setZoom(1)}>100%</Btn>
@@ -204,7 +228,15 @@ export function GraphCanvas({
           }}
         >
           <defs>
-            <marker id="graph-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <marker
+              id="graph-arrow"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="8"
+              markerHeight="8"
+              orient="auto-start-reverse"
+            >
               <path d="M 0 0 L 10 5 L 0 10 z" className={styles.arrow} />
             </marker>
           </defs>
@@ -228,8 +260,20 @@ export function GraphCanvas({
                 <path d={geometry.path} markerEnd="url(#graph-arrow)" fill="none" />
                 {edge.label ? (
                   <g>
-                    <rect x={geometry.mid.x - labelWidth / 2} y={geometry.mid.y - 14} width={labelWidth} height={26} rx={4} className={styles.edge__labelBg} />
-                    <text x={geometry.mid.x} y={geometry.mid.y + 5} textAnchor="middle" className={styles.edge__label}>
+                    <rect
+                      x={geometry.mid.x - labelWidth / 2}
+                      y={geometry.mid.y - 14}
+                      width={labelWidth}
+                      height={26}
+                      rx={4}
+                      className={styles.edge__labelBg}
+                    />
+                    <text
+                      x={geometry.mid.x}
+                      y={geometry.mid.y + 5}
+                      textAnchor="middle"
+                      className={styles.edge__label}
+                    >
                       {edge.label}
                     </text>
                   </g>
@@ -260,7 +304,11 @@ export function GraphCanvas({
             ]
               .filter(Boolean)
               .join(" ");
-            const flags = [isStart ? "стартовый" : "", hasError ? "есть ошибки" : "", isUnused ? "не используется" : ""].filter(Boolean);
+            const flags = [
+              isStart ? "стартовый" : "",
+              hasError ? "есть ошибки" : "",
+              isUnused ? "не используется" : "",
+            ].filter(Boolean);
             return (
               <g key={node.id} transform={`translate(${origin.x} ${origin.y})`}>
                 <g

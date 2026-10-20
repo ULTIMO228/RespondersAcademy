@@ -52,7 +52,11 @@ export function getGraphScenarioVersion(
   version: number,
   signal?: AbortSignal,
 ): Promise<AIScenarioVersion> {
-  return v1ApiClient.get<AIScenarioVersion>(`${scenarioPath(scenarioId)}/versions/${version}`, undefined, signal);
+  return v1ApiClient.get<AIScenarioVersion>(
+    `${scenarioPath(scenarioId)}/versions/${version}`,
+    undefined,
+    signal,
+  );
 }
 
 export function createGraphScenario(body: ScenarioGraphCreateRequest): Promise<AIScenarioVersion> {

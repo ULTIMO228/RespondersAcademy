@@ -1,7 +1,13 @@
 "use client";
 
 import { useId } from "react";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 
 import styles from "./controls.module.css";
 
@@ -111,7 +117,10 @@ export function Select({
   );
 }
 
-export function Checkbox({ label, ...rest }: { label: string } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "type">) {
+export function Checkbox({
+  label,
+  ...rest
+}: { label: string } & Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "type">) {
   return (
     <label className={styles.check}>
       <input type="checkbox" className={styles.check__box} {...rest} />

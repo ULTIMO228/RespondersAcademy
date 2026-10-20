@@ -31,8 +31,10 @@ export function workflowActions(
   const editable = approval !== null && EDITABLE.includes(approval);
   const canSave = editable && dirty;
   let saveHint: string | null = null;
-  if (approval === "pending_review") saveHint = "Версия на проверке — изменить её нельзя. Дождитесь решения эксперта.";
-  else if (approval === "approved") saveHint = "Версия принята — изменить её нельзя. Опубликуйте её или создайте новую версию.";
+  if (approval === "pending_review")
+    saveHint = "Версия на проверке — изменить её нельзя. Дождитесь решения эксперта.";
+  else if (approval === "approved")
+    saveHint = "Версия принята — изменить её нельзя. Опубликуйте её или создайте новую версию.";
   else if (editable && !dirty) saveHint = "Нет несохранённых изменений.";
   const canReview = approval === "pending_review" && permissions.includes("scenario.review");
   return {

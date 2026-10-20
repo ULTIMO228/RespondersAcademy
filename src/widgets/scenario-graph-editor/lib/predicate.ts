@@ -26,7 +26,10 @@ export function predicateKind(predicate: GraphPredicate): PredicateKind {
 }
 
 /** Оборачивает предикат в all/any/not (all/any получают второй пустой лист для заполнения). */
-export function wrapPredicate(predicate: GraphPredicate, kind: Exclude<PredicateKind, "leaf">): GraphPredicate {
+export function wrapPredicate(
+  predicate: GraphPredicate,
+  kind: Exclude<PredicateKind, "leaf">,
+): GraphPredicate {
   if (kind === "not") return { not: predicate };
   return kind === "all" ? { all: [predicate, emptyLeaf()] } : { any: [predicate, emptyLeaf()] };
 }
@@ -72,7 +75,12 @@ export function leafValueToText(leaf: GraphLeafPredicate): string {
 export function changeLeafOp(leaf: GraphLeafPredicate, op: GraphPredicateOp): GraphLeafPredicate {
   const next: GraphLeafPredicate = { fact: leaf.fact, op };
   if (op === "exists") return next;
-  if (op === "in") next.value = Array.isArray(leaf.value) ? leaf.value : leaf.value === undefined || leaf.value === "" ? [] : [leaf.value];
+  if (op === "in")
+    next.value = Array.isArray(leaf.value)
+      ? leaf.value
+      : leaf.value === undefined || leaf.value === ""
+        ? []
+        : [leaf.value];
   else next.value = Array.isArray(leaf.value) ? (leaf.value[0] ?? "") : (leaf.value ?? "");
   return next;
 }

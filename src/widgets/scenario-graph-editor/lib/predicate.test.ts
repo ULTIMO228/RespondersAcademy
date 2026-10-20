@@ -35,8 +35,16 @@ describe("предикаты", () => {
   });
 
   it("смена операции приводит значение к нужной форме", () => {
-    expect(changeLeafOp({ fact: "f", op: "eq", value: "a" }, "in")).toEqual({ fact: "f", op: "in", value: ["a"] });
-    expect(changeLeafOp({ fact: "f", op: "in", value: ["a", "b"] }, "eq")).toEqual({ fact: "f", op: "eq", value: "a" });
+    expect(changeLeafOp({ fact: "f", op: "eq", value: "a" }, "in")).toEqual({
+      fact: "f",
+      op: "in",
+      value: ["a"],
+    });
+    expect(changeLeafOp({ fact: "f", op: "in", value: ["a", "b"] }, "eq")).toEqual({
+      fact: "f",
+      op: "eq",
+      value: "a",
+    });
     expect(changeLeafOp({ fact: "f", op: "eq", value: "a" }, "exists")).toEqual({ fact: "f", op: "exists" });
   });
 });

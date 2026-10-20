@@ -74,7 +74,9 @@ describe("клиент графа сценариев /api/v1/ai/scenarios", () =
 
   it("403 бэкенда превращается в ApiError с русским сообщением", async () => {
     stubFetch(403, { error: { code: "forbidden", message: "Нет права публикации" } });
-    await expect(publishGraphScenario("s-1", { version: 1, requestId: "r" })).rejects.toBeInstanceOf(ApiError);
+    await expect(publishGraphScenario("s-1", { version: 1, requestId: "r" })).rejects.toBeInstanceOf(
+      ApiError,
+    );
     stubFetch(403, { error: { code: "forbidden", message: "Нет права публикации" } });
     await expect(publishGraphScenario("s-1", { version: 1, requestId: "r" })).rejects.toMatchObject({
       status: 403,
