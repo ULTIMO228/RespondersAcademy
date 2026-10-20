@@ -148,4 +148,15 @@ describe("Operator112Screen: клавиатура и скринридер (FR-03
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
   });
+
+  it("Esc в окне «Добавьте службы» закрывает только окно, карточка не спрашивает о закрытии", async () => {
+    render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Принять" }));
+    await screen.findByLabelText("Фамилия и имя заявителя");
+    fireEvent.click(screen.getByRole("button", { name: "Добавить службы" }));
+    expect(await screen.findByRole("dialog", { name: "Добавьте службы" })).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { code: "Escape", key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Добавьте службы" })).toBeNull());
+    expect(screen.queryByText("Закрыть карточку без сохранения?")).toBeNull();
+  });
 });

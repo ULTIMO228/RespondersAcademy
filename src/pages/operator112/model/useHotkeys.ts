@@ -39,6 +39,8 @@ export function useHotkeys(map: HotkeyMap, enabled = true) {
         return;
       if (combo === "Escape" && target && (TEXT_FIELDS.has(target.tagName) || target.isContentEditable))
         return;
+      // Esc закрывает открытое модальное окно (у него свой обработчик), а не карточку под ним.
+      if (combo === "Escape" && document.querySelector('[role="dialog"][aria-modal="true"]')) return;
       event.preventDefault();
       handler();
     };

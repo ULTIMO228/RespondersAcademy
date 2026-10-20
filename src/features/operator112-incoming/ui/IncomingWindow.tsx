@@ -33,6 +33,16 @@ export function IncomingWindow({
   const acceptRef = useRef<HTMLButtonElement>(null);
   const isSms = channel === "sms";
   useEffect(() => acceptRef.current?.focus(), []);
+  // Esc — как «×»: окно скрывается, вызов остаётся в очереди (памятка §3.17: Esc закрывает всплывающее окно).
+  const onHideRef = useRef(onHide);
+  onHideRef.current = onHide;
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") onHideRef.current();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     // Кнопка в фокусе обрабатывает Enter сама (click); перехватываем только Enter вне кнопок.

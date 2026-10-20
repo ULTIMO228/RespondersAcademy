@@ -108,7 +108,7 @@ export function Operator112Session({
     else if (attempt.state === "answered" && row.cardId === attempt.cardId) op.backToCard();
   };
 
-  // Журнал по памятке АРМ-112 §3.17: Insert — новая карточка, Enter — «Принять» в окне вызова, Esc — скрыть окно.
+  // Журнал по памятке АРМ-112 §3.17: Insert — новая карточка, Enter — «Принять» в окне вызова (Esc окно обрабатывает само).
   useHotkeys(
     {
       Insert: () => {
@@ -116,9 +116,6 @@ export function Operator112Session({
       },
       Enter: () => {
         if (view === "incoming" && !op.isAnswering) accept();
-      },
-      Escape: () => {
-        if (view === "incoming") op.hideCall();
       },
     },
     isJournalShown,
