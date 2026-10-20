@@ -24,7 +24,7 @@ from app.api.errors import ApiError
 from app.config import get_settings
 from app.services import caller_persona as persona
 from app.services.realtime_cascade import CascadeSession, stream_reply
-from ml.speech import vad
+from ml.speech import gigaam_stt, vad
 
 PROVIDER = "Polza.ai"
 logger = logging.getLogger(__name__)
@@ -48,8 +48,13 @@ def configured() -> bool:
                      and silero.live_model_path(settings.live_call_silero_model).exists())
     else:
         voice = bool(settings.live_call_polza_tts_model)
+    if settings.live_call_stt_engine == "gigaam":
+        model = settings.live_call_gigaam_model
+        hearing = bool(model and gigaam_stt.available() and gigaam_stt.weights_path(model).exists())
+    else:
+        hearing = bool(settings.live_call_polza_stt_model)
     return bool(key and key.get_secret_value().strip()
-                and settings.live_call_polza_chat_model and settings.live_call_polza_stt_model and voice
+                and settings.live_call_polza_chat_model and hearing and voice
                 and importlib.util.find_spec("torch") and vad.model_path().exists())
 
 
@@ -72,6 +77,21 @@ async def warm_voice() -> None:
         await asyncio.to_thread(silero.synthesize_live, "Да.", settings.live_call_silero_model or "",
                                 settings.live_call_silero_speaker or "")
         _voice_warm = True
+
+
+_stt_warm = False
+
+
+async def warm_stt() -> None:
+    """Локальное распознавание: загрузка весов и первый прогон — до первого звонка, а не на первой реплике."""
+    global _stt_warm
+    settings = get_settings()
+    if settings.live_call_stt_engine != "gigaam" or _stt_warm:
+        return
+    async with _voice_lock:
+        if not _stt_warm:
+            await asyncio.to_thread(gigaam_stt.transcribe, b"\0\0" * 8000, settings.live_call_gigaam_model or "")
+            _stt_warm = True
 
 
 def provider_error(status: int, what: str) -> ApiError:
@@ -117,6 +137,11 @@ class PolzaSession(CascadeSession):
             await warm_voice()  # до «ready»: иначе приветствие ждёт загрузку модели
         except Exception as exc:
             raise ApiError(503, "internal", "Локальный голос Silero недоступен: проверьте LIVE_CALL_SILERO_*") from exc
+        try:
+            await warm_stt()
+        except Exception as exc:
+            raise ApiError(503, "internal", "Локальное распознавание GigaAM недоступно: проверьте LIVE_CALL_GIGAAM_MODEL "
+                           "и uv sync --extra stt-local") from exc
         self.client = httpx.AsyncClient(timeout=httpx.Timeout(settings.polza_timeout_sec, connect=10),
                                         follow_redirects=False)
         await self.emit("session.created", session={"capabilities": {"turn_detection": ["server_vad"]}})
@@ -257,6 +282,11 @@ class PolzaSession(CascadeSession):
     # --- распознавание: локальный VAD режет реплики, текст — Polza STT ---
     async def transcribe(self, pcm: bytes) -> str:
         settings = get_settings()
+        if settings.live_call_stt_engine == "gigaam":
+            try:
+                return await asyncio.to_thread(gigaam_stt.transcribe, pcm, settings.live_call_gigaam_model or "")
+            except Exception as exc:
+                raise ApiError(503, "internal", "Локальное распознавание GigaAM не сработало") from exc
         try:
             response = await self.client.post(
                 self._base() + "/audio/transcriptions", headers=self._headers(),

@@ -13,7 +13,7 @@ from app.services import realtime_call_service as call
 from ml.speech import vad
 
 REQUIRED = {
-    "polza": ("polza_api_key", "live_call_polza_chat_model", "live_call_polza_stt_model"),
+    "polza": ("polza_api_key", "live_call_polza_chat_model"),
     "cascade": ("live_call_llm_url", "live_call_llm_api_key"),
     "speechkit": ("speechkit_api_key", "live_call_llm_url", "live_call_llm_api_key"),
     "omni": ("live_call_realtime_url",),
@@ -29,6 +29,17 @@ def problems() -> list[str]:
     if not settings.live_call_public_ws_url:
         found.append("LIVE_CALL_PUBLIC_WS_URL (ws://127.0.0.1:<порт бэкенда>/api/v1/operator112/realtime)")
     found += [name.upper() for name in REQUIRED[transport] if not getattr(settings, name)]
+    if transport == "polza" and settings.live_call_stt_engine == "gigaam":
+        from ml.speech import gigaam_stt
+
+        if not settings.live_call_gigaam_model:
+            found.append("LIVE_CALL_GIGAAM_MODEL")
+        elif not gigaam_stt.available():
+            found.append("пакет gigaam: uv sync --extra tts --extra stt-local")
+        elif not gigaam_stt.weights_path(settings.live_call_gigaam_model).exists():
+            found.append("веса GigaAM: uv run python -m scripts.gigaam_check (скачает и замерит)")
+    elif transport == "polza" and not settings.live_call_polza_stt_model:
+        found.append("LIVE_CALL_POLZA_STT_MODEL")
     if transport == "polza" and settings.live_call_tts_engine == "silero":
         from ml.speech import tts as silero
 
@@ -52,7 +63,10 @@ def main() -> int:
     print(f"Транспорт живого заявителя: {transport}")
     if transport == "polza":
         print(f"  разговор: {settings.live_call_polza_chat_model or '—'}")
-        print(f"  распознавание: {settings.live_call_polza_stt_model or '—'}")
+        if settings.live_call_stt_engine == "gigaam":
+            print(f"  распознавание: GigaAM локально — {settings.live_call_gigaam_model or '—'}")
+        else:
+            print(f"  распознавание: {settings.live_call_polza_stt_model or '—'}")
         if settings.live_call_tts_engine == "silero":
             print(f"  голос: Silero локально — {settings.live_call_silero_model or '—'}, {settings.live_call_silero_speaker or '—'}")
         else:

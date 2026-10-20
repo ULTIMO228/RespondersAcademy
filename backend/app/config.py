@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     # (условие организаторов: модели с открытыми весами, разворачиваемые позже локально; без хардкода).
     live_call_polza_chat_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_CHAT_MODEL")
     live_call_polza_stt_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_STT_MODEL")
+    # Распознавание речи оператора: polza — через API; gigaam — локально на CPU (uv sync --extra stt-local).
+    live_call_stt_engine: Literal["polza", "gigaam"] = Field(default="polza", alias="LIVE_CALL_STT_ENGINE")
+    live_call_gigaam_model: str | None = Field(default=None, alias="LIVE_CALL_GIGAAM_MODEL")
     live_call_polza_tts_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_MODEL")
     live_call_polza_tts_voice: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_VOICE")
     # Движок голоса заявителя: polza (облако) или silero (локально на CPU, без сети; модель — MODELS_DIR/silero-live/<файл>).

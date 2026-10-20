@@ -834,3 +834,31 @@ def test_prompt_explains_silence_mark():
     from app.services.caller_persona import STYLE
 
     assert polza.NUDGE in STYLE
+
+
+async def test_local_gigaam_recognition_needs_no_network(settings, monkeypatch):
+    # Распознавание локально (GigaAM-v3 на CPU): −~2 с на ход против API, данные не уходят наружу.
+    from ml.speech import gigaam_stt
+
+    monkeypatch.setattr(settings, "live_call_stt_engine", "gigaam")
+    monkeypatch.setattr(settings, "live_call_gigaam_model", "v3_e2e_rnnt")
+    seen = {}
+    monkeypatch.setattr(gigaam_stt, "transcribe", lambda pcm, name: seen.update(name=name, size=len(pcm)) or "Где горит?")
+    session = _session(lambda _: pytest.fail("сетевой запрос при локальном распознавании"))
+    assert await session.transcribe(b"\0\0" * 1600) == "Где горит?"
+    assert seen == {"name": "v3_e2e_rnnt", "size": 3200}
+    await session.client.aclose()
+
+
+def test_gigaam_engine_does_not_need_polza_stt_model(settings, monkeypatch):
+    from ml.speech import gigaam_stt
+
+    monkeypatch.setattr(polza.vad, "model_path", lambda: type("P", (), {"exists": lambda self: True})())
+    monkeypatch.setattr(polza.importlib.util, "find_spec", lambda _name: object())
+    monkeypatch.setattr(settings, "live_call_stt_engine", "gigaam")
+    monkeypatch.setattr(settings, "live_call_polza_stt_model", None)
+    monkeypatch.setattr(settings, "live_call_gigaam_model", "v3_e2e_rnnt")
+    monkeypatch.setattr(gigaam_stt, "weights_path", lambda name: type("P", (), {"exists": lambda self: True})())
+    assert polza.configured()
+    monkeypatch.setattr(gigaam_stt, "weights_path", lambda name: type("P", (), {"exists": lambda self: False})())
+    assert not polza.configured()  # веса не скачаны — не включаем

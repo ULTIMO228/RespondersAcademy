@@ -2,11 +2,12 @@
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
 Finals:2026-10-23 online pitch | rule(moderator 17–19.10): API only for open-weight models deployable on TZ server (CPU≥6c,32GB,no GPU), no hardcode
-Tests@2026-10-20 (cloud, uv run pytest -q):{pytest:1028 passed/3 skipped/0 red, ruff:clean}
+Tests@2026-10-20 (cloud, uv run pytest -q):{pytest:1032 passed/3 skipped/0 red, ruff:clean}
 Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanceOf red on clean main too (env), 1 more flaky in first run} | not run:{npm run check, e2e, simulator-visual}
 Updated:2026-10-19
 
 ## Story
+00000000000 2026-10-20 local STT option: extra stt-local (gigaam git@7447938, torchaudio 2.11 OK with torch 2.14 — import+features checked), ml/speech/gigaam_stt.py (in-memory, no ffmpeg), LIVE_CALL_STT_ENGINE=gigaam + LIVE_CALL_GIGAAM_MODEL, warm_stt, scripts/gigaam_check.py (local vs Polza ms) | ⚠️ real weights NOT run: CDN cdn.chatwm.opensmodel.sberdevices.ru blocked in cloud
 0000000000 2026-10-20 liveliness: LIVE_CALL_YIELD_MS=600 (operator sound over caller < 600ms voiced → ignored, no STT; after caller stopped → normal answer) | LIVE_CALL_NUDGE_SEC=5 (silence → «[оператор молчит]» → caller speaks; calm ×2; max 2 in a row) | pytest 1028 | not checked live | next: local GigaAM STT option + owner probe script
 000000000 2026-10-20 barge never fired in owner calls (prep at 5s + STT/LLM 4–5s → operator done first) → prepare at LIVE_CALL_BARGE_PREPARE_SEC=1.5 voiced, hold events server-side, release at LIVE_CALL_BARGE_IN_SEC=4 voiced; drop (no browser, no history) if operator ends first; INFO log reasons | not checked live
 00000000 2026-10-20 caller LLM → qwen/qwen3-30b-a3b-instruct-2507 (team decision: Qwen; GLM 328GB ≠ TZ server) in .env.example/docs/spec 005; owner must edit own backend/.env (remove REASONING_*) | not re-listened after prompt fixes
@@ -29,6 +30,7 @@ STT batch per utterance (Polza has no streaming STT) → VAD end-silence 700ms; 
 model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configured()=False until all 3 set
 
 ## Action
+!000000 owner (Mac): uv sync --group dev --extra tts --extra stt-local → uv run python -m scripts.gigaam_check → if fast: LIVE_CALL_STT_ENGINE=gigaam; numbers for pitch
 !00000 owner: backend/.env CHAT_MODEL=qwen/qwen3-30b-a3b-instruct-2507, drop LIVE_CALL_POLZA_REASONING_* → headset check quality
 !0000 owner: talk_caller --card c-010 --tags → judge new prompt; give bad-reply examples if still poor; rotate Polza key (pasted in chat 20.10)
 !000 owner: live call → read log «Ход оператора/заявителя … мс» → pick next bottleneck; try LIVE_CALL_POLZA_REASONING_MAX_TOKENS=32
