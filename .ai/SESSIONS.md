@@ -40,6 +40,68 @@ Caution:
   ⚠️ Do not use git add .
   ⚠️ no Co-Authored-By trailer
 
+## 2026-10-19T23:30:00+03:00 | @claude (cloud) | branch:claude/pensive-feynman-smkr22 | mode:normal
+Focus: finals prep → 3 red backend tests, AMIR merge, live caller via Polza.ai
+Done: ✅
+  - fix: dataset manifest hashes were CRLF (Windows build) → LF; pack.py text_sha256
+  - fix: test_ready_applicant_audio order-dependent → creates+deletes own attempt, paired negative
+  - merge origin/AMIR into own branch (not main); spec 003-live-caller → 005-live-caller
+  - fix: lobby/recommendations/work_messages routers included twice (Duplicate Operation ID)
+  - feat: LIVE_CALL_REALTIME_TRANSPORT=polza (default): Silero VAD → Polza STT → stream LLM → Polza TTS
+  - feat: caller_persona: mood tags + nonverbal tags, TagFilter hides tags, TTS instructions, sounds dir
+  - POLZA_MODEL no default (was openai/gpt-4o-mini, closed) → required for AI_PROVIDER=polza
+Decisions: 🧠
+  - organizers rule (moderator 17–19.10): API ok only for models deployable on TZ server (CPU 6c/32GB, no GPU), no hardcode
+  - owner: everything via Polza.ai; Qwen family (ASR 1.7B, 3.6-35B-A3B, TTS 1.7B CustomVoice) candidates
+  - speechkit/omni = prototypes outside rule
+Next:
+  !1: owner runs scripts.smoke_polza_caller --models, sets IDs, runs smoke + headset call
+  !2: nonverbal sound library (sigh/sob/cough/breath wav, licensed)
+   3: latency benchmark on TZ-like hardware
+Caution:
+  ⚠️ polza.ai + huggingface.co blocked from cloud container → no real calls made
+  ⚠️ vitest teacher-v1 Blob instanceOf red on clean main in cloud (Node 22/jsdom), not ours
+
+## 2026-10-20T03:30:00+03:00 | @claude (cloud) | branch:claude/pensive-feynman-smkr22 | mode:normal
+Focus: live caller on real Polza API
+Done: ✅
+  - catalog: STT open {gigaam-v3, qwen3-asr}; TTS 12/12 closed; glm-5.3-flash reasoning mandatory
+  - gigaam-v3 2.6s accurate vs qwen3-asr 33.8s; glm capped median 1.4s first token vs qwen3-30b-instruct 2.2s
+  - fixes: TTS JSON base64 + voice; reasoning.max_tokens setting; token limit 1500 (finish=length); retry/partial; fillers; parallel TTS; interrupted reply memory; persona exact numbers
+  - tests no longer read backend/.env (were going to real Polza config)
+  - backend/.env written by owner request (keys in chat) → gitignored
+Decisions: 🧠
+  - reasoning.max_tokens > reasoning_effort for GLM (effort=low → up to 1500 reasoning tokens)
+  - TTS gpt-4o-mini-tts coral for demo only, flagged closed
+Next:
+  !1 owner decisions: TTS rule, GLM vs TZ hardware, transcript of interrupted lines
+  !2 headset call: ./scripts/demo-up.sh --live
+Caution:
+  ⚠️ rotate Polza/Groq/SpeechKit keys after finals (posted in chat)
+
+## 2026-10-20T12:00:00+03:00 | @claude (cloud) | branch:claude/pensive-feynman-smkr22 | mode:normal
+Focus: latency + Russian voice for live caller
+Done: ✅ filler removed (owner) | serve() logs unexpected errors | Silero v5.6 local TTS engine + prepare_models tts-live + warmup | real call ~5s
+Decisions: 🧠 SpeechKit rejected by owner; Polza TTS accent + ~3s → local Silero (CC BY-NC, ok for hackathon)
+Next: !1 local STT gigaam-v3 | !2 headset test by owner | !3 transcript of interrupted lines (owner decision)
+
+## 2026-10-20 claude/awesome-curie-i39fyz
+focus:live caller latency
+done:early STT (LIVE_CALL_EARLY_COMMIT_MS) | first-phrase comma split | per-stage latency log | docs/LIVE-CALLER-POLZA.md
+checks:pytest 1009 passed/3 skipped, ruff clean | live call not run (no key, huggingface blocked)
+next:owner live call + read latency log; local GigaAM-v3 STT
+
+## 2026-10-20b claude/awesome-curie-i39fyz
+focus:caller prompt quality
+done:facts_text, prompt rewrite, STYLE fillers down, [перебили] tag
+checks:pytest 1013 passed/3 skipped, ruff clean | live model eval NOT run (permission denied for pasted key)
+next:owner live check; old-vs-new eval script in scratchpad only
+
+## 2026-10-20c claude/awesome-curie-i39fyz
+focus:caller barge-in (liveliness)
+done:backend barge_in + STILL_TALKING prompt + relay interrupting; front playback overlapping
+checks:pytest 1020/3 skipped, ruff clean, vitest 40/40 (realtime-audio, softphone), tsc ok | npm run check, e2e not run
+next:owner headset test; tune LIVE_CALL_BARGE_IN_SEC
 ---
 ## 2026-10-20 | @claude | branch:SASHA | mode:normal
 Focus: speckit install, 009 plan+tasks (student-112 only), 008 finish (T039-T041)

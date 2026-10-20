@@ -8,7 +8,7 @@
   ```
   AI_PROVIDER=polza
   POLZA_API_KEY=<ключ>
-  # по умолчанию: POLZA_BASE_URL=https://polza.ai/api/v1, POLZA_MODEL=openai/gpt-4o-mini
+  POLZA_MODEL=<ID модели с открытыми весами по каталогу Polza>  # обязательна: значения по умолчанию нет (поправка 2026-10-19)
   ```
 - Сеть до `polza.ai` открыта (в облачном контейнере — домен в Allowed domains окружения).
 - Отдельная база, чтобы не трогать `dev.db`/`demo.db`:

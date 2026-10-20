@@ -29,10 +29,23 @@ MODELS = {
         "dir": "silero",
         "file": "v4_ru.pt",
     },
+    "tts-live": {
+        # Голос живого заявителя (фича 005): Silero v5.6 ru, 5 голосов, SSML prosody, интонация по типу фразы.
+        "url": "https://models.silero.ai/models/tts/ru/v5_6_ru.pt",
+        "sha256": "04cc9b1d08ce38bcaa9d02c488d80d3e6806d17f7eaa7c95982f36a3cbf50b2e",
+        "dir": "silero-live",  # своя папка: .sha256.json пишется на папку и затёр бы запись v4 ("tts")
+        "file": "v5_6_ru.pt",
+    },
     "stt": {
         "url": "https://alphacephei.com/vosk/models/vosk-model-small-ru-0.22.zip",
         "sha256": "961d5ff98a17f4aa6de69864d0aa71fa5bac682301d2b5d17a3f24c5c99a46d4",
         "dir": "vosk-model-small-ru-0.22",
+    },
+    "vad": {
+        "url": "https://raw.githubusercontent.com/snakers4/silero-vad/1e261b036686cd0017d500ee96acd1c4ba572a9d/src/silero_vad/data/silero_vad.jit",
+        "sha256": "e1122837f4154c511485fe0b9c64455f7b929c96fbb8d79fbdb336383ebd3720",
+        "dir": "silero-vad",
+        "file": "silero_vad.jit",
     },
 }
 DEFAULT_MODELS = ("embedder", "dedup", "symspell")
