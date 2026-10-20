@@ -14,6 +14,9 @@
 | `POST /api/v1/ai/scenarios/{id}/revise` | teacher/admin | `baseVersion`, `comment`, `acceptedFields[]`, `requestId` | Новая версия `draft`, связь с комментарием; старая не меняется. |
 | `POST /api/v1/ai/scenarios/{id}/approve` | teacher/admin | `version`, `requestId` | `approved` только после полной валидации и авторства преподавателя; `409` при устаревшей версии. |
 | `GET /api/v1/ai/scenarios/{id}/versions` | teacher/admin | — | История с источником, проверками и решениями, без сырого неочищенного билета. |
+| `POST /api/v1/ai/scenarios` | teacher/admin | `mode`, `sourceTicketId`, `category`, `title?`, `summary`, `address?`, `requestId` | Ручной черновик: версия 1, `sourceKind: ticket`, `approval: draft`; карточка и эталон строятся на очищенном билете и справочнике ЕКП, адрес сверяется с локальным справочником. Повтор `requestId` — тот же ответ, иная нагрузка — `409`. |
+| `GET /api/v1/ai/scenarios?mode=` | teacher/admin | — | Сводка по последней версии каждого сценария (`latestVersion`, `approval`, `validation`); преподаватель видит свои, администратор — все. |
+| `GET /api/v1/ai/scenarios/{id}/versions/{n}` | teacher/admin | — | Одна версия с эталоном и решениями по полям; `404` для чужой/неизвестной версии. Изменение сохраняется через `revise` (новая версия). |
 
 Совместимые `/api/mock/scenarios/generate`, `/scenarios/{id}/validate` и выдача сценариев остаются; новый workflow поверх них не даёт студенту черновики. `sourceTicketId` принимается только из общего реестра утверждённых `SanitizedTicket`, до вызова генератора; исходный скан не поступает ни модели, ни шаблонному пути. Любой адрес сверяется с локальным справочником, тип/служба — с ЕКП, обязательные действия — с эталоном. Если валидатор отклоняет предложение LLM, допустим шаблонный `draft` с явным `sourceKind: template`.
 

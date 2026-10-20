@@ -28,7 +28,7 @@ from app.models.card import Address, IncidentCard
 from app.models.classifier import ClassifierEntry
 from app.models.scenario import Scenario
 from app.models.teacher import ProfileMappingRow
-from app.schemas.v1.ai import ScenarioDraftRequest
+from app.schemas.v1.ai import ScenarioDraftRequest, ScenarioManualCreateRequest
 from app.services import reference as reference_service
 from app.services.audit import record
 from app.services.external_ai_audit import flush_external_calls
@@ -346,6 +346,9 @@ async def _save_draft(
     classifier_entries: list[dict[str, Any]],
     profile_groups: set[str],
     address_allowlist: set[str],
+    *,
+    source_kind: str | None = None,
+    scenario_source: str = "generated",
 ) -> dict[str, Any]:
     scenario_doc = dict(item.get("scenario") or {})
     tickets = item.get("cards") or []
@@ -389,7 +392,7 @@ async def _save_draft(
     scenario_doc["id"] = scenario_id
     scenario_doc["title"] = str(scenario_doc.get("title") or f"Вариация: {category}")
     scenario_doc["cardIds"] = [card_id]
-    scenario_doc["source"] = "generated"
+    scenario_doc["source"] = scenario_source
     scenario_doc["mode"] = mode
     scenario_doc["validation"] = {"status": "draft"}
     scenario_doc.setdefault("generation", {})["sourceTicketId"] = source.source_ticket_id
@@ -426,7 +429,7 @@ async def _save_draft(
     )
     passed = not errors
     provider = str((scenario_doc.get("generation") or {}).get("provider") or "template")
-    source_kind = "llm" if provider.startswith("ollama:") else "template"
+    source_kind = source_kind or ("llm" if provider.startswith("ollama:") else "template")
     etalon_id = f"{scenario_id}:etalon:1"
     classifier_version = str((await reference_service.read_classifier_meta(db)).get("version") or "classifier-seed")
     etalon = EtalonVersion(
@@ -567,6 +570,111 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
         details=f"Создано черновиков: {len(responses)}; режим {body.mode}; источник {source.source_ticket_id}:{source.situation_no}",
     )
     return _finish_request(request, responses)
+
+
+async def create_manual_draft(db: AsyncSession, body: ScenarioManualCreateRequest, viewer: Viewer) -> dict[str, Any]:
+    """Ручной черновик (версия 1): текст и адрес вводит преподаватель, остальное берётся из справочников."""
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Создавать сценарии может преподаватель или администратор")
+    payload = body.model_dump(by_alias=True, mode="json")
+    request, replay = await _reserve_request(
+        db, viewer, operation="manual", request_id=body.request_id, payload=payload
+    )
+    if request is None:
+        return replay
+
+    source = await _load_source(db, body.source_ticket_id)
+    classifier_rows = (await db.execute(select(ClassifierEntry).order_by(ClassifierEntry.code))).scalars().all()
+    classifier_entries = [row.to_contract() for row in classifier_rows]
+    classifier_entry = next((row for row in classifier_entries if row.get("group") == body.category), None)
+    if classifier_entry is None:
+        raise validation_failed(f"Категория «{body.category}» отсутствует в классификаторе ЕКП")
+    addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
+    card = _safe_base_card(source, body.category, classifier_entry, addresses)
+    card["summary"] = body.summary
+    if body.address is not None:
+        card["address"] = body.address
+    item = {"scenario": {"title": body.title or f"Сценарий: {body.category}"}, "cards": [card]}
+    result = await _save_draft(
+        db,
+        viewer,
+        source,
+        body.mode,
+        body.category,
+        item,
+        classifier_entries,
+        await _profile_groups(db),
+        _address_allowlist(addresses),
+        source_kind="ticket",
+        scenario_source="manual",
+    )
+    await record(
+        db,
+        action="ai.scenario.create",
+        user_id=viewer.user_id,
+        role=viewer.role,
+        details=f"Создан ручной черновик {result['scenarioId']}; режим {body.mode}; источник {source.source_ticket_id}:{source.situation_no}",
+    )
+    return _finish_request(request, result)
+
+
+async def read_version(db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer) -> dict[str, Any]:
+    await require_scenario_access(db, scenario_id, viewer)
+    version = await db.get(ScenarioVersion, (scenario_id, version_number))
+    if version is None:
+        raise not_found(f"Версия {version_number} сценария «{scenario_id}» не найдена")
+    etalon = await db.get(EtalonVersion, version.etalon_version)
+    if etalon is None:
+        raise not_found(f"Эталон версии {version_number} сценария «{scenario_id}» не найден")
+    decisions = (
+        await db.execute(
+            select(DraftFieldDecision)
+            .where(DraftFieldDecision.scenario_id == scenario_id, DraftFieldDecision.scenario_version == version_number)
+            .order_by(DraftFieldDecision.id)
+        )
+    ).scalars().all()
+    return scenario_version_contract(version, etalon, list(decisions))
+
+
+async def list_scenarios(db: AsyncSession, viewer: Viewer, mode: str | None) -> list[dict[str, Any]]:
+    """Сводка по последней версии каждого AI-сценария; преподаватель видит свои, администратор — все."""
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Список сценариев доступен только преподавателю или администратору")
+    if mode is not None and mode not in ("operator112", "dds"):
+        raise validation_failed("mode должен быть operator112 или dds")
+    query = select(ScenarioVersion).order_by(ScenarioVersion.scenario_id, ScenarioVersion.version)
+    if mode is not None:
+        query = query.where(ScenarioVersion.mode == mode)
+    latest: dict[str, ScenarioVersion] = {}
+    owners: dict[str, set[str]] = {}
+    for version in (await db.execute(query)).scalars().all():
+        latest[version.scenario_id] = version
+        owners.setdefault(version.scenario_id, set()).add(version.created_by)
+    scenarios = {
+        row.id: row
+        for row in (await db.execute(select(Scenario).where(Scenario.id.in_(list(latest))))).scalars().all()
+        if not row.deleted
+    }
+    result: list[dict[str, Any]] = []
+    for scenario_id, version in latest.items():
+        scenario = scenarios.get(scenario_id)
+        if scenario is None:
+            continue
+        if viewer.role == "teacher" and viewer.user_id not in owners[scenario_id] and scenario.created_by not in (None, viewer.user_id):
+            continue
+        result.append(
+            {
+                "scenarioId": scenario_id,
+                "title": scenario.title,
+                "mode": version.mode,
+                "latestVersion": version.version,
+                "approval": version.approval,
+                "validation": version.validation,
+                "sourceKind": version.source_kind,
+                "updatedAt": scenario.updated_at,
+            }
+        )
+    return result
 
 
 async def require_scenario_access(db: AsyncSession, scenario_id: str, viewer: Viewer) -> Scenario:

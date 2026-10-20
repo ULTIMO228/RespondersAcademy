@@ -10,11 +10,47 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Viewer, require_viewer
 from app.db.session import get_db
-from app.schemas.v1.ai import ScenarioApproveRequest, ScenarioDraftRequest, ScenarioReviseRequest
+from app.schemas.v1.ai import (
+    ScenarioApproveRequest,
+    ScenarioDraftRequest,
+    ScenarioManualCreateRequest,
+    ScenarioReviseRequest,
+)
 from app.services.ai_scenario_review import approve_scenario, revise_scenario, versions_for_teacher
+from app.services.ai_scenario_service import create_manual_draft, list_scenarios, read_version
 from app.services.scenario_service import create_ai_drafts
 
 router = APIRouter(prefix="/ai/scenarios", tags=["AI scenarios"])
+
+
+@router.get("")
+async def list_(
+    mode: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> list[dict[str, Any]]:
+    return await list_scenarios(db, viewer, mode)
+
+
+@router.post("", status_code=201)
+async def create_manual(
+    body: ScenarioManualCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> JSONResponse:
+    result = await create_manual_draft(db, body, viewer)
+    await db.commit()
+    return JSONResponse(result, status_code=201)
+
+
+@router.get("/{scenario_id}/versions/{version}")
+async def version_detail(
+    scenario_id: str,
+    version: int,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> dict[str, Any]:
+    return await read_version(db, scenario_id, version, viewer)
 
 
 @router.post("/drafts", status_code=201)

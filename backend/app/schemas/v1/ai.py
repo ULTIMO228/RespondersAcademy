@@ -49,6 +49,18 @@ class ScenarioDraftRequest(StrictAIContractModel):
     request_id: RequestId
 
 
+class ScenarioManualCreateRequest(StrictAIContractModel):
+    """Ручной черновик преподавателя: версия 1 строится на очищенном билете и серверном справочнике ЕКП."""
+
+    mode: Mode
+    source_ticket_id: Annotated[str, Field(min_length=1, max_length=64)]
+    category: Annotated[str, Field(min_length=1, max_length=160)]
+    title: Annotated[str, Field(min_length=1, max_length=200)] | None = None
+    summary: Annotated[str, Field(min_length=1, max_length=2000)]
+    address: Annotated[str, Field(min_length=1, max_length=300)] | None = None
+    request_id: RequestId
+
+
 class ScenarioFieldDecisionRequest(StrictAIContractModel):
     field_path: Annotated[str, Field(min_length=1, max_length=256)]
     decision: FieldDecisionKind

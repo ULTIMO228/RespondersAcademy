@@ -290,3 +290,137 @@ async def test_generator_неизвестное_значение_отклоня�
     await login_as(v1, "teacher")
     response = await v1.post("/ai/scenarios/drafts", json=draft_body("x", "gen-bad-req", generator="gpt"))
     assert response.status_code == 400
+
+
+def manual_body(source_ticket_id: str, request_id: str, **updates: object) -> dict[str, object]:
+    return {
+        "mode": "operator112",
+        "sourceTicketId": source_ticket_id,
+        "category": "Дерево",
+        "title": "Упавшее дерево: ручной сценарий",
+        "summary": "Дерево упало на проезжую часть, движение затруднено",
+        "requestId": request_id,
+        **updates,
+    }
+
+
+async def test_ручное_создание_доступно_только_преподавателю_и_идемпотентно(v1: AsyncClient) -> None:
+    source_id = "t009-manual-source"
+    await seed_source(source_id)
+    body = manual_body(source_id, "t009-manual-create")
+
+    assert (await v1.post("/ai/scenarios", json=body)).status_code == 401
+    await login_as(v1, "student")
+    assert (await v1.post("/ai/scenarios", json=body)).status_code == 403
+
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=body)
+    assert created.status_code == 201, created.text
+    version = created.json()
+    assert version["version"] == 1
+    assert version["approval"] == "draft"
+    assert version["mode"] == "operator112"
+    assert version["sourceKind"] == "ticket"
+    assert version["cardSnapshot"]["fields"]["summary"] == body["summary"]
+    assert version["cardSnapshot"]["fields"]["group"] == "Дерево"
+    assert version["etalon"]["expectedActions"]
+
+    repeated = await v1.post("/ai/scenarios", json=body)
+    assert repeated.status_code == 201, repeated.text
+    assert repeated.json() == version
+    assert (await v1.post("/ai/scenarios", json={**body, "summary": "Другой текст"})).status_code == 409
+    async with get_sessionmaker()() as db:
+        rows = (
+            await db.execute(select(ScenarioVersion).where(ScenarioVersion.source_ticket_id == source_id))
+        ).scalars().all()
+        assert len(rows) == 1
+        scenario = await db.get(Scenario, version["scenarioId"])
+        assert scenario is not None and scenario.doc["source"] == "manual"
+        assert scenario.doc["title"] == body["title"]
+
+
+async def test_ручное_создание_валидирует_вход(v1: AsyncClient) -> None:
+    source_id = "t009-manual-validation"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    assert (await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-manual-ok"))).status_code == 201
+
+    for index, updates in enumerate(
+        (
+            {"summary": ""},
+            {"summary": "x" * 2001},
+            {"mode": "unknown"},
+            {"category": ""},
+            {"requestId": ""},
+            {"createdBy": "u-999"},
+        )
+    ):
+        response = await v1.post("/ai/scenarios", json=manual_body(source_id, f"t009-manual-bad-{index}", **updates))
+        assert response.status_code == 400, (updates, response.text)
+    unknown_source = await v1.post("/ai/scenarios", json=manual_body("t009-manual-missing", "t009-manual-nosrc"))
+    assert unknown_source.status_code == 404
+    unknown_category = await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-manual-nocat", category="Нет такой"))
+    assert unknown_category.status_code == 400
+
+
+async def test_чтение_версии_и_списка_ограничено_правами(v1: AsyncClient) -> None:
+    source_id = "t009-manual-read"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-manual-read-create"))
+    assert created.status_code == 201, created.text
+    scenario_id = created.json()["scenarioId"]
+
+    one = await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")
+    assert one.status_code == 200, one.text
+    assert one.json() == created.json()
+    listing = await v1.get("/ai/scenarios", params={"mode": "operator112"})
+    assert listing.status_code == 200
+    row = next(item for item in listing.json() if item["scenarioId"] == scenario_id)
+    assert row["latestVersion"] == 1 and row["approval"] == "draft" and row["mode"] == "operator112"
+    assert row["title"] == "Упавшее дерево: ручной сценарий"
+    assert all(item["mode"] == "operator112" for item in listing.json())
+    assert not [item for item in (await v1.get("/ai/scenarios", params={"mode": "dds"})).json() if item["scenarioId"] == scenario_id]
+
+    assert (await v1.get(f"/ai/scenarios/{scenario_id}/versions/2")).status_code == 404
+    assert (await v1.get("/ai/scenarios/s-no-such/versions/1")).status_code == 404
+    assert (await v1.get("/ai/scenarios", params={"mode": "bogus"})).status_code == 400
+
+    await login_as(v1, "admin")
+    assert (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).status_code == 200
+    assert any(item["scenarioId"] == scenario_id for item in (await v1.get("/ai/scenarios")).json())
+    await login_as(v1, "student")
+    assert (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).status_code == 403
+    assert (await v1.get("/ai/scenarios")).status_code == 403
+    v1.cookies.clear()
+    assert (await v1.get("/ai/scenarios")).status_code == 401
+
+
+async def test_ручной_черновик_изменяется_и_версии_сохраняются(v1: AsyncClient) -> None:
+    source_id = "t009-manual-versions"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-manual-ver-create"))
+    scenario_id = created.json()["scenarioId"]
+    new_summary = "Дерево перекрыло две полосы, пострадавших нет"
+    revised = await v1.post(
+        f"/ai/scenarios/{scenario_id}/revise",
+        json={
+            "baseVersion": 1,
+            "comment": "Уточнено",
+            "acceptedFields": [{"fieldPath": "summary", "decision": "edited", "value": new_summary}],
+            "requestId": "t009-manual-ver-revise",
+        },
+    )
+    assert revised.status_code == 201, revised.text
+    assert revised.json()["version"] == 2
+
+    first = await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")
+    second = await v1.get(f"/ai/scenarios/{scenario_id}/versions/2")
+    assert first.json()["cardSnapshot"]["fields"]["summary"] == "Дерево упало на проезжую часть, движение затруднено"
+    assert second.json()["cardSnapshot"]["fields"]["summary"] == new_summary
+    assert second.json()["parentVersion"] == 1
+    history = await v1.get(f"/ai/scenarios/{scenario_id}/versions")
+    assert [item["version"] for item in history.json()] == [1, 2]
+    listing = await v1.get("/ai/scenarios")
+    assert next(item for item in listing.json() if item["scenarioId"] == scenario_id)["latestVersion"] == 2
