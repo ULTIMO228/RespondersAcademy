@@ -15,8 +15,11 @@ def build_router() -> APIRouter:
         ai_scenarios,
         assignments,
         error_map,
+        live_calls,
         lobby,
         operator112,
+        problem_reports,
+        realtime_calls,
         recommendations,
         reports_export,
         student_rating,
@@ -27,6 +30,8 @@ def build_router() -> APIRouter:
 
     router = APIRouter()
     for module in (
+        realtime_calls,
+        live_calls,
         ai_assessments,
         ai_errors,
         ai_provider,
@@ -38,12 +43,10 @@ def build_router() -> APIRouter:
         tickets,
         operator112,
         assignments,
-        lobby,
-        recommendations,
-        work_messages,
         validation,
         error_map,
         student_rating,
+        problem_reports,
     ):
         # Без действующей сессии — 401 (ТЗ §9); /api/v1/health объявлен в main.py и остаётся открытым.
         router.include_router(module.router, dependencies=[Depends(require_viewer)])

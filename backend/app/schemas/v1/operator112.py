@@ -7,7 +7,7 @@ OperatorEvent, NotificationListResponse, CardDraft, OperatorEvaluation (= Evalua
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 
 from pydantic import Field, field_validator, model_validator
 
@@ -16,8 +16,13 @@ from app.schemas.common import ApiModel
 Voice = Literal["male", "female", "auto"]
 AudioStatus = Literal["pending", "ready", "failed"]
 AttemptState = Literal["ringing", "answered", "submitted"]
-EventType = Literal["fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown"]
-EVENT_TYPES: tuple[str, ...] = ("fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown")
+EventType = Literal[
+    "fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown",
+    # спека 009: вкладки «что случилось?», ручные службы, связи карточек, закрытие окна вызова «×»
+    "typeAdded", "typeRemoved", "serviceRemoved", "linkAdded", "linkRemoved", "linkPrimary", "callHidden",
+]
+EVENT_TYPES: tuple[str, ...] = get_args(EventType)
+LINK_EVENT_TYPES: tuple[str, ...] = ("linkAdded", "linkRemoved", "linkPrimary")
 ADDRESS_SOURCES = ("directory", "manual")
 
 
@@ -117,7 +122,7 @@ class OperatorEventCreate(ApiModel):
     @classmethod
     def _type(cls, value: Any) -> Any:
         if value not in EVENT_TYPES:
-            raise ValueError("Поле «type» — fieldChanged, signSelected, serviceAdded, replay или hintShown")
+            raise ValueError(f"Поле «type» — одно из: {', '.join(EVENT_TYPES)}")
         return value
 
     @field_validator("payload", mode="before")
@@ -135,8 +140,15 @@ class OperatorEventCreate(ApiModel):
             raise ValueError("Событие fieldChanged: укажите payload.field")
         if self.type == "signSelected" and not isinstance(self.payload.get("signs"), list):
             raise ValueError("Событие signSelected: укажите payload.signs (список признаков)")
-        if self.type == "serviceAdded" and not _clean(self.payload.get("serviceId")):
-            raise ValueError("Событие serviceAdded: укажите payload.serviceId")
+        if self.type in ("serviceAdded", "serviceRemoved") and not _clean(self.payload.get("serviceId")):
+            raise ValueError(f"Событие {self.type}: укажите payload.serviceId")
+        if self.type == "typeAdded" and not _clean(self.payload.get("finalType")):
+            raise ValueError("Событие typeAdded: укажите payload.finalType")
+        index = self.payload.get("index")
+        if self.type == "typeRemoved" and (not isinstance(index, int) or isinstance(index, bool) or index < 0):
+            raise ValueError("Событие typeRemoved: payload.index — номер вкладки (целое ≥ 0)")
+        if self.type in LINK_EVENT_TYPES and not _clean(self.payload.get("cardId")):
+            raise ValueError(f"Событие {self.type}: укажите payload.cardId")
         return self
 
 
@@ -159,6 +171,19 @@ class CardDraftAddress(ApiModel):
     raion: str = ""
     descriptive: str = ""
     source: str = "manual"  # directory | manual — фиксация «из справочника / вручную» (FR-014)
+    # Адрес любого субъекта (спека 009, FR-014, FR-023; КАРТОЧКА_image1): поля необязательны, старые карточки их не содержат.
+    country: str = ""
+    subject: str = ""
+    locality: str = ""
+    object: str = ""
+    korpus: str = ""
+    building: str = ""
+    flat: str = ""
+    entrance: str = ""
+    floor: str = ""
+    code: str = ""
+    lat: float | None = None
+    lon: float | None = None
 
     @field_validator("source", mode="before")
     @classmethod
@@ -191,8 +216,21 @@ class CardDraftNotification(ApiModel):
     added_by: str = "auto"
 
 
+def _what_filled(what: CardDraftWhat) -> bool:
+    return bool(what.signs or _clean(what.final_type) or _clean(what.classifier_code) or _clean(what.poll_answers))
+
+
+class CardDraftLink(ApiModel):
+    card_id: str
+    primary: bool = False
+
+
 class CardDraft(ApiModel):
-    """Карточка ПОВ-112 с нуля (`ArmCardFixture`-подобная): заявитель, телефоны, адрес, описание, опросная карта, флаги, список."""
+    """Карточка ПОВ-112 с нуля (`ArmCardFixture`-подобная): заявитель, телефоны, адрес, описание, опросная карта, флаги, список.
+
+    Спека 009 добавляет поля без поломки прежнего тела: канал, вкладки типов (`what` = первая вкладка — её читает оценщик),
+    связи карточек и исход («нет контакта» / «срыв звонка» сохраняют карточку без адреса и типа).
+    """
 
     applicant: CardDraftApplicant = Field(default_factory=CardDraftApplicant)
     phones: CardDraftPhones = Field(default_factory=CardDraftPhones)
@@ -201,6 +239,10 @@ class CardDraft(ApiModel):
     description: str = ""
     emergency: CardDraftEmergency = Field(default_factory=CardDraftEmergency)
     notification_list: list[CardDraftNotification] = Field(default_factory=list)
+    channel: Literal["call", "sms"] = "call"
+    incidents: list[CardDraftWhat] = Field(default_factory=list)
+    links: list[CardDraftLink] = Field(default_factory=list)
+    outcome: Literal["filled", "noContact", "dropped"] = "filled"
 
     @field_validator("description", mode="before")
     @classmethod
@@ -212,8 +254,16 @@ class CardDraft(ApiModel):
 
     @model_validator(mode="after")
     def _minimum(self) -> CardDraft:
+        if sum(1 for link in self.links if link.primary) > 1:
+            raise ValueError("Главной может быть только одна связанная карточка")
+        if self.incidents and not _what_filled(self.what):
+            self.what = self.incidents[0]
+        if self.outcome != "filled":
+            return self  # «нет контакта» / «срыв звонка»: пустая карточка сохраняется как в АРМ (007, FR-017)
         # Минимум для регистрации (памятка стр. 12–20): адрес и описание либо опросная карта.
-        if not (_clean(self.address.formal) or _clean(self.address.street) or _clean(self.address.descriptive)):
+        address = self.address
+        has_point = address.lat is not None and address.lon is not None
+        if not (_clean(address.formal) or _clean(address.street) or _clean(address.descriptive) or _clean(address.object) or has_point):
             raise ValueError("Заполните адресный блок")
         if not (self.description or self.what.signs or _clean(self.what.final_type) or _clean(self.what.classifier_code)):
             raise ValueError("Заполните описание со слов заявителя или опросную карту")
@@ -253,6 +303,10 @@ class OperatorAttempt(ApiModel):
     hints: dict[str, Any] | None = None
     audio: dict[str, Any] | None = None
     card_snapshot: dict[str, Any] | None = None
+    # Поля билета (спека 009, FR-010, US5/US6): канал по умолчанию «звонок»; текст — только у СМС; repeatOf — при повторе.
+    channel: Literal["call", "sms"] = "call"
+    sms_text: str | None = None
+    repeat_of: str | None = None
 
 
 class OperatorEvaluation(ApiModel):
@@ -270,3 +324,44 @@ class OperatorEvaluation(ApiModel):
     mode: str = "operator112"
     assessor_version: str = ""
     passed: bool | None = None
+
+
+# ─── Журнал ученика-112 (спека 009, US1 FR-006/FR-007; US5 — совпадения) ──────────────────────────
+
+
+class Journal112LockedBy(ApiModel):
+    operator: int
+    name: str
+    arm: int
+
+
+class Journal112Row(ApiModel):
+    """Строка журнала «Поиск происшествий» (FR-006): фон задания, свои карточки ученика, вызов в очереди (`queued`)."""
+
+    card_id: str
+    number: str
+    created_at: str
+    operator: str
+    arm: str
+    what_happened: str
+    injured: str
+    status: str
+    address: str
+    description: str
+    linked: bool
+    chs: bool
+    checked: bool
+    is_own: bool
+    locked_by: Journal112LockedBy | None = None
+    queued: bool | None = None
+
+
+class Journal112Response(ApiModel):
+    rows: list[Journal112Row] = Field(default_factory=list)
+    total: int
+
+
+class Journal112MatchesResponse(ApiModel):
+    """«Есть карточка с заявителем по этому номеру» (US5): пустой список — окно не показывается."""
+
+    matches: list[Journal112Row] = Field(default_factory=list)

@@ -33,7 +33,8 @@ class Settings(BaseSettings):
     ai_provider: Literal["local", "polza"] = Field(default="local", alias="AI_PROVIDER")
     polza_api_key: SecretStr | None = Field(default=None, alias="POLZA_API_KEY")
     polza_base_url: str = Field(default="https://polza.ai/api/v1", alias="POLZA_BASE_URL")
-    polza_model: str = Field(default="openai/gpt-4o-mini", alias="POLZA_MODEL")
+    # Без значения по умолчанию: только модель с открытыми весами, выбранная явно (решение организаторов 19.10).
+    polza_model: str | None = Field(default=None, alias="POLZA_MODEL")
     polza_timeout_sec: float = Field(default=60.0, alias="POLZA_TIMEOUT_SEC")
     polza_rpm: int = Field(default=20, ge=1, alias="POLZA_RPM")  # запросов в минуту
     polza_daily_limit: int = Field(default=500, ge=1, alias="POLZA_DAILY_LIMIT")  # запросов в сутки
@@ -42,6 +43,62 @@ class Settings(BaseSettings):
     ml_warmup: bool = Field(default=True, alias="ML_WARMUP")  # прогрев моделей при старте (в тестах выключен)
     tts_enabled: bool = Field(default=True, alias="TTS_ENABLED")  # синтез аудио билетов (Silero); 0 — только расшифровка
     app_env: str = Field(default="dev", alias="APP_ENV")
+    live_calls_enabled: bool = Field(default=False, alias="LIVE_CALLS_ENABLED")
+    live_call_realtime_transport: Literal["polza", "omni", "cascade", "speechkit"] = Field(default="polza", alias="LIVE_CALL_REALTIME_TRANSPORT")
+    # Живой заявитель через Polza.ai: ключ и адрес — POLZA_API_KEY/POLZA_BASE_URL, модели только из окружения
+    # (условие организаторов: модели с открытыми весами, разворачиваемые позже локально; без хардкода).
+    live_call_polza_chat_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_CHAT_MODEL")
+    live_call_polza_stt_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_STT_MODEL")
+    # Распознавание речи оператора: polza — через API; gigaam — локально на CPU (uv sync --extra stt-local).
+    live_call_stt_engine: Literal["polza", "gigaam"] = Field(default="polza", alias="LIVE_CALL_STT_ENGINE")
+    live_call_gigaam_model: str | None = Field(default=None, alias="LIVE_CALL_GIGAAM_MODEL")
+    live_call_polza_tts_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_MODEL")
+    live_call_polza_tts_voice: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_VOICE")
+    # Движок голоса заявителя: polza (облако) или silero (локально на CPU, без сети; модель — MODELS_DIR/silero-live/<файл>).
+    live_call_tts_engine: Literal["polza", "silero"] = Field(default="polza", alias="LIVE_CALL_TTS_ENGINE")
+    live_call_silero_model: str | None = Field(default=None, alias="LIVE_CALL_SILERO_MODEL")
+    live_call_silero_speaker: str | None = Field(default=None, alias="LIVE_CALL_SILERO_SPEAKER")
+    # Уровень размышления разговорной модели (reasoning_effort). У GLM-5.3 размышление обязательно,
+    # по умолчанию max → лишние секунды до первого слова; low — для телефонного темпа. Пусто — не передаём.
+    live_call_polza_reasoning_effort: str | None = Field(default=None, alias="LIVE_CALL_POLZA_REASONING_EFFORT")
+    # Потолок токенов размышления (reasoning.max_tokens) — стабильнее effort: у GLM-5.3 effort=low после
+    # перебивания уходил в сотни токенов «мыслей». Задан — effort не отправляется (вместе — пустой ответ).
+    live_call_polza_reasoning_max_tokens: int | None = Field(default=None, ge=1, alias="LIVE_CALL_POLZA_REASONING_MAX_TOKENS")
+    # Выключить размышление полностью (reasoning.enabled=false) — для моделей, где оно необязательное (qwen3.8-27b).
+    live_call_polza_reasoning_off: bool = Field(default=False, alias="LIVE_CALL_POLZA_REASONING_OFF")
+    # Предпочтительный провайдер модели у Polza (например, cerebras/fp16); при сбое Polza может взять другого.
+    # Живость речи заявителя: 0,3 — сухо и предсказуемо; 0,7 — рекомендация Qwen для instruct-моделей.
+    live_call_polza_temperature: float = Field(default=0.7, ge=0, le=1.5, alias="LIVE_CALL_POLZA_TEMPERATURE")
+    live_call_polza_provider: str | None = Field(default=None, alias="LIVE_CALL_POLZA_PROVIDER")
+    live_call_polza_tts_format: Literal["wav", "pcm"] = Field(default="wav", alias="LIVE_CALL_POLZA_TTS_FORMAT")
+    live_call_polza_tts_instructions: bool = Field(default=True, alias="LIVE_CALL_POLZA_TTS_INSTRUCTIONS")
+    live_call_end_silence_ms: int = Field(default=700, ge=300, le=2000, alias="LIVE_CALL_END_SILENCE_MS")
+    # Распознавание стартует уже после этой паузы (раньше конца реплики) и перекрывает остаток паузы; 0 — выключено.
+    # Встревоженный заявитель перебивает оператора, если тот говорит дольше стольких секунд; 0 — не перебивает.
+    live_call_barge_in_sec: float = Field(default=4.0, ge=0, le=30, alias="LIVE_CALL_BARGE_IN_SEC")
+    # Реплику-перебивание начинают готовить раньше (распознавание + модель — секунды) и держат до порога.
+    live_call_barge_prepare_sec: float = Field(default=1.5, ge=0, le=30, alias="LIVE_CALL_BARGE_PREPARE_SEC")
+    # Пока заявитель говорит, его обрывает только речь оператора длиннее этого; «угу», «так», кашель — нет. 0 — любой звук.
+    live_call_yield_ms: int = Field(default=600, ge=0, le=3000, alias="LIVE_CALL_YIELD_MS")
+    # Оператор молчит столько секунд — встревоженный заявитель сам напоминает о себе (спокойный ждёт вдвое дольше); 0 — нет.
+    live_call_nudge_sec: float = Field(default=5.0, ge=0, le=60, alias="LIVE_CALL_NUDGE_SEC")
+    live_call_early_commit_ms: int = Field(default=250, ge=0, le=2000, alias="LIVE_CALL_EARLY_COMMIT_MS")
+    live_call_sounds_dir: Path | None = Field(default=None, alias="LIVE_CALL_SOUNDS_DIR")
+    speechkit_api_key: SecretStr | None = Field(default=None, alias="SPEECHKIT_API_KEY", repr=False)
+    speechkit_folder_id: str | None = Field(default=None, alias="SPEECHKIT_FOLDER_ID")
+    speechkit_tts_model: Literal["general", "livetts"] = Field(default="livetts", alias="SPEECHKIT_TTS_MODEL")
+    speechkit_voice: str = Field(default="denis", min_length=1, max_length=80, alias="SPEECHKIT_VOICE")
+    speechkit_role: str = Field(default="casual", min_length=1, max_length=80, alias="SPEECHKIT_ROLE")
+    live_call_realtime_url: str | None = Field(default=None, alias="LIVE_CALL_REALTIME_URL")
+    live_call_realtime_key: SecretStr | None = Field(default=None, alias="LIVE_CALL_REALTIME_KEY", repr=False)
+    live_call_public_ws_url: str | None = Field(default=None, alias="LIVE_CALL_PUBLIC_WS_URL")
+    live_call_llm_url: str | None = Field(default=None, alias="LIVE_CALL_LLM_URL")
+    live_call_llm_model: str = Field(default="caller", alias="LIVE_CALL_LLM_MODEL")
+    live_call_llm_ollama: bool = Field(default=False, alias="LIVE_CALL_LLM_OLLAMA")
+    live_call_llm_transport: Literal["local", "api"] = Field(default="local", alias="LIVE_CALL_LLM_TRANSPORT")
+    live_call_llm_api_key: SecretStr | None = Field(default=None, alias="LIVE_CALL_LLM_API_KEY", repr=False)
+    live_call_reply_mode: Literal["auto", "facts", "dialogue"] = Field(default="auto", alias="LIVE_CALL_REPLY_MODE")
+    live_call_max_sec: int = Field(default=180, ge=30, le=600, alias="LIVE_CALL_MAX_SEC")
 
     @field_validator("jwt_secret")
     @classmethod
@@ -55,6 +112,8 @@ class Settings(BaseSettings):
     def _polza_needs_key(self) -> Settings:
         if self.ai_provider == "polza" and not (self.polza_api_key and self.polza_api_key.get_secret_value().strip()):
             raise ValueError("AI_PROVIDER=polza требует POLZA_API_KEY")
+        if self.ai_provider == "polza" and not (self.polza_model or "").strip():
+            raise ValueError("AI_PROVIDER=polza требует POLZA_MODEL (модель с открытыми весами)")
         return self
 
     @property

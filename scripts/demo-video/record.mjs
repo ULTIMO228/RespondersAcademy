@@ -38,7 +38,9 @@ const VOICE_CLIP = resolve("backend/data/demo_audio/c-010-elevenlabs.mp3");
 const VOICE_SECONDS = Number(process.env.VOICE_SECONDS ?? 4);
 /* Модель ИИ нужна только сцене «ИИ-генерация»; без неё сцена пропускается, остальной сценарий не страдает. */
 const LLAMA_URL = process.env.LLAMA_URL ?? "http://127.0.0.1:8081";
-const AI_UP = await fetch(`${LLAMA_URL}/health`).then((r) => r.ok).catch(() => false);
+const AI_UP = await fetch(`${LLAMA_URL}/health`)
+  .then((r) => r.ok)
+  .catch(() => false);
 if (!AI_UP) console.warn(`⚠ Модель ИИ не отвечает (${LLAMA_URL}) — сцена «ИИ-генерация карточки» пропущена`);
 
 scene(
@@ -82,8 +84,12 @@ scene(
   async () => {
     await click(page.getByRole("link", { name: "Начать задание" }).first(), 1500);
     await page.waitForURL(/\/arm\/operator112/);
-    await click(page.getByRole("button", { name: "Ответить на вызов" }), 800);
-    await page.locator("audio").first().waitFor({ state: "attached", timeout: 20_000 }).catch(() => undefined);
+    await click(page.getByRole("button", { name: "Принять" }), 800);
+    await page
+      .locator("audio")
+      .first()
+      .waitFor({ state: "attached", timeout: 20_000 })
+      .catch(() => undefined);
   },
   { voice: { file: VOICE_CLIP, seconds: VOICE_SECONDS } },
 );
@@ -100,11 +106,11 @@ scene(
     await card.waitFor();
     await click(card.getByRole("button", { name: "Начать" }), 1500);
     await page.waitForURL(/\/arm\/operator112\?assignmentId=/);
-    await click(page.getByRole("button", { name: "Ответить на вызов" }), 1500);
-    await type(page.getByLabel("ФИО"), "Учебный заявитель");
-    await type(page.getByLabel("Статус заявителя"), "очевидец");
+    await click(page.getByRole("button", { name: "Принять" }), 1500);
+    await type(page.getByLabel("Фамилия и имя заявителя"), "Учебный заявитель");
+    await page.getByLabel("Статус заявителя").selectOption("очевидец");
     await type(
-      page.getByLabel("Описание"),
+      page.getByLabel("Описание со слов заявителя"),
       "Сильный ветер повалил дерево на проезжую часть, пострадавших нет",
     );
     await type(page.getByLabel("Описательный адрес"), ADDRESS);
@@ -123,7 +129,8 @@ scene(
       await click(chips.first(), 900);
     }
     await pause(1500);
-    await click(page.getByRole("button", { name: "Передать карточку" }), 1000);
+    await click(page.getByRole("button", { name: "сохранить" }), 1000);
+    await click(page.getByRole("button", { name: "оповестить" }), 1000);
     await page.getByLabel("Разбор попытки").waitFor({ timeout: 30_000 });
     await pause(4000);
   },
@@ -276,7 +283,6 @@ scene(
   },
 );
 
-
 /*
  * Озвучка: Silero (офлайн), один запуск на все реплики. Настройки окружения:
  *   VOICE (aidar | baya | kseniya | xenia | eugene, по умолчанию xenia), SPEED — множитель темпа (1.0 как есть, 0.9 медленнее),
@@ -289,19 +295,44 @@ const MODEL = resolve(process.env.SILERO_MODEL ?? "backend/models/silero/v5_ru.p
 const wavs = resolve(WORK, "tts");
 execFileSync(
   "uv",
-  ["run", "--no-project", "--with", "torch", "--with", "numpy", "--with", "scipy", "python", "scripts/demo-video/tts.py", MODEL, VOICE, SPEED, PAUSE, wavs],
-  { input: JSON.stringify(scenes.map((item) => item.narration)), stdio: ["pipe", "inherit", "inherit"], env: { ...process.env, FFMPEG } },
+  [
+    "run",
+    "--no-project",
+    "--with",
+    "torch",
+    "--with",
+    "numpy",
+    "--with",
+    "scipy",
+    "python",
+    "scripts/demo-video/tts.py",
+    MODEL,
+    VOICE,
+    SPEED,
+    PAUSE,
+    wavs,
+  ],
+  {
+    input: JSON.stringify(scenes.map((item) => item.narration)),
+    stdio: ["pipe", "inherit", "inherit"],
+    env: { ...process.env, FFMPEG },
+  },
 );
 
 if (process.env.DRY_TTS === "1") {
   let sum = 0;
   scenes.forEach((item, index) => {
     const info = execFileSync("afinfo", [resolve(wavs, `s${String(index).padStart(2, "0")}.wav`)]).toString();
-    const seconds = Number(info.match(/estimated duration: ([\d.]+)/)?.[1] ?? 0) + 0.7 + (item.voice ? item.voice.seconds + 0.3 : 0);
+    const seconds =
+      Number(info.match(/estimated duration: ([\d.]+)/)?.[1] ?? 0) +
+      0.7 +
+      (item.voice ? item.voice.seconds + 0.3 : 0);
     sum += seconds;
     console.log(`${String(index).padStart(2)}  ${seconds.toFixed(1).padStart(5)} с  ${item.title}`);
   });
-  console.log(`Итого по репликам (минимум, без учёта долгих шагов UI): ${Math.floor(sum / 60)}:${String(Math.round(sum % 60)).padStart(2, "0")}`);
+  console.log(
+    `Итого по репликам (минимум, без учёта долгих шагов UI): ${Math.floor(sum / 60)}:${String(Math.round(sum % 60)).padStart(2, "0")}`,
+  );
   process.exit(0);
 }
 
@@ -444,8 +475,15 @@ const webm = readdirSync(WORK).find((name) => name.endsWith(".webm"));
 if (!webm) throw new Error("Playwright не сохранил видео");
 renameSync(resolve(WORK, webm), resolve(WORK, "screen.webm"));
 
-const inputs = ["-i", resolve(WORK, "screen.webm"), ...timeline.flatMap((t) => ["-i", t.audio]), ...voices.flatMap((v) => ["-i", v.file])];
-const delays = timeline.map((t, i) => `[${i + 1}:a]adelay=${Math.round(t.start * 1000)}|${Math.round(t.start * 1000)}[a${i}]`);
+const inputs = [
+  "-i",
+  resolve(WORK, "screen.webm"),
+  ...timeline.flatMap((t) => ["-i", t.audio]),
+  ...voices.flatMap((v) => ["-i", v.file]),
+];
+const delays = timeline.map(
+  (t, i) => `[${i + 1}:a]adelay=${Math.round(t.start * 1000)}|${Math.round(t.start * 1000)}[a${i}]`,
+);
 const voiceFilters = voices.map((v, i) => {
   const ms = Math.round(v.start * 1000);
   return `[${timeline.length + 1 + i}:a]atrim=0:${v.seconds},afade=t=out:st=${Math.max(v.seconds - 0.5, 0)}:d=0.5,adelay=${ms}|${ms}[v${i}]`;
@@ -456,12 +494,35 @@ mkdirSync(resolve(OUT, ".."), { recursive: true });
 execFileSync(
   FFMPEG,
   [
-    "-y", ...inputs,
-    "-filter_complex", `${[...delays, ...voiceFilters].join(";")};${mix}`,
-    "-map", "0:v", "-map", "[aout]",
-    "-c:v", "libx264", "-preset", "medium", "-crf", "22", "-pix_fmt", "yuv420p", "-r", "30",
-    "-c:a", "aac", "-b:a", "128k", "-ar", "48000",
-    "-t", String(total + 0.5), "-movflags", "+faststart", OUT,
+    "-y",
+    ...inputs,
+    "-filter_complex",
+    `${[...delays, ...voiceFilters].join(";")};${mix}`,
+    "-map",
+    "0:v",
+    "-map",
+    "[aout]",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "medium",
+    "-crf",
+    "22",
+    "-pix_fmt",
+    "yuv420p",
+    "-r",
+    "30",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "128k",
+    "-ar",
+    "48000",
+    "-t",
+    String(total + 0.5),
+    "-movflags",
+    "+faststart",
+    OUT,
   ],
   { stdio: "inherit" },
 );

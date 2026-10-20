@@ -53,6 +53,15 @@ export type {
   HeadlineKind,
 } from "./types";
 export { getStudentRating, getStudentStats } from "./endpoints";
+export {
+  buildProblemReportForm,
+  createProblemReport,
+  listTeacherProblemReports,
+  markProblemReportRead,
+  problemReportAttachmentUrl,
+} from "./endpoints";
+export type { ProblemReportDraft } from "./endpoints";
+export type { ProblemReport, ProblemReportList } from "./types";
 export type { StudentRatingQuery, StudentStatsQuery } from "./endpoints";
 export type {
   RatingGroup,
@@ -74,6 +83,8 @@ export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } fr
 export { fetchTicketAudioFile, getNotificationList, getOperatorEvaluation } from "./endpoints";
 export {
   getTicketAudio,
+  journal,
+  matches,
   searchStreets,
   sendAttemptEvent,
   submitAttempt,
@@ -261,15 +272,20 @@ export type {
 } from "./types";
 export type {
   AddressSource,
+  CardChannel,
   CardDraft,
   CardDraftAddress,
   CardDraftApplicant,
   CardDraftCasualties,
   CardDraftEmergency,
+  CardDraftLink,
   CardDraftNotification,
+  CardOutcome,
   CardDraftPhones,
   CardDraftWhat,
   FieldDiff,
+  Journal112Response,
+  Journal112Row,
   NotificationAdder,
   NotificationListItem,
   NotificationListPreview,
@@ -287,3 +303,7 @@ export type {
   TicketAudio,
   TicketAudioStatus,
 } from "./types";
+export { liveCallApi } from "./endpoints/live-call";
+export type { LiveCallRecord, LiveTranscriptLine } from "./endpoints/live-call";
+export { realtimeCallApi } from "./endpoints/realtime-call";
+export type { RealtimeEvent, RealtimeConnection } from "./endpoints/realtime-call";

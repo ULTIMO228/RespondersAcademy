@@ -2,6 +2,8 @@ export { DEFAULT_ANSWER_SEC, DEFAULT_SUBMIT_SEC, resolveNorms, resolveTimeLimitS
 export type { AttemptNorms } from "./model/norms";
 export { answerWait, examRemainingSec, formatClock, processingWait, talkSeconds } from "./model/timers";
 export type { NormState } from "./model/timers";
+export { CARD_TIMER_RED_SEC, cardTimer } from "./model/cardTimer";
+export type { CardTimerState } from "./model/cardTimer";
 export { attemptPhase, canAnswer, canEdit, canSubmit, hasAnswerTimeout } from "./model/phase";
 export { isEmergencyAudio, isReplayBlocked } from "./model/phase";
 export type { AttemptPhase } from "./model/phase";
@@ -9,3 +11,9 @@ export { isHintDue, pickHintStep } from "./model/hints";
 export type { HintProgress } from "./model/hints";
 export { createTicker, TICK_MS } from "./lib/ticker";
 export { useNow } from "./model/useNow";
+export { useRealtimeCaller } from "./model/useRealtimeCaller";
+export { useCallerAudio } from "./model/useCallerAudio";
+export type { CallerAudioLoader, CallerAudioState } from "./model/useCallerAudio";
+export { useApplicantVoice } from "./model/useApplicantVoice";
+export type { ApplicantVoice, ApplicantVoiceState } from "./model/useApplicantVoice";
+export { formatAon } from "./lib/aon";

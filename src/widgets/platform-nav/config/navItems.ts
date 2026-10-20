@@ -1,4 +1,4 @@
-import type { UserRole } from "@/shared/api";
+import type { TrainingProfile, UserRole } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import type { PfIconName } from "@/shared/ui/platform";
 
@@ -12,6 +12,8 @@ export type PlatformNavEntry = {
   exact?: boolean;
   outlined?: boolean;
   separatorBefore?: boolean;
+  /** Пункт только для обучаемых, которым доступен этот режим (spec/008): «Открыть АРМ» — журнал режима ДДС. */
+  requiresMode?: TrainingProfile;
 };
 
 const REFERENCE: PlatformNavEntry = { href: ROUTES.reference, title: "Справочник", icon: "book" };
@@ -39,6 +41,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
       outlined: true,
       separatorBefore: true,
       activeOn: [],
+      requiresMode: "dds",
     },
     { ...PROFILE, separatorBefore: false },
   ],

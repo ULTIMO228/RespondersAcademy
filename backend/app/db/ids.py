@@ -27,6 +27,7 @@ PREFIX = {
     "call": "call",
     "card": "c",
     "errorMapVerdict": "emv",
+    "problemReport": "pr",
 }
 
 

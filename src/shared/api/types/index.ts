@@ -152,6 +152,8 @@ export type {
 } from "./operator112";
 export type { OperatorHintStep } from "./operator112";
 export type { OperatorHints, Street, TicketAudio, TicketAudioStatus } from "./operator112";
+export type { CardChannel, CardDraftLink, CardOutcome } from "./operator112";
+export type { Journal112MatchesResponse, Journal112Response, Journal112Row } from "./operator112";
 export type { HealthStatus } from "./health";
 export type {
   ErrorMapChainLink,
@@ -194,3 +196,4 @@ export type {
   StudentStatsPoint,
   StudentStatsSummary,
 } from "./student-rating";
+export type { ProblemReport, ProblemReportList } from "./problem-report";
