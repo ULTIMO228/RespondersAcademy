@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     # Живость речи заявителя: 0,3 — сухо и предсказуемо; 0,7 — рекомендация Qwen для instruct-моделей.
     live_call_polza_temperature: float = Field(default=0.7, ge=0, le=1.5, alias="LIVE_CALL_POLZA_TEMPERATURE")
     live_call_polza_provider: str | None = Field(default=None, alias="LIVE_CALL_POLZA_PROVIDER")
+    # Строго только этот провайдер (allow_fallbacks=false): сбой провайдера → ошибка, а не подмена другим.
+    live_call_polza_provider_strict: bool = Field(default=False, alias="LIVE_CALL_POLZA_PROVIDER_STRICT")
     live_call_polza_tts_format: Literal["wav", "pcm"] = Field(default="wav", alias="LIVE_CALL_POLZA_TTS_FORMAT")
     live_call_polza_tts_instructions: bool = Field(default=True, alias="LIVE_CALL_POLZA_TTS_INSTRUCTIONS")
     live_call_end_silence_ms: int = Field(default=700, ge=300, le=2000, alias="LIVE_CALL_END_SILENCE_MS")

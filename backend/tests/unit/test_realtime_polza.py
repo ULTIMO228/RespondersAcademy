@@ -409,6 +409,15 @@ def test_reasoning_off_and_provider_routing_come_from_settings(settings, monkeyp
     assert options["reasoning"] == {"max_tokens": 64} and "provider" not in options
 
 
+def test_strict_provider_forbids_fallback(settings, monkeypatch):
+    # Решение владельца 20.10: заявитель только на cerebras/fp16, без подмены провайдера при сбое.
+    monkeypatch.setattr(settings, "live_call_polza_provider", "cerebras/fp16")
+    monkeypatch.setattr(settings, "live_call_polza_provider_strict", True)
+    assert polza.PolzaSession().llm_options()["provider"] == {"order": ["cerebras/fp16"], "allow_fallbacks": False}
+    monkeypatch.setattr(settings, "live_call_polza_provider", None)
+    assert "provider" not in polza.PolzaSession().llm_options()
+
+
 async def test_empty_answer_is_retried_once(settings):
     # qwen3.8-27b, 20.10: на «Ваше имя и телефон?» модель закончила ответ без единого слова;
     # в звонке это ошибка «пустой ответ» и обрыв. Повторяем запрос один раз.
