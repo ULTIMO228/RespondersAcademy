@@ -27,6 +27,8 @@ from ml.speech import vad
 
 PROVIDER = "Polza.ai"
 logger = logging.getLogger(__name__)
+# Пометка в истории модели: метка в скобках — её не покажет TagFilter и не озвучит segments(), даже если модель повторит.
+INTERRUPTED = "[перебили]"
 MIN_VOICED_MS = 200  # щелчок/стук короче не отправляем в STT
 MAX_UTTERANCE_MS = 15000
 PREROLL_MS = 300
@@ -166,7 +168,7 @@ class PolzaSession(CascadeSession):
     def on_interrupted(self, text: str) -> None:
         # Оператор уже слышал начало: без этого модель «забывает» сказанное и здоровается заново.
         if text.strip():
-            self.history.append({"role": "assistant", "content": text.rstrip() + " … (оператор перебил)"})
+            self.history.append({"role": "assistant", "content": text.rstrip() + "… " + INTERRUPTED})
             self.history = self.history[-16:]
 
     def text_filter(self):

@@ -90,3 +90,9 @@ focus:live caller latency
 done:early STT (LIVE_CALL_EARLY_COMMIT_MS) | first-phrase comma split | per-stage latency log | docs/LIVE-CALLER-POLZA.md
 checks:pytest 1009 passed/3 skipped, ruff clean | live call not run (no key, huggingface blocked)
 next:owner live call + read latency log; local GigaAM-v3 STT
+
+## 2026-10-20b claude/awesome-curie-i39fyz
+focus:caller prompt quality
+done:facts_text, prompt rewrite, STYLE fillers down, [перебили] tag
+checks:pytest 1013 passed/3 skipped, ruff clean | live model eval NOT run (permission denied for pasted key)
+next:owner live check; old-vs-new eval script in scratchpad only

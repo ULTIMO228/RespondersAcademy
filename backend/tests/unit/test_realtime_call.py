@@ -115,3 +115,28 @@ async def test_relay_preserves_sanitized_cloud_error(transport, monkeypatch):
     browser = SimpleNamespace(send_json=AsyncMock(), receive_text=receive_text)
     with pytest.raises(ApiError, match="Достигнут лимит SpeechKit"):
         await asyncio.wait_for(service.relay(browser, model, {"facts": {}, "transcript": []}), 2)
+
+
+C010 = {"summary": "Горит балкон и два окна на 13-м этаже, открытое пламя, наблюдают с улицы. Дом 14 эт., газифицирован",
+        "address": "Москва, ул. Грина, № дома неизвестен, в доме библиотека № 193",
+        "caller": {"name": "Сидорова Анна Викторовна", "phone": "916-126-34-71", "status": "очевидец"},
+        "victims": None, "crossRegion": True}
+
+
+def test_facts_are_given_to_caller_as_plain_russian_not_card_json():
+    # Сырой JSON с ключами summary/caller и сокращениями «ул.», «№» заявитель зачитывал как карточку.
+    text = service.facts_text(C010)
+    assert "summary" not in text and "{" not in text and "caller" not in text
+    assert "улица Грина" in text and "библиотека номер 193" in text and "ул." not in text
+    assert "Сидорова Анна Викторовна" in text and "916-126-34-71" in text  # имя и телефон — без изменений
+    assert "очевидец" in text and "неизвестно" in text  # пострадавшие не указаны ≠ их нет
+    assert "другого региона" in text and "Дом 14 этажей" in text
+    # Фабула уже говорит, что пострадавших нет, — не противоречим ей строкой «неизвестно».
+    assert "неизвестно" not in service.facts_text({"summary": "Горит контейнер, пострадавших нет", "victims": None})
+
+
+def test_caller_prompt_handles_speech_recognition_noise_and_answers_first():
+    instructions = service.session_update({}, C010)["session"]["instructions"]
+    assert "распознан" in instructions  # реплики оператора — расшифровка речи с ошибками
+    assert "заявитель" in instructions and "это ты" in instructions  # «заявитель на 7-м» в фабуле — это ты
+    assert "Сидорова Анна Викторовна" in instructions

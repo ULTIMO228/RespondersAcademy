@@ -73,3 +73,16 @@ def test_streaming_wav_with_unknown_size_is_read_to_the_end():
     header = (b"RIFF" + struct.pack("<I", 0xFFFFFFFF) + b"WAVEfmt " + struct.pack("<IHHIIHH", 16, 1, 1, 24000, 48000, 2, 16)
               + b"data" + struct.pack("<I", 0xFFFFFFFF))
     assert persona.wav_to_pcm24(header + pcm) == pcm
+
+
+def test_interruption_mark_is_never_shown_or_voiced_if_model_copies_it():
+    # Пометка о перебивании лежит в истории модели; если модель её повторит — оператор её не увидит и не услышит.
+    from app.services.realtime_polza import INTERRUPTED
+
+    assert persona.strip_tags("Горит балкон… " + INTERRUPTED) == "Горит балкон…"
+    parts, _ = persona.segments("Горит балкон… " + INTERRUPTED, None, "тревожно")
+    assert [part.text for part in parts] == ["Горит балкон…"]
+
+
+def test_style_asks_for_answer_first_and_few_fillers():
+    assert "сначала" in persona.STYLE.lower() and "одно междометие" in persona.STYLE
