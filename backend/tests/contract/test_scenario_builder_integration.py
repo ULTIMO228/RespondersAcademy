@@ -8,9 +8,10 @@ from typing import Any
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import delete, select
+from sqlalchemy.orm.attributes import set_committed_value
 
 from app.db.session import get_sessionmaker
-from app.models.ai_scenario import ScenarioRunRecord
+from app.models.ai_scenario import ScenarioRunRecord, ScenarioVersion
 from app.models.assignment import Assignment, AssignmentScenarioVersion, AssignmentStudent
 from app.models.audit import AuditLog
 from app.models.user import User
@@ -625,3 +626,121 @@ async def test_параллельная_публикация_даёт_один_�
     )
     monkeypatch.undo()
     assert sorted(r.status_code for r in responses) == [200, 409], [r.text for r in responses]
+
+
+async def test_решение_эксперта_не_перезаписывается_параллельным_решением(v1: AsyncClient, monkeypatch) -> None:
+    from app.services import scenario_workflow
+
+    scenario_id = await create_draft(v1, "t009-builder-rrace", "rrace")
+    await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": "t009-rrace-s"})
+    await login_as(v1, "admin")
+    rejected = await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "reject", "comment": "Первый эксперт", "requestId": "t009-rrace-a"})
+    assert rejected.status_code == 200
+    real = scenario_workflow._load_current
+
+    async def stale(db, *args, **kwargs):
+        version = await real(db, *args, **kwargs)
+        db.expunge(version)  # второй эксперт ещё видит «на проверке, не проверена»
+        version.approval, version.reviewed_by = "pending_review", None
+        return version
+
+    monkeypatch.setattr(scenario_workflow, "_load_current", stale)
+    late = await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": "t009-rrace-b"})
+    monkeypatch.undo()
+    assert late.status_code == 409, late.text
+    row = (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()
+    assert row["approval"] == "rejected" and row["reviewComment"] == "Первый эксперт"
+
+
+async def test_публикация_не_затирает_параллельно_изменённый_документ_сценария(v1: AsyncClient, monkeypatch) -> None:
+    from app.models.scenario import Scenario
+    from app.services import scenario_workflow
+
+    scenario_id = await create_draft(v1, "t009-builder-docrace", "docrace")
+    await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": "t009-docrace-s"})
+    await login_as(v1, "admin")
+    await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": "t009-docrace-r"})
+    async with get_sessionmaker()() as db:  # конкурент успел дописать документ сценария
+        row = await db.get(Scenario, scenario_id)
+        row.doc = {**row.doc, "competitorMark": "keep"}
+        await db.commit()
+    real = scenario_workflow.require_read_access
+
+    async def stale_scenario(db, *args, **kwargs):
+        scenario = await real(db, *args, **kwargs)
+        stale_doc = {key: value for key, value in scenario.doc.items() if key != "competitorMark"}
+        set_committed_value(scenario, "doc", stale_doc)  # устаревшая копия без отметки изменения
+        return scenario
+
+    monkeypatch.setattr(scenario_workflow, "require_read_access", stale_scenario)
+    published = await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 1, "requestId": "t009-docrace-p"})
+    monkeypatch.undo()
+    assert published.status_code == 200, published.text
+    async with get_sessionmaker()() as db:
+        doc = (await db.get(Scenario, scenario_id)).doc
+    assert doc["competitorMark"] == "keep" and doc["validation"]["status"] == "approved"
+
+
+async def test_коллизия_идентификатора_при_создании_повторяется_а_не_даёт_500(v1: AsyncClient, monkeypatch) -> None:
+    from app.models.card import IncidentCard
+    from app.services import ai_scenario_service
+
+    await seed_source("t009-builder-idrace")
+    await login_as(v1, "teacher")
+    async with get_sessionmaker()() as db:
+        existing_card = (await db.execute(select(IncidentCard.id).limit(1))).scalar_one()
+    real = ai_scenario_service.next_id
+    calls = {"n": 0}
+
+    async def colliding(*args, **kwargs):
+        calls["n"] += 1
+        return existing_card if calls["n"] == 1 else await real(*args, **kwargs)  # параллельный запрос занял id
+
+    monkeypatch.setattr(ai_scenario_service, "next_id", colliding)
+    created = await v1.post("/ai/scenarios", json=manual_body("t009-builder-idrace", "t009-idrace-c", graph=GRAPH))
+    monkeypatch.undo()
+    assert created.status_code == 201, created.text
+    assert created.json()["cardSnapshot"]["id"] != existing_card
+    async with get_sessionmaker()() as db:
+        rows = (await db.execute(select(ScenarioVersion).where(ScenarioVersion.source_ticket_id == "t009-builder-idrace"))).scalars().all()
+    assert len(rows) == 1
+
+
+async def test_повторное_завершение_прогона_обучающимся_идемпотентно(v1: AsyncClient) -> None:
+    scenario_id = await prepare_published(v1, "fin2", assign=True)
+    await login_as(v1, "student")
+    run_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
+    first = await v1.post(f"/ai/scenario-runs/{run_id}/finish")
+    again = await v1.post(f"/ai/scenario-runs/{run_id}/finish")
+    assert first.status_code == again.status_code == 200 and first.json() == again.json()
+    async with get_sessionmaker()() as db:
+        actions = (await db.execute(select(AuditLog.action).where(AuditLog.details.like(f"%{run_id}%")))).scalars().all()
+    assert actions.count("ai.scenario.run.finish") == 1
+    # завершённый графом прогон по-прежнему не «завершается» повторно
+    done_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
+    await v1.post(f"/ai/scenario-runs/{done_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "low"}})
+    assert (await v1.post(f"/ai/scenario-runs/{done_id}/finish")).status_code == 409
+
+
+async def test_принятая_проверка_не_превращается_в_отклонение_параллельным_экспертом(v1: AsyncClient, monkeypatch) -> None:
+    from app.services import scenario_workflow
+
+    scenario_id = await create_draft(v1, "t009-builder-arace", "arace")
+    await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": "t009-arace-s"})
+    await login_as(v1, "admin")
+    accepted = await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": "t009-arace-a"})
+    assert accepted.status_code == 200
+    real = scenario_workflow._load_current
+
+    async def stale(db, *args, **kwargs):
+        version = await real(db, *args, **kwargs)
+        db.expunge(version)
+        version.reviewed_by = None
+        return version
+
+    monkeypatch.setattr(scenario_workflow, "_load_current", stale)
+    late = await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "reject", "comment": "Поздно", "requestId": "t009-arace-b"})
+    monkeypatch.undo()
+    assert late.status_code == 409, late.text
+    row = (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()
+    assert row["approval"] == "pending_review" and row["reviewedBy"] == accepted.json()["reviewedBy"] and "reviewComment" not in row

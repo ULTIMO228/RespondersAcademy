@@ -215,6 +215,8 @@ async def finish_run(db: AsyncSession, run_id: str, viewer: Viewer) -> dict[str,
         raise forbidden("Прогон завершает обучающийся")
     _, graph = await _published(db, row.scenario_id, row.version, viewer, active_only=False)
     engine, run = _restore(row, graph)
+    if run.status == "aborted" and run.outcome == "abandoned":
+        return _view(row, run, staff=False)  # повторное завершение обучающимся идемпотентно
     try:
         engine.finish(run, outcome="abandoned")
     except RunFinishedError as error:

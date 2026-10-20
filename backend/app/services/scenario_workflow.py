@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import update
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
@@ -85,11 +86,25 @@ async def review_version(db: AsyncSession, scenario_id: str, body: ScenarioRevie
         if version.validation != "passed":
             raise conflict("Версия не прошла структурную проверку")
         _check_graph(version)
-    else:
-        version.approval = "rejected"
-    version.reviewed_by = viewer.user_id
-    version.review_comment = body.comment.strip() or None
-    await db.flush()
+    # Условная запись: если параллельный эксперт уже принял решение, второе не перезаписывает первое.
+    result = await db.execute(
+        update(ScenarioVersion)
+        .where(
+            ScenarioVersion.scenario_id == scenario_id,
+            ScenarioVersion.version == version.version,
+            ScenarioVersion.approval == "pending_review",
+            ScenarioVersion.reviewed_by.is_(None),
+        )
+        .values(
+            approval="pending_review" if body.decision == "accept" else "rejected",
+            reviewed_by=viewer.user_id,
+            review_comment=body.comment.strip() or None,
+        )
+        .execution_options(synchronize_session=False)
+    )
+    if result.rowcount != 1:
+        raise conflict("Версия уже проверена другим экспертом; обновите данные")
+    await db.refresh(version)
     etalon = await _load_etalon(db, version)
     await record(db, action=f"ai.scenario.review.{body.decision}", user_id=viewer.user_id, role=viewer.role,
                  details=f"Проверена версия {version.version} сценария {scenario_id}: {body.decision}")
@@ -97,6 +112,8 @@ async def review_version(db: AsyncSession, scenario_id: str, body: ScenarioRevie
 
 
 async def mark_approved(db: AsyncSession, scenario: Scenario, version: ScenarioVersion, viewer: Viewer) -> None:
+    # Документ сценария перечитывается под блокировкой строки: параллельные правки не теряются.
+    await db.refresh(scenario, with_for_update=True)
     version.approval = "approved"
     version.approved_by = viewer.user_id
     if version.mode == "operator112":

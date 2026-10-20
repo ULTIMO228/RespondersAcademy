@@ -188,6 +188,8 @@ async def revise_scenario(
             )
         )
     scenario = await db.get(Scenario, scenario_id)
+    if scenario is not None:
+        await db.refresh(scenario, with_for_update=True)  # свежий документ под блокировкой строки
     if scenario is not None and scenario.validation_status != "approved":
         scenario.doc = {**scenario.doc, "validation": {"status": "draft", "comment": body.comment.strip()}}
         scenario.validation_report = {"version": "ai-workflow/1", "passed": validation_passed, "errors": errors}

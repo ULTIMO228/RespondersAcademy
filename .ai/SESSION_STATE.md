@@ -3,10 +3,11 @@ Proj:RespondersAcademy | Branch:claude/practical-hawking-7p9bam (was main @2026-
 tree:@2026-10-20 only .ai/ + spec contract docs pending commit | docs/demo*.mp4 absent from git status (not ours)
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ T001-T071 | 004 polza-provider ✅ T001-T006, T007 open}
 Stand:demo-up.sh running @2026-10-19 (front :3130, back :8130, db backend/var/demo.db); not re-checked 2026-10-20 | stop: lsof -ti tcp:3130 tcp:8130 -sTCP:LISTEN | xargs kill
-Tests@2026-10-20:{pytest (`cd backend && uv run pytest -q`, run by this session after audit round 2): 995 passed/2 skipped/3 red (known debt: test_ready_applicant_audio_is_playable_from_recordings x2, test_release_invariants; same names as before, not re-proven on clean HEAD this session) | ruff (`uv run ruff check .`): clean | alembic roundtrip + `alembic check` in tests/integration/test_alembic.py: pass}
+Tests@2026-10-20:{pytest (`cd backend && uv run pytest -q`, run by this session after audit round 3): 1000 passed/2 skipped/3 red (known debt: test_ready_applicant_audio_is_playable_from_recordings x2, test_release_invariants; same names as before, not re-proven on clean HEAD this session) | ruff (`uv run ruff check .`): clean | alembic roundtrip + `alembic check`: pass}
 Tests@2026-10-19:{ruff:clean, vitest:1912 passed (234 files; 1 flaky IncidentScreen run, passes alone), steiger:pass, tsc:pass, build:pass, mocks:validate:pass}
 E2E@2026-10-19:{scripts/e2e-error-map.sh via run_frontend_e2e.sh --only error-map: 20/20} | not run:{simulator-visual playwright,e2e-student/teacher/admin since 002}
-Not run@2026-10-20:{frontend checks (vitest/steiger/tsc/build), all e2e} — не проверялось
+Front@2026-10-20 (after `npm ci` + `npm run mocks:sync`; src/ untouched by this branch):{vitest `npx vitest run`: 1910 passed/2 failed of 1912 — teacher-v1.test.ts downloadReportExport fails on clean origin/main too (Blob realm in jsdom, pre-existing), TeacherScenarioEditorPage route test passes alone (flaky in full run) | steiger: pass | tsc --noEmit: errors about @mocks/*.json BEFORE mocks:sync (not re-run after sync)}
+Not run@2026-10-20:{npm run build, playwright e2e, scripts/e2e-*.sh} — не проверялось
 npm run check:⚠️ stops at prettier on 2 foreign files (scripts/demo-video/record.mjs, GenerateDialog.tsx) | steiger/tsc/build run separately
 Updated:2026-10-20
 
@@ -22,7 +23,7 @@ Updated:2026-10-20
 4e ✅ contract ai-workflow-v1.md: workflow/permissions/runs rows; graph param on POST scenarios + revise; approve → 409 for graph versions
 5 ✅ audit fixes (2026-10-20): run update guarded by revision (409 on parallel write) + optional expectedSteps; double start returns active run (200); finished assignment blocks start/action (finish still allowed); revise race IntegrityError → 409 (was 500); graph rejects unknown keys, non-scalar values, >50 branches; 0006 downgrade fixed for SQLite triggers (direct DROP COLUMN); 9 builder integration tests extended to 17
 5b ✅ audit round 2 (independent haiku audit + own checks): legacy approve blocked for rejected and for pending_review non-chain (chain student_card keeps approve); expectedSteps now REQUIRED on run actions; start_run falls back to active run on IntegrityError; facts set at start are locked vs actions; card nested fields flattened (caller.status); order ops (gt/ge/lt/le) numeric-only incl. parse check; graph start non-string → 400 (was 500); parallel publish → 409 (was 500)
-5c ⚠️ residual (not fixed): parallel accept vs reject by two experts can leave rejected with accept's reviewed_by; parallel publish+revise may overwrite scenario.doc; next_id = max+1 races on parallel create (existing code); finish repeat → 409 not 200; D2 from auditor was wrong (whitespace reject comment already 400, test added)
+5c ✅ audit round 3 (residuals closed): review decision = conditional UPDATE (approval=pending_review AND reviewed_by IS NULL) → parallel expert 409; scenario row re-read FOR UPDATE before doc rewrite in publish/revise; _save_draft retried in savepoint on id IntegrityError (next_id race); student finish idempotent (200, one audit row). Auditor's D2 was wrong (whitespace reject comment already 400). Real PostgreSQL concurrency not tested (SQLite single shared connection in tests → collisions simulated by monkeypatched stale reads)
 
 ## Reasoning
 verdict key omitted when none (dump() exclude_none for optional TS fields) > null

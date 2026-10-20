@@ -486,6 +486,18 @@ async def _save_draft(
     return scenario_version_contract(version, etalon, [])
 
 
+async def _save_draft_retrying(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Повторяет сохранение при коллизии идентификатора (next_id = max+1 при параллельном создании)."""
+    db: AsyncSession = args[0]
+    for _ in range(3):
+        try:
+            async with db.begin_nested():
+                return await _save_draft(*args, **kwargs)
+        except IntegrityError:
+            continue
+    raise conflict("Не удалось выделить идентификатор сценария; повторите запрос")
+
+
 async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Viewer) -> list[dict[str, Any]]:
     if viewer.role not in ("teacher", "admin"):
         from app.api.errors import forbidden
@@ -569,7 +581,7 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
                 )
             if index < len(template_fallback):
                 candidate = template_fallback[index]
-        result = await _save_draft(
+        result = await _save_draft_retrying(
             db,
             viewer,
             source,
@@ -617,7 +629,7 @@ async def create_manual_draft(db: AsyncSession, body: ScenarioManualCreateReques
     if body.address is not None:
         card["address"] = body.address
     item = {"scenario": {"title": body.title or f"Сценарий: {body.category}"}, "cards": [card]}
-    result = await _save_draft(
+    result = await _save_draft_retrying(
         db,
         viewer,
         source,
