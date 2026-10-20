@@ -137,8 +137,8 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api, onScenarioC
 
   const dirty = graph !== null && graphSignature(graph) !== savedSignature;
   const actions = useMemo(
-    () => workflowActions(latest?.approval ?? null, permissions, dirty),
-    [latest?.approval, permissions, dirty],
+    () => workflowActions(latest?.approval ?? null, permissions, dirty, latest?.reviewedBy),
+    [latest?.approval, latest?.reviewedBy, permissions, dirty],
   );
   const size = useMemo(() => (graph ? canvasSize(graph) : null), [graph]);
   const local = useMemo(() => (graph ? localChecks(graph) : []), [graph]);

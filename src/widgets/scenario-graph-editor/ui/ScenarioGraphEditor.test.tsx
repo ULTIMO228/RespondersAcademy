@@ -60,7 +60,8 @@ function makeApi(
     ),
     reviewGraphScenario: vi.fn(async (_id, body) =>
       makeVersion({
-        approval: body.decision === "accept" ? "approved" : "rejected",
+        approval: body.decision === "accept" ? "pending_review" : "rejected",
+        reviewedBy: "u-003",
         reviewComment: body.comment,
       }),
     ),
@@ -265,17 +266,31 @@ describe("ScenarioGraphEditor: процесс версий и права", () =>
         expect.objectContaining({ version: 1, decision: "accept", comment: "Нет ветки отказа" }),
       ),
     );
-    expect(await screen.findByTestId("approval-status")).toHaveTextContent("Принята");
+    expect(await screen.findByTestId("approval-status")).toHaveTextContent(
+      "Проверена экспертом, ожидает публикации",
+    );
+    expect(screen.queryByRole("button", { name: "Принять" })).not.toBeInTheDocument(); // повторно не принимают
   });
 
-  it("публикация доступна только с правом scenario.publish после принятия", async () => {
-    const withoutRight = makeApi(makeVersion({ approval: "approved" }), ["scenario.review"]);
+  it("публикация доступна только с правом scenario.publish после принятия экспертом", async () => {
+    const reviewed = { approval: "pending_review", reviewedBy: "u-003" } as const;
+    const notReviewed = render(
+      <ScenarioGraphEditor
+        scenarioId="s-ai-001"
+        api={makeApi(makeVersion({ approval: "pending_review" }), ["scenario.publish"])}
+      />,
+    );
+    await screen.findByRole("group", { name: /Холст графа сценария/ });
+    expect(screen.queryByRole("button", { name: "Опубликовать" })).not.toBeInTheDocument(); // без решения эксперта нельзя
+    notReviewed.unmount();
+
+    const withoutRight = makeApi(makeVersion(reviewed), ["scenario.review"]);
     const first = render(<ScenarioGraphEditor scenarioId="s-ai-001" api={withoutRight} />);
     await screen.findByRole("group", { name: /Холст графа сценария/ });
     expect(screen.queryByRole("button", { name: "Опубликовать" })).not.toBeInTheDocument();
     first.unmount();
 
-    const api = makeApi(makeVersion({ approval: "approved" }), ["scenario.publish"]);
+    const api = makeApi(makeVersion(reviewed), ["scenario.publish"]);
     await renderEditor(api);
     fireEvent.click(screen.getByRole("button", { name: "Опубликовать" }));
     await waitFor(() =>
@@ -284,6 +299,8 @@ describe("ScenarioGraphEditor: процесс версий и права", () =>
         expect.objectContaining({ version: 1 }),
       ),
     );
+    expect(await screen.findByTestId("approval-status")).toHaveTextContent("Опубликована");
+    expect(screen.queryByRole("button", { name: "Опубликовать" })).not.toBeInTheDocument();
   });
 });
 
@@ -328,7 +345,7 @@ describe("ScenarioGraphEditor: новая версия из принятой", (
     await renderEditor(api);
     fireEvent.click(screen.getByRole("button", { name: "Создать новую версию" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Уже есть неопубликованная версия");
-    expect(screen.getByTestId("approval-status")).toHaveTextContent("Принята");
+    expect(screen.getByTestId("approval-status")).toHaveTextContent("Опубликована");
   });
 });
 

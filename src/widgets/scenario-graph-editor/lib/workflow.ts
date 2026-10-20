@@ -5,9 +5,16 @@ export const APPROVAL_LABEL: Record<AIWorkflowApproval, string> = {
   draft: "Черновик",
   validation_failed: "Не прошла проверку",
   pending_review: "На проверке у эксперта",
-  approved: "Принята (ожидает публикации)",
+  approved: "Опубликована",
   rejected: "Отклонена экспертом",
 };
+
+/** В API `approved` — версия опубликована; решение эксперта до публикации хранится как `pending_review` + `reviewedBy`. */
+export function approvalLabel(version: { approval: AIWorkflowApproval; reviewedBy?: string }): string {
+  if (version.approval === "pending_review" && version.reviewedBy)
+    return "Проверена экспертом, ожидает публикации";
+  return APPROVAL_LABEL[version.approval];
+}
 
 const EDITABLE: AIWorkflowApproval[] = ["draft", "validation_failed", "rejected"];
 
@@ -18,7 +25,7 @@ export type WorkflowActions = {
   canSubmit: boolean;
   canReview: boolean;
   canPublish: boolean;
-  /** Создать новую версию-черновик из принятой (derive); права автора/админа проверяет сервер. */
+  /** Создать новую версию-черновик из опубликованной (derive); права автора/админа проверяет сервер. */
   canDerive: boolean;
   /** Подсказка, когда решение за экспертом, а права нет. */
   reviewHint: string | null;
@@ -29,27 +36,31 @@ export function workflowActions(
   approval: AIWorkflowApproval | null,
   permissions: ScenarioPermission[],
   dirty: boolean,
+  reviewedBy?: string,
 ): WorkflowActions {
   const editable = approval !== null && EDITABLE.includes(approval);
   const canSave = editable && dirty;
   let saveHint: string | null = null;
-  if (approval === "pending_review")
+  const reviewed = approval === "pending_review" && Boolean(reviewedBy);
+  if (reviewed) saveHint = "Версию проверил эксперт, она ожидает публикации — изменить её нельзя.";
+  else if (approval === "pending_review")
     saveHint = "Версия на проверке — изменить её нельзя. Дождитесь решения эксперта.";
   else if (approval === "approved")
-    saveHint = "Версия принята — изменить её нельзя. Опубликуйте её или создайте новую версию.";
+    saveHint = "Версия опубликована — изменить её нельзя. Создайте новую версию из неё.";
   else if (editable && !dirty) saveHint = "Нет несохранённых изменений.";
-  const canReview = approval === "pending_review" && permissions.includes("scenario.review");
+  const canReview = approval === "pending_review" && !reviewed && permissions.includes("scenario.review");
+  const canPublish = reviewed && permissions.includes("scenario.publish");
   return {
     canSave,
     saveHint,
     canSubmit: approval === "draft" && !dirty,
     canReview,
-    canPublish: approval === "approved" && permissions.includes("scenario.publish"),
+    canPublish,
     canDerive: approval === "approved",
     reviewHint:
-      approval === "pending_review" && !canReview
+      approval === "pending_review" && !reviewed && !canReview
         ? "Принять или отклонить версию может эксперт с правом «scenario.review»."
-        : approval === "approved" && !permissions.includes("scenario.publish")
+        : reviewed && !canPublish
           ? "Опубликовать версию может эксперт с правом «scenario.publish»."
           : null,
     readOnly: !editable,

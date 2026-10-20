@@ -95,7 +95,13 @@ export function ScenarioEditorScreen({
         <h1 className={styles.editor__title}>{scenario.title}</h1>
         <span className={styles.editor__meta}>
           {scenario.id} · билет {scenario.sourceTicketNo} ·{" "}
-          {scenario.source === "generated" ? <AiBadge title="Сгенерирован ИИ-модулем (мок)" /> : "шаблон"}
+          {scenario.source === "generated" ? (
+            <AiBadge title="Сгенерирован ИИ-модулем (мок)" />
+          ) : scenario.source === "manual" ? (
+            "создан преподавателем"
+          ) : (
+            "шаблон"
+          )}
           <StatusChip label={status.title} tone={status.tone} />
         </span>
         {scenario.validation.comment ? (

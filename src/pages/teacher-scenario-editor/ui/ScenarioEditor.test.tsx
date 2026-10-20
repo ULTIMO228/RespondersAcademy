@@ -554,4 +554,11 @@ describe("Вкладка «Граф» редактора сценария (сп�
     );
     expect(api.createGraphScenario).toHaveBeenCalledTimes(1);
   });
+
+  it("в шапке источник сценария подписан: созданный преподавателем не называется шаблоном", async () => {
+    const manual = { ...scenario, source: "manual" } as unknown as Scenario;
+    await renderEditor(createApi({ getScenario: vi.fn(async () => manual) }));
+    expect(screen.getByText(/создан преподавателем/)).toBeInTheDocument();
+    expect(screen.queryByText(/· шаблон/)).not.toBeInTheDocument();
+  });
 });

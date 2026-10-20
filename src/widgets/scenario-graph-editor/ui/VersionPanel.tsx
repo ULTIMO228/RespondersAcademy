@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { AIScenarioVersion } from "@/shared/api";
 
 import type { WorkflowActions } from "../lib/workflow";
-import { APPROVAL_LABEL } from "../lib/workflow";
+import { approvalLabel } from "../lib/workflow";
 import { Btn, TextArea } from "./controls";
 import type { Notice } from "../model/useGraphEditor";
 
@@ -44,8 +44,7 @@ export function VersionPanel({
     <section className={styles.versions} aria-label="Версия сценария">
       <div className={styles.versions__head}>
         <h3 className={styles.versions__title}>
-          Версия {version.version}:{" "}
-          <span data-testid="approval-status">{APPROVAL_LABEL[version.approval]}</span>
+          Версия {version.version}: <span data-testid="approval-status">{approvalLabel(version)}</span>
         </h3>
         {dirty ? <span className={styles.dirty}>Есть несохранённые изменения</span> : null}
       </div>
