@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { fetchTicketAudioFile } from "@/shared/api";
 import type { AssignmentFormat, OperatorAttempt } from "@/shared/api";
-import { isEmergencyAudio, isReplayBlocked } from "@/entities/operator112-attempt";
+import { isEmergencyAudio, isReplayBlocked } from "./phase";
 
 /**
  * idle — вызов ещё не принят; loading — запрашиваем файл; ready — воспроизводим; emergency — аудио недоступно, работаем по

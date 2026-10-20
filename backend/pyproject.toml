@@ -15,6 +15,7 @@ dependencies = [
     "python-jose[cryptography]>=3.3",
     "argon2-cffi>=23.1",
     "httpx>=0.27",
+    "websockets>=15,<17",
     "rapidfuzz>=3.9",
     "symspellpy>=6.7",
     "numpy>=1.26",
@@ -28,13 +29,22 @@ pg = ["asyncpg>=0.29"]
 nlp = ["sentence-transformers>=3.0", "torch>=2.2"]
 tts = ["torch>=2.2", "soundfile>=0.12"]
 stt = ["vosk>=0.3.45"]
+# Локальное распознавание GigaAM-v3 (MIT) для живого заявителя; веса — с CDN Сбера при первом запуске.
+stt-local = ["gigaam @ git+https://github.com/salute-developers/GigaAM@7447938d791c4f3e643386ee22c33777004293a5", "torchaudio>=2.6"]
 llm = ["ollama>=0.3"]
 dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.5", "jsonschema[format-nongpl]>=4.26.0,<5"]
 pipeline = ["langgraph>=0.2", "langchain-core>=0.3"]
+speechkit = [
+    "grpcio>=1.75,<2",
+    "yandexcloud>=0.411.0",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true  # gigaam (stt-local) ставится из GitHub по коммиту
 
 [tool.hatch.build.targets.wheel]
 packages = ["app", "ml"]

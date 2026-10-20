@@ -2,8 +2,8 @@
  * Гвард роутов по матрице доступа spec/000-фронт/02-roles.md (ROLE_ACCESS_ROWS — единственный источник).
  * Чистые функции: используются proxy (сервер), серверными лэйаутами и резолвером редиректа входа.
  */
-import type { UserRole } from "@/shared/api";
-import { ROUTES } from "@/shared/config";
+import type { TrainingProfile, UserRole } from "@/shared/api";
+import { allowsMode, ROUTES } from "@/shared/config";
 
 import { ROLE_ACCESS_ROWS } from "../config/roleAccess";
 import type { RoleAccessRow } from "../config/roleAccess";
@@ -76,4 +76,15 @@ export function buildLoginHref(returnUrl?: string, reason?: typeof LOGIN_REASON_
   if (reason) query.set(LOGIN_QUERY.reason, reason);
   const serialized = query.toString();
   return serialized ? `${ROUTES.login}?${serialized}` : ROUTES.login;
+}
+
+/**
+ * Экраны АРМ режима закрыты обучаемому с чужим профилем (spec/008, T041): специалисту-112 — журнал, карточка и софтфон ДДС.
+ * Профиля нет в токене сессии, поэтому проверка — в серверном лэйауте по ответу сервера, а не в proxy.
+ */
+export function isModeForbidden(
+  user: { trainingProfile?: TrainingProfile },
+  mode: TrainingProfile | undefined,
+): boolean {
+  return mode !== undefined && !allowsMode(user, mode);
 }

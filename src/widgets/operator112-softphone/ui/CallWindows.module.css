@@ -1,4 +1,4 @@
-/* Окна телефонии карточки 112: «Входящий звонок» (ИНСТРУКЦИЯ_4) и «Записи звонков». Только токены АРМ (vars.css). */
+/* Окно «Входящий звонок» карточки 112 (ИНСТРУКЦИЯ_4). Только токены АРМ (vars.css). */
 .overlay {
   position: fixed;
   inset: 0;
@@ -72,85 +72,7 @@
 }
 
 .call__accept:focus-visible,
-.call__close:focus-visible,
-.records__close:focus-visible,
-.records__button:focus-visible {
+.call__close:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-}
-
-.records {
-  position: absolute;
-  top: calc(100% + var(--spacing-xs));
-  left: 0;
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  width: 420px;
-  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
-  background: var(--color-white);
-  border: var(--border-width) solid var(--color-gray-200);
-  box-shadow: 0 2px 8px var(--color-shadow);
-  color: var(--color-ink);
-  font-family: var(--font-ui);
-  font-size: var(--font-size-md);
-}
-
-.records[hidden] {
-  display: none;
-}
-
-.records__head {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  font-weight: var(--font-weight-bold);
-}
-
-.records__close {
-  margin-left: auto;
-  border: 0;
-  background: transparent;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-xl);
-  line-height: 1;
-  cursor: pointer;
-}
-
-.records__player {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.records__player audio {
-  width: 100%;
-}
-
-.records__button {
-  height: var(--control-height-sm);
-  padding: 0 var(--spacing-md);
-  border: var(--border-width) solid var(--color-graphite-300);
-  background: var(--color-gray-25);
-  color: var(--color-ink);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.records__note {
-  margin: 0;
-  color: var(--color-ink-muted);
-}
-
-.records__denied {
-  margin: 0;
-  color: var(--color-accent-red);
-}
-
-.records__text {
-  margin: 0;
-  white-space: pre-wrap;
 }

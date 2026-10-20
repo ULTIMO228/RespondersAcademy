@@ -111,6 +111,17 @@ async def next_incident_number(db: AsyncSession) -> int:
     return int(max(fixtures, attempts)) + 1
 
 
+async def in_student_journal(db: AsyncSession, student_id: str, card_id: str) -> bool:
+    """Карточка из журнала ученика-112 (спека 009, FR-007): фон журнала или собственная карточка ученика режима 112.
+
+    Карточки других обучающихся в журнал не попадают, поэтому и привязать их нельзя.
+    """
+    if await db.get(ArmCardFixture, card_id) is not None:
+        return True
+    card = await db.get(IncidentCard, card_id)
+    return card is not None and card.mode_origin == MODE and card.created_by_student_id == student_id
+
+
 def hints_of(assignment: Assignment | None) -> dict[str, Any]:
     params = dict((assignment.params if assignment else None) or {})
     hints = params.get("hints") if isinstance(params.get("hints"), dict) else {}
@@ -249,6 +260,10 @@ async def add_event(db: AsyncSession, attempt_id: str, event_type: str, payload:
             raise conflict("В экзамене запись прослушивается один раз")
         if link is not None:
             link.replays += 1
+    elif event_type == "linkAdded":
+        card_id = str(payload.get("cardId") or "").strip()
+        if not await in_student_journal(db, attempt.student_id, card_id):
+            raise validation_failed(f"Карточки «{card_id}» нет в журнале: привязать можно только карточку из журнала")
     elif event_type == "hintShown":
         if not hints_of(assignment)["enabled"]:
             raise conflict("Подсказки в этом задании отключены")

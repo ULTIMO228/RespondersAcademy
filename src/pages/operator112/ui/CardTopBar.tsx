@@ -137,7 +137,13 @@ export function CardTopBar(props: CardTopBarProps) {
         </div>
         {props.recordings}
       </div>
-      <PhoneField label="АОН" value={isRinging ? "" : aon} disabled isActive icons={["help", "pin", "globe"]} />
+      <PhoneField
+        label="АОН"
+        value={isRinging ? "" : aon}
+        disabled
+        isActive
+        icons={["help", "pin", "globe"]}
+      />
       <PhoneField
         label="предоставленный"
         value={props.phoneProvided}

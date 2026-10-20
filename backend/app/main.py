@@ -77,6 +77,17 @@ async def lifespan(_: FastAPI):
         await init_db()
     if settings.ml_warmup:
         asyncio.get_running_loop().run_in_executor(None, warmup_ml)  # не блокирует старт — запросы принимаются сразу
+    if settings.live_calls_enabled and settings.live_call_realtime_transport == "polza":
+        from app.services.realtime_polza import warm_stt, warm_voice
+
+        async def warm_caller():
+            await warm_voice()
+            await warm_stt()
+
+        # Локальные голос и распознавание заявителя (~17 с холодного старта) — в фоне, первый звонок не ждёт.
+        voice_warmup = asyncio.create_task(warm_caller())
+        voice_warmup.add_done_callback(lambda task: task.cancelled() or task.exception() and log.warning(
+            "Прогрев голоса заявителя не удался: %s", task.exception()))
     yield
 
 

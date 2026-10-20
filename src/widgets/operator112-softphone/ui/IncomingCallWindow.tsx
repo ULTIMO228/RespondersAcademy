@@ -22,7 +22,12 @@ export function IncomingCallWindow({ aon, isAnswering = false, onAnswer, onClose
   return (
     <div className={styles.overlay}>
       <div className={styles.call} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <button type="button" className={styles.call__close} aria-label="Закрыть окно вызова" onClick={onClose}>
+        <button
+          type="button"
+          className={styles.call__close}
+          aria-label="Закрыть окно вызова"
+          onClick={onClose}
+        >
           ×
         </button>
         <h2 id={titleId} className={styles.call__title}>

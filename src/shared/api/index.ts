@@ -261,15 +261,20 @@ export type {
 } from "./types";
 export type {
   AddressSource,
+  CardChannel,
   CardDraft,
   CardDraftAddress,
   CardDraftApplicant,
   CardDraftCasualties,
   CardDraftEmergency,
+  CardDraftLink,
   CardDraftNotification,
+  CardOutcome,
   CardDraftPhones,
   CardDraftWhat,
   FieldDiff,
+  Journal112Response,
+  Journal112Row,
   NotificationAdder,
   NotificationListItem,
   NotificationListPreview,
@@ -287,3 +292,7 @@ export type {
   TicketAudio,
   TicketAudioStatus,
 } from "./types";
+export { liveCallApi } from "./endpoints/live-call";
+export type { LiveCallRecord, LiveTranscriptLine } from "./endpoints/live-call";
+export { realtimeCallApi } from "./endpoints/realtime-call";
+export type { RealtimeEvent, RealtimeConnection } from "./endpoints/realtime-call";

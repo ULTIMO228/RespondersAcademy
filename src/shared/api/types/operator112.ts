@@ -5,13 +5,32 @@
  */
 
 export type OperatorAttemptState = "ringing" | "answered" | "submitted";
-/** Типы событий, которые отправляет клиент (POST …/events); иное сервер отклоняет 400. */
-export type OperatorEventType = "fieldChanged" | "signSelected" | "serviceAdded" | "replay" | "hintShown";
+/**
+ * Типы событий, которые отправляет клиент (POST …/events); иное сервер отклоняет 400.
+ * Спека 009: вкладки типов, ручное удаление службы, связи карточек, скрытие окна вызова «×».
+ */
+export type OperatorEventType =
+  | "fieldChanged"
+  | "signSelected"
+  | "serviceAdded"
+  | "replay"
+  | "hintShown"
+  | "typeAdded"
+  | "typeRemoved"
+  | "serviceRemoved"
+  | "linkAdded"
+  | "linkRemoved"
+  | "linkPrimary"
+  | "callHidden";
 /** Событие в ленте попытки: клиентские типы + answerTimeout, который сервер пишет сам при ответе позже норматива. */
 export type OperatorEventKind = OperatorEventType | "answerTimeout";
 export type TicketAudioStatus = "pending" | "ready" | "failed";
 export type AddressSource = "directory" | "manual";
 export type NotificationAdder = "auto" | "manual";
+/** Канал поступления обращения (спека 009): звонок или СМС. */
+export type CardChannel = "call" | "sms";
+/** Исход карточки: заполнена или сохранена пустой кнопками «нет контакта» / «срыв звонка» (007, FR-017). */
+export type CardOutcome = "filled" | "noContact" | "dropped";
 
 /** Запись речи заявителя. emergency — файла нет, работать по transcript (аварийный текстовый режим). */
 export interface TicketAudio {
@@ -93,6 +112,21 @@ export interface CardDraftAddress {
   raion: string;
   descriptive: string;
   source: AddressSource;
+  /* Адрес любого субъекта (спека 009, FR-014, FR-023): необязательные, старые карточки их не содержат. */
+  country?: string;
+  subject?: string;
+  locality?: string;
+  object?: string;
+  korpus?: string;
+  /** «Стр/соор». */
+  building?: string;
+  /** «Квартира/офис». */
+  flat?: string;
+  entrance?: string;
+  floor?: string;
+  code?: string;
+  lat?: number;
+  lon?: number;
 }
 
 export interface CardDraftCasualties {
@@ -120,7 +154,16 @@ export interface CardDraftNotification {
   addedBy: NotificationAdder;
 }
 
-/** Карточка, которую специалист-112 передаёт (submit). Минимум: адресный блок + описание или опросная карта. */
+/** Связь карточек (спека 009, US5): ровно одна главная, если связи есть. */
+export interface CardDraftLink {
+  cardId: string;
+  primary: boolean;
+}
+
+/**
+ * Карточка, которую специалист-112 сохраняет (submit). Минимум: адресный блок + описание или опросная карта;
+ * при outcome «noContact» / «dropped» — без минимума. what = первая вкладка incidents (её читает оценщик).
+ */
 export interface CardDraft {
   applicant: CardDraftApplicant;
   phones: CardDraftPhones;
@@ -129,6 +172,37 @@ export interface CardDraft {
   description: string;
   emergency: CardDraftEmergency;
   notificationList: CardDraftNotification[];
+  channel?: CardChannel;
+  /** Вкладки «Происшествие …» по порядку (спека 009, FR-017). */
+  incidents?: CardDraftWhat[];
+  links?: CardDraftLink[];
+  outcome?: CardOutcome;
+}
+
+/** Строка журнала специалиста-112 (спека 009, FR-006, FR-007): фон задания, свои карточки ученика, ожидающий вызов. */
+export interface Journal112Row {
+  cardId: string;
+  number: string;
+  createdAt: string;
+  operator: string;
+  arm: string;
+  whatHappened: string;
+  injured: string;
+  status: string;
+  address: string;
+  description: string;
+  linked: boolean;
+  chs: boolean;
+  checked: boolean;
+  isOwn: boolean;
+  lockedBy?: { operator: number; name: string; arm: number };
+  /** Вызов попытки ещё не принят (окно закрыто «×» или ещё не показано). */
+  queued?: boolean;
+}
+
+export interface Journal112Response {
+  rows: Journal112Row[];
+  total: number;
 }
 
 /** Служба списка оповещения (обязательная — services, условная — conditional). */

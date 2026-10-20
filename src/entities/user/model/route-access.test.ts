@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import type { UserRole } from "@/shared/api";
 
-import { buildLoginHref, canAccessRoute, isProtectedPath, resolveRouteAccess } from "./route-access";
+import {
+  buildLoginHref,
+  canAccessRoute,
+  isModeForbidden,
+  isProtectedPath,
+  resolveRouteAccess,
+} from "./route-access";
 import type { SessionClaims } from "./session";
 
 const ISSUED_AT = "2026-09-17T11:13:19+03:00";
@@ -72,5 +78,26 @@ describe("buildLoginHref", () => {
       "/login?returnUrl=%2Farm%2Fcard%2Fcard-881412%3Fx%3D1",
     );
     expect(buildLoginHref(undefined, "expired")).toBe("/login?reason=expired");
+  });
+});
+
+describe("isModeForbidden: экраны АРМ режима по профилю обучаемого (spec/008, T041)", () => {
+  const ivanov = { trainingProfile: "operator112" as const };
+  const withoutProfile = {};
+
+  it("специалисту-112 экраны ДДС закрыты", () => {
+    expect(isModeForbidden(ivanov, "dds")).toBe(true);
+  });
+
+  it("курсанту без профиля экраны ДДС открыты (парный случай)", () => {
+    expect(isModeForbidden(withoutProfile, "dds")).toBe(false);
+  });
+
+  it("свой режим специалисту-112 открыт", () => {
+    expect(isModeForbidden(ivanov, "operator112")).toBe(false);
+  });
+
+  it("раздел без режима не ограничивается профилем", () => {
+    expect(isModeForbidden(ivanov, undefined)).toBe(false);
   });
 });

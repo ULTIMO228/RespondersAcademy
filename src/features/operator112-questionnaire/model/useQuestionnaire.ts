@@ -177,6 +177,8 @@ export function useQuestionnaire({
     chooseGroup,
     chooseSign,
     addServices,
+    /** Одна служба — прежняя форма опросной карты (Operator112Questionnaire). */
+    addService: (serviceId: string) => addServices([serviceId]),
     retry: () => refreshList(selection),
   };
 }

@@ -141,7 +141,7 @@ describe("Operator112Screen: основной путь", () => {
     await answerCall();
     expect(api.answerAttempt).toHaveBeenCalledWith("att-100");
     fireEvent.change(screen.getByLabelText("Описание"), { target: { value: "Горит балкон на 13 этаже" } });
-    fireEvent.change(screen.getByLabelText("Улица"), { target: { value: "улица Грина" } });
+    fireEvent.change(screen.getByLabelText("Улица:"), { target: { value: "улица Грина" } });
     fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
     expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);

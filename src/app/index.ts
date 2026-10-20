@@ -2,6 +2,7 @@ export { AdminLayout } from "./layouts/AdminLayout";
 export { ArmOperator112Layout } from "./layouts/ArmOperator112Layout";
 export { ArmSectionLayout } from "./layouts/ArmSectionLayout";
 export { ArmCardLayout } from "./layouts/ArmCardLayout";
+export { ArmDdsGuardLayout } from "./layouts/ArmDdsGuardLayout";
 export { ArmJournalLayout } from "./layouts/ArmJournalLayout";
 export { LightArmLayout } from "./layouts/LightArmLayout";
 export { SharedPlatformLayout } from "./layouts/SharedPlatformLayout";
