@@ -1,10 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Mocked } from "vitest";
 
 import { MODE_TITLES } from "@/entities/assignment";
-import { ApiError } from "@/shared/api";
-import type { AIScenarioVersion, PublicUser, Scenario, Ticket } from "@/shared/api";
+import { ApiError, ServerRequiredError } from "@/shared/api";
+import type { AIScenarioVersion, PublicUser, Scenario, StudentCard, Ticket } from "@/shared/api";
 
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
 import { AssignmentWizard } from "./AssignmentWizard";
@@ -29,6 +29,21 @@ const ticket = (id: string, group: string, approved = true): Ticket =>
     approved,
     modeOrigin: "seed",
   }) as unknown as Ticket;
+
+const studentCard = (id: string, proposed: StudentCard["proposed"]): StudentCard => ({
+  id,
+  group: "Пожар",
+  summary: `Карточка ${id} обучающегося`,
+  address: "Москва, ул. Дубнинская, 2",
+  authorId: "u-005",
+  authorName: "Иванов Иван",
+  authorGroup: "Группа 1",
+  registeredAt: "2026-10-20T10:00:00.000Z",
+  sourceCardId: "c-010",
+  selectedServices: ["Мосводоканал"],
+  ticketServices: ["101 (главная)"],
+  proposed,
+});
 
 const version = (approval: AIScenarioVersion["approval"], number: number): AIScenarioVersion =>
   ({
@@ -55,6 +70,16 @@ function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
     listIncidentGroups: vi.fn().mockResolvedValue(["Пожар", "ДТП"]),
     listScenarios: vi.fn().mockResolvedValue([{ id: "sc-1", title: "Сценарий один" } as Scenario]),
     listScenarioVersions: vi.fn().mockResolvedValue([version("approved", 2), version("pending_review", 3)]),
+    listStudentCards: vi
+      .fn()
+      .mockResolvedValue([
+        studentCard("c-901", { cardId: "c-901", expectedDecision: "accepted" }),
+        studentCard("c-902", {
+          cardId: "c-902",
+          expectedDecision: "notAccepted",
+          expectedTransferTo: "101 (главная)",
+        }),
+      ]),
     create: vi.fn().mockResolvedValue({ id: "asg-010" }),
     ...overrides,
   };
@@ -354,5 +379,109 @@ describe("мастер назначения: начальные значения
     next();
     expect(await screen.findByText("c-010")).toBeInTheDocument();
     expect(screen.queryByText(/Подберите билеты/)).not.toBeInTheDocument();
+  });
+});
+
+describe("мастер назначения: карточки обучающихся-112 для ДДС (спека 011)", () => {
+  async function toDdsTickets(api: Mocked<AssignmentCreateApi>) {
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    await pickStudent(/Петров Пётр/);
+    next();
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    next();
+    await screen.findByText("c-010");
+  }
+
+  const bank = () => screen.getByRole("group", { name: "Карточки обучающихся-112" });
+
+  it("отбор карточки с эталоном, предложенным системой, и правка эталона преподавателем", async () => {
+    const api = makeApi();
+    await toDdsTickets(api);
+    expect(await screen.findByRole("checkbox", { name: /c-901/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-010/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-901/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-902/ }));
+    // Предложение системы: c-902 — «Не принята», адресат заполнен из билета.
+    expect(screen.getByLabelText("Кому передана информация (c-902)")).toHaveValue("101 (главная)");
+    expect(
+      within(bank()).getAllByText(/По билету: 101 \(главная\) · выбрал обучающийся-112: Мосводоканал/),
+    ).toHaveLength(2);
+    // Преподаватель меняет эталон c-901 на «Не принята» и указывает адресата.
+    fireEvent.click(screen.getByRole("radio", { name: /^Не принята\s*\(c-901\)$/ }));
+    fireEvent.change(screen.getByLabelText("Кому передана информация (c-901)"), {
+      target: { value: "  УК «ПИК»  " },
+    });
+    next();
+    next();
+    expect(screen.getByText(/c-901: Не принята → УК «ПИК»/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        trainingMode: "dds",
+        cardIds: ["c-010", "c-901", "c-902"],
+        studentCards: [
+          { cardId: "c-901", expectedDecision: "notAccepted", expectedTransferTo: "УК «ПИК»" },
+          { cardId: "c-902", expectedDecision: "notAccepted", expectedTransferTo: "101 (главная)" },
+        ],
+      }),
+    );
+  });
+
+  it("«Не принята» без адресата не пускает дальше; снятая карточка уходит из запроса", async () => {
+    const api = makeApi();
+    await toDdsTickets(api);
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-902/ }));
+    fireEvent.change(screen.getByLabelText("Кому передана информация (c-902)"), { target: { value: " " } });
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent("Укажите, кому передана информация: c-902");
+    fireEvent.click(screen.getByRole("radio", { name: /^Принята\s*\(c-902\)$/ }));
+    expect(screen.queryByLabelText("Кому передана информация (c-902)")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-901/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-901/ }));
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        cardIds: ["c-902"],
+        studentCards: [{ cardId: "c-902", expectedDecision: "accepted" }],
+      }),
+    );
+  });
+
+  it("без бэкенда блок банка показывает «требуется сервер», билеты выбираются как обычно", async () => {
+    const api = makeApi({ listStudentCards: vi.fn().mockRejectedValue(new ServerRequiredError()) });
+    await toDdsTickets(api);
+    expect(await within(bank()).findByText(/сервер/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-010/ }));
+    next();
+    expect(screen.getByLabelText("Реакция на вызов, сек")).toBeInTheDocument();
+  });
+
+  it("пустой банк и ошибка загрузки показываются, а не прячутся", async () => {
+    const empty = makeApi({ listStudentCards: vi.fn().mockResolvedValue([]) });
+    await toDdsTickets(empty);
+    expect(await within(bank()).findByText("Обучающиеся-112 ещё не сохраняли карточки")).toBeInTheDocument();
+  });
+
+  it("ошибка загрузки банка показывается с повтором", async () => {
+    const failing = makeApi({
+      listStudentCards: vi.fn().mockRejectedValue(new ApiError(500, "internal", "Сбой банка")),
+    });
+    await toDdsTickets(failing);
+    expect(await within(bank()).findByText("Сбой банка")).toBeInTheDocument();
+  });
+
+  it("в режиме 112 блока банка нет, банк не запрашивается", async () => {
+    const api = makeApi();
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    await pickStudent(/Иванов Иван/);
+    next();
+    next();
+    await screen.findByText("c-010");
+    expect(screen.queryByRole("group", { name: "Карточки обучающихся-112" })).not.toBeInTheDocument();
+    expect(api.listStudentCards).not.toHaveBeenCalled();
   });
 });

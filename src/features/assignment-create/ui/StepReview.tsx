@@ -1,6 +1,7 @@
 import { MODE_TITLES, formatLimit } from "@/entities/assignment";
 import { Alert, Card, Tag } from "@/shared/ui/platform";
 
+import { describeEtalon } from "../model/studentCards";
 import type { WizardDraft } from "../model/types";
 
 import styles from "./AssignmentWizard.module.css";
@@ -50,6 +51,18 @@ export function StepReview({ draft, studentNames, serverError }: StepReviewProps
                 : `${draft.cardIds.length} шт.: ${draft.cardIds.join(", ")}`}
             </dd>
           </div>
+          {draft.studentCards.length > 0 ? (
+            <div>
+              <dt>Карточки обучающихся-112 ({draft.studentCards.length})</dt>
+              <dd>
+                <ul className={styles.review__list}>
+                  {draft.studentCards.map((etalon) => (
+                    <li key={etalon.cardId}>{describeEtalon(etalon)}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : null}
           <div>
             <dt>Нормативы</dt>
             <dd>

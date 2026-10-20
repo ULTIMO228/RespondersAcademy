@@ -19,6 +19,7 @@ def build_router() -> APIRouter:
         realtime_calls,
         recommendations,
         reports_export,
+        student_cards,
         tickets,
         validation,
         work_messages,
@@ -41,6 +42,7 @@ def build_router() -> APIRouter:
         assignments,
         validation,
         error_map,
+        student_cards,
     ):
         router.include_router(module.router)
     return router

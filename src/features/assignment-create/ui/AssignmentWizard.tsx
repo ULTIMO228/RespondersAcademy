@@ -35,6 +35,7 @@ const REVIEW_STEP = WIZARD_STEPS.length - 1;
 const FIRST_ERROR_STEP: Record<string, number> = {
   studentIds: 0,
   cardIds: 2,
+  studentCards: 2,
   ruleCount: 2,
 };
 
@@ -81,7 +82,7 @@ export function AssignmentWizard({
 
   const changeMode = (trainingMode: WizardDraft["trainingMode"]) =>
     // Источник билетов и выбранные версии зависят от режима: смена режима сбрасывает выбор билетов.
-    patch({ trainingMode, ticketSource: "cards", cardIds: [], scenarioVersions: [] });
+    patch({ trainingMode, ticketSource: "cards", cardIds: [], scenarioVersions: [], studentCards: [] });
 
   const next = () => {
     const found = validateStep(step, draft);

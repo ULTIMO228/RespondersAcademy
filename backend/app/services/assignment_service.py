@@ -16,7 +16,7 @@ from app.models.card import IncidentCard
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TrainingSession
 from app.models.user import User
-from app.services import audit, operator112_service
+from app.services import audit, operator112_service, student_card_service
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso, parse_iso_ms
 
@@ -114,8 +114,13 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
         if body["trainingMode"] != "chain" and version.mode != body["trainingMode"]:
             raise validation_failed("Режим версии сценария не соответствует заданию")
         ai_links.append((version, item["cardId"]))
+    params = dict(body.get("params") or {})
+    params.pop("studentCards", None)  # эталоны карточек обучающихся — только из проверенного поля studentCards
+    student_card_ids = await student_card_service.check_assignment_cards(db, viewer, body["trainingMode"], selected, body.get("studentCards") or [])
+    if student_card_ids:
+        params["studentCards"] = list(body.get("studentCards") or [])
     if selected:
-        approved = await _approved_ids(db)
+        approved = await _approved_ids(db) | student_card_ids
         ai_card_ids = {card_id for _, card_id in ai_links}
         if any(card_id not in approved and card_id not in ai_card_ids for card_id in selected):
             raise validation_failed("В задание можно включать только существующие утверждённые билеты")
@@ -133,7 +138,7 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
     row = Assignment(
         id=await next_id(db, PREFIX["assignment"], Assignment.id), teacher_id=teacher_id,
         student_ids=body["studentIds"], training_mode=body["trainingMode"], format=body["format"],
-        card_ids=selected, random_rule=rule, params=body.get("params") or {}, due_at=body.get("dueAt"),
+        card_ids=selected, random_rule=rule, params=params, due_at=body.get("dueAt"),
         state="active", created_at=now_iso(), title=body.get("title") or "",
     )
     db.add(row)

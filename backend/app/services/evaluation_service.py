@@ -24,6 +24,7 @@ from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSes
 from app.models.user import User
 from app.models.work_message import WorkMessage
 from app.services import audit
+from app.services.chain_service import etalon_for_decision
 from app.services.reference import read_reference
 from app.services.session_engine import evaluation_contract, session_contract
 from app.services.time import now_iso
@@ -47,6 +48,19 @@ async def _cards_index(db: AsyncSession) -> dict[str, dict[str, Any]]:
     return {row.id: row.to_contract() for row in rows}
 
 
+async def confirmed_student_card_etalon(db: AsyncSession, attempt: Attempt, session: TrainingSession | None) -> dict[str, Any] | None:
+    """Эталон карточки обучающегося-112, подтверждённый преподавателем в задании ДДС (спека 011, §5.3)."""
+    mode = (session.mode if session else "") or ""
+    if not mode.startswith("assignment:"):
+        return None
+    assignment = await db.get(Assignment, mode.removeprefix("assignment:"))
+    entries = ((assignment.params or {}).get("studentCards") or []) if assignment is not None else []
+    entry = next((item for item in entries if item.get("cardId") == attempt.card_id), None)
+    if entry is None:
+        return None
+    return etalon_for_decision(attempt.card_id, str(entry["expectedDecision"]), entry.get("expectedTransferTo"))
+
+
 async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, Any] | None:
     """Готовая оценка — как есть; иначе оценщик по эталону (нет эталона → None). Сохраняет `evaluations`."""
     existing = await evaluation_contract(db, attempt.id)
@@ -57,7 +71,9 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
     session = await db.get(TrainingSession, attempt.session_id)
     scenario = await find_scenario_for_attempt(db, attempt, session)
     chain_card = await db.get(IncidentCard, attempt.card_id)
-    chain_etalon = (chain_card.extra or {}).get("chainEtalon") if chain_card else None
+    chain_etalon = await confirmed_student_card_etalon(db, attempt, session)
+    if chain_etalon is None:
+        chain_etalon = (chain_card.extra or {}).get("chainEtalon") if chain_card else None
     if scenario is None and not isinstance(chain_etalon, dict):
         return None
     reference = await read_reference(db)

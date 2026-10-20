@@ -28,18 +28,30 @@ def _matches(profile: str | None, service: str) -> bool:
     return profile_name in service_name or service_name in profile_name
 
 
-def etalon_from_source(card: IncidentCard, original: IncidentCard) -> dict:
-    """DDS acceptance depends on the original ticket, never the learner's selected type."""
+def proposed_decision(card: IncidentCard, original: IncidentCard) -> dict:
+    """Предложение эталона ДДС (фича 011): службы обучающегося-112 совпали с билетом → «Принята», иначе «Не принята»."""
     expected = list(original.expected_services or [])
     correct = any(_matches(service, selected) for service in expected for selected in card.expected_services or [])
     if correct:
-        return {"expectedActions": [f"openCard:{card.id}", "status:accepted"], "cards": {card.id: {"expectedDecision": "accepted"}}}
-    target = expected[0] if expected else "профильную службу"
+        return {"cardId": card.id, "expectedDecision": "accepted"}
+    return {"cardId": card.id, "expectedDecision": "notAccepted", "expectedTransferTo": expected[0] if expected else "профильную службу"}
+
+
+def etalon_for_decision(card_id: str, decision: str, transfer_to: str | None = None) -> dict:
+    """Эталон попытки ДДС по одной карточке: первичный статус и, для «Не принята», кому передано."""
+    if decision == "accepted":
+        return {"expectedActions": [f"openCard:{card_id}", "status:accepted"], "cards": {card_id: {"expectedDecision": "accepted"}}}
     return {
-        "expectedActions": [f"openCard:{card.id}", "status:notAccepted"],
-        "cards": {card.id: {"expectedDecision": "notAccepted", "expectedTransferTo": target,
-                            "expectedCommentPhrases": ["не профильное", f"передано в {target}"]}},
+        "expectedActions": [f"openCard:{card_id}", "status:notAccepted"],
+        "cards": {card_id: {"expectedDecision": "notAccepted", "expectedTransferTo": transfer_to,
+                            "expectedCommentPhrases": ["не профильное", f"передано в {transfer_to}"]}},
     }
+
+
+def etalon_from_source(card: IncidentCard, original: IncidentCard) -> dict:
+    """DDS acceptance depends on the original ticket, never the learner's selected type."""
+    proposal = proposed_decision(card, original)
+    return etalon_for_decision(card.id, proposal["expectedDecision"], proposal.get("expectedTransferTo"))
 
 
 async def issue_submitted_card(db: AsyncSession, card: IncidentCard, source: Attempt, assignment: Assignment | None) -> None:
@@ -47,8 +59,13 @@ async def issue_submitted_card(db: AsyncSession, card: IncidentCard, source: Att
     if original is None:
         return
     card.extra = {**(card.extra or {}), "chainEtalon": etalon_from_source(card, original), "sourceAttemptId": source.id}
+    # Фича 011 (D4): в идущие занятия ДДС карточка сама не попадает — её подаёт преподаватель через задание.
+    # Выдача остаётся только этапу ДДС задания «цепочка A → B» (D5).
+    if assignment is None or assignment.training_mode != "chain":
+        await db.flush()
+        return
     sessions = list((await db.execute(select(TrainingSession).where(TrainingSession.state == "running"))).scalars().all())
-    eligible_sessions = [s for s in sessions if s.card_source in ("studentCreated", "mixed") and s.training_mode in ("dds", "chain")]
+    eligible_sessions: list[TrainingSession] = []
     if assignment is not None and assignment.training_mode == "chain":
         session = next((s for s in sessions if s.mode == f"assignment:{assignment.id}" and s.training_mode == "chain"), None)
         if session is None:

@@ -102,3 +102,10 @@ focus:caller barge-in (liveliness)
 done:backend barge_in + STILL_TALKING prompt + relay interrupting; front playback overlapping
 checks:pytest 1020/3 skipped, ruff clean, vitest 40/40 (realtime-audio, softphone), tsc ok | npm run check, e2e not run
 next:owner headset test; tune LIVE_CALL_BARGE_IN_SEC
+
+## 2026-10-20d claude/kind-goldberg-ij6veq (from develop)
+focus:DDS operator — teacher feeds cards (feature 011, variant 3)
+done:spec/011-dds-card-feed (spec+tasks) | GET /student-cards + proposed etalon | studentCards in assignments + eval by teacher etalon | no auto-push to live DDS | wizard bank block + review | v1-endpoints.md
+decisions:owner — feed in assignments wizard; etalon edited at selection; auto-push removed; chain untouched
+checks:pytest 1042/4 skipped, ruff, vitest 1956/1957 (known Blob), tsc, steiger | check/e2e/browser not run
+next:T010 browser check; DDS card per spec 007 (SASHA) after merge

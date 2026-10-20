@@ -4,6 +4,7 @@
  */
 import type { CardAttemptResponse } from "./attempts";
 import type { OperatorAttempt } from "./operator112";
+import type { StudentCardEtalon } from "./student-cards";
 
 export type TrainingMode = "dds" | "operator112" | "chain";
 export type AssignmentFormat = "training" | "exam";
@@ -32,6 +33,8 @@ export interface AssignmentParams {
   workMessagesEnabled?: boolean;
   workMessageIntervalsSec?: number[];
   adaptive?: boolean;
+  /** Эталоны карточек обучающихся-112, подтверждённые преподавателем (спека 011). */
+  studentCards?: StudentCardEtalon[];
 }
 
 export interface AssignmentRandomRule {
@@ -117,6 +120,8 @@ export interface AssignmentCreateRequest {
   format: AssignmentFormat;
   cardIds?: string[];
   scenarioVersions?: AssignmentScenarioVersion[];
+  /** Только режим ДДС: по записи на каждую карточку обучающегося-112 из cardIds (спека 011). */
+  studentCards?: StudentCardEtalon[];
   randomRule?: AssignmentRandomRule;
   params?: AssignmentParams;
   dueAt?: string;

@@ -1,4 +1,6 @@
 ## Facts
+F011@2026-10-20 branch:claude/kind-goldberg-ij6veq (= develop db44740 + feature 011): teacher feeds 112-student cards to DDS via assignment wizard | GET /api/v1/student-cards (own groups/admin all) | POST /assignments studentCards (dds only, etalon per card, notAccepted→transferTo) → params.studentCards → evaluation | auto-push 112→live DDS sessions removed (chain mode untouched, D5)
+Tests011@2026-10-20 (cloud):{uv run pytest -q: 1042 passed/4 skipped | ruff clean | npx vitest run: 1956/1957 (teacher-v1 Blob, known env) | tsc, eslint (touched dirs), prettier, steiger: clean} | not run:{npm run check, e2e, browser check of wizard+DDS attempt on backend (T010)}
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
 Finals:2026-10-23 online pitch | rule(moderator 17–19.10): API only for open-weight models deployable on TZ server (CPU≥6c,32GB,no GPU), no hardcode
@@ -32,6 +34,8 @@ STT batch per utterance (Polza has no streaming STT) → VAD end-silence 700ms; 
 model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configured()=False until all 3 set
 
 ## Action
+!F011 owner: browser check T010 (teacher wizard DDS → bank → student DDS attempt on backend); confirm assumptions A1 (one etalon per card) A2 (bank = own groups)
+!F011 merge SASHA: chain_service.py conflicts (SASHA retired chain; keep 011 early-return for non-chain)
 !000000 owner (Mac): uv sync --group dev --extra tts --extra stt-local → uv run python -m scripts.gigaam_check → if fast: LIVE_CALL_STT_ENGINE=gigaam; numbers for pitch
 !00000 owner: backend/.env CHAT_MODEL=qwen/qwen3-30b-a3b-instruct-2507, drop LIVE_CALL_POLZA_REASONING_* → headset check quality
 !0000 owner: talk_caller --card c-010 --tags → judge new prompt; give bad-reply examples if still poor; rotate Polza key (pasted in chat 20.10)

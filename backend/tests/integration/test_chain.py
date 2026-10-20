@@ -84,3 +84,30 @@ async def test_teacher_can_issue_source_based_trap(app):
                     await db.delete(await db.get(IncidentCard, trap_id))
                 await db.delete(await db.get(TrainingSession, session_id))
                 await db.commit()
+
+
+async def test_submitted_card_is_not_pushed_into_running_dds_sessions(app):
+    """Фича 011 (D4): карточку обучающегося-112 подаёт преподаватель через задание, а не автоматическая выдача."""
+    async with get_sessionmaker()() as db:
+        original = IncidentCard(id="c-993", ticket_no=993, situation_no=1, group="Водоснабжение",
+                                summary="Прорыв трубы", address="Москва, Дубнинская, 2", caller={"name": "Иванов"},
+                                expected_services=["Мосводоканал"], expected_tags=[], mode_origin="seed")
+        source = Attempt(id="a-993", session_id="chain-source", card_id=original.id, student_id="u-005",
+                         mode="operator112", opened_at=now_iso(), primary_reaction_ms=0, statuses=[],
+                         services_called=[], full_processing_ms=0, entered_text={}, calls=[], seq=0)
+        card = IncidentCard(id="c-994", ticket_no=993, situation_no=1, group="Водоснабжение", summary="Прорыв трубы",
+                            address=original.address, caller={"name": "Иванов"}, expected_services=["Мосводоканал"],
+                            expected_tags=[], created_by_student_id="u-005", mode_origin="operator112",
+                            source_attempt_id=source.id, extra={"sourceCardId": original.id})
+        live = TrainingSession(id="s-993", teacher_id="u-002", student_ids=["u-008"], scenario_ids=[], mode="live",
+                               card_source="studentCreated", card_flow=[], state="running", started_at=now_iso(),
+                               plan={}, parked=[], training_mode="dds", format="training")
+        db.add_all([original, source, card, live])
+        await db.flush()
+        try:
+            await issue_submitted_card(db, card, source, None)
+            assert live.card_flow == []
+            # Автоэталон по-прежнему готовится: им пользуются живое занятие и предложение эталона в банке.
+            assert card.extra["chainEtalon"]["cards"][card.id]["expectedDecision"] == "accepted"
+        finally:
+            await db.rollback()

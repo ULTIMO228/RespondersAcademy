@@ -1,4 +1,9 @@
-import type { AssignmentFormat, AssignmentScenarioVersion, TrainingMode } from "@/shared/api";
+import type {
+  AssignmentFormat,
+  AssignmentScenarioVersion,
+  StudentCardEtalon,
+  TrainingMode,
+} from "@/shared/api";
 
 export const WIZARD_STEPS = [
   "Обучающиеся",
@@ -20,6 +25,8 @@ export type WizardDraft = {
   cardIds: string[];
   /** Только для цепочки: утверждённые версии operator112 по выбранным билетам. */
   scenarioVersions: AssignmentScenarioVersion[];
+  /** Только для ДДС: эталоны отобранных карточек обучающихся-112 (их id есть и в cardIds), спека 011. */
+  studentCards: StudentCardEtalon[];
   ruleGroups: string[];
   ruleDifficulty: number[];
   ruleCount: string;
@@ -62,6 +69,7 @@ export function createDraft(initial?: WizardInitial): WizardDraft {
     ticketSource: "cards",
     cardIds: [],
     scenarioVersions: [],
+    studentCards: [],
     ruleGroups: [],
     ruleDifficulty: [],
     ruleCount: "5",
