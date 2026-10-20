@@ -1,5 +1,9 @@
 ## Facts
 F011@2026-10-20 branch:claude/kind-goldberg-ij6veq (= develop db44740 + feature 011): teacher feeds 112-student cards to DDS via assignment wizard | GET /api/v1/student-cards (own groups/admin all) | POST /assignments studentCards (dds only, etalon per card, notAccepted→transferTo) → params.studentCards → evaluation | auto-push 112→live DDS sessions removed (chain mode untouched, D5)
+DDS demo@2026-10-20: egorov/student112 active (u-010, ДДС района Обручевский) | seed asg-003 dds training c-009,c-089,c-096 | blocked demo = lebedev
+Browser011@2026-10-20 (cloud, playwright chromium, back :8130 fresh db, next start :3130 BACKEND_URL): ✅ 112 card (API) → teacher bank → DDS assignment for egorov → egorov «Начать» → /arm/card/c-097 | not checked: statuses+evaluation in browser, mock-mode SC-005
+⚠️ DDS card «my service» = first service of card notification list by kind (src/pages/incident/lib/cardView.ts:10), not user's service → egorov sees pencil on Мосгортранс (pre-existing)
+Tests011b@2026-10-20 (after egorov+seed): uv run pytest -q 1044 passed/4 skipped | ruff clean
 Tests011@2026-10-20 (cloud):{uv run pytest -q: 1042 passed/4 skipped | ruff clean | npx vitest run: 1956/1957 (teacher-v1 Blob, known env) | tsc, eslint (touched dirs), prettier, steiger: clean} | not run:{npm run check, e2e, browser check of wizard+DDS attempt on backend (T010)}
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}

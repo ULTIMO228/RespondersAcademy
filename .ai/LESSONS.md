@@ -94,3 +94,7 @@
 ## L021 persona prompt: limits overshoot
 ❌ fixed «overacting» with hard caps (one filler, 1–2 phrases, answer only) → Qwen literal → dry questionnaire
 ✅ say what IS allowed (feelings, questions) + what is forbidden (new facts); show tone by fact-free examples; check temperature
+
+## L022 | "сделай ДДС" = working DDS login, not only the feature
+❌ scoped DDS account out of 011 and mentioned it only in "вне объёма" → owner opened DDS (egorov) and hit blocked account
+✅ when owner asks for a role/mode: check the demo account for that role actually logs in and lands in its ARM; say explicitly before finishing if it doesn't

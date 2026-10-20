@@ -115,3 +115,9 @@ done: users.json u-010 egorov isActive=true | +u-025 lebedev blocked (АРМ 30)
 decision: owner chose "new blocked user" over dropping blocked demo; spec/000 12-tasks.md left as history (finished feature)
 🧠 role ≠ mode: all students are same role; ДДС/112/chain = TrainingMode of assignment, not account
 next: PR review/merge; reseed existing backend DBs
+
+## 2026-10-20e claude/kind-goldberg-ij6veq + feat/011-dds-card-feed
+focus:DDS account ready w/ ARM (owner: egorov blocked)
+done:cherry-pick ce6c3dd (egorov unblocked, lebedev blocked) | seed asg-003 dds for egorov | browser check 112→bank→DDS assignment→egorov ARM card ✅
+checks:pytest 1044/4 skipped, ruff | vitest see SESSION_STATE | demo-up.sh blocked by auto-mode classifier → manual stand script (scratchpad)
+next:owner reseed own DB (demo-up fresh or app.seed.load); statuses+eval in browser; DDS «my service» by user service
