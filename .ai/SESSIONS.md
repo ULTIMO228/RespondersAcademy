@@ -162,3 +162,9 @@ done:spec/011-dds-card-feed (spec+tasks) | GET /student-cards + proposed etalon 
 decisions:owner — feed in assignments wizard; etalon edited at selection; auto-push removed; chain untouched
 checks:pytest 1042/4 skipped, ruff, vitest 1956/1957 (known Blob), tsc, steiger | check/e2e/browser not run
 next:T010 browser check; DDS card per spec 007 (SASHA) after merge
+
+## 2026-10-20 | claude/zealous-goldberg-mu6erp | unblock DDS operator egorov
+done: users.json u-010 egorov isActive=true | +u-025 lebedev blocked (АРМ 30) as demo of 403 accountBlocked | tests (front+back), e2e/auth-security, scripts/e2e-admin.sh, login hint, audit seed, README → lebedev | regress tests: egorov login 200 (mock route + backend contract)
+decision: owner chose "new blocked user" over dropping blocked demo; spec/000 12-tasks.md left as history (finished feature)
+🧠 role ≠ mode: all students are same role; ДДС/112/chain = TrainingMode of assignment, not account
+next: PR review/merge; reseed existing backend DBs

@@ -15,7 +15,7 @@ const IS_BACKEND = process.env.E2E_BACKEND === "1";
 /** Отдельные учётки, чтобы смена пароля и блокировки не задевали остальные сценарии. */
 const PASSWORD_USER = { login: "grigorev", password: "student112", landing: /\/student(\/|$)/ };
 const THROTTLE_USER = { login: "pavlov", landing: /\/student(\/|$)/ };
-const BLOCKED_USER = { login: "egorov", password: "student112" };
+const BLOCKED_USER = { login: "lebedev", password: "student112" };
 
 async function fillLogin(page: Page, login: string, password: string) {
   await page.goto("/login");

@@ -58,13 +58,19 @@ describe("POST /api/mock/auth/login", () => {
     expect((await readError(response)).message).toBe("Неверный логин или пароль");
   });
 
-  it("заблокированная учётка (u-010 egorov) → 403", async () => {
-    const response = await login({ login: "egorov", password: "student112", armNumber: 6 });
+  it("заблокированная учётка (u-025 lebedev) → 403", async () => {
+    const response = await login({ login: "lebedev", password: "student112", armNumber: 30 });
     expect(response.status).toBe(403);
     expect(await readError(response)).toEqual({
       code: "accountBlocked",
       message: "Учётная запись заблокирована. Обратитесь к администратору",
     });
+  });
+
+  it("оператор ДДС egorov (u-010) разблокирован → 200", async () => {
+    const response = await login({ login: "egorov", password: "student112", armNumber: 6 });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ userId: "u-010", role: "student" });
   });
 
   it("блокировка администратором в store учитывается при входе", async () => {

@@ -28,7 +28,7 @@ import {
 
 const ADMIN_ID = "u-001";
 const STUDENT_ID = "u-005";
-const BLOCKED_ID = "u-010";
+const BLOCKED_ID = "u-025";
 const USER_ID_SEGMENT = /\/admin\/users\/([^/?]+)/;
 
 /** Запросы клиента (относительные пути) → те же handlers, что и в Next. */

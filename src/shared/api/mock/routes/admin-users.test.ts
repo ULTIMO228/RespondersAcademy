@@ -28,8 +28,8 @@ const BASE = "http://localhost/api/mock/admin/users";
 const ADMIN_ID = "u-001";
 const TEACHER_ID = "u-002";
 const STUDENT_ID = "u-005";
-const BLOCKED_ID = "u-010";
-const USER_COUNT = 24;
+const BLOCKED_ID = "u-025";
+const USER_COUNT = 25;
 
 type RouteHandler = (request: Request, context: { params: Promise<{ id: string }> }) => Promise<Response>;
 
@@ -95,7 +95,7 @@ describe("GET /api/mock/admin/users — фильтры и поиск (T4.1-02)",
     expect(users.every((user) => !("password" in user))).toBe(true);
   });
 
-  it("role=student&state=blocked → u-010", async () => {
+  it("role=student&state=blocked → u-025", async () => {
     const users = await list("?role=student&state=blocked");
     expect(users.map((user) => user.id)).toEqual([BLOCKED_ID]);
   });
@@ -107,8 +107,8 @@ describe("GET /api/mock/admin/users — фильтры и поиск (T4.1-02)",
   });
 
   it("поиск q регистронезависим, по ФИО и по логину", async () => {
-    expect((await list("?q=EGOROV")).map((user) => user.id)).toEqual([BLOCKED_ID]);
-    expect((await list("?q=егоров")).map((user) => user.id)).toEqual([BLOCKED_ID]);
+    expect((await list("?q=LEBEDEV")).map((user) => user.id)).toEqual([BLOCKED_ID]);
+    expect((await list("?q=лебедев")).map((user) => user.id)).toEqual([BLOCKED_ID]);
     expect((await list("?q=Морозова")).map((user) => user.id)).toEqual([TEACHER_ID]);
   });
 

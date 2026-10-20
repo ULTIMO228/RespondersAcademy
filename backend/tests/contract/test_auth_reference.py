@@ -8,7 +8,7 @@ from tests.conftest import DEMO_USERS, login_as
 
 
 async def test_seed_summary(seeded_db):
-    assert seeded_db["users"] == 24
+    assert seeded_db["users"] == 25
     assert seeded_db["classifier"] == 1283
     assert seeded_db["incidentCards"] == 96
     assert seeded_db["armCardFixtures"] == 12
@@ -32,6 +32,8 @@ async def test_login_errors(client):
     assert wrong_arm.status_code == 401
     blocked = await client.post("/auth/login", json=DEMO_USERS["blocked"])
     assert blocked.status_code == 403 and blocked.json()["error"]["code"] == "accountBlocked"
+    egorov = await client.post("/auth/login", json={"login": "egorov", "password": "student112", "armNumber": 6})
+    assert egorov.status_code == 200 and egorov.json()["userId"] == "u-010"
     missing = await client.post("/auth/login", json={"login": "ivanov"})
     assert missing.status_code == 400 and missing.json()["error"]["code"] == "validationFailed"
     bad_json = await client.post("/auth/login", content=b"{", headers={"content-type": "application/json"})

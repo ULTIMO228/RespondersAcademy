@@ -39,5 +39,5 @@ export const ROLE_SHORTCUTS: RoleShortcut[] = [
   { role: "admin", label: "администратор" },
 ];
 
-/** Логин учётки с isActive=false для демонстрации отказа входа (mocks/users.json → u-010). */
-export const BLOCKED_DEMO_LOGIN = "egorov";
+/** Логин учётки с isActive=false для демонстрации отказа входа (mocks/users.json → u-025). */
+export const BLOCKED_DEMO_LOGIN = "lebedev";

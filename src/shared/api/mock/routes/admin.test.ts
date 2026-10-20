@@ -13,7 +13,7 @@ const AUDIT_URL = "http://localhost/api/mock/admin/audit";
 
 const ADMIN_ID = "u-001";
 const TARGET_ID = "u-005";
-const USER_COUNT = 24;
+const USER_COUNT = 25;
 
 function toggle(id: string, body: unknown): Promise<Response> {
   const request = new Request(`http://localhost/api/mock/admin/users/${id}/toggle-active`, {
@@ -41,7 +41,7 @@ afterEach(() => {
 
 describe("GET /api/mock/admin/users", () => {
   // Фильтры и поиск реестра — routes/admin-users.test.ts (T4.1-02); здесь — PII-гигиена ответа.
-  it("24 пользователя, пароль не утекает в сериализацию", async () => {
+  it("25 пользователей, пароль не утекает в сериализацию", async () => {
     const response = await usersRoute(new Request(USERS_URL));
     const raw = await response.text();
     const body = JSON.parse(raw) as PublicUser[];
