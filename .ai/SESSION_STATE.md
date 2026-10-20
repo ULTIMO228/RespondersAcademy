@@ -7,6 +7,7 @@ Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanc
 Updated:2026-10-19
 
 ## Story
+00 2026-10-20 voice → local Silero v5.6 (LIVE_CALL_TTS_ENGINE=silero, models/silero-live/v5_6_ru.pt via prepare_models --only tts-live, speaker xenia); filler «Да-да» removed (owner); warm_voice at startup + before ready (cold 12s+5s); real call: greeting 2.5s, operator end→voice ~5s (STT Polza ~2.4s, GLM ~1.5s, Silero 0.1–1s); pytest 1002 passed
 0 2026-10-20 live caller verified on REAL Polza (cloud, polza.ai allowed): WS call → VAD → gigaam-v3 → glm-5.3-flash(reasoning.max_tokens=64) → gpt-4o-mini-tts coral; filler «Да-да…»; parallel TTS; interrupted reply kept in history; stream retry; tests ignore backend/.env
 1 3 red backend tests fixed: manifest CRLF hashes → LF + pack.py text_sha256 | applicant-audio test now creates own attempt
 2 AMIR (live caller: cascade/speechkit/omni + softphone realtime UI) merged into own branch; spec renamed 005-live-caller
@@ -20,6 +21,7 @@ STT batch per utterance (Polza has no streaming STT) → VAD end-silence 700ms; 
 model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configured()=False until all 3 set
 
 ## Action
+!00 next speedup: local STT gigaam-v3 (needs huggingface.co allowed) → ~3s; owner listens Silero voices, may change LIVE_CALL_SILERO_SPEAKER
 !0 owner: listen var/live-caller-dialogue.wav; decide TTS (Polza has NO open-weight TTS → gpt-4o-mini-tts is closed, outside organizers rule) and GLM (~328GB, not TZ server)
 !0 decide: save interrupted caller lines to attempt transcript (now dropped, AMIR design)
 !1 owner: POLZA_API_KEY + `uv run python -m scripts.smoke_polza_caller --models` → set LIVE_CALL_POLZA_{CHAT,STT,TTS}_MODEL(+VOICE) → smoke → headset call

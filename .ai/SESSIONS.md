@@ -78,3 +78,9 @@ Next:
   !2 headset call: ./scripts/demo-up.sh --live
 Caution:
   ⚠️ rotate Polza/Groq/SpeechKit keys after finals (posted in chat)
+
+## 2026-10-20T12:00:00+03:00 | @claude (cloud) | branch:claude/pensive-feynman-smkr22 | mode:normal
+Focus: latency + Russian voice for live caller
+Done: ✅ filler removed (owner) | serve() logs unexpected errors | Silero v5.6 local TTS engine + prepare_models tts-live + warmup | real call ~5s
+Decisions: 🧠 SpeechKit rejected by owner; Polza TTS accent + ~3s → local Silero (CC BY-NC, ok for hackathon)
+Next: !1 local STT gigaam-v3 | !2 headset test by owner | !3 transcript of interrupted lines (owner decision)
