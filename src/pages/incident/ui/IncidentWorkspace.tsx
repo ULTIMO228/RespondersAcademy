@@ -14,7 +14,7 @@ import { ROUTES } from "@/shared/config";
 import { formatDuration } from "@/shared/lib";
 import type { Clock, KeyValueStorage } from "@/shared/lib";
 
-import { getServiceNames, pickMyServiceId } from "../lib/cardView";
+import { pickMyServiceId } from "../lib/cardView";
 import { getHintText } from "../lib/hints";
 import { findNextCardId } from "../lib/nextCard";
 import { buildTraineeHistory } from "../lib/serviceHistory";
@@ -134,7 +134,6 @@ export function IncidentWorkspace({
             isExceeded={timer.isExceeded}
             timerValue={timer.value}
             reactionValue={formatDuration(attempt.primaryReactionMs)}
-            serviceNames={getServiceNames(card.notificationList, reference.services)}
             controls={controls}
           />
           <AudioReportUpload attemptId={attempt.id} />

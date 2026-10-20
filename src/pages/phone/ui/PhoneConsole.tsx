@@ -27,7 +27,6 @@ import styles from "./PhonePage.module.css";
 
 type PhoneConsoleProps = {
   numbers: InternalNumber[];
-  expected: { numbers: string[]; context: string } | null;
   /** Карточка, из которой открыт софтфон: вызов пишется в CardEvent.calls её попытки. */
   cardId: string | null;
   studentId: string | null;
@@ -45,7 +44,6 @@ type ActiveCallSlot = { id: number; target: CallTarget; isFinished: boolean };
 /** Софтфон: статус линии, вкладки Контакты/Звонки/SMS/Набор и экран активного вызова. */
 export function PhoneConsole({
   numbers,
-  expected,
   cardId,
   studentId,
   journal,
@@ -113,12 +111,8 @@ export function PhoneConsole({
             </p>
           ) : null}
           {activeTab === "contacts" ? (
-            <InternalNumbers
-              numbers={numbers}
-              expectedNumbers={expected?.numbers}
-              expectedContext={expected?.context}
-              onCall={handleCall}
-            />
+            // Спека 012 (FR-006): без подсказки «Ожидается по эталону» — кому звонить, решает диспетчер.
+            <InternalNumbers numbers={numbers} onCall={handleCall} />
           ) : null}
           {activeTab === "dial" ? (
             <DialPad

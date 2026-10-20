@@ -4,17 +4,11 @@
  */
 import { TRAINING_CARD_FIXTURE_IDS } from "@/entities/session";
 import { getCallDurationMs } from "@/features/call-control";
-import type { CallLogEntry, ExpectedCall, ExpectedCallSource } from "@/features/call-control";
+import type { CallLogEntry } from "@/features/call-control";
 import { ROUTES } from "@/shared/config";
 import { formatDateTime, formatDuration } from "@/shared/lib";
 
 const FIXTURE_PREFIX = "card-";
-
-const EXPECTED_SOURCE_TITLES: Record<ExpectedCallSource, string> = {
-  etalon: "эталон сценария",
-  mainService: "главная служба карточки",
-  callTarget: "цель звонка сценария",
-};
 
 export type CallLogRow = {
   id: string;
@@ -36,10 +30,6 @@ export function toTrainingCardId(cardId: string): string {
 export function getCardLabel(cardId: string): string {
   const fixtureId = cardId.startsWith(FIXTURE_PREFIX) ? cardId : TRAINING_CARD_FIXTURE_IDS[cardId];
   return fixtureId ? fixtureId.slice(FIXTURE_PREFIX.length) : cardId;
-}
-
-export function describeExpected(expected: ExpectedCall): string {
-  return `карточка ${getCardLabel(expected.cardId)}, ${EXPECTED_SOURCE_TITLES[expected.source]}`;
 }
 
 export function toCallLogRow(entry: CallLogEntry): CallLogRow {

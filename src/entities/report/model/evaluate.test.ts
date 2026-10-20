@@ -190,3 +190,35 @@ describe("computeTotalScore", () => {
     ).toBe(88);
   });
 });
+
+describe("generateEvaluation: ДДС по памятке (спека 012)", () => {
+  it("текст и номер наряда из формы статуса закрывают обязательные поля и идут в смысловую оценку", () => {
+    const attempt = makeAttempt({
+      enteredText: {},
+      statuses: [
+        {
+          ddsStatus: "accepted",
+          at: "2026-09-16T10:02:31+03:00",
+          comment: "Сообщение принято, наряд полиции направлен",
+          dutyNumber: "Н-5",
+        },
+        { ddsStatus: "workDone", at: "2026-09-16T10:05:12+03:00", comment: "Работы завершены" },
+      ],
+    });
+    const evaluation = generateEvaluation(attempt, etalon, {
+      ...criteria,
+      requiredFields: ["dispatcherAction", "outfitNumber"],
+    });
+    expect(evaluation.errors.filter((error) => error.type === "requiredFieldMissing")).toEqual([]);
+    expect(evaluation.semanticScore).toBe(100);
+  });
+
+  it("пустые комментарий и номер наряда — замечание с понятным названием поля", () => {
+    const attempt = makeAttempt({ enteredText: {} });
+    const evaluation = generateEvaluation(attempt, etalon, { ...criteria, requiredFields: ["outfitNumber"] });
+    const missing = evaluation.errors.filter((error) => error.type === "requiredFieldMissing");
+    expect(missing.map((error) => error.message)).toEqual([
+      "Не заполнено обязательное поле «номер наряда (в форме статуса)»",
+    ]);
+  });
+});

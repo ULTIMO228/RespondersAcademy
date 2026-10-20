@@ -12,7 +12,7 @@ import type { Clock } from "@/shared/lib";
 
 import { defaultPhoneApi } from "../api/phoneApi";
 import type { PhoneApi } from "../api/phoneApi";
-import { describeExpected, toCallLogRow } from "../lib/cardContext";
+import { toCallLogRow } from "../lib/cardContext";
 import { useCallJournal } from "../model/useCallJournal";
 import { usePhoneDirectory } from "../model/usePhoneDirectory";
 import { CallLog } from "./CallLog";
@@ -63,7 +63,6 @@ export function PhoneScreen({
   return (
     <PhoneConsole
       numbers={numbers}
-      expected={expected ? { numbers: expected.numbers, context: describeExpected(expected) } : null}
       cardId={expected?.cardId ?? cardId}
       studentId={studentId}
       journal={journal.entries}

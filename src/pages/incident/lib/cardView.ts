@@ -15,10 +15,3 @@ export function pickMyServiceId(
   const ids = notificationList.map((entry) => entry.serviceId);
   return ids.find((id) => kindOf(id) === MY_SERVICE_KIND) ?? ids.find((id) => kindOf(id) !== PHONE_ONLY_KIND);
 }
-
-/** Краткие имена служб списка оповещения — варианты поля «Служба» формы отработки. */
-export function getServiceNames(notificationList: { serviceId: string }[], services: ServiceRef[]): string[] {
-  return notificationList.map(
-    (entry) => services.find((service) => service.id === entry.serviceId)?.shortName ?? entry.serviceId,
-  );
-}

@@ -4,7 +4,7 @@ import { armCardFixtures, cards, reference, scenarios } from "@/shared/api";
 import type { ArmCardFixtureContract, IncidentCard, SessionContract } from "@/shared/api";
 import { createMemoryStorage } from "@/shared/lib";
 
-import { getServiceNames, mergeTrainingCard, pickMyServiceId } from "./cardView";
+import { mergeTrainingCard, pickMyServiceId } from "./cardView";
 import { getHintText } from "./hints";
 import { resolveLinkChain, toLinkedCard } from "./links";
 import { findNextCardId } from "./nextCard";
@@ -39,14 +39,11 @@ describe("резолвер учебная карточка ↔ фикстура 
     expect(merged.what.classifierCode).toBe("");
   });
 
-  it("моя служба — первая служба АРМ-112, иначе первая не телефонная; имена служб", () => {
+  it("моя служба — первая служба АРМ-112, иначе первая не телефонная", () => {
     expect(pickMyServiceId(fixture("card-881412").notificationList, reference.services)).toBe(
       "svc-upr-chert",
     );
     expect(pickMyServiceId(fixture("card-36814855").notificationList, reference.services)).toBe("svc-103");
-    expect(getServiceNames(fixture("card-36814855").notificationList, reference.services)).toEqual([
-      "Служба 103",
-    ]);
   });
 });
 

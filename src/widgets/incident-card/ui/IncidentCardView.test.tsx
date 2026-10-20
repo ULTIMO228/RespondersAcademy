@@ -32,7 +32,6 @@ function renderCard(options: { isExceeded?: boolean; readOnly?: boolean; id?: st
       isExceeded={options.isExceeded}
       readOnly={options.readOnly}
       stateToggleHref="/arm/card/card-36814845?state=exceeded"
-      serviceNames={["Служба 101"]}
     />,
   );
 }
@@ -126,32 +125,22 @@ describe("IncidentCardView — «Что случилось» (T0.2-09)", () => {
   });
 });
 
-describe("IncidentCardView — действие, связи, отработки (T0.2-10)", () => {
-  it("блок «Действие диспетчера» и связи с ролями", () => {
+describe("IncidentCardView — связи; без «Действия диспетчера» и отработок (T0.2-10, спека 012)", () => {
+  it("связи с ролями; полей «Действие диспетчера», «Номер наряда» и блока отработок нет (памятка, стр. 23)", () => {
+    renderCard({ id: "card-36814853" });
+    expect(screen.queryByLabelText("Действие диспетчера")).toBeNull();
+    expect(screen.queryByLabelText("Номер наряда")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Отработки" })).toBeNull();
+  });
+
+  it("блок «Связи» с ролями", () => {
     renderCard();
-    expect(screen.getByLabelText("Действие диспетчера")).toBeInTheDocument();
-    expect(screen.getByLabelText("Номер наряда")).toBeInTheDocument();
     const links = screen.getByRole("region", { name: "Связи" });
     expect(within(links).getByText("подчинённая")).toBeInTheDocument();
     expect(within(links).getByRole("link", { name: "Происшествие 36814859" })).toHaveAttribute(
       "href",
       "/arm/card/card-36814859",
     );
-  });
-
-  it("отработки из workLines и форма «Добавить отработку»", () => {
-    renderCard({ id: "card-36814853" });
-    const work = screen.getByRole("region", { name: "Отработки" });
-    ["ДДС Чертаново Южное", "дежурный", "Минин Р.С.", "11:33", "2"].forEach((text) =>
-      expect(within(work).getByText(text)).toBeInTheDocument(),
-    );
-    expect(within(work).getByText(/Передана информация о прорыве/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Добавить отработку" }));
-    ["Служба", "Куда звонили", "Телефон", "Кто принял", "Суть сообщения"].forEach((label) =>
-      expect(within(work).getByLabelText(label)).toBeInTheDocument(),
-    );
-    expect(screen.getByRole("button", { name: "Подтвердить отработку" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Позвонить (софтфон)" })).toHaveAttribute("href", "/arm/phone");
   });
 });
 
@@ -189,8 +178,6 @@ describe("IncidentCardView — readOnly (преподаватель)", () => {
     renderCard({ readOnly: true });
     expect(screen.getByRole("button", { name: "Статус телефонии: недоступен" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "просмотр" })).toBeDisabled();
-    expect(screen.getByLabelText("Действие диспетчера")).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "Добавить отработку" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Происшествие 36814859" })).toBeNull();
   });
 });

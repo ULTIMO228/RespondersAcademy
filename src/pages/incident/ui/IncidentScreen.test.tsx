@@ -127,7 +127,6 @@ describe("IncidentScreen — статусы, итог, хоткеи (T2.3-12, T2
       "/arm/card/c-095",
     );
     fireEvent.click(within(result).getByRole("button", { name: "Просмотр карточки" }));
-    expect(screen.getByLabelText("Действие диспетчера")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Сменить статус (Alt + E)" })).toBeNull();
   });
 
@@ -168,34 +167,24 @@ describe("IncidentScreen — потеря соединения (T2.3-20)", () =>
   });
 });
 
-describe("IncidentScreen — подсказки и «Действие диспетчера» (T2.3-13, T2.3-09)", () => {
+describe("IncidentScreen — подсказки; без «Действия диспетчера» (T2.3-13, спека 012)", () => {
   it("hints.enabled: плашка с текстом шага меняется после «Принята»; без флага плашки нет", async () => {
     await renderCard("c-004", student("u-107"));
     const hint = screen.getByRole("complementary", { name: "Подсказка" });
-    expect(hint).toHaveTextContent("Откройте карточку в течение 30 секунд");
+    expect(hint).toHaveTextContent("Откройте карточку и в течение 30 секунд");
     await setStatus("Принята");
-    await waitFor(() => expect(hint).toHaveTextContent("Задымление без открытого пламени"));
+    await waitFor(() => expect(hint).toHaveTextContent("Ход работ — по факту информации от бригады"));
     cleanupScreen();
     await renderCard("c-094", student("u-108"));
     expect(screen.queryByRole("complementary", { name: "Подсказка" })).toBeNull();
   });
 
-  it("ввод автосохраняется в буфер (курсант + карточка), уходит в enteredText и переживает перезагрузку", async () => {
-    const first = await renderCard("card-36814853", student("u-109"));
-    fireEvent.change(screen.getByLabelText("Действие диспетчера"), {
-      target: { value: "Сообщение принято" },
-    });
-    fireEvent.change(screen.getByLabelText("Номер наряда"), { target: { value: "Н-5" } });
-    await waitFor(() =>
-      expect(window.localStorage.getItem("arm112:draft:u-109:card-36814853")).toContain("Н-5"),
-    );
-    await waitFor(() =>
-      expect(fetcher.calls.some((call) => /POST \/attempts\/.+\/progress/.test(call))).toBe(true),
-    );
-    first.unmount();
+  it("текст и номер наряда — только в форме статуса своей службы (памятка, стр. 24)", async () => {
     await renderCard("card-36814853", student("u-109"));
-    expect(screen.getByLabelText("Действие диспетчера")).toHaveValue("Сообщение принято");
-    expect(screen.getByLabelText("Номер наряда")).toHaveValue("Н-5");
+    expect(screen.queryByLabelText("Действие диспетчера")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Сменить статус (Alt + E)" }));
+    expect(screen.getByLabelText("Номер наряда")).toBeInTheDocument();
+    expect(screen.getByLabelText("Комментарий")).toBeInTheDocument();
   });
 
   it("входящая СМС-карточка: текст СМС предзаполняет «Описание со слов заявителя»", async () => {
