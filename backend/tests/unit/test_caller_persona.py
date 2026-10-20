@@ -84,5 +84,17 @@ def test_interruption_mark_is_never_shown_or_voiced_if_model_copies_it():
     assert [part.text for part in parts] == ["Горит балкон…"]
 
 
-def test_style_asks_for_answer_first_and_few_fillers():
-    assert "сначала" in persona.STYLE.lower() and "одно междометие" in persona.STYLE
+def test_style_is_human_not_questionnaire():
+    # Owner 20.10: «отвечала сухо и только по делу, не как человек» — после правки «только суть, одно междометие».
+    style = persona.STYLE
+    assert "анкет" in style  # тон анкеты запрещён прямо
+    assert "страх" in style and "а долго ещё ждать?" in style  # чувства и встречные вопросы — можно
+    assert "новые события" in style  # но факты не придумываются
+
+
+def test_style_examples_carry_manner_but_no_facts():
+    # Примеры показывают тон; адресов, имён и чисел в них нет — модели нечего перенести в свой билет.
+    examples = persona.STYLE[persona.STYLE.index("Примеры манеры"):persona.STYLE.index("Конец примеров")]
+    assert examples.count("Оператор:") >= 3
+    assert not any(ch.isdigit() for ch in examples)
+    assert not any(word in examples.lower() for word in ("улиц", "дом ", "квартир", "телефон", "зовут"))

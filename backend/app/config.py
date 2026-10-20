@@ -67,6 +67,8 @@ class Settings(BaseSettings):
     # Выключить размышление полностью (reasoning.enabled=false) — для моделей, где оно необязательное (qwen3.8-27b).
     live_call_polza_reasoning_off: bool = Field(default=False, alias="LIVE_CALL_POLZA_REASONING_OFF")
     # Предпочтительный провайдер модели у Polza (например, cerebras/fp16); при сбое Polza может взять другого.
+    # Живость речи заявителя: 0,3 — сухо и предсказуемо; 0,7 — рекомендация Qwen для instruct-моделей.
+    live_call_polza_temperature: float = Field(default=0.7, ge=0, le=1.5, alias="LIVE_CALL_POLZA_TEMPERATURE")
     live_call_polza_provider: str | None = Field(default=None, alias="LIVE_CALL_POLZA_PROVIDER")
     live_call_polza_tts_format: Literal["wav", "pcm"] = Field(default="wav", alias="LIVE_CALL_POLZA_TTS_FORMAT")
     live_call_polza_tts_instructions: bool = Field(default=True, alias="LIVE_CALL_POLZA_TTS_INSTRUCTIONS")

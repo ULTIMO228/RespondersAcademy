@@ -90,3 +90,7 @@
 ## L020 team model decision lives in spec, not only in chat summary
 ❌ kept GLM as default (summary said «open question») though spec/005 README:3 says team chose Qwen
 ✅ before recommending model → read spec 005 decisions; TZ server fit (32GB CPU) is hard rule
+
+## L021 persona prompt: limits overshoot
+❌ fixed «overacting» with hard caps (one filler, 1–2 phrases, answer only) → Qwen literal → dry questionnaire
+✅ say what IS allowed (feelings, questions) + what is forbidden (new facts); show tone by fact-free examples; check temperature

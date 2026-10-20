@@ -862,3 +862,10 @@ def test_gigaam_engine_does_not_need_polza_stt_model(settings, monkeypatch):
     assert polza.configured()
     monkeypatch.setattr(gigaam_stt, "weights_path", lambda name: type("P", (), {"exists": lambda self: False})())
     assert not polza.configured()  # веса не скачаны — не включаем
+
+
+def test_reply_temperature_comes_from_settings(settings, monkeypatch):
+    # 0,3 давала самые предсказуемые, «анкетные» ответы; живость — настройкой, по умолчанию 0,7.
+    assert polza.PolzaSession().llm_options()["temperature"] == 0.7
+    monkeypatch.setattr(settings, "live_call_polza_temperature", 0.5)
+    assert polza.PolzaSession().llm_options()["temperature"] == 0.5

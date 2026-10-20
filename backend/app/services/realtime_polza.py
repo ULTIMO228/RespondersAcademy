@@ -171,7 +171,7 @@ class PolzaSession(CascadeSession):
         # Размышление (у GLM-5.3 обязательное) тратит тот же лимит: при 400 токенах после перебитой
         # реплики модель «думала» до лимита и не успевала ответить (finish=length). Длину самой
         # реплики ограничивает respond() — 600 символов.
-        options: dict = {"max_completion_tokens": 1500}
+        options: dict = {"max_completion_tokens": 1500, "temperature": get_settings().live_call_polza_temperature}
         settings = get_settings()
         if settings.live_call_polza_provider:
             options["provider"] = {"order": [settings.live_call_polza_provider], "allow_fallbacks": True}
