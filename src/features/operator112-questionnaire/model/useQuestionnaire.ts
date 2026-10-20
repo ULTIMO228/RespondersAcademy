@@ -137,12 +137,17 @@ export function useQuestionnaire({
     void commit(selectSign(selection, level, value));
   };
 
-  /** Ручное добавление условной службы: событие serviceAdded, затем пересчёт (сервер помечает её addedBy: manual). */
-  const addService = async (serviceId: string) => {
-    if (disabled) return;
+  /**
+   * Ручное добавление условных служб («Добавьте службы» → «Сохранить и закрыть»): по событию serviceAdded на службу,
+   * затем один пересчёт (сервер помечает их addedBy: manual).
+   */
+  const addServices = async (serviceIds: readonly string[]) => {
+    if (disabled || serviceIds.length === 0) return;
     setNotice(null);
     try {
-      await api.sendEvent(attemptId, { type: "serviceAdded", payload: { serviceId } });
+      for (const serviceId of serviceIds) {
+        await api.sendEvent(attemptId, { type: "serviceAdded", payload: { serviceId } });
+      }
     } catch (error) {
       setNotice(toMessage(error, "Не удалось добавить службу"));
       return;
@@ -171,7 +176,9 @@ export function useQuestionnaire({
     notice,
     chooseGroup,
     chooseSign,
-    addService,
+    addServices,
     retry: () => refreshList(selection),
   };
 }
+
+export type QuestionnaireState = ReturnType<typeof useQuestionnaire>;

@@ -31,3 +31,15 @@
 .bar__hint {
   margin-left: auto;
 }
+
+.bar__slot {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--spacing-xl);
+  min-width: 0;
+}
+
+.bar__slot:empty {
+  display: none;
+}

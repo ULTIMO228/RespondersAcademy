@@ -30,6 +30,7 @@ const SIMULATOR_PATHS = [
   "src/features/operator112-questionnaire",
   "src/features/statement-form",
   "src/features/status-form",
+  "src/app/layouts/ArmOperator112Layout.tsx",
   "src/app/layouts/ArmSectionLayout.tsx",
   "src/app/layouts/ArmSectionLayout.module.css",
   "src/app/layouts/ArmCardLayout.tsx",

@@ -9,3 +9,4 @@ export { isHintDue, pickHintStep } from "./model/hints";
 export type { HintProgress } from "./model/hints";
 export { createTicker, TICK_MS } from "./lib/ticker";
 export { useNow } from "./model/useNow";
+export { formatAon } from "./lib/aon";

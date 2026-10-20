@@ -1,0 +1,211 @@
+/* Оранжевая панель «Службы:» и окно «Добавьте службы» карточки ПОВ-112 (КАРТОЧКА_image1, 3). Только токены АРМ. */
+.bar {
+  display: flex;
+  align-items: stretch;
+  gap: var(--spacing-md);
+  min-height: 72px;
+  padding: var(--spacing-md);
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+}
+
+.bar__label {
+  align-self: center;
+  padding-right: var(--spacing-xl);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+}
+
+.bar__tiles {
+  display: flex;
+  flex-wrap: nowrap;
+  min-width: 0;
+  margin: calc(-1 * var(--spacing-md)) 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.bar[data-expanded="true"] .bar__tiles {
+  flex-wrap: wrap;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 117px;
+  min-height: 72px;
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+  border-right: var(--border-width) solid var(--color-accent-orange-hover);
+}
+
+.tile__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tile__remove {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+}
+
+.tile__remove:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.tile__name {
+  overflow: hidden;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile[data-first="true"] .tile__name {
+  text-decoration: underline;
+}
+
+.bar__status {
+  align-self: center;
+  font-size: var(--font-size-sm);
+}
+
+.bar__retry {
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.bar__square {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 46px;
+  height: 46px;
+  border: 2px solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.bar__square:disabled {
+  cursor: default;
+}
+
+.bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+.bar__save {
+  height: 46px;
+  padding: 0 var(--spacing-xl);
+  border: 2px solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.bar__save:hover:not(:disabled),
+.bar__square:hover:not(:disabled) {
+  background: var(--color-accent-orange-hover);
+}
+
+.bar__save:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.bar__save:focus-visible,
+.bar__square:focus-visible,
+.bar__retry:focus-visible,
+.window__option:focus-visible,
+.window__save:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.window__search {
+  width: 100%;
+  height: 36px;
+  margin-bottom: var(--spacing-2xl);
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-2xl);
+}
+
+.window__search:focus-visible {
+  outline: none;
+  border-bottom-color: var(--color-accent-blue);
+}
+
+.window__list {
+  max-height: 290px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.window__option {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.window__option[data-selected="true"] {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+
+.window__option:disabled {
+  cursor: default;
+}
+
+.window__empty {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.window__save {
+  height: 44px;
+  padding: 0 var(--spacing-xl);
+  border: var(--border-width) solid var(--color-accent-orange);
+  background: var(--color-white);
+  color: var(--color-accent-orange);
+  font: inherit;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}

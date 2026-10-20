@@ -70,7 +70,8 @@ describe("Operator112AddressField", () => {
       raion: "Чертаново Южное",
       source: "directory",
     });
-    expect(screen.getByTestId("address-source")).toHaveTextContent("из справочника");
+    expect(screen.getByRole("group", { name: "Адрес" })).toHaveAttribute("data-source", "directory");
+    expect(screen.getByTestId("address-formal")).toHaveTextContent("Москва, улица Грина");
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
@@ -118,9 +119,23 @@ describe("Operator112AddressField", () => {
 
   it("дом и описательный адрес пересчитывают formal; ошибка передачи показывается у блока", () => {
     render(<Harness search={vi.fn<StreetSearch>()} error="Заполните адресный блок" />);
-    fireEvent.change(screen.getByLabelText("Дом"), { target: { value: "11" } });
-    fireEvent.change(screen.getByLabelText("Описательный адрес"), { target: { value: "у библиотеки" } });
+    fireEvent.change(screen.getByLabelText("Дом/Вл.:"), { target: { value: "11" } });
+    fireEvent.change(screen.getByLabelText("Описательный адрес:"), { target: { value: "у библиотеки" } });
     expect(latest.house).toBe("11");
     expect(screen.getByRole("alert")).toHaveTextContent("Заполните адресный блок");
+  });
+
+  it("«очистить адрес» и «×» строки адреса очищают все поля; расширенные поля неактивны до этапа B", () => {
+    render(<Harness search={vi.fn<StreetSearch>()} />);
+    type("улица Грина");
+    fireEvent.change(screen.getByLabelText("Дом/Вл.:"), { target: { value: "11" } });
+    fireEvent.click(screen.getByRole("button", { name: "очистить адрес" }));
+    expect(latest).toEqual(EMPTY_ADDRESS);
+    type("Ленина");
+    fireEvent.click(screen.getByRole("button", { name: "Очистить строку адреса" }));
+    expect(latest).toEqual(EMPTY_ADDRESS);
+    expect(screen.getByLabelText("Субъект:")).toHaveValue("Москва");
+    expect(screen.getByLabelText("Корпус:")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Указать на карте" })).toBeDisabled();
   });
 });
