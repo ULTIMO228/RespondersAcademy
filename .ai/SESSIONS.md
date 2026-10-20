@@ -18,3 +18,24 @@ Caution:
   ⚠️ Do not use git add .
   ⚠️ Do not mock docs/demo.mp4
 ---
+
+---
+## 2026-10-19T20:40:00+03:00 | @claude | branch:main | mode:normal
+Focus: feature 003 error-map (US1-US7, phase 10) + feature 004 Polza.ai provider + project memory docs
+Done: ✅
+  - 003 => backend /error-map/*, /me/focus, migration 0005, PDF, verdicts+audit; front widgets error-map/my-focus, pages teacher/error-map, admin thresholds; demo seed; e2e-error-map.sh 20/20
+  - 004 => AI_PROVIDER=polza opt-in, PolzaClient w/ limits+fallback, audit ai.external_call, admin status endpoint, AGENTS §2 amended
+  - commit abc6347 pushed to main (170 files)
+  - AGENTS §14-15, .ai/{SESSION_STATE,LESSONS,PROJECT_MAP}.md, CLAUDE.md filled
+Decisions: 🧠
+  - polza_off_by_default > always_on: invariant §2 (local contour) kept, owner approved opt-in
+  - only scenario_gen + explain_stage external > all AI fns: scoring stays local
+  - no admin UI for provider > settings screen: env-only v1
+  - 3 red tests left untouched, logged as debt (owner decision)
+Next:
+  !1: T007 real Polza key check (owner supplies key)
+  !2: T072/T073 human usability + manual scenarios
+   3: simulator-visual playwright
+Caution:
+  ⚠️ Do not use git add .
+  ⚠️ no Co-Authored-By trailer

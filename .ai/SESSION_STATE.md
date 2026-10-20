@@ -1,35 +1,36 @@
 ## Facts
-Proj:RespondersAcademy | Branch:main | Mode:normal | Status:W1-W3 done, W4 done except T061 recording | nothing committed
-Feature:spec/002-full-system-integration | tasks:T001-T060 [x], T061 [open] (W4) | W4 gate in docs/FINAL-GATE.md
-Tests:{pytest:391 passed/2 skipped,ruff:clean,vitest:1678 passed (206 files),tsc/lint/prettier/steiger:pass,build:pass}
-E2E:{sh via run_frontend_e2e.sh:student 40/40,teacher 96/96,admin 137/140 (3 steps = 2FA, known A14 drift)} | stand:demo-up.sh 11s cold start
-Updated:2026-09-29
+Proj:RespondersAcademy | Branch:main | Mode:normal | HEAD:abc6347 pushed to origin/main | tree:only docs/demo.mp4 + docs/demo-new.mp4 untracked (not ours)
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ T001-T071 | 004 polza-provider ✅ T001-T006, T007 open}
+Stand:demo-up.sh running @2026-10-19 (front :3130, back :8130, db backend/var/demo.db) | stop: lsof -ti tcp:3130 tcp:8130 -sTCP:LISTEN | xargs kill
+Tests@2026-10-19:{pytest:911 passed/2 skipped/3 red(known debt, docs/FINAL-GATE.md),ruff:clean,vitest:1912 passed (234 files; 1 flaky IncidentScreen run, passes alone),steiger:pass,tsc:pass,build:pass,mocks:validate:pass}
+E2E@2026-10-19:{scripts/e2e-error-map.sh via run_frontend_e2e.sh --only error-map: 20/20} | not run:{simulator-visual playwright,e2e-student/teacher/admin since 002}
+npm run check:⚠️ stops at prettier on 2 foreign files (scripts/demo-video/record.mjs, GenerateDialog.tsx) | steiger/tsc/build run separately
+Updated:2026-10-19
 
 ## Story
-1 T046 clients+types: createAssignment,getStudentProfile,getGroupInsights,updateKbArticle,downloadReportExport,listTickets,getHealth; extract_ts_fields run ✅
-2 T047 features/assignment-create (Stepper wizard 5 steps) + pages/teacher/assignments (list,new,detail+finish) ✅ routes /teacher/assignments[/new|/[id]]
-3 T048 pages/teacher/{students,groups} ✅ | T049 teacher-dashboard/ui/TeacherHomeSummary (risk zone,deadlines,chain confirm) above old monitor ✅
-4 T050 reference ArticleEditor (teacher/admin PATCH) + features/report-export ServerExportButtons in report-session ✅
-5 T051/T054 restyle: shared/ui components get platform look only under [data-zone="platform"] (Panel,Table,Button,Input,Select,Tabs,Modal,Chip); page headers→PageHeader; no logic change ✅
-6 T052/T053 pages/admin/{home,audit,security} ✅ /admin now home (was redirect) ; backend schemas/admin.py + shared/config/auditEvents.ts map kb/ai/assignment/ticket→content, titles added
-7 backend test tests/integration/test_security_policy.py (4) ✅ policy(min length,lock attempts) applies to next password change/login
-8 manual stand check :8130/:3130 (stopped after): morozova creates asg-003 via wizard → ivanov sees/starts, finish 403, profile 403; export csv BOM/pdf/404; kb PATCH 200 teacher/403 student ✅
-9 T060/T029/T030 demo stand ./scripts/demo-up.sh (11s cold start) + docs/{FINAL-GATE,COMPLIANCE,DELIVERY,offline-check,LIBRARIES} updated + 01-requirements-map.md trace verified ✅
+1 003 error-map: stages w/ traffic light (icon+word, thresholds 0.10/0.30, min 5/3, band ±10pp), stage detail, student map vs group, group journal, present mode, PDF, AI explain w/ agree/disagree verdict (migration 0005 error_map_verdicts, audit error_map.verdict), /me/focus + widget my-focus, thresholds in admin settings
+2 004 polza: AI_PROVIDER=local|polza (default local), PolzaClient in ml/generate/llm.py (OpenAI-compat, Bearer, rpm+daily limits, any error → None → template fallback), only scenario generation + explain_stage go external, audit ai.external_call (no texts/key), GET /api/v1/admin/ai/provider (admin), no admin UI; AGENTS §2 amended w/ owner OK
+3 docs: AGENTS §14-15 + .ai/LESSONS.md + PROJECT_MAP.md added; CLAUDE.md = Claude layer + @AGENTS.md
 
 ## Reasoning
-pages grouped teacher/{..},admin/{..} > flat slices: steiger limit 20 ungrouped pages
-bridge in shared/ui via :global([data-zone=platform]) > rewriting old pages: keeps /arm 1:1, one place, no logic edits
-risk-zone counts profile.typicalErrors (top-3 per mode by backend) not all errors
-chain wizard picks approved operator112 versions per scenario (lazy load versions) > cardIds only (start would 409)
+verdict key omitted when none (dump() exclude_none for optional TS fields) > null
+explanation None when level==noData (model not called)
+external LLM only via llm.external_client(); configured_client() stays local (warmup must not hit network)
+audit events buffered in llm.py, flushed async by external_ai_audit.flush_external_calls (client is sync)
+polza without key → Settings validator fails startup (no silent switch)
 
 ## Action
-!1 T061: owner records docs/demo.mp4 per docs/demo-script.md (<=300s), then ticks T061
- 2 optional: PLAYWRIGHT_CONFIG=<scratch cfg with executablePath> bash backend/scripts/run_frontend_e2e.sh --only platform|chain (needs chromium)
- 3 selective commit via git-commit skill on owner request (no git add .)
- 4 open: GET /tickets open to students (96 rows incl. approved flag) — decide if restrict; no endpoint changes made
+!1 T007 polza real-key check: owner puts POLZA_API_KEY in backend/.env, then says ready; run 1 scenario gen + 1 explain, check audit rows
+!2 T072 usability check w/ ≥3 teachers + T073 manual scenarios 1-14 (quickstart.md) NOT done
+ 3 simulator-visual playwright (SC-010) NOT run
+ 4 backend/var/dev.db lacks error_map_verdicts → alembic upgrade head or app.seed.load --reset (ask owner first)
+ 5 `npm run mocks:sync` — spec mocks (sessions/users) changed, mocks/ copy not refreshed
+ 6 owner checklist (screenshot): 5.1 filter sizes 44/16px (a11y.test only scans cursor:pointer rules → fields may be missed), 5.3 group assignments in existing DB, 5.4 student recommendations rating race (old phase-14 code, not ours)
+ 7 T061 docs/demo.mp4 — owner records; never fabricate
 
 ## Caution
-⚠️ .next may be baked with BACKEND_URL=127.0.0.1:8130 after run_frontend_e2e.sh — rebuild `npm run build` before plain next start
-⚠️ e2e scripts need fresh servers each run; user dev server on :3000 not touched
-🧠 backend tests share one in-memory DB per session: mutate policy only with restore fixture (see test_security_policy.py)
-❌ NEVER git add . ; never fabricate docs/demo.mp4
+⚠️ .next baked with BACKEND_URL=127.0.0.1:8130 after run_frontend_e2e.sh / demo-up → rebuild before plain `next dev`/start
+⚠️ e2e sh scripts need fresh servers/db each run (in-memory store, verdict rows)
+⚠️ other sessions may edit same checkout: git status first, test -e before creating files
+❌ NEVER git add . | never Co-Authored-By/agent signature in commits | never fabricate docs/demo.mp4 | never read/print backend/.env
+🧠 pre-existing red tests proven on clean HEAD via git archive, not by assumption
