@@ -11,6 +11,9 @@ export type Operator112JournalProps = {
   onOpenRow: (row: Journal112Row) => void;
   onCreateCard: () => void;
   onLogout?: () => void;
+  /** Меню «справка»: «Краткая инструкция» и «Сообщить о проблеме». */
+  onShortGuide?: () => void;
+  onProblem?: () => void;
   state: "loading" | "error" | "ready";
   errorMessage?: string;
 };
@@ -25,6 +28,8 @@ export function Operator112Journal({
   onOpenRow,
   onCreateCard,
   onLogout,
+  onShortGuide,
+  onProblem,
 }: Operator112JournalProps) {
   return (
     <div className={styles.page}>
@@ -33,6 +38,8 @@ export function Operator112Journal({
         nowMs={nowMs}
         onCreateCard={onCreateCard}
         onLogout={onLogout}
+        onShortGuide={onShortGuide}
+        onProblem={onProblem}
       />
       {state === "loading" ? (
         <p className={styles.note} role="status">

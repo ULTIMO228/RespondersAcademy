@@ -212,6 +212,19 @@ describe("Operator112Screen: журнал и входящий вызов", () =>
     fireEvent.click((await screen.findAllByText("Задымление"))[0]);
     expect(await screen.findByRole("alert")).toHaveTextContent("Вы не можете вносить изменения");
   });
+
+  it("«справка» → «Краткая инструкция» и «Сообщить о проблеме» открываются из журнала", async () => {
+    render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Закрыть окно вызова" }));
+    fireEvent.click(await screen.findByRole("button", { name: "справка" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Краткая инструкция" }));
+    const guide = await screen.findByRole("dialog", { name: "Краткая инструкция" });
+    expect(guide).toHaveTextContent("Принять");
+    fireEvent.click(screen.getByRole("button", { name: "Закрыть (Esc)" }));
+    fireEvent.click(screen.getByRole("button", { name: "справка" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Сообщить о проблеме" }));
+    expect(await screen.findByRole("dialog")).toHaveTextContent("Отправить");
+  });
 });
 
 describe("Operator112Screen: основной путь", () => {

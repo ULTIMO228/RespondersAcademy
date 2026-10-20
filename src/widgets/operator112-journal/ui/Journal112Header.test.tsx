@@ -31,4 +31,30 @@ describe("Journal112Header", () => {
       expect(screen.getByText(t).getAttribute("aria-disabled")).toBe("true");
     }
   });
+
+  it("«справка» раскрывает меню «Краткая инструкция» / «Сообщить о проблеме» (ИНСТРУКЦИЯ_103)", () => {
+    const onShortGuide = vi.fn();
+    const onProblem = vi.fn();
+    render(
+      <Journal112Header
+        operatorName="X"
+        nowMs={NOW}
+        onCreateCard={vi.fn()}
+        onShortGuide={onShortGuide}
+        onProblem={onProblem}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "справка" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Краткая инструкция" }));
+    expect(onShortGuide).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "справка" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Сообщить о проблеме" }));
+    expect(onProblem).toHaveBeenCalledOnce();
+  });
+
+  it("без обработчиков «справка» неактивна", () => {
+    render(<Journal112Header operatorName="X" nowMs={NOW} onCreateCard={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "справка" })).toBeDisabled();
+  });
 });

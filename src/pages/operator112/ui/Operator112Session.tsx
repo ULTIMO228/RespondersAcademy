@@ -26,6 +26,7 @@ import { useHotkeys } from "../model/useHotkeys";
 import { useJournal } from "../model/useJournal";
 import type { useOperator112 } from "../model/useOperator112";
 import { Operator112CardView } from "./Operator112CardView";
+import { ShortGuideWindow } from "./ShortGuideWindow";
 import { TrainerStrip } from "./TrainerStrip";
 
 import styles from "./Operator112Session.module.css";
@@ -64,6 +65,7 @@ export function Operator112Session({
   const [notice, setNotice] = useState<string | null>(null);
   const [locked, setLocked] = useState<Journal112Row | null>(null);
   const [isProblemOpen, setProblemOpen] = useState(false);
+  const [isGuideOpen, setGuideOpen] = useState(false);
   const openProblem = onProblem ?? (() => setProblemOpen(true));
   const norms = resolveNorms(assignment.params);
   const limitSec = resolveTimeLimitSec(assignment.params);
@@ -147,6 +149,7 @@ export function Operator112Session({
 
   return (
     <>
+      {isGuideOpen ? <ShortGuideWindow onClose={() => setGuideOpen(false)} /> : null}
       {isProblemOpen ? (
         <ProblemReportDialog
           senderName={user?.fullName ?? ""}
@@ -179,6 +182,8 @@ export function Operator112Session({
             nowMs={nowMs}
             onOpenRow={openRow}
             onCreateCard={op.openPractice}
+            onShortGuide={() => setGuideOpen(true)}
+            onProblem={openProblem}
             onLogout={() => void logout().then(() => router.replace(ROUTES.login))}
           />
           {journal.status === "ready" && journal.rows.length === 0 ? (

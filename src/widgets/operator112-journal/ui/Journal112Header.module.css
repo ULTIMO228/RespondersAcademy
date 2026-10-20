@@ -160,3 +160,42 @@
   font-weight: var(--font-weight-bold);
   text-align: left;
 }
+
+/* Меню «справка» (ИНСТРУКЦИЯ_103): белый выпадающий список под ссылкой, выделение строки — синим. */
+.help {
+  position: relative;
+  display: inline-flex;
+}
+.helpMenu {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  left: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: var(--spacing-sm) 0;
+  background: var(--color-white);
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+.helpItem {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-base);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.helpItem:hover:not(:disabled),
+.helpItem:focus-visible {
+  outline: none;
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+.helpItem:disabled {
+  color: var(--color-ink-soft);
+  cursor: default;
+}

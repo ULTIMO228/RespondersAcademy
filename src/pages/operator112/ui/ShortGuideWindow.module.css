@@ -1,0 +1,15 @@
+/* «Краткая инструкция»: нумерованные шаги в окне АРМ (Modal), только токены АРМ. */
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding-left: var(--spacing-2xl);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+.guide__step::marker {
+  font-weight: var(--font-weight-bold);
+}
