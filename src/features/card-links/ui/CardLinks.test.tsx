@@ -65,9 +65,27 @@ describe("LinksView «Показ связей»", () => {
     expect(onUnlink).toHaveBeenCalledWith("c-2");
     fireEvent.click(screen.getByRole("button", { name: "сделать главной карточку 165562" }));
     expect(onMakePrimary).toHaveBeenCalledWith("c-2");
-    fireEvent.click(
-      screen.getByRole("button", { name: "← вернуться в карточку · Показ связей: карточек 2" }),
-    );
+    expect(screen.getByText("Показ связей: карточек 2")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "← вернуться в карточку" }));
     expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it("текущая карточка — подчинённая строка в конце, «отвязать» снимает её связи; счётчик учитывает её (ИНСТРУКЦИЯ_65)", () => {
+    const onUnlinkCurrent = vi.fn();
+    const current = { ...cards[1].row, cardId: "c-new", number: "165563" };
+    render(
+      <LinksView
+        cards={cards}
+        current={{ row: current, onUnlink: onUnlinkCurrent }}
+        onUnlink={vi.fn()}
+        onMakePrimary={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    );
+    const rows = screen.getAllByRole("row").filter((r) => r.hasAttribute("data-card-id"));
+    expect(rows.at(-1)).toHaveAttribute("data-card-id", "c-new");
+    expect(screen.getByText("Показ связей: карточек 3")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "отвязать карточку 165563" }));
+    expect(onUnlinkCurrent).toHaveBeenCalledOnce();
   });
 });

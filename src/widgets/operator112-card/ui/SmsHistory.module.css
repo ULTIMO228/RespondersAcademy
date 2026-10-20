@@ -1,4 +1,16 @@
 /* «История сообщений» ПОВ-112 (ИНСТРУКЦИЯ_image112): малиновые полосы, серо-голубое поле, графитовые строки. */
+/* Панель поверх затемнённой карточки: шапка телефонии остаётся видна (ИНСТРУКЦИЯ_image112). */
+.history__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 200px;
+  background: var(--color-overlay);
+}
+
 .history {
   display: flex;
   flex-direction: column;

@@ -59,3 +59,41 @@
   color: var(--color-light-text);
   font-size: var(--font-size-base);
 }
+
+/* Ячейки «˅ · закладка/цепочка · ⚡ · ⏱» и «Проверена» — как в журнале (ИНСТРУКЦИЯ_image62, 65). */
+.row .cells {
+  padding: 0;
+  white-space: nowrap;
+}
+
+.cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: var(--row-height-journal);
+  color: var(--color-light-muted);
+  vertical-align: middle;
+}
+
+.cell + .cell {
+  border-left: var(--border-width) solid var(--color-graphite-700);
+}
+
+.cell[data-on="true"] {
+  color: var(--color-white);
+}
+
+.linked {
+  background: var(--color-operator-cell);
+  color: var(--color-light-text);
+}
+
+.checked {
+  color: var(--color-graphite-500);
+  text-align: center;
+}
+
+.checked[data-on="true"] {
+  color: var(--color-light-text);
+}

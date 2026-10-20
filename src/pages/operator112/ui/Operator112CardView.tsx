@@ -375,6 +375,24 @@ export function Operator112CardView({
     return row ? [{ row, primary: link.primary }] : [];
   });
 
+  // Текущая (заполняемая) карточка в «Показ связей» — подчинённая строка (ИНСТРУКЦИЯ_65).
+  const currentRow: Journal112Row = {
+    cardId: attempt?.cardId ?? "practice",
+    number: attempt ? String(attempt.incidentNumber) : "",
+    createdAt: attempt?.openedAt ?? new Date(nowMs).toISOString(),
+    operator: operatorLine.replace(/^Опер\.\s*/, "").split(",")[0] ?? "",
+    arm: /АРМ (\d+)/.exec(operatorLine)?.[1] ?? "",
+    whatHappened: tabs.incidents[0]?.finalType ?? "",
+    injured: form.injured ? "Да" : "Нет",
+    status: "",
+    address: form.address.formal,
+    description: form.description,
+    linked: form.links.length > 0,
+    chs: false,
+    checked: false,
+    isOwn: true,
+  };
+
   const replay = () => {
     if (isExam || !attempt) return;
     void send({ type: "replay" }).catch(() => undefined);
@@ -434,7 +452,8 @@ export function Operator112CardView({
       "Alt+KeyW": () => (form.links.length > 0 ? onOpenLinks() : undefined),
       "Alt+KeyB": () => setDialog("reminder"),
       "Alt+KeyM": () => onProblem?.(),
-      Escape: () => setDialog("close"),
+      // Esc: из «Показ связей» и «Истории сообщений» — назад в карточку, в карточке — вопрос о закрытии.
+      Escape: () => (view === "card" ? setDialog("close") : onBackToCard()),
     },
     active && dialog === null,
   );
@@ -443,7 +462,7 @@ export function Operator112CardView({
   const serviceTitles = list.services.map((item) => item.title);
 
   const card = (
-    <div ref={root} hidden={!active || view === "links"} className={styles.view}>
+    <div ref={root} hidden={!active} className={styles.view}>
       <Operator112Card
         phone={{
           // Во время разговора линия занята — подпись трубки «Отключение» (КАРТОЧКА_1).
@@ -610,6 +629,10 @@ export function Operator112CardView({
       {active && view === "links" ? (
         <LinksView
           cards={linkedCards}
+          current={{
+            row: currentRow,
+            onUnlink: () => form.links.forEach((link) => linkEvent("linkRemoved", link.cardId)),
+          }}
           onUnlink={(cardId) => linkEvent("linkRemoved", cardId)}
           onMakePrimary={(cardId) => linkEvent("linkPrimary", cardId)}
           onBack={onBackToCard}

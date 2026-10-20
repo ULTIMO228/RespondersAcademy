@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { Journal112Row } from "@/shared/api";
-import { ArmIcon } from "@/shared/ui";
+import { ArmIcon, Glyph } from "@/shared/ui";
 
 import { splitCreatedAt } from "../model/format";
 
@@ -55,10 +55,30 @@ export function CardsTable({ rows, label }: CardsTableProps) {
           return (
             <FragmentRow key={row.cardId}>
               <tr className={styles.row} data-primary={primary} data-card-id={row.cardId}>
-                <td>
-                  <ArmIcon name="row-bookmark" size={14} label={primary ? "главная карточка" : "связь"} />
+                <td className={styles.cells}>
+                  <span className={styles.cell} aria-hidden="true">
+                    <Glyph name="chevronDown" size={16} />
+                  </span>
+                  <span
+                    className={`${styles.cell} ${row.linked || primary ? styles.linked : ""}`}
+                    role="img"
+                    aria-label={primary ? "главная карточка" : "связь"}
+                  >
+                    {row.linked || primary ? (
+                      <Glyph name="link" size={14} />
+                    ) : (
+                      <ArmIcon name="row-bookmark" size={14} />
+                    )}
+                  </span>
                 </td>
-                <td>{row.chs ? <ArmIcon name="row-important" size={14} label="ЧС" /> : null}</td>
+                <td className={styles.cells}>
+                  <span className={styles.cell} data-on={row.chs ? "true" : undefined}>
+                    <ArmIcon name="row-important" size={14} label={row.chs ? "ЧС" : undefined} />
+                  </span>
+                  <span className={styles.cell} aria-hidden="true">
+                    <ArmIcon name="row-reminder" size={14} />
+                  </span>
+                </td>
                 <td className={styles.operator}>{row.operator}</td>
                 <td>{row.arm}</td>
                 <td>{row.number}</td>
@@ -68,7 +88,11 @@ export function CardsTable({ rows, label }: CardsTableProps) {
                 <td>{row.injured}</td>
                 <td>{row.status}</td>
                 <td className={styles.address}>{row.address}</td>
-                <td>{row.checked ? <ArmIcon name="service-status" size={20} label="проверена" /> : null}</td>
+                <td className={styles.checked} data-on={row.checked ? "true" : undefined}>
+                  <span role="img" aria-label={row.checked ? "проверена" : "не проверена"}>
+                    <Glyph name="checkCircle" size={22} />
+                  </span>
+                </td>
                 <td className={styles.actions}>{actions}</td>
               </tr>
               <tr className={styles.desc}>
