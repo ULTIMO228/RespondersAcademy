@@ -1,19 +1,23 @@
-## Handoff 2026-10-20 → next window (009 implement)
-LiveCaller@2026-10-20: develop merged into SASHA (d08ce53) | owner: live AI caller everywhere (training+exam), now | useApplicantVoice in entities/operator112-attempt (live if NEXT_PUBLIC_LIVE_CALLS_ENABLED else recording; no silent fallback) | useRealtimeCaller+useCallerAudio moved softphone→entity | backend writable: any active assignment | T020 ✅
-Checks@2026-10-20(after merge): pytest 1122 passed/4 skipped/0 red | ruff clean | vitest 2008/2011 (teacher-v1 Blob = env; IncidentScreen+PresentScreen flaky under load, pass alone) | tsc+eslint(changed)+steiger pass | next build NOT run
-⚠️ spec number 005 duplicated: 005-arm-reference-panel (SASHA) + 005-live-caller (develop) → owner to renumber
-Where: spec/009-arm-112-student/tasks.md | Phase 2 Foundational | done T001-T007 | NEXT: T008 (mock validator: channel/smsText/repeatOf/lockedBy) → T009 needs owner texts
-  - T007 ✅ 2026-10-20: 7 new event types + payload checks (schemas/v1/operator112.py); linkAdded cardId ∈ journal via operator112_service.in_student_journal (ArmCardFixture bg | own IncidentCard mode_origin=operator112) → reuse in T011; tests/integration/test_operator112_events_v2.py 17 passed; pytest 1000 passed/3 known red; ruff clean
-  - 🧠 assumption: journal background = all ArmCardFixture rows (no per-assignment bg exists yet) — recheck in T011
-Done this window:
-  - T001 baseline.txt (pytest 977/3 known red, vitest 1951/1 red teacher-v1 Blob = env, prettier 4 foreign files)
-  - T002 affected-tests.md | T003 checklists/visual-112.md (17 windows/states)
-  - T004 backend/tests/contract/test_operator112_draft_v2.py (6 tests: old body=96 like baseline, incidents→what, 2 primary links 400/1→200, noContact/dropped w/o address 200, filled w/o address 400, any-subject address+channel in snapshot) ✅
-  - T006 app/schemas/v1/operator112.py: CardDraftAddress +country..code,lat,lon; CardDraftLink; CardDraft +channel,incidents,links,outcome; what=incidents[0] if empty; outcome!=filled skips minimum; address minimum also object|lat+lon
-  - T005 src/shared/api/types/operator112.ts (+CardChannel, CardOutcome, CardDraftLink, Journal112Row/Response, 7 event types) + exports in types/index.ts, api/index.ts; expected_fields.json regenerated
-Checks@2026-10-20: tests/contract 241 passed / 2 known red | ruff clean | tsc pass | prettier (changed) clean | vitest not rerun after T005 (types only)
-Rules: DDS code untouched (R14) | services panel color by card state R13a (#ec653b new, #49555d saved) | timer R7a (60 s, only timer block red) | TDD pairs 400/200 | commits w/o Co-Authored-By
-Stand: ./scripts/demo-up.sh; before restart kill next-server/uvicorn by PID (no lsof, L023)
+## Handoff 2026-10-20 (evening) → next window
+Branch:SASHA (pushed, HEAD 7edccf6 + this handoff) | develop merged in (d08ce53) | spec:009-arm-112-student
+Where: tasks.md Phase 2 Foundational | done T001-T007 + T020 | NEXT: T008 mock validator (channel∈{call,sms}, smsText if sms, repeatOf→existing card|null, lockedBy only bg) → T009 (owner texts!) → T010-T012 journal (reuse operator112_service.in_student_journal) → T013-T019
+Owner decisions 2026-10-20:
+  - live AI caller (005-live-caller) replaces recording in 112 ARM, BOTH training+exam; recording only if NEXT_PUBLIC_LIVE_CALLS_ENABLED=false; no silent fallback when live server unconfigured (state unavailable)
+  - only student-112 workplace now; DDS code untouched (R14)
+  - design = ARM 1:1; compare vs СРАВНЕНИЕ-ИНТЕРФЕЙСА-АРМ.md (до/после) + окна-АРМ-112.html; proposal (not yet accepted): add до/после items to checklists/visual-112.md + T070, screenshot pairs 1920×1080
+Voice point (T020 ✅): entities/operator112-attempt/model/useApplicantVoice.ts → {kind live|recording, state checking|idle|connecting|playing|unavailable|ended, start, stop, mute, level, recordingUrl, trainerText(only trainer strip, FR-027)}; useRealtimeCaller+useCallerAudio moved softphone→entity; backend live_call_service.writable: any active assignment (exam ok)
+T007 ✅: 7 new event types + payload checks; linkAdded cardId ∈ journal (ArmCardFixture bg | own 112 IncidentCard) else 400
+🧠 assumption: journal bg = all ArmCardFixture (no per-assignment bg) — recheck in T011
+Checks@2026-10-20 after merge: pytest 1122 passed/4 skipped/0 red | ruff clean | vitest 2008/2011 (teacher-v1 Blob = env; IncidentScreen+PresentScreen flaky under load, pass alone) | tsc+eslint(changed)+steiger pass | next build NOT run
+Blocked/owner:
+  !1 renumber duplicate spec 005 (005-arm-reference-panel vs 005-live-caller)
+  !2 T009 synthetic ticket texts (1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + ok for migration 0007/DB reset
+  !3 real live call: POLZA_API_KEY+models in backend/.env, polza.ai allowed in cloud env (now 403) → ./scripts/demo-up.sh --live
+  !4 004 T007 real-key check: spec/004-polza-provider/quickstart.md
+  ⚠️ Silero TTS license CC BY-NC (risk outside hackathon)
+Env notes: cloud container: npm ci done this window (fresh containers need it + npm run mocks:sync before vitest) | uv sync --group dev | no lsof → kill by PID (L023)
+Rules: TDD pairs 400/200 | commits w/o Co-Authored-By | git fetch before reading handoff (L024) | prettier only changed files (it reformats foreign files)
+
 ## Facts (develop: live-caller, merged into SASHA 2026-10-20)
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
