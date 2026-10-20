@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { formatShortName, useLogout, useSessionUser } from "@/entities/user";
 import { resolveNorms, resolveTimeLimitSec, useApplicantVoice } from "@/entities/operator112-attempt";
-import { IncomingWindow } from "@/features/operator112-incoming";
+import { IncomingWindow } from "@/features/operator112/incoming";
 import { ProblemReportDialog } from "@/features/problem-report";
 import { LockedWindow, Operator112Journal } from "@/widgets/operator112-journal";
 import { SimulatorBarPortal } from "@/widgets/simulator-bar";

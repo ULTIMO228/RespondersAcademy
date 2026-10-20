@@ -161,3 +161,13 @@
 - Конфликты: 8. `navItems.ts` — обе стороны (`resolvePlatformNav` зон + `WORKSPACE_ROUTES`/`isWorkspaceRoute`), `index.ts` и `PlatformFrame.tsx` — объединённые импорты/экспорты (workspace-режим + зоны); `AGENTS.md` — ours + 3 вставки gracious (flow-*, scenario-flow, роут `/teacher/constructor`, номер 013); `.ai/LESSONS.md` — ours + уроки gracious L014–L018 → L032–L036; `.ai/SESSIONS.md`, `.ai/SESSION_STATE.md`, `spec/README.md` — обе стороны
 - Короткий гейт: lint ✅ · typecheck ✅ · vitest platform-nav/scenario-flow/flow-canvas/constructor/shared-ui 201/201 ✅
 - Итог: влит
+
+## F7 — K11 feature/scenario-graph-builder @ cdef678
+
+- Дата: 2026-10-20 · Вершина сверена ✅ · Разбор: субагент Opus (заготовка против промежуточного F5); интегратор сверил базу заготовки с текущей нашей стороной: 14 файлов совпали → из зеркала, 4 изменились → вручную
+- Конфликты: 22. Из заготовки: `v1/__init__.py` (+`ai_scenario_runs`, `scenario_permissions`), `models/ai_scenario.py`, `services/{ai_scenario_service,scenario_service}.py`, `run_frontend_e2e.sh` (+`scenario-graph`, без chain), `assignment-create/{api,model/types,model/validate(.test)}`, `StepTickets.tsx`, `scenario-builder/config/dictionaries.ts`, `shared/api/{endpoints/index,types/scenario}.ts`, `navItems.test.ts`. Вручную: `models/user.py` (`specializations` + `permissions`), `shared/api/{index,types/index}.ts` (обе стороны), `test_alembic.py` (голова `0013_merge_scenario_graph`), `AssignmentWizard.test.tsx` (импорты + 6 тестов графа из заготовки под порядок шагов fix, тест цепочки не перенесён); `.ai/LESSONS.md` — уроки graph → L037–L040; `spec/README.md`, `.ai/SESSION_STATE.md` — обе стороны
+- Миграции: `0013_merge_scenario_graph` (пустая, родители `0012_specs_from_training_profile` + `0009_scenario_run_result`); `alembic heads` → одна
+- FSD: после слияния `features` — 24 негруппированных слайса (> 20, steiger ❌) → сгруппированы `features/flow/{canvas,inspector,library,preview}` (013) и `features/operator112/{address,incoming,services,type-tabs}` (009); импорты обновлены (5 файлов) → steiger ✅
+- Гейт: lint ✅ · steiger ✅ (после группировки) · test **2612 passed** ✅ · typecheck ✅ · build ✅ · pytest **1680 passed / 1 failed / 4 skipped / 3 xfailed** · ruff ✅
+- ❌ Открыто: `tests/integration/test_generation_connection_retention.py::test_owner_whose_marker_was_reclaimed_cannot_commit[default]` — стабильно (2/2), на вершине fix зелёный → регрессия слияния `ai_scenario_service`/`scenario_service` (fix 79cba68 × graph). Диагностика — субагент; исправление отдельным коммитом
+- Итог: влит

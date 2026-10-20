@@ -57,6 +57,10 @@ export const ROUTES = {
   studentResult: (attemptId: string, mode: string) =>
     `/student/results/${encodeURIComponent(attemptId)}?mode=${encodeURIComponent(mode)}`,
   studentAnalytics: "/student/analytics",
+  /** Сценарии с графом (спека 005): список назначенных и прохождение версии. */
+  studentScenarios: "/student/scenarios",
+  studentScenarioRun: (scenarioId: string, version: number) =>
+    `/student/scenarios/${encodeURIComponent(scenarioId)}/${version}`,
   /** Справочник (все роли): статьи, номера, памятки, клавиши, статусы. */
   reference: "/reference",
   referenceSearch: (query: string) => `/reference?q=${encodeURIComponent(query)}`,

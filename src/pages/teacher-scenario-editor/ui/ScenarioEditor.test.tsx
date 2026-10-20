@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { scenarios } from "@/shared/api";
 import type { AIScenarioVersion, Scenario } from "@/shared/api";
@@ -8,6 +8,17 @@ import type { ScenarioEditorApi } from "../api/editorApi";
 import { buildEditorContext } from "../lib/buildEditorData";
 import { buildEditorModel } from "../lib/buildEditorModel";
 import { ScenarioEditorScreen } from "./ScenarioEditorScreen";
+
+const navigation = vi.hoisted(() => ({ push: vi.fn(), search: "" }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: navigation.push }),
+  useSearchParams: () => new URLSearchParams(navigation.search),
+}));
+
+beforeEach(() => {
+  navigation.push.mockClear();
+  navigation.search = "";
+});
 
 const TEACHER_ID = "u-002";
 const scenario = scenarios.find((candidate) => candidate.id === "s-032") ?? scenarios[0];
@@ -76,6 +87,16 @@ function createApi(overrides: Partial<ScenarioEditorApi> = {}): ScenarioEditorAp
     checkGrammar: vi.fn(async () => ({ data: [] })),
     listAIScenarioVersions: vi.fn(async () => []),
     createAIScenarioDrafts: vi.fn(async () => []),
+    getScenarioPermissions: vi.fn(async () => ({ permissions: [] })),
+    listScenarioSources: vi.fn(async () => []),
+    validateScenarioGraph: vi.fn(async () => ({ valid: true, errors: [] })),
+    createGraphScenario: vi.fn(async () => aiVersion),
+    reviseGraphScenario: vi.fn(async () => aiVersion),
+    submitGraphScenario: vi.fn(async () => aiVersion),
+    reviewGraphScenario: vi.fn(async () => aiVersion),
+    publishGraphScenario: vi.fn(async () => aiVersion),
+    deriveGraphScenarioVersion: vi.fn(async () => aiVersion),
+    listScenarioRuns: vi.fn(async () => []),
     reviseAIScenario: vi.fn(async () => aiVersion),
     approveAIScenario: vi.fn(async () => ({
       ...aiVersion,
@@ -444,5 +465,102 @@ describe("Проверка ручного текста версии (US3)", () =
 
     fireEvent.change(summary, { target: { value: "   " } });
     expect(screen.getByRole("button", { name: "Проверить текст" })).toBeDisabled();
+  });
+});
+
+describe("Вкладка «Граф» редактора сценария (спека 005, этап S4)", () => {
+  it("по умолчанию открыт «Сценарий»; граф не грузится, пока вкладку не открыли", async () => {
+    const { api } = await renderEditor();
+    expect(screen.getByRole("tab", { name: "Сценарий" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Название")).toBeVisible();
+    expect(api.getScenarioPermissions).not.toHaveBeenCalled();
+  });
+
+  it("у сценария с AI-версией с графом вкладка открывает последнюю версию на холсте", async () => {
+    const graphVersion: AIScenarioVersion = {
+      ...aiVersion,
+      graph: {
+        schemaVersion: "scenario-graph/1",
+        start: "a",
+        nodes: [
+          { id: "a", type: "action", title: "Приём", action: "x", next: "b" },
+          { id: "b", type: "end", outcome: "completed", score: 100, passed: true },
+        ],
+      },
+    };
+    const { api } = await renderEditor(
+      createApi({ listAIScenarioVersions: vi.fn(async () => [graphVersion]) }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    expect(await screen.findByRole("group", { name: "Холст графа сценария, блоков: 2" })).toBeVisible();
+    expect(api.getScenarioPermissions).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("tab", { name: "Сценарий" }));
+    expect(screen.getByLabelText("Название")).toBeVisible();
+  });
+
+  it("у сценария без графа вкладка предлагает форму создания; сбой источников не ломает страницу", async () => {
+    await renderEditor(
+      createApi({
+        listScenarioSources: vi.fn(async () => [
+          { sourceTicketId: "t-1", situationNo: 1, preview: "Дерево" },
+        ]),
+      }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    expect(await screen.findByText("У сценария ещё нет графа")).toBeInTheDocument();
+    expect(await screen.findByRole("form", { name: "Создание графа сценария" })).toBeInTheDocument();
+  });
+
+  it("ошибка загрузки версий показана внутри вкладки, остальные секции работают", async () => {
+    await renderEditor(
+      createApi({
+        listAIScenarioVersions: vi.fn(async () => {
+          throw new Error("Сервис версий недоступен");
+        }),
+      }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    expect((await screen.findAllByText(/Сервис версий недоступен/)).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("tab", { name: "Сценарий" }));
+    expect(screen.getByLabelText("Название")).toHaveValue(scenario.title);
+  });
+
+  it("параметр ?tab=graph открывает вкладку «Граф» сразу", async () => {
+    navigation.search = "tab=graph";
+    const { api } = await renderEditor();
+    expect(screen.getByRole("tab", { name: "Граф" })).toHaveAttribute("aria-selected", "true");
+    await screen.findByText("У сценария ещё нет графа");
+    expect(api.getScenarioPermissions).toHaveBeenCalled();
+  });
+
+  it("после создания графа открывается страница нового сценария с вкладкой «Граф»", async () => {
+    const created = { ...aiVersion, scenarioId: "s-ai-777", graph: undefined };
+    const { api } = await renderEditor(
+      createApi({
+        listScenarioSources: vi.fn(async () => [
+          { sourceTicketId: "t-1", situationNo: 1, preview: "Дерево" },
+        ]),
+        createGraphScenario: vi.fn(async () => created as AIScenarioVersion),
+      }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: "Граф" }));
+    await screen.findByRole("form", { name: "Создание графа сценария" });
+    await screen.findByRole("option", { name: /Дерево/ });
+    fireEvent.change(screen.getByLabelText("Источник (очищенный билет)"), { target: { value: "t-1" } });
+    fireEvent.change(screen.getByLabelText("Краткое описание ситуации"), {
+      target: { value: "Упало дерево" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Создать граф" }));
+    await waitFor(() =>
+      expect(navigation.push).toHaveBeenCalledWith("/teacher/scenarios/s-ai-777?tab=graph"),
+    );
+    expect(api.createGraphScenario).toHaveBeenCalledTimes(1);
+  });
+
+  it("в шапке источник сценария подписан: созданный преподавателем не называется шаблоном", async () => {
+    const manual = { ...scenario, source: "manual" } as unknown as Scenario;
+    await renderEditor(createApi({ getScenario: vi.fn(async () => manual) }));
+    expect(screen.getByText(/создан преподавателем/)).toBeInTheDocument();
+    expect(screen.queryByText(/· шаблон/)).not.toBeInTheDocument();
   });
 });

@@ -42,6 +42,17 @@ export function validateTickets(draft: WizardDraft): StepErrors {
       studentCards: `Укажите, кому передана информация: ${withoutTarget.map((item) => item.cardId).join(", ")}`,
     };
   }
+  if (draft.scenarioVersions.length > 0) {
+    // Сервер принимает scenarioVersions только если они в точности покрывают cardIds (schemas/v1/assignments.py):
+    // сценарии с графом не смешиваются ни с обычными билетами, ни с карточками обучающихся-112 (спека 011).
+    const fromScenarios = new Set(draft.scenarioVersions.map((item) => item.cardId));
+    if (draft.cardIds.length !== fromScenarios.size || draft.cardIds.some((id) => !fromScenarios.has(id))) {
+      return {
+        cardIds:
+          "Сценарии с графом нельзя смешивать с обычными билетами: оставьте в задании только сценарии или снимите их",
+      };
+    }
+  }
   return {};
 }
 
@@ -128,6 +139,9 @@ export function buildRequest(draft: WizardDraft): AssignmentCreateRequest {
           ? { ...item, expectedTransferTo: item.expectedTransferTo?.trim() }
           : { cardId: item.cardId, expectedDecision: item.expectedDecision },
       );
+    }
+    if (draft.scenarioVersions.length > 0) {
+      request.scenarioVersions = draft.scenarioVersions;
     }
   }
   return request;

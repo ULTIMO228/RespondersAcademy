@@ -65,6 +65,7 @@ class User(Base):
     service: Mapped[str | None] = mapped_column(String(160), nullable=True)
     assigned_groups: Mapped[list[str] | None] = mapped_column(JSONVariant, nullable=True)
     specializations: Mapped[list[str] | None] = mapped_column(JSONVariant, nullable=True)
+    permissions: Mapped[list[str] | None] = mapped_column(JSONVariant, nullable=True)
     failed_logins: Mapped[int] = mapped_column(Integer, default=0)
     locked_until: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 

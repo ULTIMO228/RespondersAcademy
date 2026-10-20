@@ -121,3 +121,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+.editor__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.editor__panel[hidden] {
+  display: none;
+}

@@ -1,4 +1,9 @@
-import type { AssignableMode, AssignmentFormat, StudentCardEtalon } from "@/shared/api";
+import type {
+  AssignableMode,
+  AssignmentFormat,
+  AssignmentScenarioVersion,
+  StudentCardEtalon,
+} from "@/shared/api";
 
 export const WIZARD_STEPS = [
   "Режим и формат",
@@ -20,6 +25,11 @@ export type WizardDraft = {
   cardIds: string[];
   /** Только для ДДС: эталоны отобранных карточек обучающихся-112 (их id есть и в cardIds), спека 011. */
   studentCards: StudentCardEtalon[];
+  /**
+   * Опубликованные версии сценариев с графом (спека 015) в режимах operator112 и dds: карточка версии — билет
+   * задания (её id есть и в cardIds). Смешивать с обычными билетами и карточками обучающихся нельзя (validateTickets).
+   */
+  scenarioVersions: AssignmentScenarioVersion[];
   ruleGroups: string[];
   ruleDifficulty: number[];
   ruleCount: string;
@@ -67,6 +77,7 @@ export function createDraft(initial?: WizardInitial): WizardDraft {
     ticketSource: "cards",
     cardIds: [],
     studentCards: [],
+    scenarioVersions: [],
     ruleGroups: [],
     ruleDifficulty: [],
     ruleCount: "5",

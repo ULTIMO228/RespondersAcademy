@@ -1,0 +1,143 @@
+.root {
+  display: grid;
+  gap: var(--pf-space-4);
+  min-width: 0;
+  font-size: var(--pf-fs-lead);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  gap: var(--pf-space-4);
+  align-items: start;
+}
+
+.workspace__main,
+.workspace__side {
+  display: grid;
+  gap: var(--pf-space-4);
+  min-width: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-lead);
+}
+
+.error {
+  margin: 0;
+  color: var(--pf-danger);
+  font-weight: var(--pf-fw-medium);
+}
+
+.ok {
+  margin: 0;
+  color: var(--pf-success);
+  font-weight: var(--pf-fw-medium);
+}
+
+.dirty {
+  padding: var(--pf-space-1) var(--pf-space-3);
+  border-radius: var(--pf-radius-chip);
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+  font-weight: var(--pf-fw-bold);
+}
+
+.versions,
+.validation,
+.create,
+.attach,
+.confirm {
+  display: grid;
+  gap: var(--pf-space-3);
+  padding: var(--pf-space-4);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  background: var(--pf-bg-card);
+}
+
+.confirm {
+  border-color: var(--pf-danger);
+  background: var(--pf-danger-bg);
+}
+
+.attach p,
+.confirm p {
+  margin: 0;
+}
+
+.versions__head,
+.validation__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+}
+
+.versions__title,
+.validation__title {
+  margin: 0;
+  font-size: var(--pf-fs-h2);
+}
+
+.versions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+}
+
+.review {
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.errors {
+  display: grid;
+  gap: var(--pf-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.errors__link {
+  display: block;
+  width: 100%;
+  min-height: var(--pf-target-touch);
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-danger-bg);
+  color: var(--pf-text);
+  font: inherit;
+  font-size: var(--pf-fs-lead);
+  text-align: left;
+  cursor: pointer;
+}
+
+.errors__link:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.errors__plain {
+  display: block;
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-danger-bg);
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

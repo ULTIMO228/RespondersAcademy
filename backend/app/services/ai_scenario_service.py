@@ -14,6 +14,7 @@ from typing import Any
 from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import Viewer
 from app.api.errors import conflict, forbidden, not_found, unprocessable, validation_failed
@@ -29,8 +30,10 @@ from app.models.card import Address, IncidentCard
 from app.models.classifier import ClassifierEntry
 from app.models.scenario import Scenario
 from app.models.teacher import ProfileMappingRow
-from app.schemas.v1.ai import ScenarioDraftRequest
+from app.scenario_runtime import Graph, InvalidGraphError
+from app.schemas.v1.ai import ScenarioDraftRequest, ScenarioManualCreateRequest
 from app.services import reference as reference_service
+from app.services import scenario_access
 from app.services.ai_health_service import llm_scope
 from app.services.audit import record
 from app.services.time import now_iso
@@ -51,6 +54,49 @@ PENDING_TTL_SEC = 120
 def _scenario_source_kind(provider: str) -> str:
     """Map the generation provider to the workflow's coarse source kind."""
     return "template" if provider == "template" else "llm"
+
+
+def thaw(value: Any) -> Any:
+    """Возвращает обычные dict/list из замороженных снимков утверждённых версий."""
+    return json.loads(json.dumps(value))
+
+
+def checked_graph(raw: Any) -> Graph:
+    """Разбирает граф сценария; любая ошибка структуры — 400 со списком причин."""
+    try:
+        return Graph.parse(thaw(raw))
+    except InvalidGraphError as error:
+        raise validation_failed("Граф сценария некорректен: " + "; ".join(error.errors)) from None
+
+
+NODE_IN_MESSAGE = re.compile(r"узел «([^»]+)»")
+
+
+def graph_validation(raw: dict[str, Any]) -> dict[str, Any]:
+    """Проверка графа без сохранения: структурные ошибки с привязкой к узлу (если сообщение его называет)."""
+    try:
+        Graph.parse(thaw(raw))
+    except InvalidGraphError as error:
+        items = []
+        for message in error.errors:
+            found = NODE_IN_MESSAGE.search(message)
+            items.append({"message": message, "nodeId": found.group(1) if found else None})
+        return {"valid": False, "errors": items}
+    return {"valid": True, "errors": []}
+
+
+async def list_sources(db: AsyncSession, viewer: Viewer) -> list[dict[str, Any]]:
+    """Утверждённые очищенные ситуации, из которых преподаватель строит сценарий."""
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Источники доступны преподавателю или администратору")
+    rows = (
+        await db.execute(select(SanitizedTicket).order_by(SanitizedTicket.source_ticket_id, SanitizedTicket.situation_no))
+    ).scalars().all()
+    return [
+        {"sourceTicketId": row.source_ticket_id, "situationNo": row.situation_no, "preview": row.sanitized_text[:200]}
+        for row in rows
+        if row.approved and row.pii_check == "passed"
+    ]
 
 
 def _request_hash(payload: dict[str, Any]) -> str:
@@ -222,6 +268,9 @@ def scenario_version_contract(
         ("parentVersion", version.parent_version),
         ("teacherComment", version.teacher_comment),
         ("approvedBy", version.approved_by),
+        ("reviewedBy", version.reviewed_by),
+        ("reviewComment", version.review_comment),
+        ("graph", version.graph),
     ):
         if value is not None:
             doc[key] = value
@@ -376,6 +425,26 @@ def _action_records(
     ]
 
 
+def _legacy_scenario_defaults(ticket: dict[str, Any], actions: list[dict[str, Any]]) -> dict[str, Any]:
+    """Поля документа сценария, без которых классический редактор и контракт `Scenario` не открываются."""
+    return {
+        "level": "advanced",
+        "sourceTicketNo": int(ticket.get("ticketNo") or 0),
+        "timeNorms": {
+            "primaryReactionSec": scenario_generator.PRIMARY_REACTION_SEC,
+            "fullProcessingSec": scenario_generator.FULL_PROCESSING_SEC,
+        },
+        "hints": {"enabled": False, "texts": []},
+        "difficulty": 3,
+        "etalon": {"expectedActions": [str(item["action"]) for item in actions], "keyPhrases": []},
+        "successCriteria": {
+            "maxGrammarErrors": scenario_generator.MAX_GRAMMAR_ERRORS,
+            "requiredFields": list(scenario_generator.REQUIRED_FIELDS),
+            "syntaxRequirements": scenario_generator.SYNTAX_REQUIREMENTS,
+        },
+    }
+
+
 def _expected_fields(card: dict[str, Any]) -> dict[str, Any]:
     keys = ("group", "summary", "address", "classifierCode", "expectedServices", "expectedTags")
     return {key: card[key] for key in keys if key in card}
@@ -417,6 +486,10 @@ async def _save_draft(
     classifier_entries: list[dict[str, Any]],
     profile_groups: set[str],
     address_allowlist: set[str],
+    *,
+    source_kind: str | None = None,
+    scenario_source: str = "generated",
+    graph: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     scenario_doc = dict(item.get("scenario") or {})
     tickets = item.get("cards") or []
@@ -460,8 +533,7 @@ async def _save_draft(
     scenario_doc["id"] = scenario_id
     scenario_doc["title"] = str(scenario_doc.get("title") or f"Вариация: {category}")
     scenario_doc["cardIds"] = [card_id]
-    scenario_doc["source"] = "generated"
-    scenario_doc["mode"] = mode
+    scenario_doc["source"] = scenario_source
     scenario_doc["validation"] = {"status": "draft"}
     scenario_doc.setdefault("generation", {})["sourceTicketId"] = source.source_ticket_id
     scenario = Scenario(
@@ -486,6 +558,10 @@ async def _save_draft(
     address_rule = "address:local-directory"
     rule_source_ids = [ticket_rule, classifier_rule, address_rule]
     actions = _action_records(mode, card_contract, rule_source_ids)
+    for key, value in _legacy_scenario_defaults(ticket, actions).items():
+        scenario.doc.setdefault(key, value)  # у сгенерированных документов поля уже есть и не затираются
+    flag_modified(scenario, "doc")
+    scenario.sync_columns()
     errors = validator.validate_ai_scenario(
         card_contract,
         actions,
@@ -497,7 +573,8 @@ async def _save_draft(
     )
     passed = not errors
     provider = str((scenario_doc.get("generation") or {}).get("provider") or "template")
-    source_kind = _scenario_source_kind(provider)
+    # Явный source_kind (ручной граф — "ticket", спека 005) важнее вывода по поставщику генерации (фича 006).
+    source_kind = source_kind or _scenario_source_kind(provider)
     etalon_id = f"{scenario_id}:etalon:1"
     classifier_version = str((await reference_service.read_classifier_meta(db)).get("version") or "classifier-seed")
     etalon = EtalonVersion(
@@ -527,11 +604,24 @@ async def _save_draft(
         card_snapshot={"id": card_id, "fields": _serialize_card(card_row)},
         etalon_version=etalon_id,
         rule_source_ids=rule_source_ids,
+        graph=graph,
     )
     db.add(version)
     scenario.validation_report = {"version": "ai-workflow/1", "passed": passed, "errors": errors}
     await db.flush()
     return scenario_version_contract(version, etalon, [])
+
+
+async def _save_draft_retrying(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Повторяет сохранение при коллизии идентификатора (next_id = max+1 при параллельном создании)."""
+    db: AsyncSession = args[0]
+    for _ in range(3):
+        try:
+            async with db.begin_nested():
+                return await _save_draft(*args, **kwargs)
+        except IntegrityError:
+            continue
+    raise conflict("Не удалось выделить идентификатор сценария; повторите запрос")
 
 
 async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Viewer) -> list[dict[str, Any]]:
@@ -632,7 +722,7 @@ async def _create_drafts_reserved(
                 )
             if index < len(template_fallback):
                 candidate = template_fallback[index]
-        result = await _save_draft(
+        result = await _save_draft_retrying(
             db,
             viewer,
             source,
@@ -662,6 +752,136 @@ async def _create_drafts_reserved(
     if owned.rowcount != 1:
         raise conflict("Запрос с таким requestId перехвачен повторной отправкой после таймаута; повторите")
     return _finish_request(request, responses)
+
+
+async def create_manual_draft(db: AsyncSession, body: ScenarioManualCreateRequest, viewer: Viewer) -> dict[str, Any]:
+    """Ручной черновик (версия 1): текст и адрес вводит преподаватель, остальное берётся из справочников."""
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Создавать сценарии может преподаватель или администратор")
+    payload = body.model_dump(by_alias=True, mode="json")
+    request, replay = await _reserve_request(
+        db, viewer, operation="manual", request_id=body.request_id, payload=payload
+    )
+    if request is None:
+        return replay
+
+    if body.graph is not None:
+        checked_graph(body.graph)
+    source = await _load_source(db, body.source_ticket_id)
+    classifier_rows = (await db.execute(select(ClassifierEntry).order_by(ClassifierEntry.code))).scalars().all()
+    classifier_entries = [row.to_contract() for row in classifier_rows]
+    classifier_entry = next((row for row in classifier_entries if row.get("group") == body.category), None)
+    if classifier_entry is None:
+        raise validation_failed(f"Категория «{body.category}» отсутствует в классификаторе ЕКП")
+    addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
+    card = _safe_base_card(source, body.category, classifier_entry, addresses)
+    card["summary"] = body.summary
+    if body.address is not None:
+        card["address"] = body.address
+    item = {"scenario": {"title": body.title or f"Сценарий: {body.category}"}, "cards": [card]}
+    result = await _save_draft_retrying(
+        db,
+        viewer,
+        source,
+        body.mode,
+        body.category,
+        item,
+        classifier_entries,
+        await _profile_groups(db),
+        _address_allowlist(addresses),
+        source_kind="ticket",
+        scenario_source="manual",
+        graph=thaw(body.graph) if body.graph is not None else None,
+    )
+    await record(
+        db,
+        action="ai.scenario.create",
+        user_id=viewer.user_id,
+        role=viewer.role,
+        details=f"Создан ручной черновик {result['scenarioId']}; режим {body.mode}; источник {source.source_ticket_id}:{source.situation_no}",
+    )
+    return _finish_request(request, result)
+
+
+async def require_read_access(db: AsyncSession, scenario_id: str, viewer: Viewer) -> Scenario:
+    """Автор и администратор — как раньше; эксперт с правами проверки/публикации читает любые сценарии."""
+    if await scenario_access.user_permissions(db, viewer):
+        scenario = await db.get(Scenario, scenario_id)
+        if scenario is None or scenario.deleted:
+            raise not_found(f"Сценарий «{scenario_id}» не найден")
+        return scenario
+    return await require_scenario_access(db, scenario_id, viewer)
+
+
+async def read_version(db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer) -> dict[str, Any]:
+    await require_read_access(db, scenario_id, viewer)
+    version = await db.get(ScenarioVersion, (scenario_id, version_number))
+    if version is None:
+        raise not_found(f"Версия {version_number} сценария «{scenario_id}» не найдена")
+    etalon = await db.get(EtalonVersion, version.etalon_version)
+    if etalon is None:
+        raise not_found(f"Эталон версии {version_number} сценария «{scenario_id}» не найден")
+    decisions = (
+        await db.execute(
+            select(DraftFieldDecision)
+            .where(DraftFieldDecision.scenario_id == scenario_id, DraftFieldDecision.scenario_version == version_number)
+            .order_by(DraftFieldDecision.id)
+        )
+    ).scalars().all()
+    return scenario_version_contract(version, etalon, list(decisions))
+
+
+async def list_scenarios(
+    db: AsyncSession, viewer: Viewer, mode: str | None, approval: str | None = None
+) -> list[dict[str, Any]]:
+    """Сводка по последней версии каждого AI-сценария; преподаватель видит свои, администратор — все."""
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Список сценариев доступен только преподавателю или администратору")
+    if mode is not None and mode not in ("operator112", "dds"):
+        raise validation_failed("mode должен быть operator112 или dds")
+    if approval is not None and approval not in ("draft", "validation_failed", "pending_review", "approved", "rejected"):
+        raise validation_failed("approval имеет недопустимое значение")
+    expert = bool(await scenario_access.user_permissions(db, viewer)) and viewer.role == "teacher"
+    query = select(ScenarioVersion).order_by(ScenarioVersion.scenario_id, ScenarioVersion.version)
+    if mode is not None:
+        query = query.where(ScenarioVersion.mode == mode)
+    latest: dict[str, ScenarioVersion] = {}
+    latest_approved: dict[str, int] = {}
+    owners: dict[str, set[str]] = {}
+    for version in (await db.execute(query)).scalars().all():
+        latest[version.scenario_id] = version
+        if version.approval == "approved":
+            latest_approved[version.scenario_id] = version.version
+        owners.setdefault(version.scenario_id, set()).add(version.created_by)
+    scenarios = {
+        row.id: row
+        for row in (await db.execute(select(Scenario).where(Scenario.id.in_(list(latest))))).scalars().all()
+        if not row.deleted
+    }
+    result: list[dict[str, Any]] = []
+    for scenario_id, version in latest.items():
+        scenario = scenarios.get(scenario_id)
+        if scenario is None:
+            continue
+        if approval is not None and version.approval != approval:
+            continue
+        if viewer.role == "teacher" and not expert and viewer.user_id not in owners[scenario_id] and scenario.created_by not in (None, viewer.user_id):
+            continue
+        result.append(
+            {
+                "scenarioId": scenario_id,
+                "title": scenario.title,
+                "mode": version.mode,
+                "latestVersion": version.version,
+                "latestApprovedVersion": latest_approved.get(scenario_id),
+                "approval": version.approval,
+                "validation": version.validation,
+                "sourceKind": version.source_kind,
+                "hasGraph": version.graph is not None,
+                "updatedAt": scenario.updated_at,
+            }
+        )
+    return result
 
 
 async def require_scenario_access(db: AsyncSession, scenario_id: str, viewer: Viewer) -> Scenario:

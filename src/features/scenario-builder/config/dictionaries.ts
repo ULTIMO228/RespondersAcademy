@@ -13,9 +13,10 @@ export const VALIDATION_STATUSES: ValidationStatus[] = ["draft", "pending", "app
 export const SOURCE_TITLES: Record<ScenarioSource, string> = {
   template: "шаблон",
   generated: "сгенерирован",
+  manual: "создан преподавателем",
 };
 
-export const SCENARIO_SOURCES: ScenarioSource[] = ["template", "generated"];
+export const SCENARIO_SOURCES: ScenarioSource[] = ["template", "generated", "manual"];
 
 export const DIFFICULTY_LEVELS = [1, 2, 3, 4, 5] as const;
 

@@ -4,7 +4,7 @@ import type { Mocked } from "vitest";
 
 import { MODE_TITLES } from "@/entities/assignment";
 import { ApiError, ServerRequiredError } from "@/shared/api";
-import type { PublicUser, StudentCard, Ticket } from "@/shared/api";
+import type { AIScenarioListItem, PublicUser, StudentCard, Ticket } from "@/shared/api";
 
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
 import { AssignmentWizard } from "./AssignmentWizard";
@@ -46,6 +46,20 @@ const studentCard = (id: string, proposed: StudentCard["proposed"]): StudentCard
   proposed,
 });
 
+const graphItem = (overrides: Partial<AIScenarioListItem> = {}): AIScenarioListItem => ({
+  scenarioId: "sc-g",
+  title: "Граф: дерево на дороге",
+  mode: "operator112",
+  latestVersion: 3,
+  latestApprovedVersion: 3,
+  approval: "approved",
+  validation: "passed",
+  sourceKind: "ticket",
+  hasGraph: true,
+  updatedAt: "2026-10-20T10:00:00+03:00",
+  ...overrides,
+});
+
 function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
   const api = {
     listStudents: vi
@@ -69,6 +83,18 @@ function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
       }),
     ]),
     create: vi.fn().mockResolvedValue({ id: "asg-010" }),
+    listGraphScenarios: vi
+      .fn()
+      .mockResolvedValue([
+        graphItem(),
+        graphItem({ scenarioId: "sc-nograph", title: "Без графа", hasGraph: false }),
+        graphItem({ scenarioId: "sc-dds", title: "Граф ДДС", mode: "dds" }),
+      ]),
+    getGraphScenarioVersion: vi.fn().mockResolvedValue({
+      scenarioId: "sc-g",
+      version: 3,
+      cardSnapshot: { id: "c-900", fields: {} },
+    }),
     ...overrides,
   };
   return api as unknown as Mocked<AssignmentCreateApi>;
@@ -198,6 +224,120 @@ describe("мастер назначения", () => {
     );
     expect(screen.getAllByRole("radio", { name: /Режим (112|ДДС)/ })).toHaveLength(2);
     expect(screen.queryByRole("radio", { name: /Цепочка/ })).not.toBeInTheDocument();
+  });
+
+  it("operator112: раздел «Сценарии с графом» показывает только опубликованные с графом этого режима", async () => {
+    const api = makeApi();
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    next();
+    await pickStudent(/Иванов Иван/);
+    next();
+    expect(await screen.findByText("Сценарии с графом")).toBeInTheDocument();
+    expect(await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /Без графа/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /Граф ДДС/ })).not.toBeInTheDocument();
+    expect(api.listGraphScenarios).toHaveBeenCalledWith({});
+  });
+
+  it("выбор версии с графом подтягивает карточку и добавляет пару в запрос; снятие убирает обе записи", async () => {
+    const api = makeApi();
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    next();
+    await pickStudent(/Иванов Иван/);
+    next();
+    const row = await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ });
+    fireEvent.click(row);
+    await waitFor(() => expect(row).toBeChecked());
+    expect(api.getGraphScenarioVersion).toHaveBeenCalledWith("sc-g", 3);
+    // Счётчик перечня (спека 011) считает только билеты списка: карточка версии с графом в нём не учитывается.
+    expect(screen.getByText("Выбрано: 0 из 2")).toBeInTheDocument();
+
+    // снять и выбрать снова
+    fireEvent.click(row);
+    await waitFor(() => expect(row).not.toBeChecked());
+    expect(screen.getByText("Выбрано: 0 из 2")).toBeInTheDocument();
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent("Выберите хотя бы один билет");
+    fireEvent.click(row);
+    await waitFor(() => expect(row).toBeChecked());
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({
+      trainingMode: "operator112",
+      cardIds: ["c-900"],
+      scenarioVersions: [{ scenarioId: "sc-g", version: 3, cardId: "c-900" }],
+    });
+  });
+
+  it("черновик следующей версии не скрывает опубликованную: назначается именно опубликованная версия", async () => {
+    const api = makeApi({
+      listGraphScenarios: vi.fn().mockResolvedValue([
+        graphItem({ latestVersion: 4, approval: "draft", latestApprovedVersion: 3 }),
+        graphItem({
+          scenarioId: "sc-only-draft",
+          title: "Только черновик",
+          latestVersion: 1,
+          approval: "draft",
+          latestApprovedVersion: null,
+        }),
+      ]),
+    });
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    next();
+    await pickStudent(/Иванов Иван/);
+    next();
+    const row = await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ });
+    expect(screen.queryByRole("checkbox", { name: /Только черновик/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/версия 3/)).toBeInTheDocument();
+    fireEvent.click(row);
+    await waitFor(() => expect(row).toBeChecked());
+    expect(api.getGraphScenarioVersion).toHaveBeenCalledWith("sc-g", 3); // не 4: версия 4 — неопубликованный черновик
+  });
+
+  it("смесь сценария с графом и обычного билета не пускает дальше; сбой карточки версии показывается", async () => {
+    const api = makeApi();
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    next();
+    await pickStudent(/Иванов Иван/);
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    const row = await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ });
+    fireEvent.click(row);
+    await waitFor(() => expect(row).toBeChecked());
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent("нельзя смешивать");
+    expect(screen.getByRole("heading", { name: "Билеты" })).toBeInTheDocument();
+    // снять обычный билет — смесь исчезает
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-010/ }));
+    next();
+    expect(screen.getByRole("heading", { name: "Параметры" })).toBeInTheDocument();
+  });
+
+  it("сбой чтения карточки версии: сообщение, версия не выбрана", async () => {
+    const api = makeApi({
+      getGraphScenarioVersion: vi.fn().mockRejectedValue(new ApiError(404, "notFound", "Версия не найдена")),
+    });
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    next();
+    await pickStudent(/Иванов Иван/);
+    next();
+    const row = await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ });
+    fireEvent.click(row);
+    expect(await screen.findByText("Версия не найдена")).toBeInTheDocument();
+    expect(row).not.toBeChecked();
+  });
+
+  it("dds: в разделе только сценарии режима ДДС", async () => {
+    const api = makeApi();
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    fireEvent.click(screen.getByRole("radio", { name: new RegExp(MODE_TITLES.dds) }));
+    next();
+    await pickStudent(/Иванов Иван/);
+    next();
+    expect(await screen.findByRole("checkbox", { name: /Граф ДДС/ })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /Граф: дерево на дороге/ })).not.toBeInTheDocument();
   });
 
   it("Отмена вызывает onCancel; «Назад» возвращает к прошлому шагу с сохранённым выбором", async () => {

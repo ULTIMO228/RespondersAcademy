@@ -1,6 +1,23 @@
 /* Зависимости мастера назначения: доменные функции shared/api за интерфейсом (в тестах подменяются целиком). */
-import { createAssignment, getReference, listStudentCards, listTickets, listUsers } from "@/shared/api";
-import type { Assignment, AssignmentCreateRequest, PublicUser, StudentCard, Ticket } from "@/shared/api";
+import {
+  createAssignment,
+  getGraphScenarioVersion,
+  getReference,
+  listGraphScenarios,
+  listStudentCards,
+  listTickets,
+  listUsers,
+} from "@/shared/api";
+import type {
+  AIScenarioListItem,
+  AIScenarioListQuery,
+  AIScenarioVersion,
+  Assignment,
+  AssignmentCreateRequest,
+  PublicUser,
+  StudentCard,
+  Ticket,
+} from "@/shared/api";
 
 export type AssignmentCreateApi = {
   listStudents: () => Promise<PublicUser[]>;
@@ -9,6 +26,9 @@ export type AssignmentCreateApi = {
   listStudentCards: () => Promise<StudentCard[]>;
   listIncidentGroups: () => Promise<string[]>;
   create: (body: AssignmentCreateRequest) => Promise<Assignment>;
+  /** Сценарии с графом (спека 015): список опубликованных и карточка конкретной версии. */
+  listGraphScenarios: (query: AIScenarioListQuery) => Promise<AIScenarioListItem[]>;
+  getGraphScenarioVersion: (scenarioId: string, version: number) => Promise<AIScenarioVersion>;
 };
 
 export const assignmentCreateApi: AssignmentCreateApi = {
@@ -17,4 +37,6 @@ export const assignmentCreateApi: AssignmentCreateApi = {
   listStudentCards: () => listStudentCards(),
   listIncidentGroups: async () => (await getReference()).incidentGroups,
   create: (body) => createAssignment(body),
+  listGraphScenarios: (query) => listGraphScenarios(query),
+  getGraphScenarioVersion: (scenarioId, version) => getGraphScenarioVersion(scenarioId, version),
 };

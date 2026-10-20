@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -80,6 +81,10 @@ async def revise_scenario(
     if base.approval == "approved":
         raise conflict("Утверждённая версия неизменяема; создайте новую версию от актуального черновика")
 
+    if body.graph is not None:
+        ai_scenario_service.checked_graph(body.graph)
+    new_graph = body.graph if body.graph is not None else base.graph
+    new_graph = ai_scenario_service.thaw(new_graph) if new_graph is not None else None
     fields = dict(base.card_snapshot.get("fields") or {})
     seen: set[str] = set()
     decisions: list[tuple[str, str, Any | None]] = []
@@ -121,6 +126,10 @@ async def revise_scenario(
         created_at=now_iso(),
     )
     db.add(new_etalon)
+    try:
+        await db.flush()
+    except IntegrityError:
+        raise conflict("Версия сценария изменена параллельным запросом; обновите данные и повторите") from None
     classifier_rows = (await db.execute(select(ai_scenario_service.ClassifierEntry).order_by(ai_scenario_service.ClassifierEntry.code))).scalars().all()
     classifier_entries = [row.to_contract() for row in classifier_rows]
     profiles = await ai_scenario_service._profile_groups(db)
@@ -159,6 +168,7 @@ async def revise_scenario(
         card_snapshot={"id": base.card_snapshot["id"], "fields": fields},
         etalon_version=new_etalon_id,
         rule_source_ids=list(new_etalon.rule_source_ids or []),
+        graph=new_graph,
     )
     db.add(version)
     now = now_iso()
@@ -176,13 +186,19 @@ async def revise_scenario(
             )
         )
     scenario = await db.get(Scenario, scenario_id)
+    if scenario is not None:
+        await db.refresh(scenario, with_for_update=True)  # свежий документ под блокировкой строки
     if scenario is not None and scenario.validation_status != "approved":
         scenario.doc = {**scenario.doc, "validation": {"status": "draft", "comment": body.comment.strip()}}
         scenario.validation_report = {"version": "ai-workflow/1", "passed": validation_passed, "errors": errors}
         scenario.updated_by, scenario.updated_at = viewer.user_id, now
         scenario.sync_columns()
         flag_modified(scenario, "doc")
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        # Параллельный запрос уже создал эту версию: ничего не сохраняем, клиент перечитает актуальную.
+        raise conflict("Версия сценария изменена параллельным запросом; обновите данные и повторите") from None
     response = scenario_version_contract(version, new_etalon, [])
     await record(
         db,
@@ -225,6 +241,11 @@ async def approve_scenario(
     version = await _load_version(db, scenario_id, body.version)
     if version.approval == "approved":
         raise conflict("Версия сценария уже утверждена")
+    if version.graph is not None:
+        raise conflict("Версия с графом публикуется через проверку и публикацию экспертом")
+    # Цепочка A → B (student_card) по-прежнему подтверждается преподавателем через approve из pending_review.
+    if version.approval == "rejected" or (version.approval == "pending_review" and version.source_kind != "student_card"):
+        raise conflict("Версия на проверке или отклонена экспертом: утверждение доступно только через публикацию")
     if version.validation != "passed":
         raise conflict("Нельзя утвердить сценарий до успешной структурной проверки")
     _reject_chain_stage(version)
@@ -258,6 +279,7 @@ async def versions_for_teacher(
     scenario_id: str,
     viewer: Viewer,
 ) -> list[dict[str, Any]]:
-    _require_teacher(viewer)
-    await ai_scenario_service.require_scenario_access(db, scenario_id, viewer)
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Операции с версиями доступны преподавателю или администратору")
+    await ai_scenario_service.require_read_access(db, scenario_id, viewer)
     return await ai_scenario_service.list_versions(db, scenario_id)

@@ -31,7 +31,7 @@ import { findStoredUser } from "./store-admin";
 import { auditTeacherAction, requireTeacher } from "./teacher";
 
 const VALIDATION_STATUSES: readonly ScenarioValidationStatus[] = ["draft", "pending", "approved", "rejected"];
-const SOURCES: readonly Scenario["source"][] = ["template", "generated"];
+const SOURCES: readonly Scenario["source"][] = ["template", "generated", "manual"];
 const LEVELS: readonly Scenario["level"][] = ["beginner", "advanced"];
 const MODES: readonly ScenarioMode[] = ["demo", "follow", "practice"];
 const MIN_DIFFICULTY = 1;

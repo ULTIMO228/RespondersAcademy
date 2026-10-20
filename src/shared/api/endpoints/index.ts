@@ -111,3 +111,23 @@ export {
 export type { ProblemReportDraft } from "./problem-reports";
 export { getPerformanceReport, performancePdfUrl, performanceXlsxUrl } from "./performance";
 export type { PerformanceQuery } from "./performance";
+export {
+  createGraphScenario,
+  deriveGraphScenarioVersion,
+  finishScenarioRun,
+  getGraphScenarioVersion,
+  getScenarioRun,
+  listAssignedScenarios,
+  listScenarioRuns,
+  performScenarioAction,
+  startScenarioRun,
+  getScenarioPermissions,
+  listGraphScenarios,
+  listGraphScenarioVersions,
+  listScenarioSources,
+  publishGraphScenario,
+  reviewGraphScenario,
+  reviseGraphScenario,
+  submitGraphScenario,
+  validateScenarioGraph,
+} from "./scenario-graph";

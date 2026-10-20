@@ -14,10 +14,10 @@ import {
 import type { ApplicantVoice, HintProgress } from "@/entities/operator112-attempt";
 import { LinksView, MatchWindow } from "@/features/card-links";
 import type { LinkedCard } from "@/features/card-links";
-import { Operator112AddressField } from "@/features/operator112-address";
-import { TypeTabs, useTypeTabs } from "@/features/operator112-type-tabs";
-import type { FirstTabValue, TypeTabsApi } from "@/features/operator112-type-tabs";
-import { ServicesPanel } from "@/features/operator112-services";
+import { Operator112AddressField } from "@/features/operator112/address";
+import { TypeTabs, useTypeTabs } from "@/features/operator112/type-tabs";
+import type { FirstTabValue, TypeTabsApi } from "@/features/operator112/type-tabs";
+import { ServicesPanel } from "@/features/operator112/services";
 import { Operator112Card, ReminderWindow, SmsHistory, useCardReminder } from "@/widgets/operator112-card";
 import type { CardFlag112, SmsMessage } from "@/widgets/operator112-card";
 import type {

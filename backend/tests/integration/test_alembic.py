@@ -57,8 +57,8 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
     with sqlite3.connect(database) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert set(Base.metadata.tables) <= tables
-        # Одна голова после слияния веток SASHA и seva (спека 021): перенос профиля spec/008 в специализации.
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0012_specs_from_training_profile"
+        # Одна голова после слияния всех веток (спека 021): SASHA + seva (0011, 0012) + граф сценариев (0013).
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0013_merge_scenario_graph"
         assert "problem_reports" in tables  # спека 009, US6: «Сообщить о проблеме»
     _run("-m", "alembic", "check", environment=environment)
     _run("-m", "app.seed.load", environment=environment)
@@ -67,6 +67,21 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
         assert connection.execute("SELECT COUNT(*) FROM incident_cards").fetchone()[0] >= 96
         assert json.loads(connection.execute("SELECT specializations FROM users WHERE login = 'ivanov'").fetchone()[0]) == ["operator112"]
         assert "training_profile" not in {row[1] for row in connection.execute("PRAGMA table_info(users)")}
+
+
+def test_scenario_builder_migrations_roll_back_and_forward_keeping_guards(tmp_path: Path):
+    database = tmp_path / "roundtrip.db"
+    environment = _environment(f"sqlite+aiosqlite:///{database.as_posix()}")
+    _run("-m", "alembic", "upgrade", "head", environment=environment)
+    _run("-m", "alembic", "downgrade", "0005_error_map_verdicts", environment=environment)
+    with sqlite3.connect(database) as connection:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(ai_scenario_versions)")}
+        assert not {"graph", "reviewed_by", "review_comment"} & columns
+        assert "permissions" not in {row[1] for row in connection.execute("PRAGMA table_info(users)")}
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0005_error_map_verdicts"
+        assert _triggers(connection) == EXPECTED_GUARDS
+    _run("-m", "alembic", "upgrade", "head", environment=environment)
+    _run("-m", "alembic", "check", environment=environment)
 
 
 def test_migrated_schema_has_every_model_table_and_same_guards_as_create_all(migrated_database: Path, tmp_path: Path):

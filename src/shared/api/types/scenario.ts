@@ -1,6 +1,7 @@
 /*
  * Учебные сценарии и эталоны — spec/000-фронт/05-data-models.md §6 (mocks/scenarios.json, 36 шт.).
  */
+import type { ScenarioGraph } from "./scenario-graph";
 import type { ScenarioMode } from "./session";
 
 /** Норматив п. 1.4: шаблон / генеративная вариация. */
@@ -14,8 +15,11 @@ export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export type ScenarioValidationStatus = "draft" | "pending" | "approved" | "rejected";
 
-/** template — системный шаблон; generated — вариация преподавателя (включая шаблонный fallback). */
-export type ScenarioSource = "template" | "generated";
+/**
+ * template — системный шаблон; generated — вариация преподавателя (включая шаблонный fallback);
+ * manual — создан преподавателем вручную в конструкторе графов (спека 015).
+ */
+export type ScenarioSource = "template" | "generated" | "manual";
 
 export interface Etalon {
   expectedFields?: Record<string, string>;
@@ -135,6 +139,11 @@ export interface AIScenarioVersion {
   };
   fieldDecisions: AIFieldDecision[];
   approvedBy?: string;
+  /** Граф сценария `scenario-graph/1` (визуальный конструктор, спека 005). */
+  graph?: ScenarioGraph;
+  /** Эксперт, принявший или отклонивший версию, и его комментарий. */
+  reviewedBy?: string;
+  reviewComment?: string;
   /** Только в ответе на создание черновиков: чем и за сколько сгенерировано. */
   generation?: AIScenarioGeneration;
 }

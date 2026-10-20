@@ -2,7 +2,7 @@ import type { AiServedBy, Difficulty } from "@/shared/api";
 import type { StatusTone } from "@/shared/ui";
 
 export type ValidationStatus = "draft" | "pending" | "approved" | "rejected";
-export type ScenarioSource = "template" | "generated";
+export type ScenarioSource = "template" | "generated" | "manual";
 
 /**
  * Проекция учебной карточки для конструктора: группа ЕКП и итоговые типы по матрице классификатора

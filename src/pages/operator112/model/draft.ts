@@ -5,7 +5,7 @@
  * Вкладки «Происшествие …» (спека 009, FR-017): первая вкладка — плоские поля формы (их правит экран), дополнительные —
  * extraIncidents. В CardDraft incidents = [первая, …дополнительные], what = incidents[0].
  */
-import { composeFormal } from "@/features/operator112-address";
+import { composeFormal } from "@/features/operator112/address";
 import type {
   CardChannel,
   CardDraft,

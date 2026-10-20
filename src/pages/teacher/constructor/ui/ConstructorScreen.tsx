@@ -24,11 +24,11 @@ import type {
   PreviewEvent,
   PreviewState,
 } from "@/entities/scenario-flow";
-import { FlowCanvas } from "@/features/flow-canvas";
-import type { FlowPlacement, NodeMark } from "@/features/flow-canvas";
-import { FlowInspector } from "@/features/flow-inspector";
-import { FlowLibrary } from "@/features/flow-library";
-import { FlowPreviewPanel } from "@/features/flow-preview";
+import { FlowCanvas } from "@/features/flow/canvas";
+import type { FlowPlacement, NodeMark } from "@/features/flow/canvas";
+import { FlowInspector } from "@/features/flow/inspector";
+import { FlowLibrary } from "@/features/flow/library";
+import { FlowPreviewPanel } from "@/features/flow/preview";
 import { createWebStorage } from "@/shared/lib";
 import type { KeyValueStorage } from "@/shared/lib";
 import { PlatformButton } from "@/shared/ui/platform";

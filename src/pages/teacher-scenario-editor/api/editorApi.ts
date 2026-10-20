@@ -26,8 +26,10 @@ import type {
   ScenarioUpdateRequest,
   ScenarioValidateRequest,
 } from "@/shared/api";
+import { defaultScenarioGraphEditorApi } from "@/widgets/scenario-graph-editor";
+import type { ScenarioGraphEditorApi } from "@/widgets/scenario-graph-editor";
 
-export type ScenarioEditorApi = {
+export type ScenarioEditorApi = ScenarioGraphEditorApi & {
   getScenario: (scenarioId: string, signal?: AbortSignal) => Promise<Scenario>;
   updateScenario: (scenarioId: string, body: ScenarioUpdateRequest) => Promise<Scenario>;
   validateScenario: (scenarioId: string, body: ScenarioValidateRequest) => Promise<Scenario>;
@@ -44,6 +46,7 @@ export type ScenarioEditorApi = {
 };
 
 export const defaultScenarioEditorApi: ScenarioEditorApi = {
+  ...defaultScenarioGraphEditorApi,
   getScenario,
   updateScenario,
   validateScenario,

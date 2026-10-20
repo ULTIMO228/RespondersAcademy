@@ -14,7 +14,7 @@ from app.api.errors import validation_failed
 from app.schemas.common import ApiModel
 
 ScenarioLevel = Literal["beginner", "advanced"]
-ScenarioSource = Literal["template", "generated"]
+ScenarioSource = Literal["template", "generated", "manual"]
 ScenarioMode = Literal["demo", "follow", "practice"]
 ScenarioValidationStatus = Literal["draft", "pending", "approved", "rejected"]
 ScenarioValidateAction = Literal["submit", "approve", "approvePartial", "reject"]

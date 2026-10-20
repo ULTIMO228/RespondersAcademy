@@ -1,0 +1,158 @@
+.canvas {
+  display: grid;
+  gap: var(--pf-space-2);
+  min-width: 0;
+}
+
+.canvas__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  font-size: var(--pf-fs-lead);
+}
+
+.canvas__zoom {
+  min-width: 4ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.canvas__scroll {
+  overflow: auto;
+  max-height: 70vh;
+  min-height: 420px;
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-card);
+  background:
+    linear-gradient(var(--pf-chart-grid) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, var(--pf-chart-grid) 1px, transparent 1px) 0 0 / 40px 40px,
+    var(--pf-bg-card);
+}
+
+.svg {
+  display: block;
+  touch-action: none;
+  user-select: none;
+  font-family: var(--pf-font-ui);
+}
+
+.node {
+  cursor: grab;
+  outline: none;
+}
+
+.node__shape {
+  fill: var(--pf-bg-card);
+  stroke: var(--pf-text);
+  stroke-width: 2;
+}
+
+.node--condition .node__shape {
+  fill: var(--pf-info-bg);
+}
+
+.node--end .node__shape {
+  fill: var(--pf-bg-subtle);
+  stroke-width: 3;
+}
+
+.node--selected .node__shape {
+  stroke: var(--pf-link);
+  stroke-width: 4;
+}
+
+.node--error .node__shape {
+  stroke: var(--pf-danger);
+  stroke-dasharray: 8 4;
+}
+
+.node:focus-visible .node__shape {
+  stroke: var(--pf-focus);
+  stroke-width: 5;
+}
+
+.node__kind,
+.node__title,
+.node__id {
+  font-size: var(--pf-fs-lead);
+  fill: var(--pf-text);
+  pointer-events: none;
+}
+
+.node__kind {
+  font-weight: var(--pf-fw-bold);
+}
+
+.node__id {
+  fill: var(--pf-text-muted);
+  font-family: var(--pf-font-mono);
+}
+
+.flag__error,
+.flag__unused {
+  font-size: var(--pf-fs-lead);
+  font-weight: var(--pf-fw-bold);
+}
+
+.flag__error {
+  fill: var(--pf-danger);
+}
+
+.flag__unused {
+  fill: var(--pf-warning);
+}
+
+.edge path {
+  stroke: var(--pf-text);
+  stroke-width: 2;
+}
+
+.arrow {
+  fill: var(--pf-text);
+}
+
+.edge__labelBg {
+  fill: var(--pf-bg-card);
+  stroke: var(--pf-border-control);
+}
+
+.edge__label {
+  font-size: var(--pf-fs-lead);
+  fill: var(--pf-text);
+}
+
+.edge__dangling line {
+  stroke: var(--pf-danger);
+  stroke-width: 2;
+}
+
+.edge__dangling text {
+  font-size: var(--pf-fs-lead);
+  fill: var(--pf-danger);
+  font-weight: var(--pf-fw-bold);
+}
+
+.rubber {
+  stroke: var(--pf-link);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+  pointer-events: none;
+}
+
+.port {
+  cursor: crosshair;
+}
+
+.port--off {
+  cursor: not-allowed;
+}
+
+.port__hit {
+  fill: transparent;
+}
+
+.port__dot {
+  fill: var(--pf-link);
+  stroke: var(--pf-bg-card);
+  stroke-width: 2;
+}

@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # T074 — гейт волны A: бэкенд с чистым сидом + собранный фронт (rewrite /api/mock → BACKEND_URL) + три сквозных
 # скрипта фронта (scripts/e2e-student.sh, e2e-teacher.sh, e2e-admin.sh). Запуск из корня репозитория или из backend/:
-#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|platform|error-map|ai]
+#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|platform|error-map|ai|scenario-graph]
 # --only chain удалён: режим «цепочка A → B» выведен 20.10.2026 (spec/007 Clarifications), вместе с ним —
 # seed_chain_demo.py и e2e/two-mode-full-path.spec.ts.
 # --only platform (спека 002, T058): чистая БД + Playwright e2e/platform.spec.ts (путь по платформе) и
 # e2e/auth-security.spec.ts (cookie, подделка, повтор после выхода, две вкладки, смена пароля, лимит попыток) против стенда.
 # --only error-map (спека 003, T068): чистая БД + демо-набор карты ошибок (seed_error_map_demo.py) + scripts/e2e-error-map.sh.
 # --only ai (спека 006, T038): чистая БД + scripts/e2e-ai.sh (настройки, роли, здоровье, редактирование ключа).
+# --only scenario-graph (спека 015, S8): чистая БД + источник (seed_scenario_graph_demo.py) + Playwright e2e/scenario-graph.spec.ts:
+#   преподаватель создаёт и сохраняет граф, эксперт публикует, преподаватель создаёт новую версию, обучающийся проходит.
 # PLAYWRIGHT_CONFIG — необязательный путь к другой конфигурации Playwright (например, с другим executablePath браузера).
 # Переменные: BACKEND_PORT (8130), FRONT_PORT (3130), E2E_DB (backend/var/e2e.db).
 # Linux/macOS/WSL/Git Bash. В Git Bash (MSYS) mingw-curl портит кириллицу в argv, поэтому в PATH подставляется
@@ -126,6 +128,18 @@ if [ "$ONLY" = "platform" ]; then
     echo "  PASS e2e-platform (лог: $LOG_DIR/e2e-platform.log)"
   else
     echo "  FAIL e2e-platform (полный вывод: $LOG_DIR/e2e-platform.log)"
+    STATUS=1
+  fi
+  exit "$STATUS"
+fi
+if [ "$ONLY" = "scenario-graph" ]; then
+  echo "▸ источник для конструктора сценариев (seed_scenario_graph_demo.py)"
+  (cd "$BACKEND_DIR" && uv run python scripts/seed_scenario_graph_demo.py >"$LOG_DIR/scenario-graph-seed.log" 2>&1) || { cat "$LOG_DIR/scenario-graph-seed.log"; exit 1; }
+  echo "▸ Playwright: e2e/scenario-graph.spec.ts (стенд на :$FRONT_PORT)"
+  if (cd "$ROOT" && E2E_BACKEND=1 E2E_REUSE_SERVER=true E2E_BASE_URL="http://127.0.0.1:$FRONT_PORT" npx playwright test ${PLAYWRIGHT_CONFIG:+--config "$PLAYWRIGHT_CONFIG"} e2e/scenario-graph.spec.ts 2>&1 | tee "$LOG_DIR/e2e-scenario-graph.log" | tail -30); then
+    echo "  PASS e2e-scenario-graph (лог: $LOG_DIR/e2e-scenario-graph.log)"
+  else
+    echo "  FAIL e2e-scenario-graph (полный вывод: $LOG_DIR/e2e-scenario-graph.log)"
     STATUS=1
   fi
   exit "$STATUS"
