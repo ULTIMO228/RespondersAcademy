@@ -160,6 +160,15 @@ class AdminUserActionRequest(ApiModel):
         return value.strip() if isinstance(value, str) else value
 
 
+def read_training_profile(value: Any) -> Any:
+    """spec/008: "operator112" | "dds"; пусто/null — «не задан»."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    if value not in ("operator112", "dds"):
+        raise ValueError("Профиль режима: специалист системы-112, диспетчер ДДС или не задан")
+    return value
+
+
 class AdminUserCreateRequest(AdminUserActionRequest):
     full_name: str
     login: str
@@ -169,6 +178,7 @@ class AdminUserCreateRequest(AdminUserActionRequest):
     group: str | None = None
     service: str | None = None
     assigned_groups: list[str] | None = None
+    training_profile: str | None = None
 
     @field_validator("full_name", mode="before")
     @classmethod
@@ -212,6 +222,11 @@ class AdminUserCreateRequest(AdminUserActionRequest):
     def _assigned(cls, value: Any) -> Any:
         return read_group_list(value)
 
+    @field_validator("training_profile", mode="before")
+    @classmethod
+    def _training_profile(cls, value: Any) -> Any:
+        return read_training_profile(value)
+
 
 class AdminUserUpdateRequest(AdminUserActionRequest):
     """Не переданное поле сохраняет прежнее значение (семантика PATCH мока)."""
@@ -223,6 +238,7 @@ class AdminUserUpdateRequest(AdminUserActionRequest):
     group: str | None = None
     service: str | None = None
     assigned_groups: list[str] | None = None
+    training_profile: str | None = None
 
     @field_validator("full_name", mode="before")
     @classmethod
@@ -258,6 +274,11 @@ class AdminUserUpdateRequest(AdminUserActionRequest):
     @classmethod
     def _assigned(cls, value: Any) -> Any:
         return read_group_list(value)
+
+    @field_validator("training_profile", mode="before")
+    @classmethod
+    def _training_profile(cls, value: Any) -> Any:
+        return read_training_profile(value)
 
 
 # ─── Система ──────────────────────────────────────────────────────────────────────────────────────

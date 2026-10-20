@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # T060 — стенд для демо одной командой (конституция IV: «без ручной подготовки», SC-015).
 # Запуск из корня репозитория или из backend/:
-#   ./scripts/demo-up.sh [--skip-build] [--backend-port PORT] [--front-port PORT]
+#   ./scripts/demo-up.sh [--skip-build] [--live] [--backend-port PORT] [--front-port PORT]
+#   --live — живой ИИ-заявитель в софтфоне (фича 005): настройки в backend/.env, см. docs/LIVE-CALLER-POLZA.md
 # или:
 #   backend/scripts/demo_up.sh [--skip-build] [--backend-port PORT] [--front-port PORT]
 #
 # Делает:
 #   1. Проверяет наличие локальных моделей (Silero, Vosk, RuBERT) и сообщает о статусе/фолбэках.
 #   2. Создаёт чистую БД (backend/var/demo.db, вне git), загружает сид (app.seed.load --reset).
-#   3. Применяет фикстуру цепочки A → B (backend/scripts/seed_chain_demo.py, T031).
-#   3a. Добавляет демо-набор карты ошибок (backend/scripts/seed_error_map_demo.py, спека 003, T019).
+#   3. Добавляет демо-набор карты ошибок (backend/scripts/seed_error_map_demo.py, спека 003, T019).
 #   4. Запускает бэкенд на порту 8130 (или BACKEND_PORT).
 #   5. Сохраняет .env.local (если задан) и собирает фронт с BACKEND_URL=http://127.0.0.1:BACKEND_PORT.
 #   6. Запускает Next.js фронт на порту 3130 (или FRONT_PORT).
@@ -26,14 +26,16 @@ BACKEND_PORT="${BACKEND_PORT:-8130}"
 FRONT_PORT="${FRONT_PORT:-3130}"
 DEMO_DB="${DEMO_DB:-$BACKEND_DIR/var/demo.db}"
 SKIP_BUILD="${SKIP_BUILD:-0}"
+LIVE="${LIVE:-0}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --skip-build) SKIP_BUILD=1 ;;
+    --live) LIVE=1 ;;
     --backend-port) shift; BACKEND_PORT="${1:-8130}" ;;
     --front-port) shift; FRONT_PORT="${1:-3130}" ;;
     -h|--help)
-      echo "Использование: $0 [--skip-build] [--backend-port PORT] [--front-port PORT]"
+      echo "Использование: $0 [--skip-build] [--live] [--backend-port PORT] [--front-port PORT]"
       exit 0
       ;;
     *) echo "Неизвестный аргумент: $1" >&2; exit 2 ;;
@@ -158,13 +160,6 @@ rm -f "$DEMO_DB"
   exit 1
 }
 
-echo "▸ Загрузка фикстуры сквозной цепочки A → B (T031)..."
-(cd "$BACKEND_DIR" && uv run python scripts/seed_chain_demo.py >"$LOG_DIR/chain_seed.log" 2>&1) || {
-  echo "❌ Ошибка фикстуры цепочки! Лог:" >&2
-  cat "$LOG_DIR/chain_seed.log" >&2
-  exit 1
-}
-
 echo "▸ Демо-набор карты ошибок (T019, спека 003)..."
 (cd "$BACKEND_DIR" && uv run python scripts/seed_error_map_demo.py >"$LOG_DIR/error_map_demo.log" 2>&1) || {
   echo "❌ Ошибка демо-набора карты ошибок! Лог:" >&2
@@ -179,8 +174,21 @@ if [ -z "${LLAMA_URL:-}" ] && curl -sf -m 2 "http://127.0.0.1:8081/health" >/dev
 fi
 echo "   ИИ-модель: ${LLAMA_URL:-не подключена (генерация карточек — только шаблоны)}"
 
+if [ "$LIVE" -eq 1 ]; then
+  # Переменные окружения перекрывают backend/.env: включаем звонок и WS на порт этого стенда.
+  export LIVE_CALLS_ENABLED=true
+  export LIVE_CALL_PUBLIC_WS_URL="ws://127.0.0.1:$BACKEND_PORT/api/v1/operator112/realtime"
+  echo "▸ Живой ИИ-заявитель (--live): проверка настроек"
+  (cd "$BACKEND_DIR" && uv run python -m scripts.live_caller_check) || {
+    echo "❌ Живой заявитель не готов — допишите недостающее в backend/.env (docs/LIVE-CALLER-POLZA.md)" >&2
+    exit 1
+  }
+  SKIP_BUILD=0   # NEXT_PUBLIC_LIVE_CALLS_ENABLED запекается в сборку фронта
+fi
+
 echo "▸ Запуск бэкенда на http://127.0.0.1:$BACKEND_PORT..."
-(cd "$BACKEND_DIR" && uv run uvicorn app.main:app --port "$BACKEND_PORT" >"$LOG_DIR/backend.log" 2>&1) &
+# Один worker: билеты и занятость голосовых соединений хранятся в памяти процесса.
+(cd "$BACKEND_DIR" && uv run uvicorn app.main:app --port "$BACKEND_PORT" --workers 1 >"$LOG_DIR/backend.log" 2>&1) &
 BACKEND_PID=$!
 
 wait_for "http://127.0.0.1:$BACKEND_PORT/api/mock/auth/policy" 60 || {
@@ -204,7 +212,8 @@ fi
 
 if [ "$SKIP_BUILD" -eq 0 ]; then
   echo "▸ Сборка фронта с BACKEND_URL=$BACKEND_URL..."
-  (cd "$ROOT" && npm run mocks:sync && npm run mocks:validate && NEXT_TELEMETRY_DISABLED=1 npx next build) >"$LOG_DIR/build.log" 2>&1 || {
+  LIVE_FLAG=false; [ "$LIVE" -eq 1 ] && LIVE_FLAG=true
+  (cd "$ROOT" && npm run mocks:sync && npm run mocks:validate && NEXT_PUBLIC_LIVE_CALLS_ENABLED=$LIVE_FLAG NEXT_TELEMETRY_DISABLED=1 npx next build) >"$LOG_DIR/build.log" 2>&1 || {
     echo "❌ Ошибка сборки фронта! Последние строки лога:" >&2
     tail -40 "$LOG_DIR/build.log" >&2
     exit 1
@@ -237,16 +246,25 @@ echo "   • Бэкенд API:          http://localhost:$BACKEND_PORT"
 echo "   • Документация OpenAPI: http://localhost:$BACKEND_PORT/api/docs"
 echo ""
 echo "👤 Тестовые учётные записи:"
-echo "   • Обучающийся:  логин: ivanov    пароль: student112  (АРМ 1)"
+echo "   • Обучающийся (специалист-112): логин: ivanov  пароль: student112  (АРМ 1)"
 echo "   • Преподаватель: логин: morozova  пароль: teacher112  (АРМ 21)"
 echo "   • Администратор: логин: admin     пароль: admin112    (АРМ 24)"
 echo ""
-echo "🔗 Демонстрационный сценарий (цепочка A → B):"
-echo "   1. Войти курсантом ivanov → «Задания» → выбрать «Цепочка 112 → ДДС (демо)»."
-echo "   2. Отработать звонок 112, заполнить карту, передать."
-echo "   3. Войти преподавателем morozova → подтвердить карточку в сценариях."
-echo "   4. Вернуться курсантом ivanov → нажать «Начать этап ДДС» → отработать карточку."
+echo "🔗 Демонстрационный сценарий (режимы 112 и ДДС назначаются отдельно):"
+echo "   1. Войти курсантом ivanov → «Задания» → начать задание режима 112."
+echo "   2. Отработать звонок 112, заполнить карточку, передать — разбор попытки."
+echo "   3. Войти преподавателем morozova → «Назначения» → задание режима ДДС назначить другому курсанту"
+echo "      (например, petrova): ivanov — специалист-112, задания ДДС ему не назначаются (spec/008)."
 echo ""
+if [ "$LIVE" -eq 1 ]; then
+  echo "🎧 Живой ИИ-заявитель (гарнитура, Chrome; адрес — именно localhost, иначе браузер не даст микрофон):"
+  echo "   1. Войти курсантом ivanov → «Задания» → активная тренировка режима «Специалист-112»."
+  echo "   2. Открыть билет (c-010 пожар или c-050 скорая) → «Ответить на вызов» → разрешить микрофон."
+  echo "   3. Заявитель заговорит сам. Говорите в гарнитуру; пауза ~0,7 с — реплика отправлена;"
+  echo "      начните говорить, пока он отвечает, — он замолчит (перебивание)."
+  echo "   4. «Завершить разговор» → транскрипт сохранён в попытке."
+  echo ""
+fi
 echo "📝 Логи доступны в: $LOG_DIR"
 echo "🛑 Для завершения работы нажмите Ctrl+C"
 echo "================================================================="

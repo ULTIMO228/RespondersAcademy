@@ -142,6 +142,31 @@ def test_address_lookalike_is_separate_from_grammar(entries, reference):
     assert next(i for i in evaluation["fieldDiff"] if i["field"] == "address")["ok"] is False
 
 
+def test_extra_manual_service_is_penalized(entries, reference):
+    """Q&A в5 «корректность заполнения»: лишняя служба, добавленная вручную, — ошибка; автоматический список ЕКП — нет."""
+    draft = copy.deepcopy(GAS_DRAFT)
+    draft["notificationList"].append({"serviceId": "svc-103", "addedBy": "manual"})
+    _, evaluation = run(draft, GAS_TICKET, entries, reference)
+    error = next(e for e in evaluation["errors"] if e["type"] == "extraService")
+    assert "Служба 103" in error["message"] and error["severity"] == "major"
+    assert next(i for i in evaluation["fieldDiff"] if i["field"] == "notificationList")["ok"] is False
+    _, etalon = run(GAS_DRAFT, GAS_TICKET, entries, reference)
+    assert evaluation["totalScore"] < etalon["totalScore"]
+
+
+def test_descriptive_ticket_address_is_not_mapped_to_random_street(entries, reference):
+    """Адрес билета вне справочника («Жилой дом») не подменяется ближайшей улицей — сверка по словам."""
+    ticket = {**copy.deepcopy(GAS_TICKET), "address": "Жилой дом"}
+    draft = copy.deepcopy(GAS_DRAFT)
+    draft["address"].update({"formal": "жилой дом, Чертаново Центральное", "street": "жилой дом, Чертаново Центральное", "source": "manual"})
+    _, evaluation = run(draft, ticket, entries, reference)
+    assert not {"addressMismatch", "addressLookalike", "addressTypo"} & types_of(evaluation), evaluation["errors"]
+    draft["address"].update({"formal": "ул. Тверская, 1", "street": "ул. Тверская"})
+    _, wrong = run(draft, ticket, entries, reference)
+    mismatch = next(e for e in wrong["errors"] if e["type"] == "addressMismatch")
+    assert "Домниковский" not in mismatch["message"] and "Жилой дом" in mismatch["message"]
+
+
 def test_missing_victims_flag(entries, reference):
     draft = copy.deepcopy(DTP_DRAFT)
     draft["what"]["casualties"]["injured"] = False

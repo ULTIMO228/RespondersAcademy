@@ -40,15 +40,6 @@ export function Operator112Result({
           </p>
         </section>
       ) : null}
-      {result?.chainReview ? (
-        <section className={styles.problem} role="status" data-kind="chain">
-          <h2 className={styles.problem__title}>Карточка сохранена</h2>
-          <p>
-            Этап ДДС ожидает проверки и подтверждения преподавателем. Когда он подтвердит вход, нажмите
-            «Начать этап ДДС».
-          </p>
-        </section>
-      ) : null}
       {evaluation ? (
         <Operator112Evaluation
           evaluation={evaluation}
@@ -63,7 +54,7 @@ export function Operator112Result({
       ) : null}
       <div className={styles.result__actions}>
         <Button variant="primary" onClick={onNext}>
-          {result?.chainReview ? "Начать этап ДДС" : "Следующий билет"}
+          Следующий билет
         </Button>
         <Link href={ROUTES.studentAssignments} className={styles.problem__link}>
           К заданиям

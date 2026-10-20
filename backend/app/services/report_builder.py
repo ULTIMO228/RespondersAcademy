@@ -23,7 +23,12 @@ from app.models.report import GroupReport, Report, ReportFeedback
 from app.models.scenario import Scenario
 from app.models.session import Attempt, TrainingSession
 from app.models.user import User
-from app.services.evaluation_service import _read_teacher, evaluate_if_possible, find_scenario_for_attempt
+from app.services.evaluation_service import (
+    OTHER_TEACHER_MESSAGE,
+    _read_teacher,
+    evaluate_if_possible,
+    find_scenario_for_attempt,
+)
 from app.services.session_engine import evaluation_contract, list_session_rows, require_session_row
 from app.services.time import now_iso, parse_iso_ms
 from ml.assess.engine import resolve_time_norms
@@ -327,14 +332,15 @@ async def get_journal(db: AsyncSession, viewer: Viewer | None, query: dict[str, 
 
 
 async def save_feedback(db: AsyncSession, viewer: Viewer | None, body: dict[str, Any]) -> dict[str, Any]:
-    if viewer is not None and viewer.is_student:
-        raise forbidden("Действие доступно преподавателю и администратору")
     teacher = await _read_teacher(db, body, viewer)
     report_id_value = body.get("reportId")
     report_id_value = report_id_value.strip() if isinstance(report_id_value, str) else ""
     report = await db.get(Report, report_id_value) if report_id_value else None
     if report is None:
         raise not_found(f"Отчёт «{report_id_value}» не найден")
+    session = await db.get(TrainingSession, report.session_id)
+    if session is not None and session.teacher_id != teacher.id:
+        raise forbidden(OTHER_TEACHER_MESSAGE)
     text = body.get("text")
     text = text.strip() if isinstance(text, str) else ""
     if not text:

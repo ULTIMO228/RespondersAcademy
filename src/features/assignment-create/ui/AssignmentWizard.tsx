@@ -3,11 +3,12 @@
 import { useState } from "react";
 
 import type { Assignment, PublicUser } from "@/shared/api";
+import { PROFILE_GENITIVE, PROFILE_SHORT } from "@/shared/config";
 import { Alert, Card, PlatformButton, Stepper } from "@/shared/ui/platform";
 
 import { assignmentCreateApi } from "../api/assignmentCreateApi";
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
-import { assignableStudents } from "../model/students";
+import { assignableStudents, splitByMode } from "../model/students";
 import { WIZARD_STEPS, createDraft } from "../model/types";
 import type { StepErrors, WizardDraft, WizardInitial } from "../model/types";
 import { buildRequest, validateAll, validateStep } from "../model/validate";
@@ -34,6 +35,7 @@ type AssignmentWizardProps = {
 const REVIEW_STEP = WIZARD_STEPS.length - 1;
 const FIRST_ERROR_STEP: Record<string, number> = {
   studentIds: 0,
+  trainingMode: 1,
   cardIds: 2,
   ruleCount: 2,
 };
@@ -80,11 +82,30 @@ export function AssignmentWizard({
   };
 
   const changeMode = (trainingMode: WizardDraft["trainingMode"]) =>
-    // Источник билетов и выбранные версии зависят от режима: смена режима сбрасывает выбор билетов.
-    patch({ trainingMode, ticketSource: "cards", cardIds: [], scenarioVersions: [] });
+    // Доступные билеты зависят от режима: смена режима сбрасывает выбор билетов.
+    patch({ trainingMode, ticketSource: "cards", cardIds: [] });
+
+  // spec/008: курсанты с профилем другого режима в задание не попадают — шаги 2–5 и запрос видят только допущенных.
+  const selected = draft.studentIds.flatMap((id) => students.filter((student) => student.id === id));
+  const { skipped } = splitByMode(selected, draft.trainingMode);
+  const skippedIds = new Set(skipped.map((user) => user.id));
+  const effective: WizardDraft = {
+    ...draft,
+    studentIds: draft.studentIds.filter((id) => !skippedIds.has(id)),
+  };
+  const modeError =
+    draft.studentIds.length > 0 && effective.studentIds.length === 0
+      ? `Нет обучающихся для режима ${PROFILE_SHORT[draft.trainingMode]}: у выбранных профиль ${[
+          ...new Set(skipped.map((user) => PROFILE_GENITIVE[user.trainingProfile!])),
+        ].join(", ")}`
+      : null;
 
   const next = () => {
-    const found = validateStep(step, draft);
+    if (step === 1 && modeError) {
+      setErrors({ trainingMode: modeError });
+      return;
+    }
+    const found = validateStep(step, effective);
     if (Object.keys(found).length > 0) {
       setErrors(found);
       return;
@@ -93,7 +114,10 @@ export function AssignmentWizard({
   };
 
   const submit = async () => {
-    const found = validateAll(draft);
+    const found: StepErrors = {
+      ...(modeError ? { trainingMode: modeError } : {}),
+      ...validateAll(effective),
+    };
     const failed = Object.keys(found);
     if (failed.length > 0) {
       setErrors(found);
@@ -103,14 +127,14 @@ export function AssignmentWizard({
     setSubmitting(true);
     setServerError(null);
     try {
-      onCreated(await api.create(buildRequest(draft)));
+      onCreated(await api.create(buildRequest(effective)));
     } catch (error) {
       setServerError(error instanceof Error && error.message ? error.message : "Не удалось создать задание");
     }
     setSubmitting(false);
   };
 
-  const studentNames = draft.studentIds.map(
+  const studentNames = effective.studentIds.map(
     (id) => students.find((student) => student.id === id)?.fullName ?? id,
   );
 
@@ -143,14 +167,21 @@ export function AssignmentWizard({
             onTitle={(title) => patch({ title })}
             onMode={changeMode}
             onFormat={(format) => patch({ format })}
+            skipped={skipped}
+            error={errors.trainingMode}
           />
         ) : null}
         {step === 2 ? (
-          <StepTickets api={api} draft={draft} errors={errors} onChange={patch} focusStage={focusStage} />
+          <StepTickets api={api} draft={effective} errors={errors} onChange={patch} focusStage={focusStage} />
         ) : null}
-        {step === 3 ? <StepParams draft={draft} errors={errors} onChange={patch} /> : null}
+        {step === 3 ? <StepParams draft={effective} errors={errors} onChange={patch} /> : null}
         {step === REVIEW_STEP ? (
-          <StepReview draft={draft} studentNames={studentNames} serverError={serverError} />
+          <StepReview
+            draft={effective}
+            studentNames={studentNames}
+            skippedNames={skipped.map((user) => user.fullName)}
+            serverError={serverError}
+          />
         ) : null}
       </Card>
       <div className={styles.wizard__bar}>

@@ -47,7 +47,8 @@ describe("GET /api/mock/admin/users", () => {
     const body = JSON.parse(raw) as PublicUser[];
     expect(body).toHaveLength(USER_COUNT);
     expect(body.every((user) => !("password" in user))).toBe(true);
-    expect(raw).not.toMatch(/password|112"/);
+    // Пароли демо-учёток — admin112 / teacher112 / student112; значение профиля "operator112" паролем не является.
+    expect(raw).not.toMatch(/password|"(admin|teacher|student)112"/);
   });
 });
 

@@ -3,7 +3,8 @@
 import { useMemo } from "react";
 
 import type { PublicUser } from "@/shared/api";
-import { Alert, EmptyState, ErrorState, Skeleton, ServerRequiredState } from "@/shared/ui/platform";
+import { PROFILE_SHORT, TRAINING_PROFILE_TITLES } from "@/shared/config";
+import { Alert, EmptyState, ErrorState, Skeleton, ServerRequiredState, Tag } from "@/shared/ui/platform";
 import { useResource } from "@/shared/ui/platform";
 
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
@@ -91,6 +92,14 @@ export function StepStudents({
               onChange={(checked) => toggle(member.id, checked)}
             >
               {member.fullName}
+              {member.trainingProfile ? (
+                <>
+                  {" "}
+                  <span title={`Профиль: ${TRAINING_PROFILE_TITLES[member.trainingProfile]}`}>
+                    <Tag tone="info">{PROFILE_SHORT[member.trainingProfile]}</Tag>
+                  </span>
+                </>
+              ) : null}
               <span className={styles.check__meta}> · {member.service ?? `АРМ ${member.armNumber}`}</span>
             </CheckRow>
           ))}

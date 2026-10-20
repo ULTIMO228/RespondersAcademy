@@ -11,10 +11,8 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.api.deps import Viewer
 from app.api.errors import conflict, forbidden, not_found, validation_failed
 from app.models.ai_scenario import DraftFieldDecision, EtalonVersion, ScenarioVersion
-from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.card import Address
 from app.models.scenario import Scenario
-from app.models.session import Attempt
 from app.schemas.v1.ai import ScenarioApproveRequest, ScenarioReviseRequest
 from app.services import ai_scenario_service
 from app.services.ai_scenario_service import (
@@ -196,20 +194,10 @@ async def revise_scenario(
     return _finish_request(request, response)
 
 
-async def _verify_chain_teacher(db: AsyncSession, version: ScenarioVersion, viewer: Viewer) -> None:
-    if version.source_kind != "student_card" or viewer.role == "admin":
-        return
-    if not version.source_attempt_id:
-        raise conflict("У черновика student_card отсутствует sourceAttemptId")
-    attempt = await db.get(Attempt, version.source_attempt_id)
-    if attempt is None:
-        raise not_found(f"Попытка «{version.source_attempt_id}» не найдена")
-    link = (
-        await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.attempt_id == attempt.id))
-    ).scalar_one_or_none()
-    assignment = await db.get(Assignment, link.assignment_id) if link is not None else None
-    if assignment is None or assignment.teacher_id != viewer.user_id or assignment.training_mode != "chain":
-        raise forbidden("Подтвердить применимость ДДС может только преподаватель задания")
+def _reject_chain_stage(version: ScenarioVersion) -> None:
+    # student_card-версии создавал только этап B цепочки A → B; режим выведен 20.10.2026 (spec/007 Clarifications).
+    if version.source_kind == "student_card":
+        raise conflict("Подтверждение этапа ДДС цепочки выведено: задание доступно только для просмотра")
 
 
 async def approve_scenario(
@@ -239,7 +227,7 @@ async def approve_scenario(
         raise conflict("Версия сценария уже утверждена")
     if version.validation != "passed":
         raise conflict("Нельзя утвердить сценарий до успешной структурной проверки")
-    await _verify_chain_teacher(db, version, viewer)
+    _reject_chain_stage(version)
 
     scenario = await db.get(Scenario, scenario_id)
     if scenario is None or scenario.deleted:

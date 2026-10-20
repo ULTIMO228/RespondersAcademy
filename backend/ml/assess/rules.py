@@ -153,6 +153,7 @@ OP_NOT_SUBMITTED = _register(Rule("op-t3", "timeNotCompleted", "critical", f"{ME
 OP_WRONG_FINAL_TYPE = _register(Rule("op-f1", "wrongFinalType", "critical", MEMO_POLL, "Неверный итоговый тип: выбрано «{actual}», по билету ожидался тип группы «{expected}»{missing}"))
 OP_NO_FINAL_TYPE = _register(Rule("op-f0", "wrongFinalType", "critical", MEMO_POLL, "Итоговый тип не определён: опросная карта не заполнена (ожидался тип группы «{expected}»)"))
 OP_MISSING_SERVICE = _register(Rule("op-f2", "missingService", "major", f"{EKP}; {MEMO_CARD}", "В списке оповещения нет ожидаемой службы: {services}"))
+OP_EXTRA_SERVICE = _register(Rule("op-f3", "extraService", "major", f"{EKP}; {MEMO_CARD}", "Лишняя служба в списке оповещения (по билету не требуется): {services}"))
 OP_MISSING_SIGN = _register(Rule("op-s1", "missingSign", "major", MEMO_POLL, "Не выставлен признак «{sign}» из билета"))
 OP_MISSING_FLAG = _register(Rule("op-s2", "missingSign", "major", f"{MEMO_CARD}: флаги «Пострадавшие» / «Отказ от СМП»", "Не выставлен признак «{flag}», хотя по билету {reason}"))
 OP_EXTRA_FLAG = _register(Rule("op-s3", "extraFlag", "minor", f"{MEMO_CARD}: флаги ЧС/ЧП", "Флаг «{flag}» выставлен без оснований по билету"))
@@ -163,6 +164,14 @@ OP_APPLICANT_STATUS = _register(Rule("op-a2", "applicantMismatch", "minor", f"{M
 OP_PHONE = _register(Rule("op-a3", "phoneMismatch", "major", f"{MEMO_CARD}: телефон предоставленный", "Телефон заявителя записан неверно: введено «{entered}», по записи «{expected}»"))
 OP_PHONE_MISSING = _register(Rule("op-a4", "phoneMismatch", "minor", f"{MEMO_CARD}: телефон предоставленный", "Телефон заявителя не записан (по записи «{expected}»)"))
 OP_ADDRESS_MISSING = _register(Rule("op-a5", "addressMismatch", "critical", f"{MEMO_CARD}: адресный блок", "Адрес происшествия не заполнен"))
+
+# ─── Связи карточек (режим A, 007 FR-030, research R9 спеки 009) ──────────────────────────────────
+
+LINKS = "решение владельца (spec 007, FR-030): связь карточек оценивается по весу пропущенной службы"
+OP_LINK_MISSING = _register(Rule("op-l1", "missingLink", "major", LINKS, "Карточка повторного звонка не привязана: по билету нужна привязка к «{expected}»"))
+OP_LINK_WRONG_CARD = _register(Rule("op-l2", "wrongLink", "major", LINKS, "Привязана не та карточка «{actual}»: по билету нужна «{expected}»"))
+OP_LINK_WRONG_PRIMARY = _register(Rule("op-l3", "wrongLink", "major", LINKS, "Неверная главная карточка «{actual}»: по билету главной должна быть «{expected}»"))
+OP_LINK_EXTRA = _register(Rule("op-l4", "extraLink", "major", LINKS, "Лишняя привязка к карточке «{actual}»: по билету она не требуется"))
 
 
 def by_type(error_type: str) -> list[Rule]:

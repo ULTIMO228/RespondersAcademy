@@ -34,6 +34,11 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def text_sha256(path: Path) -> str:
+    # Хеш текстового артефакта по LF: сборка на Windows (CRLF) не должна менять манифест.
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def user_message(case: dict[str, Any], student_text: str) -> str:
     payload = {
         "mode": case["mode"],
@@ -171,7 +176,7 @@ def pack(root: Path, version: str) -> dict[str, Any]:
         "files": {},
     }
     for name in [*SPLIT_FILES.values(), "metadata.jsonl", "system_prompt.md"]:
-        manifest["files"][name] = {"sha256": sha256(out / name), "lines": len((out / name).read_text(encoding="utf-8").splitlines())}
+        manifest["files"][name] = {"sha256": text_sha256(out / name), "lines": len((out / name).read_text(encoding="utf-8").splitlines())}
     (out / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (out / "DATASHEET.md").write_text(datasheet(manifest), encoding="utf-8")
 

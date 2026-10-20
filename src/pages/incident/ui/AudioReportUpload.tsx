@@ -23,7 +23,11 @@ export function AudioReportUpload({ attemptId }: { attemptId: string }) {
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/v1/health", { signal: controller.signal, credentials: "same-origin", cache: "no-store" })
-      .then((response) => setAvailable(response.ok))
+      .then((response) => {
+        setAvailable(response.ok);
+        /* Тело не нужно (без бэкенда это HTML-страница 404): не прочитанное, оно держит запрос открытым. */
+        void response.body?.cancel().catch(() => undefined);
+      })
       .catch(() => setAvailable(false));
     return () => controller.abort();
   }, []);

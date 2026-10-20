@@ -48,10 +48,10 @@ async def cleanup_exam() -> AsyncIterator[None]:
 
 async def test_dds_exam_timeout_and_no_repeat(v1: AsyncClient):
     await login_as(v1, "teacher")
-    created = await v1.post("/assignments", json={"studentIds": ["u-005", "u-006"], "trainingMode": "dds", "format": "exam", "cardIds": ["c-010", "c-013"], "params": {"passThreshold": 70, "timeLimitSec": 1}, "title": "T093 DDS экзамен"})
+    created = await v1.post("/assignments", json={"studentIds": ["u-006", "u-016"], "trainingMode": "dds", "format": "exam", "cardIds": ["c-010", "c-013"], "params": {"passThreshold": 70, "timeLimitSec": 1}, "title": "T093 DDS экзамен"})
     assert created.status_code == 201, created.text
     assignment_id = created.json()["id"]
-    await login_as(v1, "student")
+    await login_as(v1, "student2")  # spec/008: ivanov — специалист-112
     started = await v1.post(f"/assignments/{assignment_id}/start")
     assert started.status_code == 200, started.text
     attempt_id = started.json()["attempt"]["attempt"]["id"]
@@ -78,15 +78,15 @@ async def test_dds_exam_score_sets_passed(v1: AsyncClient, monkeypatch):
 
     monkeypatch.setattr(evaluation_service, "get_gateway", lambda: Gateway())
     await login_as(v1, "teacher")
-    created = await v1.post("/assignments", json={"studentIds": ["u-005"], "trainingMode": "dds", "format": "exam", "cardIds": ["c-010"], "params": {"passThreshold": 70, "timeLimitSec": 600}, "title": "T093 DDS оценка"})
+    created = await v1.post("/assignments", json={"studentIds": ["u-006"], "trainingMode": "dds", "format": "exam", "cardIds": ["c-010"], "params": {"passThreshold": 70, "timeLimitSec": 600}, "title": "T093 DDS оценка"})
     assert created.status_code == 201, created.text
     assignment_id = created.json()["id"]
-    await login_as(v1, "student")
+    await login_as(v1, "student2")  # spec/008: ivanov — специалист-112
     started = await v1.post(f"/assignments/{assignment_id}/start")
     attempt_id = started.json()["attempt"]["attempt"]["id"]
     completed = await v1.post(f"/attempts/{attempt_id}/progress", json={"completedAt": now_iso()})
     assert completed.status_code == 200, completed.text
     detail = (await v1.get(f"/assignments/{assignment_id}")).json()
-    assert detail["progress"] == [{"studentId": "u-005", "cardId": "c-010", "attemptId": attempt_id, "state": "submitted", "score": 80, "passed": True}]
+    assert detail["progress"] == [{"studentId": "u-006", "cardId": "c-010", "attemptId": attempt_id, "state": "submitted", "score": 80, "passed": True}]
     evaluation = await v1.get(f"/attempts/{attempt_id}/evaluation")
     assert evaluation.status_code == 200 and evaluation.json()["passed"] is True

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
+from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import get_settings
@@ -46,8 +47,24 @@ async def init_db() -> None:
     engine = get_engine()
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+        await connection.run_sync(_add_missing_sqlite_columns)
         await connection.run_sync(install_ai_scenario_guards)
         await connection.run_sync(install_ai_assessment_guards)
+
+
+def _add_missing_sqlite_columns(connection: Connection) -> None:
+    """create_all не добавляет колонки в уже существующую таблицу: старые SQLite-базы (var/dev.db) догоняем вручную.
+
+    Повторяет миграцию 0006_user_training_profile (spec/008); в PostgreSQL схему ведёт Alembic.
+    """
+    if connection.dialect.name != "sqlite":
+        return
+    columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(users)")}
+    if columns and "training_profile" not in columns:
+        connection.exec_driver_sql("ALTER TABLE users ADD COLUMN training_profile VARCHAR(16)")
+        connection.exec_driver_sql(
+            "UPDATE users SET training_profile = 'operator112', service = 'ЦОВ системы-112' WHERE login = 'ivanov'"
+        )
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:

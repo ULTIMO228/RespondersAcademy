@@ -4,7 +4,13 @@
  * Состав полей зависит от роли: обучающийся — группа, преподаватель — закреплённые группы
  * ([app-расширение], расхождение №5), № АРМ обязателен для всех ролей (вход в АРМ-112 с номером АРМ).
  */
-import type { AdminUserCreateRequest, AdminUserUpdateRequest, PublicUser, Role } from "@/shared/api";
+import type {
+  AdminUserCreateRequest,
+  AdminUserUpdateRequest,
+  PublicUser,
+  Role,
+  TrainingProfile,
+} from "@/shared/api";
 
 export type UserFormField = "fullName" | "login" | "password" | "armNumber" | "group" | "assignedGroups";
 
@@ -19,6 +25,8 @@ export type UserFormValues = {
   group: string;
   service: string;
   assignedGroups: string[];
+  /** spec/008: профиль режима обучаемого; "" — «не задан». */
+  trainingProfile: TrainingProfile | "";
 };
 
 export type UserFormErrors = Partial<Record<UserFormField, string>>;
@@ -32,6 +40,7 @@ export const EMPTY_USER_FORM: UserFormValues = {
   group: "",
   service: "",
   assignedGroups: [],
+  trainingProfile: "",
 };
 
 /** Логин АРМ-112: латиница без пробелов (совпадает с проверкой мок-слоя). */
@@ -89,6 +98,8 @@ function roleFields(values: UserFormValues) {
     group: values.role === "student" ? values.group.trim() || undefined : undefined,
     service: values.role === "admin" ? undefined : values.service.trim() || undefined,
     assignedGroups: values.role === "teacher" ? values.assignedGroups : undefined,
+    // null явно сбрасывает профиль при редактировании; у других ролей сервер обнуляет поле сам.
+    trainingProfile: values.role === "student" ? values.trainingProfile || null : undefined,
   };
 }
 
@@ -125,5 +136,6 @@ export function toFormValues(user: PublicUser): UserFormValues {
     group: user.group ?? "",
     service: user.service ?? "",
     assignedGroups: user.assignedGroups ?? [],
+    trainingProfile: user.trainingProfile ?? "",
   };
 }

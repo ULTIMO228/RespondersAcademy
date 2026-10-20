@@ -56,6 +56,16 @@ type StudentHomeScreenProps = {
   nowMs?: number;
 };
 
+/** Разбивка попыток по режимам; курсанту с профилем режима (spec/008) — только его режим. */
+function attemptsNote(
+  byMode: Record<"operator112" | "dds", { count: number }>,
+  profile: "operator112" | "dds" | undefined,
+): string {
+  if (profile === "operator112") return `112: ${byMode.operator112.count}`;
+  if (profile === "dds") return `ДДС: ${byMode.dds.count}`;
+  return `112: ${byMode.operator112.count} · ДДС: ${byMode.dds.count}`;
+}
+
 function firstNames(fullName: string): string {
   const [, ...rest] = fullName.trim().split(/\s+/);
   return rest.join(" ") || fullName;
@@ -218,7 +228,7 @@ export function StudentHomeScreen({
                 <StatTile
                   label="Попытки"
                   value={summary.attempts}
-                  note={`112: ${data.byMode.operator112.count} · ДДС: ${data.byMode.dds.count}`}
+                  note={attemptsNote(data.byMode, user?.trainingProfile)}
                 />
               </StatGroup>
             );

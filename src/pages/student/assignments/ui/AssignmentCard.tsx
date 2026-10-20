@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { LINK_STATE_TITLES, MODE_TITLES, averageScore, formatLimit } from "@/entities/assignment";
+import { LINK_STATE_TITLES, MODE_TITLES, averageScore, formatLimit, isRunnable } from "@/entities/assignment";
 import type { AssignmentView } from "@/entities/assignment";
 import { Alert, PlatformButton, Tag } from "@/shared/ui/platform";
 
@@ -42,7 +42,7 @@ export function AssignmentCard({ view, onStart }: AssignmentCardProps) {
   const isExam = assignment.format === "exam";
   const params = assignment.params;
   const average = averageScore(progress);
-  const canStart = view.status === "available" || view.status === "inProgress";
+  const canStart = isRunnable(view);
 
   const start = async () => {
     setStarting(true);
@@ -124,8 +124,8 @@ export function AssignmentCard({ view, onStart }: AssignmentCardProps) {
         </>
       ) : null}
 
-      {view.awaitsTeacher ? (
-        <Alert tone="warning">Этап ДДС ожидает проверки и подтверждения преподавателем.</Alert>
+      {view.readOnly ? (
+        <Alert tone="info">Режим «Цепочка 112 → ДДС» выведен: задание доступно только для просмотра.</Alert>
       ) : null}
       {message ? (
         <Alert tone="danger" role="alert">

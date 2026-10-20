@@ -23,15 +23,16 @@ async def test_own_lobby_history_and_analytics(v1: AsyncClient):
     assert (await v1.get("/me")).status_code == 401
     assert (await v1.get("/me/history")).status_code == 401
     assert (await v1.get("/kb/articles")).status_code == 401
-    session = await login_as(v1, "student")
+    # spec/008: у ivanov в сидах только попытки ДДС, а он специалист-112 — историю проверяем на petrova.
+    session = await login_as(v1, "student2")
     me = (await v1.get("/me")).json()
-    assert me["id"] == session["userId"] and me["armNumber"] == 1
+    assert me["id"] == session["userId"] and me["armNumber"] == 2
     history = (await v1.get("/me/history?perPage=2")).json()
     assert history["total"] >= 2
     assert len(history["items"]) == 2
     assert all(item["attemptId"] and item["title"] and 0 <= item["score"] <= 100 for item in history["items"])
-    assert (await v1.get("/me/history?studentId=u-006")).status_code == 403
-    assert (await v1.get("/me/analytics?studentId=u-006")).status_code == 403
+    assert (await v1.get("/me/history?studentId=u-005")).status_code == 403
+    assert (await v1.get("/me/analytics?studentId=u-005")).status_code == 403
     analytics = (await v1.get("/me/analytics")).json()
     assert analytics["byMode"]["dds"]["count"] + analytics["byMode"]["operator112"]["count"] == history["total"]
     assert len(analytics["dynamics"]["values"]) == history["total"]

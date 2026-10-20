@@ -71,6 +71,8 @@ BACKEND_URL=http://localhost:8000 npm run build && BACKEND_URL=http://localhost:
 
 ## E. Цепочка A → B, сообщения, доклад (US5) — после T021–T025
 
+> **Режим `chain` выведен 20.10.2026, см. [spec/007 Clarifications](../007-arm-one-to-one/spec.md#clarifications).** Фикстура `seed_chain_demo.py` и `run_frontend_e2e.sh --only chain` удалены; раздел оставлен как история.
+
 Задание `chain` в сиде отсутствует. Для демо и e2e нужна фикстура (R7):
 
 ```bash

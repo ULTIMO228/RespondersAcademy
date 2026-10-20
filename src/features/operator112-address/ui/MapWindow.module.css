@@ -1,0 +1,136 @@
+/* Окно «С112 — карта» (КАРТОЧКА_image5): светлая подложка, панель инструментов сверху. Только токены АРМ. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--card-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--card-map-window-width), 100%);
+  height: min(var(--card-map-window-height), 100%);
+  background: var(--color-gray-50);
+  border: var(--border-width) solid var(--color-graphite-300);
+  font-family: var(--font-ui);
+}
+
+.window__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-gray-100);
+}
+
+.window__title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  text-align: center;
+}
+
+.window__close {
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: var(--card-color-map-bg);
+}
+
+.map[data-picking="true"] {
+  cursor: crosshair;
+}
+
+.map__tile {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.map__marker {
+  position: absolute;
+  width: var(--card-map-point-size);
+  height: var(--card-map-point-size);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--card-color-map-point);
+  border: var(--border-width) solid var(--color-white);
+  pointer-events: none;
+}
+
+.map__tools {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  right: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.map__spacer {
+  flex: 1;
+}
+
+.map__input,
+.map__btn {
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-lg);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-md);
+}
+
+.map__input {
+  width: 150px;
+}
+
+.map__btn {
+  cursor: pointer;
+}
+
+.map__btn:disabled {
+  color: var(--color-graphite-400);
+  cursor: default;
+}
+
+.map__btn[aria-pressed="true"] {
+  background: var(--color-graphite-700);
+  color: var(--color-white);
+}
+
+.map__error {
+  position: absolute;
+  bottom: var(--spacing-md);
+  left: var(--spacing-md);
+  margin: 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-white);
+  color: var(--color-accent-red);
+}
+
+.map__input:focus-visible,
+.map__btn:focus-visible,
+.window__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

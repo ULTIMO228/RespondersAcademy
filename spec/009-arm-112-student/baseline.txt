@@ -1,0 +1,21 @@
+Baseline 2026-10-20 (до изменений 009), ветка SASHA, HEAD 4517486 + правки спеки (R13a)
+
+pytest (cd backend && uv run pytest -q): 3 failed, 977 passed, 2 skipped — было до 009 (docs/FINAL-GATE.md):
+  FAILED tests/contract/test_v1_operator112.py::test_ready_applicant_audio_is_playable_from_recordings[wav-…]
+  FAILED tests/contract/test_v1_operator112.py::test_ready_applicant_audio_is_playable_from_recordings[mp3-…]
+  FAILED tests/unit/test_ai_dataset_build.py::test_release_invariants
+ruff (uv run ruff check .): All checks passed
+
+vitest (npx vitest run): 1951 passed, 1 failed / 240 файлов — было до 009:
+  FAIL src/shared/api/endpoints/teacher-v1.test.ts > downloadReportExport — «expected Blob … to be an instance of Blob»;
+  красный и на чистом HEAD (проверено в отдельной копии), причина — окружение Node 22 + jsdom, не код
+eslint (npm run lint): чисто
+tsc (npm run typecheck): чисто
+steiger (npm run steiger): No problems found
+prettier (npm run format:check): 4 файла было до 009 (чужие, не правим):
+  scripts/demo-video/record.mjs, src/features/scenario-builder/ui/GenerateDialog.tsx, src/shared/config/index.ts, окна-АРМ-112.html
+next build: прошёл в составе ./scripts/demo-up.sh 2026-10-20 (сборка 13:07)
+
+SC-004 (до 009): 5 прогонов 112 билета c-010 под ivanov, время ответа зафиксировано (ответ на 5-й с, отработка 60 с):
+  1 эталон 96 | 2 без описания 81 | 3 чужой адрес 81 | 4 без заявителя 89 | 5 без признаков 86
+  Скрипт прогона — тот же, что в spec/008 quickstart «Дополнительный прогон» (вне репозитория); повторить после US4 (T052).

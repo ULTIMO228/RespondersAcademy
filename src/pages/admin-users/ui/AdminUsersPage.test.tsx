@@ -216,6 +216,17 @@ describe("Редактирование и смена роли (T4.1-08)", () => 
     await waitFor(() => expect(listAuditLog()[0]).toMatchObject({ action: "user.update" }));
   });
 
+  it("профиль режима (spec/008): у ivanov — «Специалист системы-112», смена пишется в аудит", async () => {
+    const dialog = await openRowDialog("u-005", "Изменить");
+    const select = within(dialog).getByLabelText("Профиль режима") as HTMLSelectElement;
+    expect(select.selectedOptions[0].textContent).toBe("Специалист системы-112");
+    fireEvent.change(select, { target: { value: "" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Сохранить" }));
+    await waitFor(() =>
+      expect(listAuditLog()[0].details).toContain("профиль «Специалист системы-112» → «Не задан»"),
+    );
+  });
+
   it("смена роли требует подтверждения и пишет отдельное событие аудита", async () => {
     const dialog = await openRowDialog("u-005", "Роль");
     expect(within(dialog).getByRole("button", { name: "Сменить роль" })).toBeDisabled();

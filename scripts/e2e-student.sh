@@ -8,6 +8,10 @@
 #   вход → журнал → старт модуля «Билет 05» → лента занятия → открытие карточки (попытка)
 #   → цепочка статусов Принята … Работы завершены (+409 вне графа, +400 «Не принята» без комментария)
 #   → вызов софтфона в попытку → оценка попытки → попытка видна в /sessions и /reports → чужие данные 403.
+# Режим 112 (спека 009, T051; только при подключённом бэкенде, иначе блок пропускается с SKIP):
+#   учитель создаёт задание → журнал ученика (200, учителю 403) → вызов «×» (callHidden) → строка в очереди
+#   → «Принять» → события карточки (fieldChanged, typeAdded, linkAdded) → отправка: пустой адрес 400, filled + канал,
+#   повтор 409; СМС-билет c-066 (канал sms, текст обращения) → отправка; нет контакта (outcome noContact) → 200.
 set -uo pipefail
 
 # Скрипт читает mocks/*.json — работаем от корня репозитория независимо от места запуска.
@@ -15,14 +19,22 @@ cd "$(dirname "$0")/.." || exit 1
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:3130}"
 API="$BASE_URL/api/mock"
-LOGIN="${E2E_LOGIN:-ivanov}"
+# spec/008: ivanov — специалист-112, занятие ДДС проходит petrova; «чужой» курсант — ivanov (у него есть попытки в сидах).
+LOGIN="${E2E_LOGIN:-petrova}"
 PASSWORD="${E2E_PASSWORD:-student112}"
-ARM_NUMBER="${E2E_ARM:-1}"
+ARM_NUMBER="${E2E_ARM:-2}"
 TWO_FACTOR="${E2E_2FA:-123456}"
 SCENARIO_ID="${E2E_SCENARIO:-s-005}" # «Билет 05: пожар-окно 9 эт. + отравление + стройка»
 TEACHER_ID="${E2E_TEACHER:-u-002}"
-OTHER_STUDENT_ID="${E2E_OTHER_STUDENT:-u-006}"
+OTHER_STUDENT_ID="${E2E_OTHER_STUDENT:-u-005}"
 PHONE_NUMBER="${E2E_PHONE:-301}" # Руководитель дежурной смены ДДС
+# Режим 112 (T051): специалист-112 — ivanov (АРМ 1, u-005), учитель — morozova (АРМ 21); пароли — как в сидах.
+OPERATOR_STUDENT="${E2E_112_STUDENT:-ivanov}"
+OPERATOR_STUDENT_ID="${E2E_112_STUDENT_ID:-u-005}"
+OPERATOR_STUDENT_ARM="${E2E_112_ARM:-1}"
+OPERATOR_TEACHER="${E2E_112_TEACHER:-morozova}"
+OPERATOR_TEACHER_ARM="${E2E_112_TEACHER_ARM:-21}"
+TEACHER_PASSWORD="${E2E_TEACHER_PASSWORD:-teacher112}"
 
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
@@ -62,9 +74,12 @@ check() {
 }
 
 # req <METHOD> <путь от /api/mock> [<тело JSON>] — с cookie сессии, если она уже получена.
+# Путь `/api/v1/…` (режим 112, бэкенд) идёт на BASE_URL напрямую: rewrite фронта отдаёт его бэкенду.
 req() {
   local method="$1" path="$2" body="${3:-}"
-  local args=(-sS -o "$WORK_DIR/body" -D "$WORK_DIR/headers" -w '%{http_code}' -X "$method" "$API$path")
+  local url="$API$path"
+  case "$path" in /api/v1/*) url="$BASE_URL$path" ;; esac
+  local args=(-sS -o "$WORK_DIR/body" -D "$WORK_DIR/headers" -w '%{http_code}' -X "$method" "$url")
   [ -n "${SESSION_COOKIE:-}" ] && args+=(-H "Cookie: arm112_session=$SESSION_COOKIE")
   if [ -n "$body" ]; then
     args+=(-H 'Content-Type: application/json' --data-binary "$body")
@@ -146,6 +161,40 @@ def own_reports() -> None:
 
 
 globals()[sys.argv[1].replace("-", "_")]()
+PY
+
+# Черновик карточки 112 (CardDraft, camelCase) для POST …/submit: draft112 <исход> <канал> <адрес 1|0>.
+# Содержимое — как у билета c-010 в тестах бэкенда (_draft_for_c010); при адрес 0 адресного блока нет (400).
+cat >"$WORK_DIR/draft112.py" <<'PY'
+import json
+import sys
+
+outcome, channel, with_address = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
+address = {
+    "formal": "Россия, Москва, улица Грина, дом неизвестен, библиотека № 19",
+    "street": "ул. Грина",
+    "house": "",
+    "source": "directory",
+    "descriptive": "в доме библиотека № 19",
+} if with_address else {}
+draft = {
+    "applicant": {"name": "Сидорова Анна Викторовна", "status": "очевидец"},
+    "phones": {"aon": "+7 (916) 126-34-71", "provided": "+7 (916) 126-34-71", "onSite": ""},
+    "address": address,
+    "what": {
+        "pollAnswers": "Пожар, горит балкон и окна на 13 этаже",
+        "signs": ["жилой дом", "балкон", "открытое пламя"],
+        "finalType": "",
+        "classifierCode": "1050201",
+        "casualties": {"injured": False, "ambulanceRefused": False, "blocked": False},
+    },
+    "description": "Со слов заявителя: горит балкон и два окна на 13-м этаже, открытое пламя, наблюдают с улицы.",
+    "emergency": {"chs": False, "chp": False},
+    "notificationList": [],
+    "channel": channel,
+    "outcome": outcome,
+}
+print(json.dumps(draft, ensure_ascii=False))
 PY
 
 step_login() {
@@ -349,6 +398,110 @@ step_guards() {
   [ "$code" = "200" ] && pass "студент открывает /arm (200)" || fail "студент открывает /arm" "HTTP $code"
 }
 
+# login_as <логин> <пароль> <номер АРМ> — меняет cookie сессии (SESSION_COOKIE) для дальнейших запросов.
+login_as() {
+  req POST /auth/login "{\"login\":\"$1\",\"password\":\"$2\",\"armNumber\":$3}"
+  check "вход $1 / АРМ $3" 200 '"role"' || return 1
+  SESSION_COOKIE="$(session_cookie_from_headers)"
+  [ -n "$SESSION_COOKIE" ] || {
+    fail "cookie сессии $1" "пустая сессия"
+    return 1
+  }
+}
+
+# expect_body <описание> <подстрока> — проверка тела последнего ответа без проверки кода (для части ответа).
+expect_body() {
+  if grep -qF -- "$2" "$WORK_DIR/body"; then
+    pass "$1"
+  else
+    fail "$1" "в ответе нет «$2»: $(head -c 300 "$WORK_DIR/body")"
+  fi
+}
+
+# Режим 112 (спека 009, T051): HTTP /api/v1 через rewrite фронта. Без бэкенда /api/v1 отвечает 404 без тела — блок пропускается.
+step_112() {
+  local probe
+  probe="$(curl -sS -o /dev/null -w '%{http_code}' "$BASE_URL/api/v1/operator112/journal?assignmentId=asg-none")"
+  if [ "$probe" = "404" ]; then
+    printf 'SKIP  режим 112: %s/api/v1 не отвечает (нужен бэкенд: backend/scripts/run_frontend_e2e.sh --only student)\n' "$BASE_URL"
+    return 0
+  fi
+
+  login_as "$OPERATOR_TEACHER" "$TEACHER_PASSWORD" "$OPERATOR_TEACHER_ARM" || return 1
+  req POST /api/v1/assignments "{\"studentIds\":[\"$OPERATOR_STUDENT_ID\"],\"trainingMode\":\"operator112\",\"format\":\"training\",\"cardIds\":[\"c-010\",\"c-066\"],\"title\":\"E2E 009 · режим 112\"}"
+  check "учитель: задание 112 для $OPERATOR_STUDENT (POST /assignments)" 201 '"id"' || return 1
+  local assignment_112
+  assignment_112="$(jget id)"
+  req GET "/api/v1/operator112/journal?assignmentId=$assignment_112"
+  check "журнал 112 учителю → 403 forbidden (журнал — у обучающегося)" 403 '"forbidden"'
+
+  login_as "$OPERATOR_STUDENT" "$PASSWORD" "$OPERATOR_STUDENT_ARM" || return 1
+  req GET "/api/v1/operator112/journal?assignmentId=$assignment_112"
+  check "журнал ученика-112: GET /operator112/journal?assignmentId= → 200" 200 '"rows"' || return 1
+  req GET /api/v1/operator112/journal
+  check "журнал без assignmentId → 400 validationFailed" 400 '"validationFailed"'
+
+  # Вызов c-010: окно «Входящий звонок» закрыто «×» (callHidden) → строка в очереди → «Принять».
+  req POST /api/v1/operator112/attempts "{\"assignmentId\":\"$assignment_112\",\"cardId\":\"c-010\"}"
+  check "поступление вызова c-010: POST /operator112/attempts → 201, состояние ringing" 201 '"state":"ringing"' || return 1
+  local call_id
+  call_id="$(jget id)"
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"fieldChanged","payload":{"field":"applicant.name","value":"Сидорова"}}'
+  check "правка до «Принять» → 409 invalidTransition (сначала примите вызов)" 409 '"invalidTransition"'
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"callHidden"}'
+  check "«×» на окне вызова: событие callHidden → 201" 201 '"callHidden"' || return 1
+  req GET "/api/v1/operator112/journal?assignmentId=$assignment_112"
+  check "закрытый вызов — строка журнала в очереди (queued)" 200 '"queued":true'
+  req POST "/api/v1/operator112/attempts/$call_id/answer"
+  check "«Принять»: POST /operator112/attempts/{id}/answer → answered" 200 '"state":"answered"' || return 1
+
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"fieldChanged","payload":{"value":"Сидорова"}}'
+  check "fieldChanged без payload.field → 400 validationFailed" 400 '"validationFailed"'
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"fieldChanged","payload":{"field":"applicant.name","value":"Сидорова Анна Викторовна"}}'
+  check "правка заявителя: fieldChanged → 201" 201 '"fieldChanged"' || return 1
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"typeAdded","payload":{"finalType":"Пожар в жилом доме","classifierCode":"1050201"}}'
+  check "вкладка «Происшествие»: typeAdded → 201" 201 '"typeAdded"'
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"linkAdded","payload":{"cardId":"card-881412"}}'
+  check "связь с карточкой журнала (card-881412): linkAdded → 201" 201 '"linkAdded"'
+  req POST "/api/v1/operator112/attempts/$call_id/events" '{"type":"linkAdded","payload":{"cardId":"card-000000"}}'
+  check "связь с карточкой вне журнала → 400 validationFailed" 400 '"validationFailed"'
+
+  # Отправка: без адресного блока — 400; с адресом и каналом call — 200; повтор — 409.
+  req POST "/api/v1/operator112/attempts/$call_id/submit" "$(python3 "$WORK_DIR/draft112.py" filled call 0)"
+  check "отправка без адресного блока → 400 validationFailed" 400 '"validationFailed"'
+  req POST "/api/v1/operator112/attempts/$call_id/submit" "$(python3 "$WORK_DIR/draft112.py" filled call 1)"
+  check "отправка карточки c-010 (outcome filled, канал call) → 200 с evaluationId" 200 '"evaluationId"' || return 1
+  req POST "/api/v1/operator112/attempts/$call_id/submit" "$(python3 "$WORK_DIR/draft112.py" filled call 1)"
+  check "повторная отправка → 409 invalidTransition" 409 '"invalidTransition"'
+  req GET "/api/v1/operator112/attempts/$call_id/evaluation"
+  check "оценка 112: GET /operator112/attempts/{id}/evaluation" 200 '"totalScore"'
+  req GET "/api/v1/operator112/journal?assignmentId=$assignment_112"
+  check "журнал: отправленная карточка ученика отмечена isOwn" 200 '"isOwn":true'
+
+  # СМС-билет c-066: канал sms и текст обращения приходят из билета (спека 009, T031).
+  req POST /api/v1/operator112/attempts "{\"assignmentId\":\"$assignment_112\",\"cardId\":\"c-066\"}"
+  check "СМС-билет c-066: POST /operator112/attempts → 201, канал sms" 201 '"channel":"sms"' || return 1
+  local sms_id
+  sms_id="$(jget id)"
+  expect_body "СМС-билет: текст обращения smsText в попытке" '"smsText":"Знакомый хочет повеситься'
+  req POST "/api/v1/operator112/attempts/$sms_id/answer"
+  check "СМС: «Принять» → answered, канал sms сохраняется" 200 '"channel":"sms"' || return 1
+  req POST "/api/v1/operator112/attempts/$sms_id/submit" "$(python3 "$WORK_DIR/draft112.py" filled sms 0)"
+  check "СМС: отправка без адресного блока → 400 validationFailed" 400 '"validationFailed"'
+  req POST "/api/v1/operator112/attempts/$sms_id/submit" "$(python3 "$WORK_DIR/draft112.py" filled sms 1)"
+  check "СМС: отправка карточки с каналом sms → 200" 200 '"evaluationId"' || return 1
+
+  # Исход «нет контакта»: карточка сохраняется пустой, адрес и тип не обязательны (FR-017).
+  req POST /api/v1/operator112/attempts "{\"assignmentId\":\"$assignment_112\",\"cardId\":\"c-010\"}"
+  check "повторный вызов c-010 в тренировке: новая попытка → 201" 201 '"state":"ringing"' || return 1
+  local nc_id
+  nc_id="$(jget id)"
+  req POST "/api/v1/operator112/attempts/$nc_id/answer"
+  check "повторный вызов принят → answered" 200 '"state":"answered"' || return 1
+  req POST "/api/v1/operator112/attempts/$nc_id/submit" "$(python3 "$WORK_DIR/draft112.py" noContact call 0)"
+  check "исход «нет контакта» (noContact) без адреса → 200" 200 '"evaluationId"'
+}
+
 printf '\n== Сквозной прогон АРМ обучающегося: %s ==\n\n' "$BASE_URL"
 
 if ! curl -sS -o /dev/null --max-time 5 "$API/reference"; then
@@ -372,6 +525,7 @@ step_visible_in_sessions
 step_reports
 step_isolation
 step_guards
+step_112
 
 printf '\nИтог: PASS %d, FAIL %d (шагов %d)\n' "$PASSED" "$FAILED" "$STEP"
 [ "$FAILED" -eq 0 ] || exit 1

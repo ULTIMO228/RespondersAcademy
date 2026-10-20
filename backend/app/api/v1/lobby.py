@@ -17,11 +17,18 @@ from app.models.user import User
 from app.schemas.common import page_response, read_one_of, read_page, read_string
 from app.schemas.scenarios import parse_body
 from app.schemas.v1.lobby import Analytics, HistoryItem, KbArticle, KbArticlePatch
-from app.services import analytics, audit
+from app.services import analytics, audit, reference_access, training_profile
 from app.services.time import now_iso
 
 router = APIRouter()
 teacher_or_admin = require_role("teacher", "admin")
+
+
+async def _own_rows(db: AsyncSession, viewer: Viewer) -> list[dict[str, Any]]:
+    """История курсанта; при профиле режима (spec/008) — только строки разрешённого режима."""
+    rows = await analytics.rows(db, viewer.user_id)
+    user = await db.get(User, viewer.user_id)
+    return rows if user is None else [row for row in rows if training_profile.allows(user, row["mode"])]
 
 
 @router.get("/me")
@@ -41,7 +48,7 @@ async def history(request: Request, db: AsyncSession = Depends(get_db), viewer: 
     mode = read_one_of(params, "mode", ("dds", "operator112"), None)
     format_ = read_one_of(params, "format", ("training", "exam"), None)
     page, per_page = read_page(params)
-    items = [item for item in await analytics.rows(db, viewer.user_id) if (mode is None or item["mode"] == mode) and (format_ is None or item["format"] == format_)]
+    items = [item for item in await _own_rows(db, viewer) if (mode is None or item["mode"] == mode) and (format_ is None or item["format"] == format_)]
     public = [HistoryItem.model_validate(item).dump() for item in items[(page - 1) * per_page:page * per_page]]
     return page_response(public, len(items), page, per_page)
 
@@ -51,11 +58,20 @@ async def my_analytics(request: Request, db: AsyncSession = Depends(get_db), vie
     requested = read_string(request.query_params, "studentId")
     if requested and requested != viewer.user_id:
         raise forbidden("Доступна только собственная аналитика")
-    return analytics.summarize(await analytics.rows(db, viewer.user_id))
+    return analytics.summarize(await _own_rows(db, viewer))
+
+
+@router.get("/me/reference-access")
+async def my_reference_access(db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
+    """Можно ли сейчас открыть справочник (спека 005): обучающемуся запрещает задание с открытой попыткой."""
+    result = (await reference_access.access_for(db, viewer)).to_contract()
+    await db.commit()  # _expire мог закрыть попытку экзамена по лимиту времени
+    return result
 
 
 @router.get("/kb/articles", response_model=list[KbArticle], response_model_exclude_none=True)
 async def list_articles(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> list[dict[str, Any]]:
+    await reference_access.require_unlocked(db, viewer)
     group = read_string(request.query_params, "group")
     query = read_string(request.query_params, "q")
     articles = (await db.execute(select(KbArticleRow).order_by(KbArticleRow.group))).scalars().all()
@@ -69,6 +85,7 @@ async def list_articles(request: Request, db: AsyncSession = Depends(get_db), vi
 
 @router.get("/kb/articles/{article_id}", response_model=KbArticle, response_model_exclude_none=True)
 async def get_article(article_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
+    await reference_access.require_unlocked(db, viewer)
     item = await db.get(KbArticleRow, article_id)
     if item is None:
         raise not_found("Статья не найдена")

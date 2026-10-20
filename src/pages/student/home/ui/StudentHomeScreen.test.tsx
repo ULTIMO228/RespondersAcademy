@@ -120,6 +120,17 @@ function renderHome(api: StudentHomeApi) {
 }
 
 describe("главная обучающегося", () => {
+  it("профиль специалиста-112 (spec/008): в «Попытки» только режим 112", async () => {
+    render(
+      <SessionProvider user={{ ...USER, trainingProfile: "operator112" }}>
+        <StudentHomeScreen api={makeApi()} focusApi={focusApi} nowMs={NOW} />
+      </SessionProvider>,
+    );
+    const stats = await screen.findByRole("region", { name: "Мои показатели" });
+    expect(await within(stats).findByText("112: 3")).toBeInTheDocument();
+    expect(within(stats).queryByText(/ДДС:/)).not.toBeInTheDocument();
+  });
+
   it("блок «Над чем поработать» показан, когда сервер ответил, и скрыт без сервера", async () => {
     const shown = { focus: async () => ({ mode: "dds" as const, items: [], message: "Пока замечаний нет" }) };
     const { unmount } = render(
@@ -244,7 +255,7 @@ describe("главная обучающегося", () => {
 
   it("задание другого режима запускается со страницы заданий (там показываются причины отказа)", async () => {
     renderHome(
-      makeApi({ assignments: vi.fn(async () => [toView(assignment({ trainingMode: "chain" }), null)]) }),
+      makeApi({ assignments: vi.fn(async () => [toView(assignment({ trainingMode: "dds" }), null)]) }),
     );
     const lead = await screen.findByRole("region", { name: "Ближайшее задание" });
     expect(await within(lead).findByRole("link", { name: "Начать задание" })).toHaveAttribute(

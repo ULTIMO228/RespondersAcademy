@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.api.compat import (
     admin_system,
@@ -21,14 +21,16 @@ from app.api.compat import (
     sessions,
     users,
 )
+from app.api.deps import require_viewer
 
 
 def build_router() -> APIRouter:
+    """Без действующей сессии открыт только вход (`/auth/*`), остальное — 401 (ТЗ §9: защита от НСД)."""
     router = APIRouter()
     router.include_router(auth.router)
-    router.include_router(reference.router)
-    router.include_router(users.router)
     for module in (
+        reference,
+        users,
         cards,
         card_actions,
         attempts,
@@ -42,5 +44,5 @@ def build_router() -> APIRouter:
         admin_users,
         admin_system,
     ):
-        router.include_router(module.router)
+        router.include_router(module.router, dependencies=[Depends(require_viewer)])
     return router

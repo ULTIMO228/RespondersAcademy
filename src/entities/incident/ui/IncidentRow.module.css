@@ -96,6 +96,11 @@
   justify-content: center;
 }
 
+/* Номер (8 цифр) в колонке 76px: узкие отступы, чтобы он не обрезался многоточием на шрифтах шире Roboto. */
+.incident-row__cell--number {
+  padding: 0 var(--spacing-xs);
+}
+
 .incident-row__cell--operator {
   justify-content: center;
   background: var(--color-operator-cell);

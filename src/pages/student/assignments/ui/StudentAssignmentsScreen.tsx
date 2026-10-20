@@ -26,9 +26,9 @@ type StudentAssignmentsScreenProps = {
 };
 
 /**
- * `/student/assignments` — задания и экзамены обучающегося. Режимы 112 и цепочка: запуск ведёт на рабочее место
- * (`/arm/operator112`), режим ДДС — на карточку. Для цепочки start вызывается здесь, чтобы причина 409 («Вход ДДС ожидает
- * проверки…») осталась на карточке задания.
+ * `/student/assignments` — задания и экзамены обучающегося. Режим 112: запуск ведёт на рабочее место
+ * (`/arm/operator112`), режим ДДС — start здесь и переход на карточку; причина 409 остаётся на карточке задания.
+ * Старые задания chain (режим выведен 20.10.2026) показываются только для просмотра — кнопки запуска у них нет.
  */
 export function StudentAssignmentsScreen({ api = studentAssignmentsApi }: StudentAssignmentsScreenProps) {
   const router = useRouter();

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SessionProvider } from "@/entities/user";
 import { ServerRequiredError } from "@/shared/api";
-import type { Assignment, AssignmentDetail, PublicUser, StudentProfile } from "@/shared/api";
+import type { Assignment, PublicUser, StudentProfile } from "@/shared/api";
 
 import type { TeacherHomeApi } from "../api/homeApi";
 import { TeacherHomeSummary } from "./TeacherHomeSummary";
@@ -79,25 +79,6 @@ function makeApi(overrides: Partial<TeacherHomeApi> = {}): TeacherHomeApi {
         assignment({ id: "asg-none", title: "Без срока" }),
         assignment({ id: "asg-chain", title: "Цепочка", trainingMode: "chain" }),
       ]),
-    assignmentDetail: vi.fn().mockResolvedValue({
-      ...assignment({ id: "asg-chain", trainingMode: "chain" }),
-      progress: [
-        {
-          studentId: "u-5",
-          cardId: "c-1",
-          attemptId: "a1",
-          state: "submitted",
-          chainReview: { scenarioId: "ais-7", version: 2, approval: "pending_review", validation: "passed" },
-        },
-        {
-          studentId: "u-6",
-          cardId: "c-2",
-          attemptId: "a2",
-          state: "submitted",
-          chainReview: { scenarioId: "ais-8", version: 2, approval: "approved", validation: "passed" },
-        },
-      ],
-    } as AssignmentDetail),
     ...overrides,
   };
 }
@@ -142,17 +123,17 @@ describe("сводка преподавателя", () => {
     expect(screen.queryByRole("link", { name: "Без срока" })).not.toBeInTheDocument();
   });
 
-  it("задачи подтверждения: только входы ДДС в статусе «ожидает проверки», ссылка на сценарий", async () => {
+  it("блока «Задачи подтверждения» нет: цепочка 112 → ДДС выведена, старое задание chain — обычная строка сроков", async () => {
     renderSummary(makeApi());
-    const link = await screen.findByRole("link", { name: /Вход ДДС ais-7, версия 2/ });
-    expect(link).toHaveAttribute("href", "/teacher/scenarios/ais-7");
-    expect(screen.queryByRole("link", { name: /ais-8/ })).not.toBeInTheDocument();
+    await screen.findByText("Скорый срок");
+    expect(screen.queryByLabelText("Задачи подтверждения")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Вход ДДС/)).not.toBeInTheDocument();
   });
 
   it("без сервера каждый блок показывает «нужен сервер» независимо", async () => {
     const down = vi.fn().mockRejectedValue(new ServerRequiredError());
     renderSummary(makeApi({ listStudents: down, listAssignments: down }));
     const notices = await screen.findAllByText("Раздел требует подключения к серверу тренажёра");
-    expect(notices).toHaveLength(3);
+    expect(notices).toHaveLength(2);
   });
 });

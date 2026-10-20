@@ -32,6 +32,7 @@ def _transcript(report: str) -> list[dict[str, str]]:
 
 
 async def test_call_reply_contract(client: AsyncClient):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     answer = await client.post("/calls/reply", json={"toNumber": "101", "turn": "answer"})
     assert answer.status_code == 200, answer.text
     body = answer.json()
@@ -57,6 +58,7 @@ async def test_call_reply_contract(client: AsyncClient):
 
 
 async def test_call_reply_prefers_ai_gateway(client: AsyncClient):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     class ExternalGateway(ai_gateway.LocalAiGateway):
         def call_reply(self, to_number, turn, context):
             assert context["number"]["number"] == to_number and "reference" in context
@@ -71,7 +73,7 @@ async def test_call_reply_prefers_ai_gateway(client: AsyncClient):
 
 
 async def test_card_call_recorded_and_report_checked(client: AsyncClient):
-    session = await login_as(client, "student")
+    session = await login_as(client, "student2")  # spec/008: карточка ДДС — petrova, ivanov — специалист-112
     student_id = session["userId"]
 
     # До открытия карточки попытки нет — вызов не записывается.

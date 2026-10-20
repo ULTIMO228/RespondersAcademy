@@ -6,8 +6,9 @@
 import { v1ApiBaseUrl, v1ApiClient } from "../v1-client";
 import type {
   CardDraft,
-  ChainSubmitReview,
   IncidentCard,
+  Journal112MatchesResponse,
+  Journal112Response,
   NotificationListPreview,
   NotificationListResponse,
   OperatorAttempt,
@@ -28,8 +29,6 @@ export interface SubmitAttemptResult {
   card: IncidentCard;
   /** Совпадает с id попытки. */
   evaluationId: string;
-  /** Только задание chain: вход ДДС ждёт подтверждения преподавателя. */
-  chainReview?: ChainSubmitReview;
 }
 
 const attemptPath = (attemptId: string) => `/operator112/attempts/${encodeURIComponent(attemptId)}`;
@@ -72,6 +71,19 @@ export function submitAttempt(attemptId: string, draft: CardDraft): Promise<Subm
 /** GET …/evaluation: до передачи карточки сервер отвечает 404. */
 export function getOperatorEvaluation(attemptId: string, signal?: AbortSignal): Promise<OperatorEvaluation> {
   return v1ApiClient.get<OperatorEvaluation>(`${attemptPath(attemptId)}/evaluation`, undefined, signal);
+}
+
+/**
+ * GET /operator112/journal?assignmentId=: журнал «Поиск происшествий» ученика — фон задания, его карточки режима 112
+ * и вызов в очереди (`queued`). Чужое задание — 404, учётка без профиля 112 — 403.
+ */
+export function journal(assignmentId: string, signal?: AbortSignal): Promise<Journal112Response> {
+  return v1ApiClient.get<Journal112Response>("/operator112/journal", { assignmentId }, signal);
+}
+
+/** GET …/matches: карточки журнала, совпавшие с вызовом по АОН или адресу; чужая попытка — 403. */
+export function matches(attemptId: string, signal?: AbortSignal): Promise<Journal112MatchesResponse> {
+  return v1ApiClient.get<Journal112MatchesResponse>(`${attemptPath(attemptId)}/matches`, undefined, signal);
 }
 
 /** GET /streets: улицы справочника; запрос короче 3 символов не уходит на сервер. */

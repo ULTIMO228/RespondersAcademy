@@ -117,11 +117,13 @@ async def _demo_path(client: AsyncClient) -> None:
     assert any(s["id"] == session_id and s["studentIds"] == [new_student_id] for s in mine.json())
     first = per_student[new_student_id][0]
     attempt_new = await _work_card(client, first["cardId"], new_student_id, first["issuedAt"], touch_card_runtime=True)
-    client.cookies.clear()
+    partner = next(u for u in group_students if u["id"] == partner_id)
+    await _as_user(client, partner["login"], "student112", partner["armNumber"])  # API требует вход (ТЗ §9)
     second = per_student[partner_id][0]
     attempt_partner = await _work_card(client, second["cardId"], partner_id, second["issuedAt"], touch_card_runtime=False)
 
     # 5. Преподаватель: лента, монитор, завершение и отчёт занятия.
+    client.cookies.clear()
     await login_as(client, "teacher")
     feed = await client.get(f"/sessions/{session_id}/feed", params={"at": _now(20)})
     kinds = {(e["kind"], e["studentId"]) for e in feed.json()["events"]}

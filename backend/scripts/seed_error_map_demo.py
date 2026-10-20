@@ -118,6 +118,7 @@ RULE_FIELDS: dict[str, dict[str, Any]] = {
     "op-s2": {"flag": "Пострадавшие", "reason": "есть пострадавший"},
     "op-s3": {"flag": "ЧС"},
     "op-f2": {"services": "МЧС"},
+    "op-f3": {"services": "ФСО"},
 }
 
 STUDENT_NAMES: tuple[str, ...] = (

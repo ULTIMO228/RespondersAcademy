@@ -1,4 +1,5 @@
 from app.services.cards_query import card_region, filter_cards, normalize
+from tests.conftest import login_as
 
 
 def _card(**overrides):
@@ -46,6 +47,7 @@ def test_text_and_list_filters():
 
 
 async def test_cards_endpoint_contract(client):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     page = await client.get("/cards", params={"page": 1, "perPage": 10, "sort": "-createdAt"})
     assert page.status_code == 200
     body = page.json()
@@ -69,6 +71,7 @@ async def test_cards_endpoint_contract(client):
 
 
 async def test_card_details(client):
+    await login_as(client, "student")  # API требует вход (ТЗ §9)
     fixture = await client.get("/cards/card-881412")
     assert fixture.status_code == 200 and fixture.json()["kind"] == "fixture"
     assert set(fixture.json()["runtime"]) == {"statusEvents", "workLines", "reminders", "sms"}

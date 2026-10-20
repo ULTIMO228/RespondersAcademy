@@ -15,7 +15,7 @@ const ROW_ICON_WIDTH = 32;
 const ROW_ICON_HEIGHT = 31;
 
 type TextCellProps = {
-  modifier?: "center" | "operator";
+  modifier?: "center" | "operator" | "number";
   children: ReactNode;
 };
 

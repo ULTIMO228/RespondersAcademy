@@ -52,12 +52,39 @@ export type {
   ErrorMapTypicalError,
   HeadlineKind,
 } from "./types";
+export { getStudentRating, getStudentStats } from "./endpoints";
+export {
+  buildProblemReportForm,
+  createProblemReport,
+  listTeacherProblemReports,
+  markProblemReportRead,
+  problemReportAttachmentUrl,
+} from "./endpoints";
+export type { ProblemReportDraft } from "./endpoints";
+export type { ProblemReport, ProblemReportList } from "./types";
+export type { StudentRatingQuery, StudentStatsQuery } from "./endpoints";
+export type {
+  RatingGroup,
+  RatingMode,
+  RatingNorms,
+  RatingPeriod,
+  StudentRatingResponse,
+  StudentRatingRow,
+  StudentStats,
+  StudentStatsAttempt,
+  StudentStatsByMode,
+  StudentStatsPoint,
+  StudentStatsSummary,
+} from "./types";
 export { acceptRecommendation, getAnalytics, getHistory, getKbArticle, getMe } from "./endpoints";
-export { listKbArticles, listRecommendations } from "./endpoints";
+export { getReferenceAccess, listKbArticles, listRecommendations } from "./endpoints";
+export type { ReferenceAccess } from "./types";
 export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } from "./endpoints";
 export { fetchTicketAudioFile, getNotificationList, getOperatorEvaluation } from "./endpoints";
 export {
   getTicketAudio,
+  journal,
+  matches,
   searchStreets,
   sendAttemptEvent,
   submitAttempt,
@@ -123,6 +150,7 @@ export type { IncidentCard, IncidentCardId, IncidentVictims, InternalNumber, Lab
 export type { ChangePasswordRequest, LoginRequest, NotificationAddedBy } from "./types";
 export type { NotificationEntry as NotificationEntryContract, NotificationMode, PageQuery } from "./types";
 export type { PageResponse, PhoneCall, PublicUser, QueryParams, QueryScalar, QueryValue } from "./types";
+export type { TrainingProfile } from "./types";
 export type { ReferenceData, Report as ReportContract, ReportCharts, ReportError } from "./types";
 export type { ReportExportFormat, ReportGrammarError, ReportStageAttempt, ReportStudent } from "./types";
 export type { EvaluationOverrideRequest, ReportFeedback, ReportFeedbackRequest } from "./types";
@@ -211,8 +239,7 @@ export type {
   AssignmentRandomRule,
   AssignmentScenarioVersion,
   AssignmentState,
-  ChainReview,
-  ChainSubmitReview,
+  AssignableMode,
   HistoryItem,
   HistoryQuery,
   GroupInsight,
@@ -245,15 +272,20 @@ export type {
 } from "./types";
 export type {
   AddressSource,
+  CardChannel,
   CardDraft,
   CardDraftAddress,
   CardDraftApplicant,
   CardDraftCasualties,
   CardDraftEmergency,
+  CardDraftLink,
   CardDraftNotification,
+  CardOutcome,
   CardDraftPhones,
   CardDraftWhat,
   FieldDiff,
+  Journal112Response,
+  Journal112Row,
   NotificationAdder,
   NotificationListItem,
   NotificationListPreview,
@@ -271,3 +303,7 @@ export type {
   TicketAudio,
   TicketAudioStatus,
 } from "./types";
+export { liveCallApi } from "./endpoints/live-call";
+export type { LiveCallRecord, LiveTranscriptLine } from "./endpoints/live-call";
+export { realtimeCallApi } from "./endpoints/realtime-call";
+export type { RealtimeEvent, RealtimeConnection } from "./endpoints/realtime-call";

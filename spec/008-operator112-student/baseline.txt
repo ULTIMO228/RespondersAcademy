@@ -1,0 +1,5 @@
+Baseline 2026-10-20 (до изменений 008)
+pytest: 3 failed, 958 passed, 2 skipped
+FAILED tests/contract/test_v1_operator112.py::test_ready_applicant_audio_is_playable_from_recordings[wav-RIFFtest-applicant-audio-audio/wav]
+FAILED tests/contract/test_v1_operator112.py::test_ready_applicant_audio_is_playable_from_recordings[mp3-ID3test-applicant-audio-audio/mpeg]
+FAILED tests/unit/test_ai_dataset_build.py::test_release_invariants - Asserti...

@@ -2,6 +2,8 @@
 const DEFAULT_MOCK_API_BASE_URL = "/api/mock";
 
 export const APP_ENV = {
+  /** Финал ЛЦТ: живой разговор в тренировках, записи остаются при false. */
+  liveCallsEnabled: process.env.NEXT_PUBLIC_LIVE_CALLS_ENABLED === "true",
   /** Демо-режим: подсказки тестовых учёток на /login (NEXT_PUBLIC_DEMO_MODE=false — скрыть). */
   isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE !== "false",
   /** Базовый URL мок-слоя; замена бэкенда = смена этой переменной (контракты не меняются). */

@@ -22,7 +22,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Final, Literal
+from typing import Any, Final, Literal, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -616,12 +616,16 @@ async def my_focus(db: AsyncSession, viewer: Viewer) -> MyFocusResponse:
     уровнем «иногда» и «часто», по убыванию доли ошибок; подсказка — нейтральный шаблон без оценок.
     """
     settings = await read_error_map_settings(db)
-    by_mode = {
-        mode: await load_attempts(db, "", mode, FOCUS_PERIOD, student_id=viewer.user_id) for mode in ("dds", "operator112")
-    }
+    # spec/008: курсанту с профилем режима — только его режим.
+    student = await db.get(User, viewer.user_id)
+    profile = cast(Literal["dds", "operator112"] | None, student.training_profile if student else None)
+    modes: tuple[Literal["dds", "operator112"], ...] = (profile,) if profile else ("dds", "operator112")
+    by_mode = {mode: await load_attempts(db, "", mode, FOCUS_PERIOD, student_id=viewer.user_id) for mode in modes}
     if not any(by_mode.values()):
         return MyFocusResponse(mode=None, items=[], message=FOCUS_NEED_MORE)
-    mode: Literal["dds", "operator112"] = "operator112" if len(by_mode["operator112"]) > len(by_mode["dds"]) else "dds"
+    mode: Literal["dds", "operator112"] = profile or (
+        "operator112" if len(by_mode["operator112"]) > len(by_mode["dds"]) else "dds"
+    )
     results = compute_stage_levels(by_mode[mode], mode, settings, min_attempts=settings.min_attempts_student)
     if all(result.level == "noData" for result in results):
         return MyFocusResponse(mode=mode, items=[], message=FOCUS_NEED_MORE)

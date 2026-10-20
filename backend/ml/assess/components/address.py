@@ -11,11 +11,13 @@ import re
 from ml.assess import rules
 from ml.assess.types import AssessContext, ComponentResult
 from ml.nlp import address as address_nlp
+from ml.nlp import semantic
 
 NAME = "address"
 ADDRESS_KEY = re.compile(r"address|addr|street|адрес|улиц", re.IGNORECASE)
 ADDRESS_VALUE = re.compile(r"\b(ул\.?|улица|пер\.?|переулок|просп\.?|проспект|пр-т|проезд|шоссе|ш\.|бульвар|б-р|наб\.?|набережная|площадь|пл\.)\s", re.IGNORECASE)
 SCORES = {"exact": 1.0, "typo": 0.7, "lookalike": 0.4, "unknown": 0.5, "mismatch": 0.0}
+LEXICAL_MIN_COVERAGE = 0.5  # порог описательного адреса, как в режиме 112 (operator112.address_check)
 
 
 def address_fields(entered: dict[str, str]) -> dict[str, str]:
@@ -47,7 +49,12 @@ def run(ctx: AssessContext) -> ComponentResult:
         elif check.kind == "mismatch":
             result.errors.append(rules.ADDRESS_MISMATCH.error(step=f"field:{field}", entered=entered_name, expected=expected_name))
         elif check.kind == "unknown":
-            result.errors.append(rules.ADDRESS_UNKNOWN.error(step=f"field:{field}", entered=check.entered.query))
+            # Эталон вне справочника (описательный адрес): сверка по основам слов, как в режиме 112.
+            if semantic.lexical_coverage(expected, value) >= LEXICAL_MIN_COVERAGE:
+                scores[-1] = SCORES["exact"]
+            else:
+                result.errors.append(rules.ADDRESS_MISMATCH.error(step=f"field:{field}", entered=value, expected=expected))
+                scores[-1] = SCORES["mismatch"]
         result.details[field] = {"kind": check.kind, "ratio": check.ratio, "expected": expected_name}
     result.score = sum(scores) / len(scores)
     return result

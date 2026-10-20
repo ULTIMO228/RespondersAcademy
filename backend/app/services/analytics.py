@@ -13,10 +13,15 @@ from app.models.card import IncidentCard
 from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSession
 
 
-async def rows(db: AsyncSession, student_id: str | None = None) -> list[dict[str, Any]]:
+async def rows(db: AsyncSession, student_id: str | None = None, *, student_ids: set[str] | None = None) -> list[dict[str, Any]]:
+    """Оценённые попытки; `student_ids` — группа обучающихся одним запросом (рейтинг, фича 006)."""
     query = select(Attempt, Evaluation).join(Evaluation, Evaluation.attempt_id == Attempt.id)
     if student_id:
         query = query.where(Attempt.student_id == student_id)
+    if student_ids is not None:
+        if not student_ids:
+            return []
+        query = query.where(Attempt.student_id.in_(student_ids))
     pairs = (await db.execute(query)).all()
     if not pairs:
         return []
@@ -38,7 +43,7 @@ async def rows(db: AsyncSession, student_id: str | None = None) -> list[dict[str
         assignment = assignments.get(link.assignment_id) if link else None
         score = overrides[attempt.id].score if attempt.id in overrides else evaluation.total_score
         result.append({
-            "attemptId": attempt.id, "studentId": attempt.student_id, "mode": attempt.mode,
+            "attemptId": attempt.id, "studentId": attempt.student_id, "mode": attempt.mode, "sessionId": attempt.session_id or None,
             "format": assignment.format if assignment else (session.format if session else "training"),
             "cardId": attempt.card_id, "title": card.summary if card else attempt.card_id,
             "group": card.group if card else "", "score": score, "at": evaluation.generated_at,

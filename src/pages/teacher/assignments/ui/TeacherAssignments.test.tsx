@@ -106,7 +106,7 @@ describe("деталь назначения", () => {
         cardId: "c-010",
         attemptId: "att-1",
         state: "submitted",
-        chainReview: { scenarioId: "ais-001", version: 2, approval: "pending_review", validation: "passed" },
+        score: 64,
       },
       {
         studentId: "u-006",
@@ -119,7 +119,7 @@ describe("деталь назначения", () => {
     ],
   };
 
-  it("прогресс по обучающимся; для цепочки — ссылка на сценарий и статус подтверждения", async () => {
+  it("старая цепочка (режим выведен 20.10.2026) открывается на чтение: прогресс и баллы без подтверждения этапа ДДС", async () => {
     render(
       <TeacherAssignmentDetailScreen
         assignmentId="asg-001"
@@ -128,11 +128,9 @@ describe("деталь назначения", () => {
     );
     const table = await screen.findByRole("table", { name: "Прогресс по обучающимся" });
     expect(within(table).getByText("Иванов Иван")).toBeInTheDocument();
-    expect(within(table).getByRole("link", { name: /ais-001, версия 2/ })).toHaveAttribute(
-      "href",
-      "/teacher/scenarios/ais-001",
-    );
-    expect(within(table).getByText("ожидает подтверждения")).toBeInTheDocument();
+    expect(within(table).getByText("64")).toBeInTheDocument();
+    expect(within(table).queryByText(/Вход ДДС|ожидает подтверждения/)).not.toBeInTheDocument();
+    expect(screen.getByText(/доступны только для\s+просмотра/)).toBeInTheDocument();
     expect(within(table).getByText("88")).toBeInTheDocument();
     expect(within(table).getByText("Сдал")).toBeInTheDocument();
   });

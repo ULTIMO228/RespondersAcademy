@@ -37,6 +37,7 @@ async def _draft_body(client) -> dict:
 
 async def test_list_and_filters(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     everything = await client.get("/scenarios")
     assert everything.status_code == 200 and len(everything.json()) >= 36
     assert everything.json()[0]["id"] == "s-001" and "validationReport" not in everything.json()[0]
@@ -55,6 +56,7 @@ async def test_list_and_filters(client):
 
 async def test_create_get_patch_delete(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     body = await _draft_body(client)
     assert (await client.post("/scenarios", json={**body, "title": " "})).status_code == 400
     assert (await client.post("/scenarios", json={**body, "cardIds": ["c-999"]})).status_code == 400
@@ -94,6 +96,7 @@ async def test_create_get_patch_delete(client):
     await login_as(client, "admin")
     assert (await client.patch(f"/scenarios/{scenario_id}", json={"title": "Правка администратора", "updatedBy": TEACHER_ID})).status_code == 200
     client.cookies.clear()
+    await login_as(client, "teacher")
 
     # Удаление: шаблон и назначенный в занятие → 409 conflict; черновик — удаляется и исчезает.
     blocked = await client.delete(f"/scenarios/{TEMPLATE_ID}", params={"deletedBy": TEACHER_ID})
@@ -111,6 +114,7 @@ async def test_create_get_patch_delete(client):
 
 async def test_validation_workflow(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     created = await client.post("/scenarios", json=await _draft_body(client))
     scenario_id = created.json()["id"]
 
@@ -143,11 +147,15 @@ async def test_validation_workflow(client):
     await login_as(client, "student")
     assert (await validate({"action": "submit", "reviewedBy": TEACHER_ID})).status_code == 403
     client.cookies.clear()
+    assert (await client.post("/scenarios/s-999/validate", json={"action": "submit", "reviewedBy": TEACHER_ID})).status_code == 401
+    await login_as(client, "teacher")
     assert (await client.post("/scenarios/s-999/validate", json={"action": "submit", "reviewedBy": TEACHER_ID})).status_code == 404
+    client.cookies.clear()
 
 
 async def test_generate_is_idempotent_and_validated(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     assert (await client.post("/scenarios/generate", json={"category": "  ", "requestedBy": TEACHER_ID})).status_code == 400
     assert (await client.post("/scenarios/generate", json={"category": CATEGORY, "requestedBy": STUDENT_ID})).status_code == 400
     assert (await client.post("/scenarios/generate", json={"category": "__неизвестная категория__", "requestedBy": TEACHER_ID})).status_code == 400
@@ -193,6 +201,7 @@ async def test_generate_is_idempotent_and_validated(client):
 
 async def test_training_cards(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     cards = (await client.get("/training-cards")).json()
     assert len(cards) >= 96 and cards[0]["id"] == "c-001"
     assert all(isinstance(c["group"], str) and c["expectedTags"] is not None for c in cards)
@@ -200,6 +209,7 @@ async def test_training_cards(client):
 
 async def test_materials(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     for name in ("Регламент.docx", "Билеты.pdf", "Запись.mp3"):
         response = await client.post("/materials", json={"name": name, "uploadedBy": TEACHER_ID})
         assert response.status_code == 201, response.text
@@ -222,6 +232,7 @@ async def test_materials(client):
 
 async def test_grammar_check(client):
     client.cookies.clear()
+    await login_as(client, "teacher")  # API требует вход (ТЗ §9)
     response = await client.post("/grammar-check", json={"text": "Сообщение пренято, бригада направлена", "field": "dispatcherAction"})
     assert response.status_code == 200
     body = response.json()

@@ -113,6 +113,7 @@ describe("сборка тела запроса", () => {
       group: "ДДС-01",
       service: "ДДС района Зюзино",
       assignedGroups: undefined,
+      trainingProfile: null,
     });
     expect(toCreateRequest(TEACHER, ADMIN_ID)).toMatchObject({
       role: "teacher",
@@ -124,6 +125,16 @@ describe("сборка тела запроса", () => {
       service: undefined,
       assignedGroups: undefined,
     });
+  });
+
+  it("профиль режима (spec/008): у обучающегося уходит значение или null, у других ролей — не отправляется", () => {
+    expect(toCreateRequest({ ...STUDENT, trainingProfile: "operator112" }, ADMIN_ID).trainingProfile).toBe(
+      "operator112",
+    );
+    expect(toUpdateRequest({ ...STUDENT, trainingProfile: "" }, ADMIN_ID).trainingProfile).toBeNull();
+    expect(
+      toUpdateRequest({ ...STUDENT, role: "teacher", trainingProfile: "dds" }, ADMIN_ID).trainingProfile,
+    ).toBeUndefined();
   });
 
   it("toUpdateRequest не содержит роли (смена роли — отдельное действие T4.1-08)", () => {
@@ -139,7 +150,8 @@ describe("сборка тела запроса", () => {
       armNumber: 1,
       isActive: true,
       group: "ДДС-01",
-      service: "ДДС района Чертаново Южное",
+      service: "ЦОВ системы-112",
+      trainingProfile: "operator112",
     };
     expect(toFormValues(user)).toEqual({
       fullName: "Иванов Сергей Петрович",
@@ -148,8 +160,9 @@ describe("сборка тела запроса", () => {
       role: "student",
       armNumber: "1",
       group: "ДДС-01",
-      service: "ДДС района Чертаново Южное",
+      service: "ЦОВ системы-112",
       assignedGroups: [],
+      trainingProfile: "operator112",
     });
   });
 });

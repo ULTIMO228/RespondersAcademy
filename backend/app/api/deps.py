@@ -153,10 +153,12 @@ async def require_admin_actor(db: AsyncSession, viewer: Viewer | None, admin_id:
 async def require_teacher_actor(db: AsyncSession, viewer: Viewer | None, user_id: object, field: str) -> User:
     """Преподаватель-автор действия по id из тела/query (как в моке: 400, если это не преподаватель).
 
-    При наличии сессии: обучающийся → 403; преподаватель может действовать только от своего
+    Без сессии → 401; обучающийся → 403; преподаватель может действовать только от своего
     имени → иначе 403; администратор — без ограничений.
     """
-    if viewer is not None and viewer.role not in ("teacher", "admin"):
+    if viewer is None:
+        raise unauthorized(SESSION_REQUIRED_MESSAGE)
+    if viewer.role not in ("teacher", "admin"):
         raise forbidden("Действие доступно преподавателю и администратору")
     user = await db.get(User, user_id) if isinstance(user_id, str) and user_id else None
     if user is None or user.role != "teacher":

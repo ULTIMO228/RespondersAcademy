@@ -18,10 +18,15 @@ from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("JWT_SECRET", secrets.token_urlsafe(48))
 
-from app.config import get_settings
-from app.db.session import configure_engine, get_sessionmaker
-from app.seed.load import run_seed
-from app.services import reference as reference_service
+from app.config import Settings, get_settings
+
+# Локальный backend/.env разработчика (ключи, AI_PROVIDER=polza, живые звонки) тестам не нужен:
+# иначе прогон уходит во внешние платные API. До первого get_settings().
+Settings.model_config["env_file"] = None
+
+from app.db.session import configure_engine, get_sessionmaker  # noqa: E402
+from app.seed.load import run_seed  # noqa: E402
+from app.services import reference as reference_service  # noqa: E402
 
 os.environ.setdefault("ML_WARMUP", "0")  # get_settings() ещё не вызывался: модели грузятся лениво там, где нужны тесту
 os.environ.setdefault("VAR_DIR", tempfile.mkdtemp(prefix="arm112-test-var-"))  # готовые демо-WAV из var/audio тестам не мешают
@@ -31,7 +36,10 @@ os.environ.setdefault("TTS_ENABLED", "0")  # аудио билетов в тес
 DEMO_USERS = {
     "student": {"login": "ivanov", "password": "student112", "armNumber": 1},
     "student2": {"login": "petrova", "password": "student112", "armNumber": 2},
+    # spec/008: ivanov — специалист-112; для режима ДДС в тестах — petrova, «чужой» курсант ДДС — sidorova.
+    "student3": {"login": "sidorova", "password": "student112", "armNumber": 3},
     "teacher": {"login": "morozova", "password": "teacher112", "armNumber": 21},
+    "teacher2": {"login": "kovalev", "password": "teacher112", "armNumber": 22},
     "admin": {"login": "admin", "password": "admin112", "armNumber": 24},
     "blocked": {"login": "egorov", "password": "student112", "armNumber": 6},
 }

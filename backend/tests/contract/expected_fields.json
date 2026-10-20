@@ -142,7 +142,8 @@
    "optional": [
     "group",
     "service",
-    "assignedGroups"
+    "assignedGroups",
+    "trainingProfile"
    ],
    "extends": [
     "AdminUserRoleFields"
@@ -174,7 +175,8 @@
    "optional": [
     "group",
     "service",
-    "assignedGroups"
+    "assignedGroups",
+    "trainingProfile"
    ],
    "extends": []
   },
@@ -187,6 +189,7 @@
     "group",
     "service",
     "assignedGroups",
+    "trainingProfile",
     "fullName",
     "login",
     "armNumber",
@@ -483,7 +486,8 @@
     "maxGrammarErrors",
     "workMessagesEnabled",
     "workMessageIntervalsSec",
-    "adaptive"
+    "adaptive",
+    "referenceAllowed"
    ],
    "extends": []
   },
@@ -497,8 +501,7 @@
    ],
    "optional": [
     "score",
-    "passed",
-    "chainReview"
+    "passed"
    ],
    "extends": []
   },
@@ -660,7 +663,12 @@
     "emergency",
     "notificationList"
    ],
-   "optional": [],
+   "optional": [
+    "channel",
+    "incidents",
+    "links",
+    "outcome"
+   ],
    "extends": []
   },
   "CardDraftAddress": {
@@ -674,7 +682,20 @@
     "descriptive",
     "source"
    ],
-   "optional": [],
+   "optional": [
+    "country",
+    "subject",
+    "locality",
+    "object",
+    "korpus",
+    "building",
+    "flat",
+    "entrance",
+    "floor",
+    "code",
+    "lat",
+    "lon"
+   ],
    "extends": []
   },
   "CardDraftApplicant": {
@@ -701,6 +722,15 @@
    "required": [
     "chs",
     "chp"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "CardDraftLink": {
+   "file": "operator112.ts",
+   "required": [
+    "cardId",
+    "primary"
    ],
    "optional": [],
    "extends": []
@@ -956,27 +986,6 @@
    "optional": [
     "operator"
    ],
-   "extends": []
-  },
-  "ChainReview": {
-   "file": "assignments.ts",
-   "required": [
-    "scenarioId",
-    "version",
-    "approval",
-    "validation"
-   ],
-   "optional": [],
-   "extends": []
-  },
-  "ChainSubmitReview": {
-   "file": "assignments.ts",
-   "required": [
-    "scenarioId",
-    "version",
-    "cardId"
-   ],
-   "optional": [],
    "extends": []
   },
   "ChangePasswordRequest": {
@@ -1509,6 +1518,47 @@
    "optional": [],
    "extends": []
   },
+  "Journal112MatchesResponse": {
+   "file": "operator112.ts",
+   "required": [
+    "matches"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "Journal112Response": {
+   "file": "operator112.ts",
+   "required": [
+    "rows",
+    "total"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "Journal112Row": {
+   "file": "operator112.ts",
+   "required": [
+    "cardId",
+    "number",
+    "createdAt",
+    "operator",
+    "arm",
+    "whatHappened",
+    "injured",
+    "status",
+    "address",
+    "description",
+    "linked",
+    "chs",
+    "checked",
+    "isOwn"
+   ],
+   "optional": [
+    "lockedBy",
+    "queued"
+   ],
+   "extends": []
+  },
   "KbArticle": {
    "file": "kb.ts",
    "required": [
@@ -1671,7 +1721,10 @@
     "assignmentId",
     "hints",
     "audio",
-    "cardSnapshot"
+    "cardSnapshot",
+    "channel",
+    "smsText",
+    "repeatOf"
    ],
    "extends": []
   },
@@ -1782,6 +1835,32 @@
    ],
    "extends": []
   },
+  "ProblemReport": {
+   "file": "problem-report.ts",
+   "required": [
+    "id",
+    "studentId",
+    "studentName",
+    "text",
+    "hasAttachment",
+    "createdAt"
+   ],
+   "optional": [
+    "groupId",
+    "attemptId",
+    "incidentNumber",
+    "readAt"
+   ],
+   "extends": []
+  },
+  "ProblemReportList": {
+   "file": "problem-report.ts",
+   "required": [
+    "items"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ProfileMappingRow": {
    "file": "teacher.ts",
    "required": [
@@ -1818,8 +1897,27 @@
    "optional": [
     "group",
     "service",
+    "trainingProfile",
     "assignedGroups"
    ],
+   "extends": []
+  },
+  "RatingGroup": {
+   "file": "student-rating.ts",
+   "required": [
+    "groupId",
+    "studentCount"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "RatingNorms": {
+   "file": "student-rating.ts",
+   "required": [
+    "reactionMs",
+    "processingMs"
+   ],
+   "optional": [],
    "extends": []
   },
   "Recommendation": {
@@ -1845,6 +1943,17 @@
     "ruleId"
    ],
    "optional": [],
+   "extends": []
+  },
+  "ReferenceAccess": {
+   "file": "kb.ts",
+   "required": [
+    "allowed"
+   ],
+   "optional": [
+    "assignmentId",
+    "message"
+   ],
    "extends": []
   },
   "ReferenceData": {
@@ -2366,12 +2475,13 @@
     "critical",
     "major",
     "minor",
-    "byCategory",
     "byRule",
     "byDetector",
     "byStudent"
    ],
-   "optional": [],
+   "optional": [
+    "byCategory"
+   ],
    "extends": []
   },
   "SessionFeedQuery": {
@@ -2478,6 +2588,110 @@
     "strongerMode",
     "typicalErrors",
     "recommendations"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentRatingResponse": {
+   "file": "student-rating.ts",
+   "required": [
+    "groups",
+    "groupId",
+    "period",
+    "mode",
+    "norms",
+    "minAttempts",
+    "rows"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentRatingRow": {
+   "file": "student-rating.ts",
+   "required": [
+    "attempts",
+    "averageScore",
+    "averageReactionMs",
+    "averageProcessingMs",
+    "withinNormsShare",
+    "studentId",
+    "fullName",
+    "groupId",
+    "ratingOperator112",
+    "ratingDds",
+    "enoughData"
+   ],
+   "optional": [],
+   "extends": [
+    "StudentStatsSummary"
+   ]
+  },
+  "StudentStats": {
+   "file": "student-rating.ts",
+   "required": [
+    "studentId",
+    "fullName",
+    "groupId",
+    "period",
+    "mode",
+    "norms",
+    "summary",
+    "byMode",
+    "dynamics",
+    "attempts"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentStatsAttempt": {
+   "file": "student-rating.ts",
+   "required": [
+    "attemptId",
+    "at",
+    "mode",
+    "score",
+    "reactionMs",
+    "processingMs",
+    "sessionId",
+    "format",
+    "title",
+    "passed"
+   ],
+   "optional": [],
+   "extends": [
+    "StudentStatsPoint"
+   ]
+  },
+  "StudentStatsByMode": {
+   "file": "student-rating.ts",
+   "required": [
+    "operator112",
+    "dds"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentStatsPoint": {
+   "file": "student-rating.ts",
+   "required": [
+    "attemptId",
+    "at",
+    "mode",
+    "score",
+    "reactionMs",
+    "processingMs"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentStatsSummary": {
+   "file": "student-rating.ts",
+   "required": [
+    "attempts",
+    "averageScore",
+    "averageReactionMs",
+    "averageProcessingMs",
+    "withinNormsShare"
    ],
    "optional": [],
    "extends": []
@@ -2758,6 +2972,7 @@
    "optional": [
     "group",
     "service",
+    "trainingProfile",
     "assignedGroups"
    ],
    "extends": []

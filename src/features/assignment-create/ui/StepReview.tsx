@@ -1,6 +1,7 @@
 import { MODE_TITLES, formatLimit } from "@/entities/assignment";
 import { Alert, Card, Tag } from "@/shared/ui/platform";
 
+import { referenceAllowedOf } from "../model/types";
 import type { WizardDraft } from "../model/types";
 
 import styles from "./AssignmentWizard.module.css";
@@ -9,11 +10,13 @@ type StepReviewProps = {
   draft: WizardDraft;
   /** Имена выбранных обучающихся — для подтверждающего шага. */
   studentNames: string[];
+  /** spec/008: выбранные, но пропущенные из-за профиля режима. */
+  skippedNames?: string[];
   /** Сообщение сервера, если создание отклонено (400/403/409): введённое сохраняется. */
   serverError: string | null;
 };
 
-export function StepReview({ draft, studentNames, serverError }: StepReviewProps) {
+export function StepReview({ draft, studentNames, skippedNames = [], serverError }: StepReviewProps) {
   const isExam = draft.format === "exam";
   return (
     <div className={styles.step}>
@@ -42,6 +45,12 @@ export function StepReview({ draft, studentNames, serverError }: StepReviewProps
             <dt>Обучающиеся ({studentNames.length})</dt>
             <dd>{studentNames.join(", ")}</dd>
           </div>
+          {skippedNames.length > 0 ? (
+            <div>
+              <dt>Пропущены (профиль режима)</dt>
+              <dd>{skippedNames.join(", ")}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Билеты</dt>
             <dd>
@@ -67,6 +76,10 @@ export function StepReview({ draft, studentNames, serverError }: StepReviewProps
               <dd>{draft.hintsEnabled ? `включены, пауза ${draft.hintIdleSec} сек` : "выключены"}</dd>
             </div>
           )}
+          <div>
+            <dt>Справочник</dt>
+            <dd>{referenceAllowedOf(draft) ? "доступен" : "недоступен"}</dd>
+          </div>
           <div>
             <dt>Лимит на билет</dt>
             <dd>{draft.timeLimitSec.trim() ? formatLimit(Number(draft.timeLimitSec)) : "не задан"}</dd>

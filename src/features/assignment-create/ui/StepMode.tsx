@@ -1,5 +1,6 @@
 import { MODE_TITLES } from "@/entities/assignment";
-import type { AssignmentFormat, TrainingMode } from "@/shared/api";
+import type { AssignableMode, AssignmentFormat, PublicUser } from "@/shared/api";
+import { PROFILE_GENITIVE } from "@/shared/config";
 import { Alert, Field } from "@/shared/ui/platform";
 
 import { CheckRow } from "./CheckRow";
@@ -8,23 +9,50 @@ import styles from "./AssignmentWizard.module.css";
 
 type StepModeProps = {
   title: string;
-  trainingMode: TrainingMode;
+  trainingMode: AssignableMode;
   format: AssignmentFormat;
   onTitle: (value: string) => void;
-  onMode: (mode: TrainingMode) => void;
+  onMode: (mode: AssignableMode) => void;
   onFormat: (format: AssignmentFormat) => void;
+  /** Выбранные курсанты, чей профиль режима не допускает выбранный режим (spec/008): в задание не попадут. */
+  skipped?: PublicUser[];
+  /** Ошибка шага: все выбранные несовместимы с режимом. */
+  error?: string;
 };
 
-const MODES: TrainingMode[] = ["operator112", "dds", "chain"];
-const MODE_HINTS: Record<TrainingMode, string> = {
+/** Цепочка 112 → ДДС выведена 20.10.2026 (spec/007 Clarifications): задания 112 и ДДС назначаются отдельно. */
+const MODES: AssignableMode[] = ["operator112", "dds"];
+const MODE_HINTS: Record<AssignableMode, string> = {
   operator112: "Обучающийся принимает вызов по аудиозаписи и заполняет карточку.",
   dds: "Обучающийся отрабатывает готовую карточку как диспетчер ДДС.",
-  chain: "Этап A (приём вызова) → этап B (ДДС). Вход ДДС проверяет и подтверждает преподаватель.",
 };
 
-export function StepMode({ title, trainingMode, format, onTitle, onMode, onFormat }: StepModeProps) {
+/** «Иванов Сергей Петрович» → «Иванов С. П.» — как в серверном сообщении отказа. */
+export function shortName(fullName: string): string {
+  const [last, ...rest] = fullName.trim().split(/\s+/);
+  return [last, ...rest.map((part) => `${part[0]}.`)].join(" ");
+}
+
+export function StepMode({
+  title,
+  trainingMode,
+  format,
+  onTitle,
+  onMode,
+  onFormat,
+  skipped = [],
+  error,
+}: StepModeProps) {
+  const profiles = [
+    ...new Set(skipped.map((user) => user.trainingProfile).filter(Boolean)),
+  ] as AssignableMode[];
   return (
     <div className={styles.step}>
+      {error ? (
+        <Alert tone="danger" role="alert">
+          {error}
+        </Alert>
+      ) : null}
       <Field
         label="Название задания"
         hint="Необязательно: обучающийся увидит его в списке заданий"
@@ -41,6 +69,13 @@ export function StepMode({ title, trainingMode, format, onTitle, onMode, onForma
           </CheckRow>
         ))}
       </fieldset>
+      {skipped.length > 0 && !error ? (
+        <Alert tone="warning">
+          {`Пропущены (профиль ${profiles.map((profile) => PROFILE_GENITIVE[profile]).join(", ")}): ${skipped
+            .map((user) => shortName(user.fullName))
+            .join(", ")}`}
+        </Alert>
+      ) : null}
       <fieldset className={styles.group}>
         <legend className={styles.group__title}>Формат</legend>
         <CheckRow type="radio" checked={format === "training"} onChange={() => onFormat("training")}>

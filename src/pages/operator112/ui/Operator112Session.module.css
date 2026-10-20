@@ -1,0 +1,23 @@
+/* Журнал 112: примечание пустого списка и оверлей окна блокировки карточки. */
+.journal {
+  position: relative;
+}
+
+.journal__empty {
+  margin: 0;
+  padding: var(--spacing-xl);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.journal__locked {
+  position: fixed;
+  inset: 0;
+  z-index: var(--card-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+  cursor: pointer;
+}

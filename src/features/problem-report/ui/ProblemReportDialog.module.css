@@ -1,0 +1,141 @@
+/* Окно «Сообщить о проблеме» (ИНСТРУКЦИЯ_104): только токены vars.css, без --pf-* (граница симулятора, AGENTS §9). */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--spacing-md) var(--spacing-2xl);
+  font-size: var(--font-size-base);
+}
+
+.fact {
+  display: contents;
+}
+
+.fact dt {
+  color: var(--color-ink);
+}
+
+.fact dd {
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.text {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 140px;
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-gray-200);
+  border-radius: var(--radius-none);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-base);
+  resize: vertical;
+}
+
+.text:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.text:disabled {
+  background: var(--color-gray-25);
+}
+
+.counter {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--font-size-xs);
+  text-align: right;
+}
+
+.attachment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.attachButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height-md);
+  padding: 0 var(--spacing-xl);
+  border: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.attachButton:hover {
+  background: var(--color-gray-25);
+}
+
+.fileInput:focus-visible + .attachButton {
+  box-shadow: var(--focus-ring);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  max-width: 100%;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.chipName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chipRemove {
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-accent-red);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

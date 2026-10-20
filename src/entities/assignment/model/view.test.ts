@@ -6,6 +6,7 @@ import {
   averageScore,
   daysUntilDue,
   formatLimit,
+  isRunnable,
   pickNextAssignment,
   pickOpenAttempt,
   ticketTotal,
@@ -69,13 +70,15 @@ describe("toView: статус по прогрессу", () => {
     expect(toView(assignment({ state: "finished" }), detail([link("ringing")])).status).toBe("finished");
   });
 
-  it("цепочка: этап A передан, вход ДДС не подтверждён — ждём преподавателя, «выполнено» не ставится", () => {
-    const pending = link("submitted", {
-      chainReview: { scenarioId: "ais-001", version: 2, approval: "pending_review", validation: "passed" },
-    });
-    const view = toView(assignment({ trainingMode: "chain", cardIds: ["c-010"] }), detail([pending]));
-    expect(view.awaitsTeacher).toBe(true);
-    expect(view.status).toBe("available");
+  it("старая цепочка (режим выведен 20.10.2026): прогресс читается, задание только для просмотра", () => {
+    const view = toView(
+      assignment({ trainingMode: "chain", cardIds: ["c-010"] }),
+      detail([link("submitted")]),
+    );
+    expect(view.readOnly).toBe(true);
+    expect(view).toMatchObject({ status: "done", closed: 1 });
+    expect(isRunnable(toView(assignment({ trainingMode: "chain" }), detail([])))).toBe(false);
+    expect(toView(assignment(), detail([])).readOnly).toBe(false);
   });
 
   it("число билетов: фиксированный набор либо число случайных; иначе неизвестно", () => {
@@ -125,23 +128,18 @@ describe("pickNextAssignment — «Ближайшее задание» глав�
     expect(pickNextAssignment([newer, older])?.assignment.id).toBe("asg-b");
   });
 
-  it("завершённые, выполненные целиком и ждущие подтверждения преподавателя не считаются", () => {
+  it("завершённые, выполненные целиком и старые цепочки (только просмотр) не считаются", () => {
     const finished = view({ id: "asg-f", state: "finished", dueAt: "2026-09-01T10:00:00+03:00" });
     const done = view(
       { id: "asg-d", cardIds: ["c-010"], dueAt: "2026-09-02T10:00:00+03:00" },
       { ...assignment({ id: "asg-d", cardIds: ["c-010"] }), progress: [link("submitted")] },
     );
-    const awaiting = view(
-      { id: "asg-w", trainingMode: "chain", cardIds: ["c-010"], dueAt: "2026-09-03T10:00:00+03:00" },
-      {
-        ...assignment({ id: "asg-w", cardIds: ["c-010"] }),
-        progress: [
-          link("submitted", {
-            chainReview: { scenarioId: "s", version: 1, approval: "pending", validation: "ok" },
-          }),
-        ],
-      },
-    );
+    const awaiting = view({
+      id: "asg-w",
+      trainingMode: "chain",
+      cardIds: ["c-010"],
+      dueAt: "2026-09-03T10:00:00+03:00",
+    });
     const runnable = view({ id: "asg-ok", dueAt: "2026-10-20T10:00:00+03:00" });
     expect(pickNextAssignment([finished, done, awaiting, runnable])?.assignment.id).toBe("asg-ok");
     expect(pickNextAssignment([finished, done, awaiting])).toBeNull();

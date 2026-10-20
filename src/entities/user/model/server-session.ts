@@ -9,10 +9,10 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import type { PublicUser, UserRole } from "@/shared/api";
+import type { PublicUser, TrainingProfile, UserRole } from "@/shared/api";
 import { APP_ENV, ROUTES } from "@/shared/config";
 
-import { buildLoginHref } from "./route-access";
+import { buildLoginHref, isModeForbidden } from "./route-access";
 import { RETURN_URL_HEADER, SESSION_COOKIE } from "./session";
 
 const HTTP_UNAUTHORIZED = 401;
@@ -78,9 +78,13 @@ export const verifySession = cache(async (): Promise<SessionUser> => {
   return sessionUser;
 });
 
-/** verifySession + роль раздела (вторая линия после proxy): чужая роль → /forbidden. */
-export async function requireSessionUser(role: UserRole): Promise<SessionUser> {
+/**
+ * verifySession + роль раздела (вторая линия после proxy): чужая роль → /forbidden.
+ * mode — режим экранов АРМ раздела: обучаемому с профилем другого режима → /forbidden (spec/008, T041).
+ */
+export async function requireSessionUser(role: UserRole, mode?: TrainingProfile): Promise<SessionUser> {
   const sessionUser = await verifySession();
   if (sessionUser.user.role !== role) redirect(ROUTES.forbidden);
+  if (isModeForbidden(sessionUser.user, mode)) redirect(ROUTES.forbidden);
   return sessionUser;
 }
