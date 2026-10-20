@@ -64,4 +64,6 @@ def build_router() -> APIRouter:
     ):
         # Без действующей сессии — 401 (ТЗ §9); /api/v1/health объявлен в main.py и остаётся открытым.
         router.include_router(module.router, dependencies=[Depends(require_viewer)])
+    # Авторизация WebSocket — по билету внутри эндпоинта, cookie-зависимость на нём падает (нет Request).
+    router.include_router(realtime_calls.ws_router)
     return router
