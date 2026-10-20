@@ -114,7 +114,7 @@ describe("AuthForm", () => {
 
   it("403 — сообщение блокировки, не «неверный логин»; перехода нет", async () => {
     render(<AuthForm loginRequest={rejectsWith(403, "blocked")} />);
-    await submitCredentials("egorov", "student112");
+    await submitCredentials("lebedev", "student112");
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Учётная запись заблокирована. Обратитесь к администратору",
     );

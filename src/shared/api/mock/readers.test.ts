@@ -17,7 +17,7 @@ import {
 const TRAINING_CARD_COUNT = 96;
 const CLASSIFIER_ENTRY_COUNT = 1283;
 const ARM_FIXTURE_COUNT = 12;
-const USER_COUNT = 24;
+const USER_COUNT = 25;
 const SCENARIO_COUNT = 36;
 const REFERENCE_COLLECTION_KEYS = [
   "ddsStatuses",
@@ -57,7 +57,7 @@ describe("ридеры мок-слоя: объёмы и форматы id", () =
     });
   });
 
-  it("readUsers → 24 учётки u-XXX, роли из union Role", () => {
+  it("readUsers → 25 учёток u-XXX, роли из union Role", () => {
     const users = readUsers();
     expect(users).toHaveLength(USER_COUNT);
     users.forEach((user) => {

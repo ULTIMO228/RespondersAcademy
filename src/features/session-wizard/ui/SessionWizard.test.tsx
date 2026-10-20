@@ -69,8 +69,8 @@ describe("Мастер занятия: данные мок-слоя (T3.2-01, T3
 
   it("неподключённый курсант — «не подключён», выбор заблокирован", async () => {
     await renderWizard();
-    // u-010 Егоров Павел Сергеевич — isActive: false в users.json.
-    expect(checkbox(/Егоров Павел Сергеевич/)).toBeDisabled();
+    // u-025 Лебедев Антон Игоревич — isActive: false в users.json.
+    expect(checkbox(/Лебедев Антон Игоревич/)).toBeDisabled();
     expect(screen.getByText("не подключён")).toBeInTheDocument();
   });
 });

@@ -27,7 +27,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const ADMIN_ID = "u-001";
-const USER_COUNT = 24;
+const USER_COUNT = 25;
 const USER_ID_SEGMENT = /\/admin\/users\/([^/?]+)/;
 
 /** URL-ы, ушедшие в мок-API (проверка фильтров и дебаунса). */
@@ -74,10 +74,10 @@ afterEach(() => {
 });
 
 describe("Таблица реестра (T4.1-05)", () => {
-  it("рендерит 24 пользователя мока; у u-010 — «заблокирована», у активных — «активна»", async () => {
+  it("рендерит 25 пользователей мока; у u-025 — «заблокирована», у активных — «активна»", async () => {
     renderRegistry();
     await waitRows(USER_COUNT);
-    expect(row("u-010").querySelector('[data-state="blocked"]')).toHaveTextContent("заблокирована");
+    expect(row("u-025").querySelector('[data-state="blocked"]')).toHaveTextContent("заблокирована");
     expect(row("u-005").querySelector('[data-state="active"]')).toHaveTextContent("активна");
   });
 
@@ -119,11 +119,11 @@ describe("Фильтры и поиск (T4.1-06)", () => {
     renderRegistry();
     await waitRows(USER_COUNT);
     const before = requestedUrls.length;
-    fireEvent.change(screen.getByLabelText("Поиск по ФИО / логину"), { target: { value: "egorov" } });
+    fireEvent.change(screen.getByLabelText("Поиск по ФИО / логину"), { target: { value: "lebedev" } });
     expect(requestedUrls.length).toBe(before);
-    await waitFor(() => expect(requestedUrls.some((url) => url.includes("q=egorov"))).toBe(true));
+    await waitFor(() => expect(requestedUrls.some((url) => url.includes("q=lebedev"))).toBe(true));
     await waitRows(1);
-    expect(row("u-010")).toBeInTheDocument();
+    expect(row("u-025")).toBeInTheDocument();
   });
 
   it("фильтры пишутся в query адресной строки (шаринг ссылки)", async () => {
@@ -233,7 +233,7 @@ describe("Блокировка и сброс пароля (T4.1-09)", () => {
     renderRegistry();
     await waitRows(USER_COUNT);
     expect(within(row("u-005")).getByRole("button", { name: "Заблокировать" })).toBeInTheDocument();
-    expect(within(row("u-010")).getByRole("button", { name: "Разблокировать" })).toBeInTheDocument();
+    expect(within(row("u-025")).getByRole("button", { name: "Разблокировать" })).toBeInTheDocument();
   });
 
   it("блокировка идёт через подтверждение; состояние в таблице меняется сразу", async () => {

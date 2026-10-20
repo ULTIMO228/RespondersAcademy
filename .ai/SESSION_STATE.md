@@ -1,15 +1,17 @@
 ## Facts
-Proj:RespondersAcademy | Branch:main | Mode:normal | HEAD:abc6347 pushed to origin/main | tree:only docs/demo.mp4 + docs/demo-new.mp4 untracked (not ours)
+Proj:RespondersAcademy | Branch:claude/zealous-goldberg-mu6erp (PR → main) | Mode:normal | base:e1ab838 | tree:only docs/demo.mp4 + docs/demo-new.mp4 untracked (not ours)
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ T001-T071 | 004 polza-provider ✅ T001-T006, T007 open}
 Stand:demo-up.sh running @2026-10-19 (front :3130, back :8130, db backend/var/demo.db) | stop: lsof -ti tcp:3130 tcp:8130 -sTCP:LISTEN | xargs kill
 Tests@2026-10-19:{pytest:911 passed/2 skipped/3 red(known debt, docs/FINAL-GATE.md),ruff:clean,vitest:1912 passed (234 files; 1 flaky IncidentScreen run, passes alone),steiger:pass,tsc:pass,build:pass,mocks:validate:pass}
 E2E@2026-10-19:{scripts/e2e-error-map.sh via run_frontend_e2e.sh --only error-map: 20/20} | not run:{simulator-visual playwright,e2e-student/teacher/admin since 002}
 npm run check:⚠️ stops at prettier on 2 foreign files (scripts/demo-video/record.mjs, GenerateDialog.tsx) | steiger/tsc/build run separately
-Updated:2026-10-19
+Tests@2026-10-20 (egorov unblock):{vitest:1912 passed/1 red teacher-v1 downloadReportExport Blob (red on HEAD too, env) | pytest:911 passed/2 skipped/3 red known debt | ruff:clean | steiger/tsc/build:pass | mocks:validate:pass | scripts/e2e-admin.sh on fresh next start:3130 (mock): 140/140}
+Updated:2026-10-20
 
 ## Story
 1 003 error-map: stages w/ traffic light (icon+word, thresholds 0.10/0.30, min 5/3, band ±10pp), stage detail, student map vs group, group journal, present mode, PDF, AI explain w/ agree/disagree verdict (migration 0005 error_map_verdicts, audit error_map.verdict), /me/focus + widget my-focus, thresholds in admin settings
 2 004 polza: AI_PROVIDER=local|polza (default local), PolzaClient in ml/generate/llm.py (OpenAI-compat, Bearer, rpm+daily limits, any error → None → template fallback), only scenario generation + explain_stage go external, audit ai.external_call (no texts/key), GET /api/v1/admin/ai/provider (admin), no admin UI; AGENTS §2 amended w/ owner OK
+4 2026-10-20 owner: unblock egorov (u-010, АРМ 6) → isActive=true; blocked demo moved to new u-025 lebedev (АРМ 30, ДДС-01); users 24→25; validator keeps exactly-one-inactive rule; tests/e2e/admin.sh/README/login hint → lebedev
 3 docs: AGENTS §14-15 + .ai/LESSONS.md + PROJECT_MAP.md added; CLAUDE.md = Claude layer + @AGENTS.md
 
 ## Reasoning
@@ -26,6 +28,7 @@ polza without key → Settings validator fails startup (no silent switch)
  4 backend/var/dev.db lacks error_map_verdicts → alembic upgrade head or app.seed.load --reset (ask owner first)
  5 `npm run mocks:sync` — spec mocks (sessions/users) changed, mocks/ copy not refreshed
  6 owner checklist (screenshot): 5.1 filter sizes 44/16px (a11y.test only scans cursor:pointer rules → fields may be missed), 5.3 group assignments in existing DB, 5.4 student recommendations rating race (old phase-14 code, not ours)
+ 8 existing backend DBs (dev/demo) still have egorov blocked + no u-025 → `uv run python -m app.seed.load` (upsert, no --reset needed); mock mode picks it up after mocks:sync + restart
  7 T061 docs/demo.mp4 — owner records; never fabricate
 
 ## Caution
