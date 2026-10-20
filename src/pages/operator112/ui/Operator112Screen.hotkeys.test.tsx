@@ -69,29 +69,58 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("Operator112Screen: клавиатура и скринридер (FR-032)", () => {
-  it("Shift+F2 прячет окно вызова, Shift+F1 возвращает его, Enter принимает вызов", async () => {
+  it("Esc прячет окно вызова, Insert в журнале открывает пустую карточку, Enter принимает вызов", async () => {
     const api = makeApi();
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     await screen.findByRole("dialog", { name: "Входящий звонок" });
-    fireEvent.keyDown(document.body, { code: "F2", key: "F2", shiftKey: true });
-    expect(screen.queryByRole("dialog")).toBeNull();
-    fireEvent.keyDown(document.body, { code: "F1", key: "F1", shiftKey: true });
-    expect(await screen.findByRole("dialog", { name: "Входящий звонок" })).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { code: "Escape", key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(api.sendEvent).toHaveBeenCalledWith("att-100", { type: "callHidden" });
+    fireEvent.keyDown(document.body, { code: "Insert", key: "Insert" });
+    expect(await screen.findByLabelText("Фамилия и имя заявителя")).toBeEnabled();
+  });
+
+  it("Enter в окне вызова принимает его", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await screen.findByRole("dialog", { name: "Входящий звонок" });
     fireEvent.keyDown(document.body, { code: "Enter", key: "Enter" });
     await waitFor(() => expect(api.answerAttempt).toHaveBeenCalledWith("att-100"));
     expect(await screen.findByLabelText("Фамилия и имя заявителя")).toBeEnabled();
   });
 
-  it("в карточке: Alt+A — на адрес, Alt+T — на тип происшествия, Alt+E — подтверждение «сохранить»; работают в русской раскладке (по code)", async () => {
+  it("в карточке — сочетания памятки §3.17 (по code, работают в русской раскладке)", async () => {
     render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
     fireEvent.click(await screen.findByRole("button", { name: "Принять" }));
     await screen.findByLabelText("Фамилия и имя заявителя");
-    fireEvent.keyDown(document.body, { code: "KeyA", key: "ф", altKey: true });
+    const press = (code: string, key: string) =>
+      fireEvent.keyDown(document.body, { code, key, altKey: true });
+    press("KeyQ", "й");
+    expect(document.activeElement).toBe(screen.getByLabelText("Фамилия и имя заявителя"));
+    press("KeyA", "ф");
     expect(document.activeElement?.closest('[aria-label="Адрес"]')).not.toBeNull();
-    fireEvent.keyDown(document.body, { code: "KeyT", key: "е", altKey: true });
+    press("KeyT", "е");
     expect(document.activeElement?.closest('[aria-label="Тип происшествия"]')).not.toBeNull();
-    fireEvent.keyDown(document.body, { code: "KeyE", key: "у", altKey: true });
+    press("KeyO", "щ");
+    expect(document.activeElement?.closest('[data-block="description"]')).not.toBeNull();
+    press("KeyP", "з");
+    expect(document.activeElement?.closest('[data-block="casualties"]')).not.toBeNull();
+    press("F2", "F2");
+    expect(document.activeElement?.closest('[data-block="phones"]')).not.toBeNull();
+    press("KeyS", "ы");
     expect(await screen.findByRole("dialog", { name: "Подтвердите оповещение служб" })).toBeInTheDocument();
+  });
+
+  it("Alt+B — напоминание, Esc вне полей — «Закрыть карточку без сохранения?»", async () => {
+    render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Принять" }));
+    await screen.findByLabelText("Фамилия и имя заявителя");
+    fireEvent.keyDown(document.body, { code: "KeyB", key: "и", altKey: true });
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { code: "Escape", key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    fireEvent.keyDown(document.body, { code: "Escape", key: "Escape" });
+    expect(await screen.findByText("Закрыть карточку без сохранения?")).toBeInTheDocument();
   });
 
   it("Enter в поле ввода не принимает вызов и не перехватывается", async () => {

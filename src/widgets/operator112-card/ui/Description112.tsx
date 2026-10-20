@@ -17,7 +17,7 @@ type Description112Props = {
 export function Description112({ value, onChange, disabled = false }: Description112Props) {
   const id = useId();
   return (
-    <div className={styles.description}>
+    <div className={styles.description} data-block="description">
       <label className={styles.description__label} htmlFor={id}>
         Описание со слов заявителя
       </label>

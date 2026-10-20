@@ -106,18 +106,16 @@ export function Operator112Session({
     else if (attempt.state === "answered" && row.cardId === attempt.cardId) op.backToCard();
   };
 
+  // Журнал по памятке АРМ-112 §3.17: Insert — новая карточка, Enter — «Принять» в окне вызова, Esc — скрыть окно.
   useHotkeys(
     {
-      // Shift+F1 «Просмотр»: открыть вызов в очереди или вернуться к открытой карточке.
-      "Shift+F1": () => {
-        if (attempt.state === "ringing") op.showIncoming();
-        else if (attempt.state === "answered") op.backToCard();
+      Insert: () => {
+        if (view === "journal") op.openPractice();
       },
       Enter: () => {
         if (view === "incoming" && !op.isAnswering) accept();
       },
-      // Shift+F2: закрыть окно входящего вызова без приёма («×»).
-      "Shift+F2": () => {
+      Escape: () => {
         if (view === "incoming") op.hideCall();
       },
     },

@@ -64,7 +64,7 @@ export function Operator112Card({
 }: Operator112CardProps) {
   return (
     <div className={styles.card}>
-      <div className={styles.card__top}>
+      <div className={styles.card__top} data-block="phones">
         <PhoneBar112 {...phone} disabled={disabled || phone.disabled} />
         <CardHeader112 {...header} />
         <CardTimer {...timer} />
@@ -77,7 +77,7 @@ export function Operator112Card({
         </div>
         <div className={styles.card__right}>
           <div className={styles.flags}>
-            <div className={styles.flags__group}>
+            <div className={styles.flags__group} data-block="casualties">
               {FLAGS.map(({ key, label }) => (
                 <button
                   key={key}
@@ -91,7 +91,7 @@ export function Operator112Card({
                 </button>
               ))}
             </div>
-            <div className={styles.flags__group}>
+            <div className={styles.flags__group} data-block="noContact">
               <button
                 type="button"
                 className={[styles.flag, styles["flag--danger"]].join(" ")}

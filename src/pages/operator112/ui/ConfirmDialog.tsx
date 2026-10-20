@@ -32,18 +32,35 @@ export function ConfirmDialog({
   const titleId = useId();
   const confirmRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => confirmRef.current?.focus(), []);
+  const windowRef = useRef<HTMLDivElement>(null);
+  const onCancelRef = useRef(onCancel);
+  onCancelRef.current = onCancel;
+
+  // Фокус — на подтверждение, а если оно ещё недоступно (пустое поле окна) — на первое поле окна.
+  useEffect(() => {
+    const target = confirmRef.current?.disabled
+      ? windowRef.current?.querySelector<HTMLElement>("input, textarea, select")
+      : confirmRef.current;
+    target?.focus();
+  }, []);
+
+  // Esc — отмена, где бы ни был фокус (как у Modal).
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onCancelRef.current();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <div className={styles.overlay}>
       <div
+        ref={windowRef}
         className={styles.window}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") onCancel();
-        }}
       >
         <h2 id={titleId} className={styles.window__title}>
           {title}

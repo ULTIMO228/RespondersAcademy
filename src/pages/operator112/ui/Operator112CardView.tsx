@@ -415,13 +415,26 @@ export function Operator112CardView({
     }
   };
 
+  // Сочетания карточки — по таблице «Горячие клавиши карточки» памятки АРМ-112 (ФРОНТ-АРМ-112-ЕДИНЫЙ-ДОКУМЕНТ §3.17).
+  const focusPhone = (index: number) => () =>
+    root.current?.querySelectorAll<HTMLElement>('[data-block="phones"] input')[index]?.focus();
   useHotkeys(
     {
+      "Alt+F1": focusPhone(0),
+      "Alt+F2": focusPhone(1),
+      "Alt+F3": focusPhone(2),
+      "Alt+KeyQ": () => focusFirst(root.current, '[aria-label="Фамилия и имя заявителя"]'),
       "Alt+KeyA": () => focusFirst(root.current, '[aria-label="Адрес"] input'),
+      "Alt+KeyP": () => focusFirst(root.current, '[data-block="casualties"] button'),
+      "Alt+KeyN": () => focusFirst(root.current, '[data-block="noContact"] button:not(:disabled)'),
       "Alt+KeyT": () => focusFirst(root.current, '[aria-label="Тип происшествия"] input'),
-      "Alt+KeyE": askSave,
+      "Alt+KeyO": () => focusFirst(root.current, '[data-block="description"] textarea'),
+      "Alt+KeyZ": () => focusFirst(root.current, '[aria-label="Службы"] button:not(:disabled)'),
+      "Alt+KeyS": askSave,
+      "Alt+KeyW": () => (form.links.length > 0 ? onOpenLinks() : undefined),
+      "Alt+KeyB": () => setDialog("reminder"),
       "Alt+KeyM": () => onProblem?.(),
-      "Shift+F2": () => (form.links.length > 0 ? onOpenLinks() : undefined),
+      Escape: () => setDialog("close"),
     },
     active && dialog === null,
   );

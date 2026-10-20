@@ -44,7 +44,7 @@ function setup() {
   const fake = fakeClock();
   const hook = renderHook(() => useCardReminder(fake.clock));
   /** Действия меняют состояние — выполняются внутри act, чтобы эффекты таймера успели отработать. */
-  const call = <T,>(fn: () => T): T => {
+  const call = <T>(fn: () => T): T => {
     let value!: T;
     act(() => {
       value = fn();

@@ -43,7 +43,9 @@ describe("attemptChannel", () => {
 
 describe("attemptSmsText", () => {
   it("СМС-билет — текст из контракта попытки", () => {
-    expect(attemptSmsText(attempt({ channel: "sms", smsText: "Горит балкон, помогите" }))).toBe("Горит балкон, помогите");
+    expect(attemptSmsText(attempt({ channel: "sms", smsText: "Горит балкон, помогите" }))).toBe(
+      "Горит балкон, помогите",
+    );
   });
 
   it("звонок — пустой текст, даже если в ответе попал smsText", () => {
