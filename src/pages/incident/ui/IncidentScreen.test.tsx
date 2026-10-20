@@ -32,10 +32,26 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 /** Cookie мок-сессии текущего обучающегося: серверный fetch мок-слоя определяет пользователя по ней. */
 let sessionCookie: string | undefined;
 
-function student(id: string, armNumber = 1): PublicUser {
+function student(id: string, armNumber = 1, service?: string): PublicUser {
   ensureTestStudent(id);
   sessionCookie = buildSessionCookie(id);
-  return { id, login: id, fullName: "Иванов Сергей Петрович", role: "student", armNumber, isActive: true };
+  return {
+    id,
+    login: id,
+    fullName: "Иванов Сергей Петрович",
+    role: "student",
+    armNumber,
+    isActive: true,
+    service,
+  };
+}
+
+/** Плитка панели служб, в которой стоит карандаш «Сменить статус» (блок своей службы, памятка стр. 24). */
+function pencilTile(): HTMLElement {
+  const pencil = screen.getByRole("button", { name: "Сменить статус (Alt + E)" });
+  const tile = pencil.closest<HTMLElement>("[data-active]");
+  if (!tile) throw new Error("Карандаш не в плитке службы");
+  return tile;
 }
 
 let fetcher: MockApiFetch;
@@ -89,6 +105,38 @@ describe("IncidentScreen — загрузка и попытка (T2.3-01)", () =
       .flatMap((session) => session.cardEvents)
       .filter((e) => e.cardId === "card-36814852");
     expect(attempts).toHaveLength(1);
+  });
+
+  it("спека 012 FR-001/FR-002: в шапке карточки нет таймера, нормативы 0:30 и 3:00 — в полосе тренажёра", async () => {
+    render(
+      <>
+        <div data-simulator-bar data-testid="simulator-bar">
+          <div data-simulator-bar-slot />
+        </div>
+        <IncidentScreen cardId="c-094" student={student("u-106")} />
+      </>,
+    );
+    const header = await screen.findByTestId("card-header", {}, { timeout: 4000 });
+    expect(within(header.parentElement as HTMLElement).queryByRole("timer")).toBeNull();
+    expect(screen.queryByText(/Реакция:/)).toBeNull();
+    const bar = screen.getByTestId("simulator-bar");
+    const norms = await within(bar).findByTestId("trainer-norms");
+    expect(norms).toHaveTextContent("норматив 0:30");
+    expect(norms).toHaveTextContent("норматив 3:00");
+    expect(within(norms).getByRole("timer")).toHaveAttribute("data-exceeded", "false");
+  });
+
+  it("спека 012 FR-007: у egorov (ДДС района Обручевский) карандаш на «Упр. Обручевский», не на чужой службе", async () => {
+    await renderCard("c-096", student("u-010", 6, "ДДС района Обручевский"));
+    expect(screen.getAllByRole("button", { name: "Сменить статус (Alt + E)" })).toHaveLength(1);
+    expect(pencilTile()).toHaveTextContent("Упр. Обручевский");
+    expect(pencilTile()).toHaveTextContent(/Получена службой/);
+  });
+
+  it("спека 012 FR-007: у petrova (ДДС района Чертаново Южное) карандаш на «Упр. Чертаново Южное»", async () => {
+    await renderCard("c-095", student("u-006", 2, "ДДС района Чертаново Южное"));
+    expect(screen.getAllByRole("button", { name: "Сменить статус (Alt + E)" })).toHaveLength(1);
+    expect(pencilTile()).toHaveTextContent("Упр. Чертаново Южное");
   });
 
   it("неизвестная карточка → сообщение и ссылка в список", async () => {

@@ -1,3 +1,10 @@
+## F012 on feat/011-dds-sasha 2026-10-20 (evening) — T001-T008 done
+done:T006 norms → simulator bar (slot+portal, TrainerNorms, showTimer=false for student; mirror keeps timer) | T007 own service = User.service → PROFILE_MAPPING_SEED[0] (egorov svc-upr-obruchev, petrova svc-upr-chert), tile prepended if absent, journal same resolver
+Checks@2026-10-20 (macOS, worktree RA-012):{uv run pytest -q 1135 passed/4 skipped | ruff clean | npx vitest run 2033/2033 | tsc, steiger, eslint/prettier(changed) pass}
+Browser@2026-10-20 demo-up fresh db: egorov c-009 Принята(наряд+comment)→…→Работы завершены → correctness 100, no «пропущен звонок», no dispatcherAction ✅ | petrova not run in browser (vitest covers)
+⚠️ reaction = openedAt − issuedAt (spec 000) → always 0:00 in DDS assignment, not time to «Принята» → owner decision
+⚠️ out of scope: DDS feed only cards where own service in notification list
+
 ## F011 on SASHA 2026-10-20 (branch feat/011-dds-sasha, base origin/SASHA d0c9d2f; SASHA itself NOT pushed)
 done:011 card feed (bank /student-cards, studentCards in DDS assignments, eval by teacher etalon) + no auto-push 112→live DDS (SASHA test_chain moved to D4) + egorov unblocked (lebedev blocked) + egorov trainingProfile=dds + login demo line «Диспетчер ДДС» + seed asg-003 dds for egorov
 fix:assignment wizard step 0 validated with mode filter → dds-profile student blocked at «Обучающиеся» (default mode 112) → step 0 validates raw selection

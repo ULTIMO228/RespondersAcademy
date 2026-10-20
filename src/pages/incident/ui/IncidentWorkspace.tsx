@@ -11,10 +11,9 @@ import { getMainServiceIds } from "@/entities/service";
 import { isNormExceeded, resolveTimeNorms } from "@/entities/session";
 import type { PublicUser } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
-import { formatDuration } from "@/shared/lib";
 import type { Clock, KeyValueStorage } from "@/shared/lib";
 
-import { pickMyServiceId } from "../lib/cardView";
+import { pickMyServiceId, withMyService } from "../lib/cardView";
 import { getHintText } from "../lib/hints";
 import { findNextCardId } from "../lib/nextCard";
 import { buildTraineeHistory } from "../lib/serviceHistory";
@@ -30,6 +29,7 @@ import { AudioReportUpload } from "./AudioReportUpload";
 import { ConnectionBanner } from "./ConnectionBanner";
 import { HintBar } from "./HintBar";
 import { HotkeyHints } from "./HotkeyHints";
+import { TrainerNorms } from "./TrainerNorms";
 
 import styles from "./IncidentPage.module.css";
 
@@ -41,7 +41,7 @@ export type IncidentWorkspaceProps = {
   clock?: Clock;
 };
 
-/** Рабочее место по открытой карточке: карточка, панель служб, таймеры, статусы, итог попытки. */
+/** Рабочее место по открытой карточке: карточка, панель служб, нормативы в полосе тренажёра, статусы, итог попытки. */
 export function IncidentWorkspace({
   data,
   student,
@@ -50,7 +50,9 @@ export function IncidentWorkspace({
   clock,
 }: IncidentWorkspaceProps) {
   const router = useRouter();
-  const { card, reference, scenario } = data;
+  const { reference, scenario } = data;
+  const myServiceId = pickMyServiceId(data.card.notificationList, reference.services, student.service);
+  const card = withMyService(data.card, myServiceId);
   const attempt = data.attempt.attempt;
   const session = useCardSession({ cardId: card.id, studentId: student.id, runtime: data.runtime, storage });
   const statuses = useCardStatuses({
@@ -96,7 +98,6 @@ export function IncidentWorkspace({
     if (statuses.isCompleted) setResultShown(true);
   }, [statuses.isCompleted]);
 
-  const myServiceId = pickMyServiceId(card.notificationList, reference.services);
   const mainService = data.classifierEntries.find(
     (entry) => entry.code === card.what.classifierCode,
   )?.mainService;
@@ -110,6 +111,14 @@ export function IncidentWorkspace({
 
   return (
     <main className={styles.page}>
+      <TrainerNorms
+        reactionMs={attempt.primaryReactionMs}
+        reactionNormMs={norms.primaryReactionMs}
+        isReactionExceeded={isReactionExceeded}
+        processingValue={timer.value}
+        processingNormMs={norms.fullProcessingMs}
+        isProcessingExceeded={timer.isExceeded}
+      />
       <ConnectionBanner
         isOnline={session.isOnline}
         pendingCount={session.outbox.pendingCount}
@@ -132,8 +141,7 @@ export function IncidentWorkspace({
             classifierEntries={data.classifierEntries}
             linkedCards={data.linkedCards}
             isExceeded={timer.isExceeded}
-            timerValue={timer.value}
-            reactionValue={formatDuration(attempt.primaryReactionMs)}
+            showTimer={false}
             controls={controls}
           />
           <AudioReportUpload attemptId={attempt.id} />

@@ -22,7 +22,9 @@ const linkedCards: LinkedCard[] = [
   { id: "card-36814859", number: 36814859, role: "подчинённая", finalType: "задымление: квартира" },
 ];
 
-function renderCard(options: { isExceeded?: boolean; readOnly?: boolean; id?: string } = {}) {
+function renderCard(
+  options: { isExceeded?: boolean; readOnly?: boolean; id?: string; showTimer?: boolean } = {},
+) {
   const card = options.id ? getFixture(options.id) : fireCard;
   return render(
     <IncidentCardView
@@ -31,6 +33,7 @@ function renderCard(options: { isExceeded?: boolean; readOnly?: boolean; id?: st
       linkedCards={linkedCards}
       isExceeded={options.isExceeded}
       readOnly={options.readOnly}
+      showTimer={options.showTimer}
       stateToggleHref="/arm/card/card-36814845?state=exceeded"
     />,
   );
@@ -44,6 +47,14 @@ describe("IncidentCardView — телефония и шапка (T0.2-07)", () =
     expect(screen.getByRole("timer")).toHaveAttribute("data-exceeded", "false");
     expect(screen.getByText(/Реакция: 0:18/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "просмотр" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "дополнение" })).toBeInTheDocument();
+  });
+
+  it("спека 012 FR-001: showTimer={false} — шапка без таймера и «Реакция», кнопки на месте", () => {
+    renderCard({ showTimer: false });
+    expect(screen.getByRole("heading", { name: "Происшествие 36814845" })).toBeInTheDocument();
+    expect(screen.queryByRole("timer")).toBeNull();
+    expect(screen.queryByText(/Реакция:/)).toBeNull();
     expect(screen.getByRole("button", { name: "дополнение" })).toBeInTheDocument();
   });
 

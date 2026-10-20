@@ -180,3 +180,9 @@ focus:011 + DDS account on SASHA base (owner: use Sasha's new front, voice calle
 done:cherry-pick 011/egorov/seed onto SASHA | egorov trainingProfile=dds + login demo line | wizard step-0 fix for dds-profile students | browser path ✅
 decisions:🧠 SASHA 008 trainingProfile over codex 007 (codex lacks develop) | SASHA branch untouched
 next:owner pulls feat/011-dds-sasha + fresh demo-up; decide merge into SASHA/develop
+
+## 2026-10-20g feat/011-dds-sasha (worktree RA-012, SASHA untouched)
+focus:012 T006-T008
+done:norms in simulator bar (SimulatorBarSlot portal) | card header w/o timer for student | own service by profile (card + journal) | tests: IncidentScreen egorov/petrova pencil, mapContext, traineeService, SimulatorBar slot
+checks:pytest 1135/4 skipped, ruff, vitest 2033/2033, tsc, steiger | browser egorov full DDS cycle ✅ (SC-001..SC-003 egorov)
+next:owner — reaction metric for DDS (time to «Принята»?); merge feat/011-dds-sasha

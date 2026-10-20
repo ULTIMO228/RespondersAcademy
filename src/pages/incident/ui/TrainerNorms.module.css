@@ -1,0 +1,17 @@
+/* Нормативы в полосе тренажёра: только токены АРМ (--color-*), как сама полоса (simulatorBoundary.test.ts). */
+.norms {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.norms__item {
+  padding: 0 var(--spacing-xs);
+  color: var(--color-white);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.norms__item[data-exceeded="true"] {
+  background: var(--color-accent-red);
+}

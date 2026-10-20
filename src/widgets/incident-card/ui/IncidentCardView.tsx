@@ -27,6 +27,7 @@ export function IncidentCardView({
   stateToggleHref,
   timerValue = DEFAULT_TIMER_VALUE,
   reactionValue = DEFAULT_REACTION_VALUE,
+  showTimer = true,
   controls,
 }: IncidentCardViewProps) {
   const live = readOnly ? undefined : controls;
@@ -50,6 +51,7 @@ export function IncidentCardView({
           isExceeded={isExceeded}
           timerValue={timerValue}
           reactionValue={reactionValue}
+          showTimer={showTimer}
           stateToggleHref={readOnly ? undefined : stateToggleHref}
           readOnly={readOnly}
           isReactionExceeded={live?.isReactionExceeded}
