@@ -78,3 +78,13 @@
   - `tests/contract/test_v1_operator112.py::test_ready_applicant_audio_is_playable_from_recordings[wav-…]`
   - `tests/contract/test_v1_operator112.py::test_ready_applicant_audio_is_playable_from_recordings[mp3-…]`
   - `tests/unit/test_ai_dataset_build.py::test_release_invariants`
+
+## F1 — K1 develop @ db44740
+
+- Дата: 2026-10-20 · База: `f7f6e8e` · Вершина сверена ✅ · Merge-коммит: `8608bc1`
+- Конфликты: 0
+- Генерируемые: `uv lock --check` ✅ (lock develop уже согласован), `uv sync --group dev`
+- Миграции: голова `0005_error_map_verdicts` (develop миграций не добавляет)
+- Быстрый гейт: lint ✅ · steiger ✅ · test **1951 passed** ✅ · typecheck ✅ · pytest **1033 passed / 0 failed / 4 skipped** ✅ · ruff ✅
+- Красные: нет — 3 красных эталона main починены коммитом `3720f58` из K1
+- Итог: влит
