@@ -146,24 +146,30 @@ def find_entry_by_signs(entries: list[dict[str, Any]], signs: list[str], group: 
 
     Кандидат получает балл за каждый выбранный признак, совпавший с его группой, признаками или итоговым типом
     (нечётко: «Запах газа в помещении» ≈ «Запах газа в помещении (в доме, в квартире)»); при равенстве баллов
-    предпочитается строка с меньшим числом лишних признаков — первая по порядку классификатора.
+    предпочитается строка с большим числом точных совпадений («ДТП пострадавшие» ≠ «ДТП», хотя token_set_ratio = 100),
+    затем — с меньшим числом лишних признаков, затем — первая по порядку классификатора.
+    Группа сравнивается точно, нечётко — только если точной нет («…с пострадавшими» ≈ «…без пострадавших» на 91 %).
     """
     wanted = [norm(s) for s in signs if norm(s)]
-    pool = [e for e in entries if not group or _same(norm(e.get("group")), norm(group))]
+    pool = entries
+    if group:
+        exact_group = [e for e in entries if norm(e.get("group")) == norm(group)]
+        pool = exact_group or [e for e in entries if _same(norm(e.get("group")), norm(group))]
     if not wanted:
         return None
-    best: tuple[int, int, dict[str, Any]] | None = None
+    best: tuple[tuple[int, int, int], dict[str, Any]] | None = None
     for entry in pool:
         own = [norm(s) for s in entry_signs(entry)]
         by_signs = sum(1 for sign in wanted if any(_same(sign, o) for o in own))
         by_group = sum(1 for sign in wanted if not any(_same(sign, o) for o in own) and (_same(sign, norm(entry.get("group"))) or _same(sign, norm(entry.get("finalType")))))
         if by_signs + by_group == 0:
             continue
+        exact = sum(1 for sign in wanted if sign in own)
         unmatched_own = sum(1 for o in own if not any(_same(o, sign) for sign in wanted))
-        key = (2 * by_signs + by_group, -unmatched_own)
-        if best is None or key > (best[0], best[1]):
-            best = (key[0], key[1], entry)
-    return best[2] if best else None
+        key = (2 * by_signs + by_group, exact, -unmatched_own)
+        if best is None or key > best[0]:
+            best = (key, entry)
+    return best[1] if best else None
 
 
 def find_entry_by_final_type(entries: list[dict[str, Any]], final_type: str) -> dict[str, Any] | None:
@@ -271,11 +277,40 @@ def services_for_entry(entry: dict[str, Any] | None, reference: dict[str, Any], 
     return services, conditional
 
 
+def services_for_group(rows: list[dict[str, Any]], reference: dict[str, Any], flags: list[str] | None = None) -> tuple[list[NotificationService], list[NotificationService]]:
+    """Группа выбрана без признаков: в список — службы, нужные при любой строке группы; остальные — к ручному добавлению."""
+    per_row = [services_for_entry(row, reference, flags) for row in rows]
+    common = set.intersection(*({s.service_id for s in services} for services, _ in per_row))
+    services = [s for s in per_row[0][0] if s.service_id in common]
+    conditional: list[NotificationService] = []
+    seen = set(common)
+    for row_services, row_conditional in per_row:
+        for item in [*row_services, *row_conditional]:
+            if item.service_id not in seen:
+                seen.add(item.service_id)
+                conditional.append(item)
+    return services, conditional
+
+
 def build(entries: list[dict[str, Any]], reference: dict[str, Any], *, signs: list[str] | None = None, classifier_code: str | None = None, final_type: str | None = None, group: str | None = None, flags: list[str] | None = None, manual: list[dict[str, Any]] | None = None) -> NotificationList:
     """Список оповещения: строка по коду → по признакам → по итоговому типу; условия по флагам; плюс ручные службы."""
     entry = find_entry_by_code(entries, classifier_code or "") or find_entry_by_signs(entries, signs or [], group) or find_entry_by_final_type(entries, final_type or "")
-    services, conditional = services_for_entry(entry, reference, flags)
+    rows: list[dict[str, Any]] = []
+    if entry is None and group:
+        # Тип выбран, признаки ещё нет: у группы с единственной строкой ЕКП список известен сразу.
+        rows = [e for e in entries if norm(e.get("group")) == norm(group)]
+        entry = rows[0] if len(rows) == 1 else None
+    if entry is None and len(rows) > 1:
+        services, conditional = services_for_group(rows, reference, flags)
+    else:
+        services, conditional = services_for_entry(entry, reference, flags)
     result = NotificationList(entry=entry, services=services, conditional=conditional)
+    _append_manual(result, reference, manual)
+    return result
+
+
+def _append_manual(result: NotificationList, reference: dict[str, Any], manual: list[dict[str, Any]] | None) -> None:
+    """Ручные службы — в конец списка, без дублей."""
     known = set(result.service_ids)
     for item in manual or []:
         service_id = str(item.get("serviceId") or "").strip()
@@ -285,6 +320,25 @@ def build(entries: list[dict[str, Any]], reference: dict[str, Any], *, signs: li
         title = str(row.get("shortName") or row.get("name")) if row else service_id
         result.services.append(NotificationService(service_id=service_id, title=title, added_by="manual", mode="manual"))
         known.add(service_id)
+
+
+def build_tabs(entries: list[dict[str, Any]], reference: dict[str, Any], *, tabs: list[dict[str, Any]] | None = None, signs: list[str] | None = None, classifier_code: str | None = None, final_type: str | None = None, flags: list[str] | None = None, manual: list[dict[str, Any]] | None = None) -> NotificationList:
+    """Список по всем вкладкам типов: объединение служб без дублей (первая вкладка, затем следующие), ручные — в конце.
+
+    Код/итоговый тип относятся к первой вкладке; остальные ищутся по группе и признакам. Без `tabs` — одна вкладка из `signs`.
+    """
+    rows = [t for t in (tabs or []) if isinstance(t, dict)] or [{"signs": signs or []}]
+    result = build(entries, reference, signs=[str(s) for s in rows[0].get("signs") or []], classifier_code=classifier_code, final_type=final_type, group=str(rows[0].get("group") or "") or None, flags=flags)
+    for tab in rows[1:]:
+        extra = build(entries, reference, signs=[str(s) for s in tab.get("signs") or []], group=str(tab.get("group") or "") or None, flags=flags)
+        if extra.entry is None and not extra.services and not extra.conditional:
+            continue
+        known = {s.service_id for s in result.services}
+        result.services.extend(s for s in extra.services if s.service_id not in known)
+        known = {s.service_id for s in [*result.services, *result.conditional]}
+        result.conditional.extend(s for s in extra.conditional if s.service_id not in known)
+    result.conditional = [s for s in result.conditional if s.service_id not in {x.service_id for x in result.services}]
+    _append_manual(result, reference, manual)
     return result
 
 

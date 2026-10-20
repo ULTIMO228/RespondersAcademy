@@ -251,6 +251,14 @@ export interface NotificationListPreview {
   classifierCode?: string;
 }
 
+/** Карточка-тренировка без попытки (FR-008): состояние для расчёта присылает клиент — флаги карточки и ручные службы. */
+export interface PracticeNotificationQuery extends NotificationListPreview {
+  flags?: readonly string[];
+  manual?: readonly string[];
+  /** Все вкладки типов [{group, signs}]; уходит JSON-строкой (query `tabs`). */
+  tabs?: readonly { group: string; signs: readonly string[] }[];
+}
+
 export interface Street {
   id: number;
   name: string;

@@ -15,7 +15,7 @@ import { useRealtimeCaller } from "./useRealtimeCaller";
 export type ApplicantVoiceState = "checking" | "idle" | "connecting" | "playing" | "unavailable" | "ended";
 
 export type ApplicantVoice = {
-  /** live — живой ИИ-заявитель (014-live-caller); recording — TTS-запись билета. Выбирается флагом сборки, не на лету. */
+  /** live — живой ИИ-заявитель (005-live-caller); recording — TTS-запись билета. Выбирается флагом сборки, не на лету. */
   kind: "live" | "recording";
   state: ApplicantVoiceState;
   error: string;
@@ -31,7 +31,13 @@ export type ApplicantVoice = {
   trainerText: { heard: string; caller: string; emergency: string };
 };
 
-type Options = { attempt: OperatorAttempt; format: AssignmentFormat | null; loader?: CallerAudioLoader };
+type Options = {
+  attempt: OperatorAttempt;
+  format: AssignmentFormat | null;
+  loader?: CallerAudioLoader;
+  /** Только для записи: false — не загружать (пока работает живой заявитель). */
+  enabled?: boolean;
+};
 
 const TALKING = new Set(["listening", "thinking", "speaking"]);
 const noop = () => {};
@@ -89,11 +95,26 @@ function useRecordedVoice(options: Options): ApplicantVoice {
   };
 }
 
+function useLiveWithRecordingFallback(options: Options): ApplicantVoice {
+  const live = useLiveVoice(options);
+  const unavailable = live.state === "unavailable";
+  // Хуки вызываются безусловно; запись не грузится, пока живой заявитель работает.
+  const recorded = useRecordedVoice({ ...options, enabled: unavailable });
+  if (!unavailable) return live;
+  return {
+    ...recorded,
+    trainerText: {
+      ...recorded.trainerText,
+      emergency: recorded.trainerText.emergency || "ИИ-заявитель недоступен, играет запись билета.",
+    },
+  };
+}
+
 /**
  * Голос заявителя в АРМ-112 (спека 009, R6/T020). Решение владельца 2026-10-20: живой ИИ-заявитель и в тренировке, и в
- * экзамене; запись — только при выключенном NEXT_PUBLIC_LIVE_CALLS_ENABLED. Живой режим не подменяется записью, если голосовой
- * сервер не настроен (состояние unavailable), — как в софтфоне 014-live-caller.
+ * экзамене; запись — при выключенном NEXT_PUBLIC_LIVE_CALLS_ENABLED. Решение владельца 2026-10-20 (вечер): при недоступности
+ * ИИ (состояние unavailable: сервер не настроен, ошибка) подменяем запись билета; пока живой работает, запись не грузится.
  */
 export const useApplicantVoice: (options: Options) => ApplicantVoice = APP_ENV.liveCallsEnabled
-  ? useLiveVoice
+  ? useLiveWithRecordingFallback
   : useRecordedVoice;

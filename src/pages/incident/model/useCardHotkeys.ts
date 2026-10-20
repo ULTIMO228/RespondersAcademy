@@ -9,7 +9,7 @@ type CardHotkeyHandlers = {
   onView: () => void;
   /** Shift+F2 — «Дополнить». */
   onAmend: () => void;
-  /** Alt+S (режим просмотра) — «Завершить»: форма статуса реагирования. */
+  /** Alt+S / Alt+E (режим просмотра) — «Завершить» / «Сменить статус»: форма статуса реагирования. */
   onFinish: () => void;
 };
 
@@ -43,7 +43,8 @@ export function useCardHotkeys(handlers: CardHotkeyHandlers) {
     if (event.key === "Escape" && !hasOpenPopup()) handlers.onClose();
     else if (event.shiftKey && event.key === "F1") handlers.onView();
     else if (event.shiftKey && event.key === "F2") handlers.onAmend();
-    else if (event.altKey && event.code === "KeyS") handlers.onFinish();
+    // Alt+E — подсказка карандаша своей службы «Сменить статус (Alt + E)»: та же форма статуса, что и Alt+S.
+    else if (event.altKey && (event.code === "KeyS" || event.code === "KeyE")) handlers.onFinish();
     else return;
     event.preventDefault();
   });

@@ -49,6 +49,20 @@
   font-size: var(--card-font-text);
 }
 
+/* Пункт пострадавших в живом режиме: кнопка выглядит как прежний текст. */
+.row__casualty {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.row__casualty:disabled {
+  cursor: default;
+}
+
 .row__buttons {
   display: flex;
   flex: 1;

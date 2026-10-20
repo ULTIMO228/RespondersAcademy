@@ -10,6 +10,7 @@ import type {
   Journal112MatchesResponse,
   Journal112Response,
   NotificationListPreview,
+  PracticeNotificationQuery,
   NotificationListResponse,
   OperatorAttempt,
   OperatorEvaluation,
@@ -59,6 +60,24 @@ export function getNotificationList(
   return v1ApiClient.get<NotificationListResponse>(
     `${attemptPath(attemptId)}/notification-list`,
     { signs: preview?.signs, classifierCode: preview?.classifierCode },
+    signal,
+  );
+}
+
+/** GET /operator112/notification-list: список оповещения карточки-тренировки «создать новую карточку» без попытки. */
+export function getPracticeNotificationList(
+  query: PracticeNotificationQuery,
+  signal?: AbortSignal,
+): Promise<NotificationListResponse> {
+  return v1ApiClient.get<NotificationListResponse>(
+    "/operator112/notification-list",
+    {
+      signs: query.signs,
+      classifierCode: query.classifierCode,
+      flags: query.flags,
+      manual: query.manual,
+      tabs: query.tabs?.length ? JSON.stringify(query.tabs) : undefined,
+    },
     signal,
   );
 }

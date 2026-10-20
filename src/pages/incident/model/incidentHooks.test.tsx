@@ -170,7 +170,7 @@ function HotkeysProbe(props: Parameters<typeof useCardHotkeys>[0]) {
 }
 
 describe("useCardHotkeys (T2.3-19)", () => {
-  it("хоткеи не срабатывают внутри полей ввода; Alt+T и Insert — без действия; Alt+S — «Завершить»", () => {
+  it("хоткеи не срабатывают внутри полей ввода; Alt+T и Insert — без действия; Alt+S и Alt+E — форма статуса", () => {
     const handlers = { onClose: vi.fn(), onView: vi.fn(), onAmend: vi.fn(), onFinish: vi.fn() };
     render(<HotkeysProbe {...handlers} />);
     const field = screen.getByLabelText("поле");
@@ -182,6 +182,8 @@ describe("useCardHotkeys (T2.3-19)", () => {
     expect(handlers.onAmend).not.toHaveBeenCalled();
     fireEvent.keyDown(document, { key: "s", code: "KeyS", altKey: true });
     expect(handlers.onFinish).toHaveBeenCalled();
+    fireEvent.keyDown(document, { key: "e", code: "KeyE", altKey: true });
+    expect(handlers.onFinish).toHaveBeenCalledTimes(2);
     fireEvent.keyDown(document, { key: "Alt", altKey: true });
     expect(screen.getByText("подсказки")).toBeInTheDocument();
     fireEvent(window, new Event("blur"));

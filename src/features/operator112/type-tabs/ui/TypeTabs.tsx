@@ -53,6 +53,8 @@ export function TypeTabs({ state, entries, disabled = false }: TypeTabsProps) {
     setQuery(type.query ?? "");
     setOpen(true);
     setActive(-1);
+    // Фокус в поле: стрелки/Enter выбирают вариант, Esc и клик мимо закрывают список.
+    document.getElementById(inputId)?.focus();
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

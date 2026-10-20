@@ -2230,6 +2230,20 @@
    ],
    "extends": []
   },
+  "PracticeNotificationQuery": {
+   "file": "operator112.ts",
+   "required": [],
+   "optional": [
+    "signs",
+    "classifierCode",
+    "flags",
+    "manual",
+    "tabs"
+   ],
+   "extends": [
+    "NotificationListPreview"
+   ]
+  },
   "ProblemReport": {
    "file": "problem-report.ts",
    "required": [

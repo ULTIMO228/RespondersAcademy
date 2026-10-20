@@ -93,7 +93,8 @@ class AssessContext:
 
     @property
     def entered_text(self) -> dict[str, str]:
-        return {k: v for k, v in (self.attempt.get("enteredText") or {}).items() if isinstance(v, str)}
+        # Ключи «flag.*» — переключатели ЧС/ЧП/пострадавших из карточки, не текст оператора: в оценку не идут.
+        return {k: v for k, v in (self.attempt.get("enteredText") or {}).items() if isinstance(v, str) and not k.startswith("flag.")}
 
     @property
     def statuses(self) -> list[dict[str, Any]]:

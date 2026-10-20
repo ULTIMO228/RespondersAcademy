@@ -44,26 +44,28 @@ function call(overrides: Record<string, unknown> = {}) {
 }
 
 describe("useApplicantVoice: живой заявитель (флаг включён)", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.recording.mockReturnValue({ status: "idle" });
+  });
 
   it.each(["training", "exam"] as const)("%s: разговор с ИИ, запись не запрашивается", (format) => {
     mocks.realtime.mockReturnValue(call());
+    mocks.recording.mockReturnValue({ status: "idle" });
     const { result } = renderHook(() => useApplicantVoice({ attempt: attempt("answered"), format }));
     expect(result.current.kind).toBe("live");
     expect(mocks.realtime).toHaveBeenCalledWith("att-1", true);
-    expect(mocks.recording).not.toHaveBeenCalled();
+    expect(mocks.recording).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }));
   });
 
   it.each([
     [{ configured: null }, "checking"],
-    [{ configured: false }, "unavailable"],
     [{ phase: "idle" }, "idle"],
     [{ phase: "connecting" }, "connecting"],
     [{ phase: "listening" }, "playing"],
     [{ phase: "thinking" }, "playing"],
     [{ phase: "speaking" }, "playing"],
     [{ phase: "ended" }, "ended"],
-    [{ phase: "error", error: "Нет микрофона" }, "unavailable"],
   ])("%o → %s", (overrides, state) => {
     mocks.realtime.mockReturnValue(call(overrides));
     const { result } = renderHook(() =>
@@ -91,7 +93,7 @@ describe("useApplicantVoice: живой заявитель (флаг включ�
 
   it("реплики отдаются только как текст для полосы тренажёра, ошибка — наружу", () => {
     mocks.realtime.mockReturnValue(
-      call({ phase: "error", error: "Нет микрофона", lastHeard: "алло", lastCaller: "Пожар!" }),
+      call({ phase: "listening", error: "Нет микрофона", lastHeard: "алло", lastCaller: "Пожар!" }),
     );
     const { result } = renderHook(() =>
       useApplicantVoice({ attempt: attempt("answered"), format: "training" }),
@@ -99,5 +101,26 @@ describe("useApplicantVoice: живой заявитель (флаг включ�
     expect(result.current.trainerText).toEqual({ heard: "алло", caller: "Пожар!", emergency: "" });
     expect(result.current.error).toBe("Нет микрофона");
     expect(result.current.recordingUrl).toBeNull();
+  });
+
+  it.each([{ configured: false }, { phase: "error", error: "Нет микрофона" }])("%o → запись", (o) => {
+    mocks.realtime.mockReturnValue(call(o));
+    const { result } = renderHook(() =>
+      useApplicantVoice({ attempt: attempt("answered"), format: "training" }),
+    );
+    expect(result.current.kind).toBe("recording");
+  });
+
+  it("unavailable → запись билета, загрузка включена; живой работает — запись выключена", () => {
+    mocks.realtime.mockReturnValue(call({ phase: "error", error: "Нет микрофона" }));
+    mocks.recording.mockReturnValue({ status: "ready", url: "blob:rec" });
+    const { result } = renderHook(() =>
+      useApplicantVoice({ attempt: attempt("answered"), format: "training" }),
+    );
+    expect(mocks.recording).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }));
+    expect(result.current.kind).toBe("recording");
+    expect(result.current.state).toBe("playing");
+    expect(result.current.recordingUrl).toBe("blob:rec");
+    expect(result.current.trainerText.emergency).toContain("недоступен");
   });
 });

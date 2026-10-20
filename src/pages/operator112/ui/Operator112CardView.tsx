@@ -31,6 +31,7 @@ import type {
   OperatorAttempt,
   OperatorEvent,
   OperatorEventRequest,
+  ServiceRef,
 } from "@/shared/api";
 import { formatDateTime } from "@/shared/lib";
 import type { Clock } from "@/shared/lib";
@@ -87,6 +88,14 @@ type ListState = {
   status: "idle" | "loading" | "error";
   error: string;
 };
+
+const serviceToItem = (service: ServiceRef): NotificationListItem => ({
+  serviceId: service.id,
+  title: service.shortName || service.name,
+  addedBy: "manual",
+});
+
+const TRANSLATE_NOTE = "Переводчик вызван. В учебном задании он не подключается — продолжайте приём вызова";
 
 const NO_LIST: ListState = { services: [], conditional: [], status: "idle", error: "" };
 const NO_EVENT = {} as OperatorEvent;
@@ -158,6 +167,7 @@ export function Operator112CardView({
     attempt ? restoreForm(attempt.events, channel) : { ...restoreForm([], channel), address: emptyAddress() },
   );
   const [list, setList] = useState<ListState>(NO_LIST);
+  const [allServices, setAllServices] = useState<NotificationListItem[]>([]);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [matches, setMatches] = useState<Journal112Row[]>([]);
   const [smsSeen, setSmsSeen] = useState(false);
@@ -187,13 +197,48 @@ export function Operator112CardView({
     [],
   );
 
+  // Справочник служб для окна «Добавьте службы»: недоступен — остаются службы, которые вернул расчёт списка.
+  useEffect(() => {
+    let cancelled = false;
+    api.getServices?.().then(
+      (services) => {
+        if (!cancelled) setAllServices(services.map(serviceToItem));
+      },
+      () => undefined,
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [api]);
+
+  // Карточка-тренировка без попытки: признаки и ручные службы живут здесь и уходят в запрос расчёта.
+  const practiceState = useRef({
+    signs: [] as string[],
+    classifierCode: "",
+    manual: [] as string[],
+    tabs: [] as { group: string; signs: string[] }[],
+  });
+  const formRef = useRef(form);
+  formRef.current = form;
+
   /** Пересчёт списка оповещения на сервере (фронт ЕКП не воспроизводит). */
   const refreshList = useCallback(async () => {
-    if (!attempt) return;
+    const practiceList = api.getPracticeNotificationList;
+    if (!attempt && !practiceList) return;
     const id = ++listSeq.current;
     setList((current) => ({ ...current, status: "loading", error: "" }));
     try {
-      const response = await api.getNotificationList(attempt.id);
+      const { signs, classifierCode, manual, tabs } = practiceState.current;
+      const { injured, blocked } = formRef.current;
+      const response = attempt
+        ? await api.getNotificationList(attempt.id)
+        : await practiceList!({
+            signs,
+            classifierCode,
+            manual,
+            tabs,
+            flags: [...(injured ? ["Пострадавшие"] : []), ...(blocked ? ["НД"] : [])],
+          });
       if (id !== listSeq.current) return;
       setList({ services: response.services, conditional: response.conditional, status: "idle", error: "" });
       setForm((current) => ({ ...current, notifications: response.services }));
@@ -214,15 +259,24 @@ export function Operator112CardView({
   const onFirstTabChange = useCallback(
     (value: FirstTabValue) => {
       patch({ signs: value.signs, finalType: value.finalType, classifierCode: value.classifierCode });
-      if (value.signs.length === 0) {
-        setList(NO_LIST);
-        patch({ notifications: [] });
-      } else {
-        void refreshList();
-      }
+      practiceState.current = {
+        ...practiceState.current,
+        signs: value.signs,
+        classifierCode: value.classifierCode,
+        tabs: value.tabs,
+      };
+      // Без признаков сервер вернёт только ручные службы — их не стираем.
+      void refreshList();
     },
     [patch, refreshList],
   );
+
+  // Открытая заново попытка: службы, добавленные раньше, видны сразу, а не после первого выбора.
+  useEffect(() => {
+    void refreshList();
+    // Запрос — один раз на попытку.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attemptId]);
   const tabs = useTypeTabs({
     attemptId,
     entries,
@@ -300,6 +354,8 @@ export function Operator112CardView({
   /** Флаги уходят событием сразу: от них зависят условные службы оповещения. */
   const onFlag = (flag: CardFlag112, value: boolean) => {
     patch({ [flag]: value });
+    // Пересчёт ниже идёт до перерисовки: флаг нужен расчёту карточки-тренировки сразу.
+    formRef.current = { ...formRef.current, [flag]: value };
     send({ type: "fieldChanged", payload: { field: FIELD[flag], value } }).then(
       () => {
         if (flag !== "ambulanceRefused") void refreshList();
@@ -346,6 +402,12 @@ export function Operator112CardView({
   };
 
   const removeService = (serviceId: string) => {
+    if (isPractice) {
+      const { manual } = practiceState.current;
+      practiceState.current = { ...practiceState.current, manual: manual.filter((id) => id !== serviceId) };
+      void refreshList();
+      return;
+    }
     send({ type: "serviceRemoved", payload: { serviceId } }).then(
       () => void refreshList(),
       (error: unknown) => onNotice(toMessage(error, "Не удалось убрать службу")),
@@ -353,6 +415,15 @@ export function Operator112CardView({
   };
 
   const addServices = (serviceIds: string[]) => {
+    if (isPractice) {
+      const { manual } = practiceState.current;
+      practiceState.current = {
+        ...practiceState.current,
+        manual: [...manual, ...serviceIds.filter((id) => !manual.includes(id))],
+      };
+      void refreshList();
+      return;
+    }
     void (async () => {
       try {
         for (const serviceId of serviceIds) await send({ type: "serviceAdded", payload: { serviceId } });
@@ -494,6 +565,8 @@ export function Operator112CardView({
           status: form.applicantStatus,
           onName: text("applicantName", FIELD.applicantName),
           onStatus: text("applicantStatus", FIELD.applicantStatus),
+          // Внешнего переводчика в тренажёре нет: нажатие подтверждается в полосе тренажёра.
+          onTranslate: () => onNotice(TRANSLATE_NOTE),
           disabled: !editable,
         }}
         description={{
@@ -528,7 +601,7 @@ export function Operator112CardView({
         servicesBar={
           <ServicesPanel
             services={list.services}
-            conditional={list.conditional}
+            conditional={[...list.conditional, ...allServices]}
             status={list.status}
             errorMessage={list.error}
             onRetry={() => void refreshList()}

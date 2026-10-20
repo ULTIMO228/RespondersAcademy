@@ -377,13 +377,31 @@ def draft_from_events(events: list[dict[str, Any]]) -> dict[str, Any]:
             flags.append("НД")
         if field in ("what.flags", "flags") and isinstance(value, list):
             flags.extend(str(v) for v in value)
+    tabs = _last_payload(events, "signSelected", "tabs")
+    if not isinstance(tabs, list) or not tabs:
+        tabs = [{"signs": list(signs)}]
     return {
+        "tabs": [{"group": str(t.get("group") or ""), "signs": [str(x) for x in t.get("signs") or [] if str(x).strip()]} for t in tabs if isinstance(t, dict)],
         "signs": [str(s) for s in signs if str(s).strip()],
         "classifierCode": str(_last_payload(events, "fieldChanged", "value", field="what.classifierCode") or ""),
         "finalType": str(_last_payload(events, "fieldChanged", "value", field="what.finalType") or ""),
         "flags": flags,
-        "manual": [{"serviceId": str((e.get("payload") or {}).get("serviceId") or "")} for e in events if e.get("type") == "serviceAdded"],
+        "manual": [{"serviceId": sid} for sid in _manual_services(events)],
     }
+
+
+def _manual_services(events: list[dict[str, Any]]) -> list[str]:
+    """Ручные службы по порядку событий: serviceAdded добавляет, serviceRemoved («×» на плитке) убирает."""
+    manual: list[str] = []
+    for event in events:
+        sid = str((event.get("payload") or {}).get("serviceId") or "").strip()
+        if not sid:
+            continue
+        if event.get("type") == "serviceAdded" and sid not in manual:
+            manual.append(sid)
+        elif event.get("type") == "serviceRemoved" and sid in manual:
+            manual.remove(sid)
+    return manual
 
 
 async def notification_list(db: AsyncSession, attempt_id: str, viewer: Viewer, *, signs: list[str] | None = None, classifier_code: str | None = None) -> dict[str, Any]:
@@ -391,7 +409,16 @@ async def notification_list(db: AsyncSession, attempt_id: str, viewer: Viewer, *
     state = draft_from_events(list(attempt.events or []))
     reference = await read_reference(db)
     entries = await classifier_entries(db)
-    result = nl.build(entries, reference, signs=signs or state["signs"], classifier_code=classifier_code or state["classifierCode"], final_type=state["finalType"], flags=state["flags"], manual=state["manual"])
+    tabs = None if signs else state["tabs"]  # предпросмотр по явным признакам — одна вкладка
+    result = nl.build_tabs(entries, reference, tabs=tabs, signs=signs or state["signs"], classifier_code=classifier_code or state["classifierCode"], final_type=state["finalType"], flags=state["flags"], manual=state["manual"])
+    return result.to_contract()
+
+
+async def preview_notification_list(db: AsyncSession, *, signs: list[str], classifier_code: str | None, flags: list[str], manual: list[str], tabs: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Список оповещения без попытки (карточка-тренировка): те же правила ЕКП, состояние присылает клиент (вкладки — `tabs`)."""
+    reference = await read_reference(db)
+    entries = await classifier_entries(db)
+    result = nl.build_tabs(entries, reference, tabs=tabs, signs=signs, classifier_code=classifier_code, flags=flags, manual=[{"serviceId": sid} for sid in manual])
     return result.to_contract()
 
 
@@ -400,7 +427,7 @@ def _fill_notification_list(draft: dict[str, Any], entries: list[dict[str, Any]]
     what = draft.get("what") or {}
     state = draft_from_events(events)
     manual = [*state["manual"], *[{"serviceId": n.get("serviceId")} for n in draft.get("notificationList") or [] if n.get("addedBy") == "manual"]]
-    result = nl.build(entries, reference, signs=what.get("signs") or state["signs"], classifier_code=what.get("classifierCode") or state["classifierCode"], final_type=what.get("finalType") or state["finalType"], flags=[*assessor.draft_flags(draft), *state["flags"]], manual=manual)
+    result = nl.build_tabs(entries, reference, tabs=state["tabs"] if not what.get("signs") or what.get("signs") == state["signs"] else None, signs=what.get("signs") or state["signs"], classifier_code=what.get("classifierCode") or state["classifierCode"], final_type=what.get("finalType") or state["finalType"], flags=[*assessor.draft_flags(draft), *state["flags"]], manual=manual)
     if not draft.get("notificationList"):
         draft["notificationList"] = [{"serviceId": s.service_id, "addedBy": s.added_by} for s in result.services]
     if result.entry is not None:
