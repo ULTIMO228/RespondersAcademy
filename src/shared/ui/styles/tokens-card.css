@@ -22,9 +22,16 @@
   --card-color-dashed: #ffffff;
   --card-color-reaction-ok: #2e9e3e;
   --card-color-sms-out: #e3eef6;
+  /* Карточка ПОВ-112 (спека 009): ИНСТРУКЦИЯ_image112 — «История сообщений», КАРТОЧКА_image1 — красная рамка «нет контакта». */
+  --card-color-sms-history-bg: #6f364b; /* малиновое окно «История сообщений» */
+  --card-color-sms-badge: #a51d1d; /* счётчик непрочитанных */
+  --card-color-flag-danger: #ec653b; /* «нет контакта» / «срыв звонка» */
+  --card-map-window-width: 940px; /* окно «С112 — карта», КАРТОЧКА_image5 */
+  --card-map-window-height: 840px;
 
   /* ——— Сетка и отступы ——— */
   --card-gap: 10px; /* 8 px на скрине */
+  --card-screen-min-height: calc(100vh - 28px); /* экран минус полоса тренажёра: панель «Службы:» у нижнего края (КАРТОЧКА_1) */
   --card-block-padding-x: 10px;
   --card-columns: minmax(0, 840fr) minmax(0, 1008fr); /* левая / правая колонки */
 
@@ -88,7 +95,8 @@
   --card-font-text: 15px; /* основной текст блоков, 12–13 px на скрине */
   --card-font-label: 12px; /* подписи полей, 9–10 px */
   --card-font-small-btn: 11px; /* «записи звонков», «просмотр» */
-  --card-font-title: 19px; /* «Происшествие 36814845» */
+  --card-font-title: 17px; /* «Происшествие 36814845» — в одну строку, как на КАРТОЧКА_1 */
+  --card-font-applicant: 16px; /* «Фамилия и имя заявителя», «выберите статус» (КАРТОЧКА_1) */
   --card-font-phone: 22px; /* номер телефона в поле */
   --card-font-tile-name: 15px;
   --card-font-tile-status: 12px;

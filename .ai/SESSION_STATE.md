@@ -29,9 +29,67 @@ Blocked/owner:
   !2 T009 synthetic ticket texts (1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + ok for migration 0007/DB reset
   !3 real live call: POLZA_API_KEY+models in backend/.env, polza.ai allowed in cloud env (now 403) → ./scripts/demo-up.sh --live
   !4 004 T007 real-key check: spec/004-polza-provider/quickstart.md
+## Handoff 2026-10-20 (late) → next window
+Branch:SASHA | HEAD:285fda4 pushed | tree:clean | spec:009-arm-112-student | tasks.md: 70/74 [X]
+Done this window (after da634ac):
+  ✅ ecd1568 T031 channel/smsText/repeatOf in attempt | T051 e2e-student.sh 112 block (run_frontend_e2e --only student: 69/69 PASS)
+  ✅ 8878cd6 T068 hotkeys = памятка §3.17 (Alt+F1-3/Q/A/P/N/T/O/Z/S/W/B/M, Esc, Insert, Enter)
+  ✅ a2dfd45 T059 «связана» on services bar + crimson link cell in journal
+  ✅ 16ab893 T066 «справка» menu → «Краткая инструкция» (ShortGuideWindow, text from памятка) + «Сообщить о проблеме»
+  ✅ 7cd2caf/95fb45c/baf328a/285fda4 visual fixes vs refs: journal menu icons+row cells+alarm-only red status; card services bar at bottom, «Отключение» during call, 2-line flags; Esc only top modal; links/SMS history as overlays w/ current card; «Округ» select (12 Moscow okrugs)
+  ✅ d9ca9ae checklists/visual-112.md filled (windows 2,3,3a,3b,3c,4,5,6,7,7a,8,9,12)
+Checks@2026-10-20: vitest full 2147 passed/2 red (IncidentScreen flaky L013; teacher-v1 Blob env, known) | pytest 1171 passed/4 skipped/0 red | ruff clean | tsc, steiger clean
+Stand: scratchpad stand.sh (demo_up.sh w/ env JWT_SECRET, DEMO_DB in scratchpad) | screenshots via Playwright script (not in repo)
+Open 009: T052 SC-004 before/after scores | T069 e2e visual spec (needs backend) | T070 rows 7b,13,reminder,problem not compared; row 4 (tab label/row titles — no data) | T072 quickstart manual
+Owner decisions pending: c-066/c-093/lockedBy texts + c-093 phone | address word threshold 0.5 | primary = repeatOf card | journal 404 vs 403 | migration 0007 to working DB | «Краткая инструкция» text drafted from памятка — review
+⚠️ /ef_before.json at FS root (executor leftover) — owner deletes
+
+## Handoff 2026-10-20 (009 executor commits) → next window
+Branch:SASHA | HEAD:da634ac = origin/SASHA (fetched, 0/0 at start; L024 done) | tree before docs:clean | spec:009-arm-112-student
+Scope:student-112 workplace only | DDS code untouched (R14) | docs of this window NOT committed (AGENTS.md, spec/README.md, spec/009 tasks.md, .ai/*)
+Parallel work (NOT docs, NOT reviewed here, NOT staged): another executor's uncommitted edits appeared in the tree during this window: backend/app/models/session.py, backend/app/schemas/v1/operator112.py, backend/app/services/operator112_service.py, backend/tests/contract/expected_fields.json, src/pages/operator112/model/channel.ts, src/pages/operator112/ui/Operator112Screen.test.tsx, src/shared/api/types/operator112.ts, untracked backend/tests/integration/test_operator112_channel.py, src/pages/operator112/model/channel.test.ts. Do not commit them with docs.
+Commits 009 (oldest→newest; task ids = tasks.md):
+  b9c3443 journal header/table/lock window (T021–T024, T061)
+  5affa4d PoV-112 card: phone bar, header, timer, applicant, description, address+map, call/SMS windows, history, reminder (T018–T019, T028–T029, T033–T040, T060, T063)
+  738b57e card timer, draft with tabs/links/address, screen views, reminder hook (T013–T017, T062)
+  9929614 type tabs, services panel «Добавьте службы», match windows, «Показ связей» (T041–T042, T046–T048, T057–T058)
+  9f50e2d address check without street, link check, legacy attempts check (T044–T045, T055–T056, T071)
+  87d63c3 journal server+client, matches endpoint, «×» accepted until answer (T010–T012, T053–T054)
+  27f56cf «Сообщить о проблеме»: backend + migration 0007, window, teacher block (T064–T067)
+  2c05070 screen assembled from PoV-112 parts; old form + softphone deleted (T025–T027, T030, T032, T043, T049, T050)
+  600a0fa problem-report window wired on 112 screen: services icon, Alt+M (T066 partial)
+  5073abf mocks + validator: sms c-066, repeatOf c-093, lockedBy (T008–T009; T009 texts pending owner)
+  da634ac fix op-l1…op-l4 binding rules in error-map stage «Завершение» (backend/app/services/error_map_stages.py; 003 file, tagged 009)
+  before: 7edccf6 T020 live AI caller (entities/operator112-attempt/useApplicantVoice), 94c81ed merge origin/SASHA, 9c62e27 stage A components
+Open 009 (tasks.md: [X] 65 / [ ] 9 after docs):
+  T031 [US2] partial: SMS window/channel/text done; SMS voice not started; recheck on real ticket after T009 owner texts
+  T051 [US4] e2e-student.sh 112 steps + run_frontend_e2e --only student: not done
+  T052 [US4] SC-004 5 reference runs 112 before/after in baseline.txt: not done
+  T059 [US5] partial: links in CardDraft, match window, «Показ связей», journal badge done; no separate «связана» button (entry = «Связи» icon)
+  T066 [US6] partial: window + Alt+M + client done; «?» in journal header and «Краткая инструкция»: not done (no content in spec)
+  T068 [FR-032] partial: Shift+F1/F2, Alt+E/A/T, Enter, aria-label done per tasks.md; Alt+M wired in 600a0fa; T068 not re-marked
+  T069 e2e/arm-112-visual.spec.ts snapshots 1920×1080: not done
+  T070 manual check of 14 windows vs checklists/visual-112.md: not done
+  T072 quickstart scenarios 1–13 on ./scripts/demo-up.sh: not done
+  T073 docs (spec/README 009 row, AGENTS §3 map): done 2026-10-20, [X]
+  T074 handoff + SESSIONS: done 2026-10-20, [X]; baseline.txt / affected-tests.md NOT deleted (no owner consent)
+Owner decisions (open):
+  !1 ticket texts (T009 «тексты — на согласование владельцу»): c-066 sms, smsText «Знакомый хочет повеситься…» (spec/000-фронт/mocks/cards.json); lockedBy on card-36814850, card-36814854 (fixtures/arm-cards.json)
+  !2 c-093 phone 916-410-22-38 (= card-36814851 AON +7 (916) 410-22-38; T009: «номер свободен») — keep or change
+  !3 main card = card from repeatOf: evaluation requires primary == repeatOf (backend/ml/assess/operator112.py:472); UI first linked = main (src/pages/operator112/model/draft.ts:213) — confirm
+  !4 address check threshold: lexical coverage < 0.5 → ADDRESS_MISMATCH, only for addresses outside reference (backend/ml/assess/operator112.py:258) — confirm
+  !5 journal: foreign/unknown assignment → 404 (backend/app/services/operator112_service.py:722); not student or profile≠112 → 403 (:716, :719) — confirm 404 vs 403
+  !6 migration 0007 not applied to working DB (per task statement); no backend/var/*.db in this container, so not verified here; DB reset only by owner
+  !7 «Краткая инструкция»: no content in spec (spec/009-arm-112-student/plan.md:115) — owner text needed
+  !8 hotkeys Shift+F1 / Shift+F2 / Alt+E: executor assumption (memo names «Просмотр»/«Дополнить», tasks.md T068) — confirm
+  !9 carry-over: duplicate spec number 005 (005-arm-reference-panel vs 005-live-caller, both in spec/README.md) — not fixed
+  !10 carry-over: 004 T007 real Polza key check (spec/004-polza-provider/quickstart.md) — open per spec/README.md
   ⚠️ Silero TTS license CC BY-NC (risk outside hackathon)
-Env notes: cloud container: npm ci done this window (fresh containers need it + npm run mocks:sync before vitest) | uv sync --group dev | no lsof → kill by PID (L023)
+Checks@2026-10-20 (docs window, no code run): read-only verification only | git show --stat 009 commits | ls/grep slices, routes, v1 endpoints, migration 0007 | backend/.venv python: Base.metadata.tables = 46 (import only, no DB)
+Checks@2026-10-20 (009 executors, per owner): targeted sets only | npm run check, npm run test, e2e: NOT run | results of targeted sets not in git → not recorded here
+Next: owner decisions !1–!8 → T051/T052 (US4 e2e + SC-004; c-066/c-093 texts needed) → T072 on demo-up (0007 applied only with owner OK) → T069/T070 visual 14 windows → finish T031/T059/T066/T068
 Rules: TDD pairs 400/200 | commits w/o Co-Authored-By | git fetch before reading handoff (L024) | prettier only changed files (it reformats foreign files)
+Env notes: cloud container: npm ci in fresh containers + npm run mocks:sync before vitest | uv sync --group dev | no lsof → kill by PID (L023)
 
 ## Facts (develop: live-caller, merged into SASHA 2026-10-20)
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal

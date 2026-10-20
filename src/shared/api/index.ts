@@ -54,6 +54,15 @@ export type {
   HeadlineKind,
 } from "./types";
 export { getStudentRating, getStudentStats } from "./endpoints";
+export {
+  buildProblemReportForm,
+  createProblemReport,
+  listTeacherProblemReports,
+  markProblemReportRead,
+  problemReportAttachmentUrl,
+} from "./endpoints";
+export type { ProblemReportDraft } from "./endpoints";
+export type { ProblemReport, ProblemReportList } from "./types";
 export type { StudentRatingQuery, StudentStatsQuery } from "./endpoints";
 export type {
   RatingGroup,
@@ -75,6 +84,8 @@ export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } fr
 export { fetchTicketAudioFile, getNotificationList, getOperatorEvaluation } from "./endpoints";
 export {
   getTicketAudio,
+  journal,
+  matches,
   searchStreets,
   sendAttemptEvent,
   submitAttempt,

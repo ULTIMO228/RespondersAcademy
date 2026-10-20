@@ -34,7 +34,10 @@ export default defineConfig({
     video: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  /* Пресет `Desktop Chrome` задаёт свой viewport 1280×720 и перекрыл бы общий: основное разрешение АРМ — 1920×1080. */
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1920, height: 1080 } } },
+  ],
   webServer: {
     /*
      * Мок-стор живёт в памяти процесса, поэтому каждый прогон стартует свежий сервер

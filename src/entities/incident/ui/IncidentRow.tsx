@@ -58,7 +58,7 @@ export function IncidentRow(props: IncidentRowProps) {
         <IncidentRowTools {...props} />
         <TextCell modifier="operator">{item.operatorNumber}</TextCell>
         <TextCell modifier="center">{item.armNumber}</TextCell>
-        <TextCell>
+        <TextCell modifier="number">
           <Link
             href={item.href}
             className={styles["incident-row__number-link"]}

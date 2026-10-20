@@ -13,3 +13,11 @@
 Не тесты, но текст «Режим «Специалист-112»» остаётся корректным вне экрана АРМ (кабинет, результаты, матрица доступа, комментарии контракта): `StudentResultDetailScreen.tsx`, `roleAccess.ts`, `endpoints/operator112.ts`, `types/operator112.ts`. `Operator112Problem.tsx` (экран ошибки без задания) — заголовок убрать с экрана АРМ в T026 (FR-003).
 
 **`scripts/e2e-student.sh`** шагов режима 112 не содержит (только ДДС у petrova и сессия), поэтому T051 сводится к проверке, что скрипт остаётся зелёным; HTTP-шаги 112 при желании — отдельной задачей.
+
+## Статус 2026-10-20 (T032, T049, T050)
+
+- `Operator112Screen.test.tsx` переписан под журнал → окно вызова → «Принять» → карточка → «сохранить» → подтверждение → разбор (+400/409, лимит экзамена, подсказка в полосе, «×», карточка-тренировка, СМС, связи); горячие клавиши — `Operator112Screen.hotkeys.test.tsx`.
+- Удалены `Operator112Workspace.tsx`, `widgets/operator112-softphone/` (вместе с `Operator112Softphone.test.tsx`, `LiveCaller*`), `features/operator112-questionnaire/`; живой голос — `entities/operator112-attempt`.
+- `simulatorBoundary.test.ts` — убраны удалённые каталоги.
+- `scripts/demo-video/record.mjs` — обновлены кнопки приёма и сохранения; сцена выбора типа осталась прежней (не проверялась).
+- Не сделано: `e2e/simulator-visual.spec.ts` (T069).

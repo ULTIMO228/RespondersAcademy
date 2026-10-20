@@ -1,0 +1,33 @@
+/* Таймер карточки ПОВ-112 (КАРТОЧКА_image1–2). Фон — токены: graphite-900 = #2f353a, красный = #ff0000. */
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--card-timer-width);
+  background: var(--color-graphite-900);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+  transition: none;
+}
+
+.timer--red {
+  background: var(--color-timer-exceeded);
+}
+
+.timer__clock {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer__units {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 var(--spacing-md);
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-bold);
+}

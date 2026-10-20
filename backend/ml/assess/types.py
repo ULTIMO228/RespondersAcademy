@@ -45,7 +45,7 @@ AXES: dict[str, tuple[str, ...]] = {
 }
 AXES_OPERATOR112: dict[str, tuple[str, ...]] = {
     "timeScore": ("answer_timing",),
-    "correctnessScore": ("final_type", "signs_flags", "applicant_phone"),
+    "correctnessScore": ("final_type", "signs_flags", "applicant_phone", "links"),
     "grammarScore": ("grammar", "address"),
     "semanticScore": ("description_facts",),
 }

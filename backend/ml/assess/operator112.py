@@ -6,7 +6,8 @@ expectedTags, expectedServices). Эталон — сам билет и стро�
 
 Компоненты (веса `DEFAULT_WEIGHTS_OPERATOR112`): answer_timing (a), final_type (b: тип + список оповещения),
 address (c), description_facts (d), signs_flags (e), applicant_phone (f), grammar (g); activity (h) — число
-прослушиваний и подсказок, информационно (вес 0). `fieldDiff` — сравнение «моя карточка ↔ эталон» (FR-040).
+прослушиваний и подсказок, информационно (вес 0); links — связи карточек (007 FR-030), только если в билете
+есть `repeatOf` или карточка привязана к другим. `fieldDiff` — сравнение «моя карточка ↔ эталон» (FR-040).
 Детерминирован при одинаковом входе; без эмбеддера факты и признаки сверяются лексически (`available=false`).
 """
 
@@ -19,6 +20,7 @@ from rapidfuzz import fuzz
 
 from ml.assess import rules
 from ml.assess.components import clamp01, parse_ms, to_sec
+from ml.assess.components.address import LEXICAL_MIN_COVERAGE
 from ml.assess.components.address import SCORES as ADDRESS_SCORES
 from ml.assess.types import (
     DEFAULT_WEIGHTS_OPERATOR112,
@@ -33,9 +35,12 @@ from ml.nlp import grammar as grammar_nlp
 from ml.nlp import semantic
 
 ASSESSOR_VERSION = "operator112-1.0.0"
-COMPONENT_NAMES = ("answer_timing", "final_type", "address", "description_facts", "signs_flags", "applicant_phone", "grammar", "activity")
+COMPONENT_NAMES = ("answer_timing", "final_type", "address", "description_facts", "signs_flags", "applicant_phone", "grammar", "activity", "links")
 # Решение команды (по аналогии с режимом B): неверный итоговый тип — карточка ушла не тем службам; итог ≤ 0,5.
 FINAL_TYPE_CAP = 0.5
+# Потеря компонента за одну пропущенную службу (доля от `final_type`); та же мера — для связи карточек (007 FR-030).
+SERVICE_PENALTY = 0.5
+ADDRESS_WORD_FIELDS = ("subject", "locality", "object", "descriptive")
 DEFAULT_ANSWER_MS = 30_000
 DEFAULT_SUBMIT_MS = 180_000
 DEFAULT_MAX_GRAMMAR_ERRORS = 1
@@ -53,8 +58,24 @@ _DIGITS = re.compile(r"\D+")
 # ─── Вход ─────────────────────────────────────────────────────────────────────────────────────────
 
 
+def _blank(value: Any) -> bool:
+    """Пустое значение карточки (включая вложенные): «», [], {}, False, None, 0."""
+    if isinstance(value, dict):
+        return all(_blank(v) for v in value.values())
+    if isinstance(value, list | tuple):
+        return all(_blank(v) for v in value)
+    if isinstance(value, str):
+        return not value.strip()
+    return not value
+
+
 def draft_of(attempt: dict[str, Any]) -> dict[str, Any]:
-    return dict(attempt.get("cardSnapshot") or attempt.get("draft") or {})
+    """Черновик карточки. Если верхний `what` пуст, его заменяет первая вкладка `incidents[0]` (009 R3); старые снимки без вкладок читаются как прежде."""
+    draft = dict(attempt.get("cardSnapshot") or attempt.get("draft") or {})
+    incidents = draft.get("incidents")
+    if _blank(draft.get("what")) and isinstance(incidents, list) and incidents and isinstance(incidents[0], dict) and not _blank(incidents[0]):
+        draft["what"] = incidents[0]
+    return draft
 
 
 def _get(data: dict[str, Any], *path: str, default: Any = None) -> Any:
@@ -173,7 +194,7 @@ def final_type(draft: dict[str, Any], ticket: dict[str, Any], entries: list[dict
     penalty = 0.0
     if missing_titles:
         result.errors.append(rules.OP_MISSING_SERVICE.error(step="field:notificationList", services=", ".join(missing_titles)))
-        penalty += 0.5 * len(missing_ids) / max(1, len(expected_ids))
+        penalty += SERVICE_PENALTY * len(missing_ids) / max(1, len(expected_ids))
     if extra_ids:
         extra_titles = [nl.service_title(sid, reference) for sid in extra_ids]
         result.errors.append(rules.OP_EXTRA_SERVICE.error(step="field:notificationList", services=", ".join(extra_titles)))
@@ -182,11 +203,23 @@ def final_type(draft: dict[str, Any], ticket: dict[str, Any], entries: list[dict
     return result
 
 
+def address_by_words(block: dict[str, Any]) -> str:
+    """Адрес без улицы (субъект вне Москвы, research R4): субъект, населённый пункт, объект и описание одной строкой."""
+    return " ".join(_text(block.get(key)) for key in ADDRESS_WORD_FIELDS if _text(block.get(key)))
+
+
 def address(draft: dict[str, Any], ticket: dict[str, Any]) -> ComponentResult:
-    """Адрес по справочнику улиц (Q&A): та же улица / похожая / опечатка / другая; фиксация «из справочника / вручную»."""
+    """Адрес по справочнику улиц (Q&A): та же улица / похожая / опечатка / другая; фиксация «из справочника / вручную».
+
+    Если ни улицы, ни формального адреса нет, а заполнены объект или описание (адрес Московской области, R4),
+    адрес сверяется по словам с `ticket.address` без справочника улиц.
+    """
     result = ComponentResult(name="address", score=1.0)
     block = draft.get("address") if isinstance(draft.get("address"), dict) else {}
-    entered = _text(block.get("street")) or _text(block.get("formal")) or _text(draft.get("address") if isinstance(draft.get("address"), str) else "")
+    street, formal = _text(block.get("street")), _text(block.get("formal"))
+    by_words = not street and not formal and bool(_text(block.get("object")) or _text(block.get("descriptive")))
+    legacy = _text(draft.get("address") if isinstance(draft.get("address"), str) else "")
+    entered = address_by_words(block) if by_words else (street or formal or legacy)
     expected = str(ticket.get("addressRefined") or ticket.get("address") or "")
     result.details = {"entered": entered, "expected": expected, "source": _text(block.get("source")) or "manual"}
     if not expected:
@@ -195,6 +228,14 @@ def address(draft: dict[str, Any], ticket: dict[str, Any]) -> ComponentResult:
     if not entered:
         result.errors.append(rules.OP_ADDRESS_MISSING.error(step="field:address"))
         result.score = 0.0
+        return result
+    if by_words:
+        # Эталон сверяется по основам слов (как описательный адрес режима 112); улицы справочника тут не нужны.
+        coverage = semantic.lexical_coverage(expected, entered)
+        result.details.update({"kind": "words", "coverage": round(coverage, 2)})
+        if coverage < LEXICAL_MIN_COVERAGE:
+            result.errors.append(rules.ADDRESS_MISMATCH.error(step="field:address", entered=entered, expected=expected))
+            result.score = 0.0
         return result
     if not address_nlp.load_streets():
         result.available = False
@@ -403,6 +444,42 @@ def activity(attempt: dict[str, Any]) -> ComponentResult:
     return result
 
 
+def links(draft: dict[str, Any], ticket: dict[str, Any], service_count: int) -> ComponentResult:
+    """Связи карточек (007 FR-030, research R9): повторный звонок (`repeatOf`) привязан к своей карточке и она главная.
+
+    Без `repeatOf` любая привязка лишняя. Нарушение — одна потеря на компонент: её вес равен весу одной пропущенной
+    службы (`SERVICE_PENALTY / service_count` от компонента; вес компонента задаёт `assess` равным весу `final_type`).
+    Без `repeatOf` и без привязок компонент не применяется.
+    """
+    result = ComponentResult(name="links", score=1.0)
+    repeat_of = _text(ticket.get("repeatOf")) or None
+    entered = [item for item in (draft.get("links") or []) if isinstance(item, dict) and _text(item.get("cardId"))]
+    result.applicable = repeat_of is not None or bool(entered)
+    if not result.applicable:
+        return result
+    linked = [_text(item.get("cardId")) for item in entered]
+    primary = [_text(item.get("cardId")) for item in entered if item.get("primary") is True]
+    others = [card for card in dict.fromkeys(linked) if card != repeat_of]
+    unit = SERVICE_PENALTY / max(1, service_count)
+    result.details = {"repeatOf": repeat_of, "linked": linked, "primary": primary, "unit": round(unit, 4)}
+    if repeat_of is None:
+        failure = rules.OP_LINK_EXTRA.error(step="field:links", actual=", ".join(others))
+    elif repeat_of not in linked:
+        if others:
+            failure = rules.OP_LINK_WRONG_CARD.error(step="field:links", actual=", ".join(others), expected=repeat_of)
+        else:
+            failure = rules.OP_LINK_MISSING.error(step="field:links", expected=repeat_of)
+    elif primary != [repeat_of]:
+        failure = rules.OP_LINK_WRONG_PRIMARY.error(step="field:links", actual=", ".join(primary) or "не выбрана", expected=repeat_of)
+    elif others:
+        failure = rules.OP_LINK_EXTRA.error(step="field:links", actual=", ".join(others))
+    else:
+        return result
+    result.errors.append(failure)
+    result.score = clamp01(1.0 - unit)
+    return result
+
+
 # ─── fieldDiff и сборка ───────────────────────────────────────────────────────────────────────────
 
 
@@ -456,7 +533,14 @@ def assess(attempt: dict[str, Any], ticket: dict[str, Any], entries: list[dict[s
     components["applicant_phone"] = applicant_phone(draft, ticket)
     components["grammar"] = grammar(draft, grammar_limit)
     components["activity"] = activity(attempt)
-    effective = normalize_weights(resolve_weights(weights), components)
+    resolved = resolve_weights(weights)
+    service_count = len(nl.expected_service_ids(list(ticket.get("expectedServices") or []), reference))
+    link = links(draft, ticket, service_count)
+    if link.applicable:
+        components["links"] = link
+        # Вес связи = вес итогового типа: потеря за непривязанную карточку равна потере за одну пропущенную службу (FR-030).
+        resolved["links"] = resolved["final_type"]
+    effective = normalize_weights(resolved, components)
     total = sum(effective[name] * comp.score for name, comp in components.items() if comp.applicable)
     if any(e.rule_id in ("op-f1", "op-f0") for e in components["final_type"].errors):
         total = min(total, FINAL_TYPE_CAP)

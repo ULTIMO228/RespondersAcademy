@@ -1,0 +1,16 @@
+.window {
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+  padding: var(--spacing-xl);
+  width: 425px;
+  font-family: var(--font-ui);
+}
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-xl);
+}
+.body {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-base);
+}

@@ -17,12 +17,23 @@ type ScenarioTableProps = {
 
 const GENERATED_SOURCE = "generated";
 
-function renderList(values: string[]) {
+/** Сколько элементов списка показывать в ячейке таблицы; остальные сворачиваются в «ещё N». */
+export const LIST_PREVIEW_LIMIT = 3;
+
+export function renderList(values: string[]) {
+  const visible = values.slice(0, LIST_PREVIEW_LIMIT);
+  const hidden = values.length - visible.length;
   return (
     <ul className={styles.catalog__list}>
-      {values.map((value) => (
+      {visible.map((value) => (
         <li key={value}>{value}</li>
       ))}
+      {hidden > 0 ? (
+        <li className={styles.catalog__more} title={values.join("\n")}>
+          ещё {hidden}
+          <span className={styles.catalog__srOnly}>: {values.slice(LIST_PREVIEW_LIMIT).join("; ")}</span>
+        </li>
+      ) : null}
     </ul>
   );
 }

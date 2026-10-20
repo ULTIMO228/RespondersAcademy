@@ -165,6 +165,14 @@ OP_PHONE = _register(Rule("op-a3", "phoneMismatch", "major", f"{MEMO_CARD}: те
 OP_PHONE_MISSING = _register(Rule("op-a4", "phoneMismatch", "minor", f"{MEMO_CARD}: телефон предоставленный", "Телефон заявителя не записан (по записи «{expected}»)"))
 OP_ADDRESS_MISSING = _register(Rule("op-a5", "addressMismatch", "critical", f"{MEMO_CARD}: адресный блок", "Адрес происшествия не заполнен"))
 
+# ─── Связи карточек (режим A, 007 FR-030, research R9 спеки 009) ──────────────────────────────────
+
+LINKS = "решение владельца (spec 007, FR-030): связь карточек оценивается по весу пропущенной службы"
+OP_LINK_MISSING = _register(Rule("op-l1", "missingLink", "major", LINKS, "Карточка повторного звонка не привязана: по билету нужна привязка к «{expected}»"))
+OP_LINK_WRONG_CARD = _register(Rule("op-l2", "wrongLink", "major", LINKS, "Привязана не та карточка «{actual}»: по билету нужна «{expected}»"))
+OP_LINK_WRONG_PRIMARY = _register(Rule("op-l3", "wrongLink", "major", LINKS, "Неверная главная карточка «{actual}»: по билету главной должна быть «{expected}»"))
+OP_LINK_EXTRA = _register(Rule("op-l4", "extraLink", "major", LINKS, "Лишняя привязка к карточке «{actual}»: по билету она не требуется"))
+
 
 def by_type(error_type: str) -> list[Rule]:
     return [rule for rule in RULES.values() if rule.error_type == error_type]
