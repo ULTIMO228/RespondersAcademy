@@ -1015,3 +1015,22 @@ async def test_созданный_вручную_сценарий_открыва
     assert doc["hints"] == {"enabled": False, "texts": []} and doc["successCriteria"]["requiredFields"] is not None
     assert doc["cardIds"] == [created.json()["cardSnapshot"]["id"]] and doc["validation"]["status"] == "draft"
     assert any(item["id"] == scenario_id for item in (await client.get("/scenarios")).json())
+
+
+async def test_эксперт_открывает_чужой_сценарий_классическим_api_но_не_правит_его(v1: AsyncClient, client: AsyncClient) -> None:
+    source_id = "t009-builder-expert-read"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    scenario_id = (await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-expread-c", graph=RICH))).json()["scenarioId"]
+
+    # второй преподаватель (kovalev) без прав эксперта: чужой сценарий недоступен
+    login = await client.post("/auth/login", json={"login": "kovalev", "password": "teacher112"})
+    assert login.status_code == 200, login.text
+    assert (await client.get(f"/scenarios/{scenario_id}")).status_code == 403
+    assert scenario_id not in [item["id"] for item in (await client.get("/scenarios")).json()]
+
+    await grant(v1, "kovalev", ["scenario.review"])
+    assert (await client.get(f"/scenarios/{scenario_id}")).status_code == 200  # эксперт читает
+    assert scenario_id in [item["id"] for item in (await client.get("/scenarios")).json()]
+    patched = await client.patch(f"/scenarios/{scenario_id}", json={"title": "Чужое название", "updatedBy": "u-003"})
+    assert patched.status_code == 403  # править по-прежнему может только автор

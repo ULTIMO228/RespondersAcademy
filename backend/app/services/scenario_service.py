@@ -39,6 +39,7 @@ from app.schemas.scenarios import (
     parse_body,
     to_level,
 )
+from app.services import scenario_access
 from app.services.audit import record
 from app.services.cards import list_training_cards
 from app.services.time import now_iso
@@ -81,6 +82,9 @@ async def require_scenario_access(db: AsyncSession, row: Scenario, viewer: Viewe
         return
     if viewer.role == "teacher":
         if row.source == "template" or row.created_by in (None, viewer.user_id):
+            return
+        # Эксперт сценариев (права scenario.review / scenario.publish) читает чужие сценарии для проверки; правит только автор.
+        if await scenario_access.user_permissions(db, viewer):
             return
     if viewer.role == "student":
         sessions = (await db.execute(select(TrainingSession.scenario_ids).where(TrainingSession.student_ids.contains([viewer.user_id])))).scalars().all()
