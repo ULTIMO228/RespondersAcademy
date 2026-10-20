@@ -14,17 +14,17 @@ description: "Задачи: поэтапное сведение всех вет�
 
 ## Phase 1: Setup
 
-- [ ] T001 Получить все ветки (`git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune`) и сверить вершины с data-model.md «Ветка-источник». Расхождение оформить новым куском в spec/021-branch-consolidation/spec.md (таблица «Куски»)
-- [ ] T002 Создать worktree `git worktree add ../RespondersAcademy-merge -b merge/021-branch-consolidation origin/main`, затем `npm ci` и `cd backend && uv sync --group dev` в WT
-- [ ] T003 Скопировать папку `spec/021-branch-consolidation/` в WT, создать журнал J с шапкой (база `ba1f7d8`, вершины из T001) и закоммитить первым коммитом `docs(021): спека и журнал слияния веток`. Дальше J коммитится вместе с каждым шагом
+- [X] T001 Получить все ветки (`git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune`) и сверить вершины с data-model.md «Ветка-источник». Расхождение оформить новым куском в spec/021-branch-consolidation/spec.md (таблица «Куски»)
+- [X] T002 Создать worktree `git worktree add ../RespondersAcademy-merge -b merge/021-branch-consolidation origin/main`, затем `npm ci` и `cd backend && uv sync --group dev` в WT
+- [X] T003 Скопировать папку `spec/021-branch-consolidation/` в WT, создать журнал J с шапкой (база `ba1f7d8`, вершины из T001) и закоммитить первым коммитом `docs(021): спека и журнал слияния веток`. Дальше J коммитится вместе с каждым шагом
 
 ---
 
 ## Phase 2: Foundational (эталон до слияния — блокирует всё)
 
-- [ ] T004 Прогнать быстрый гейт (quickstart.md) на `origin/main` в WT и записать результат в J, раздел «Эталон»
+- [X] T004 Прогнать быстрый гейт (quickstart.md) на `origin/main` в WT и записать результат в J, раздел «Эталон»
 - [ ] T005 [P] Через `git worktree add --detach` во временную папку scratchpad (общий `node_modules` симлинком — `package.json` ни одна ветка не меняет; `uv sync` на каждую) прогнать быстрый гейт на вершинах `feat/011-dds-sasha`, `SASHA`, `fix/ai-connection-probe-timeout`, `feature/scenario-graph-builder` (остальные — их предки или без бэкенда; при неясном красном прогнать и их). Сохранить красные тесты каждой ветки в J, «Эталон», чтобы потом отличать унаследованные (L005). Субагент Haiku на прогоны, сводку проверяет интегратор. Временные worktree удалить `git worktree remove`
-- [ ] T006 [P] Проверить сетевые зависимости из R10: extras `speechkit` и `stt-local` в `backend/pyproject.toml` веток `develop` и `SASHA`, вызовы `yandexcloud` и GigaAM в `backend/ml/speech` и `backend/app/services`. Нужно ответить, включается ли сеть без явной переменной окружения. Итог записать в J. **Блокирует T011**: опция, включающая сеть по умолчанию, выключается в слиянии (В2)
+- [X] T006 [P] Проверить сетевые зависимости из R10: extras `speechkit` и `stt-local` в `backend/pyproject.toml` веток `develop` и `SASHA`, вызовы `yandexcloud` и GigaAM в `backend/ml/speech` и `backend/app/services`. Нужно ответить, включается ли сеть без явной переменной окружения. Итог записать в J. **Блокирует T011**: опция, включающая сеть по умолчанию, выключается в слиянии (В2)
 
 **Checkpoint**: эталон записан, известны унаследованные красные тесты.
 
@@ -36,10 +36,10 @@ description: "Задачи: поэтапное сведение всех вет�
 
 **Independent Test**: сумма коммитов по K0–K12 = `git rev-list --no-merges --count $(git branch -r --format='%(refname:short)' | grep -v -e HEAD -e 'origin/main$') ^origin/main` (127 на 2026-10-20); дублей нет.
 
-- [ ] T007 [US1] Сгенерировать в J таблицу «коммит → кусок» для всех не-merge коммитов `origin/* ^origin/main` (правила кусков — spec.md «Куски»), проверить полноту числом
-- [ ] T008 [P] [US1] Разобрать сплющенный `98705b7` (182 файла): какие файлы к какой фиче относятся (016, 017, 007, 018, 009, 010 по R2), записать в J. Субагент Opus (medium), интегратор перепроверяет 3 выборочных файла
-- [ ] T009 [P] [US1] F4: сверка K5 с K4: `git diff 150d786 f219be2`, `git diff 50be798 57061d8`, `git diff 32e2160 d9ce4da`. Каждое отличие объяснить; если в K4 потеряна строка K5 — задача в J «вернуть». Формат — contracts «сверка без слияния»
-- [ ] T010 [P] [US1] F4: сверка K6 (`ce6c3dd`) с `57061d8` по всем 22 файлам вне `.ai/`. Ожидание из отчёта — отличается только поле `note` в `spec/000-фронт/mocks/users.json`. Вердикт записать в J
+- [X] T007 [US1] Сгенерировать в J таблицу «коммит → кусок» для всех не-merge коммитов `origin/* ^origin/main` (правила кусков — spec.md «Куски»), проверить полноту числом
+- [X] T008 [P] [US1] Разобрать сплющенный `98705b7` (182 файла): какие файлы к какой фиче относятся (016, 017, 007, 018, 009, 010 по R2), записать в J. Субагент Opus (medium), интегратор перепроверяет 3 выборочных файла
+- [X] T009 [P] [US1] F4: сверка K5 с K4: `git diff 150d786 f219be2`, `git diff 50be798 57061d8`, `git diff 32e2160 d9ce4da`. Каждое отличие объяснить; если в K4 потеряна строка K5 — задача в J «вернуть». Формат — contracts «сверка без слияния»
+- [X] T010 [P] [US1] F4: сверка K6 (`ce6c3dd`) с `57061d8` по всем 22 файлам вне `.ai/`. Ожидание из отчёта — отличается только поле `note` в `spec/000-фронт/mocks/users.json`. Вердикт записать в J
 
 **Checkpoint**: карта полная, K5/K6 закрыты сверкой.
 

@@ -15,8 +15,10 @@ cd ../RespondersAcademy-merge && npm ci && (cd backend && uv sync --group dev)
 
 ## Быстрый гейт (после каждого куска)
 
+`test` идёт до `typecheck`: `pretest` делает `mocks:sync`, без него tsc падает TS2307 на `@mocks/*.json` (`mocks/` в `.gitignore`).
+
 ```bash
-npm run lint && npm run steiger && npm run typecheck && npm run test
+npm run lint && npm run steiger && npm run test && npm run typecheck
 ```
 
 ```bash
