@@ -107,3 +107,7 @@
 ❌ read local `.ai/SESSION_STATE.md` without fetching → stale handoff, worked on wrong T007 (004 instead of 009)
 ✅ `git fetch origin <branch>` + `git log HEAD..origin/<branch>` BEFORE reading handoff; task ids (TNNN) repeat across specs → resolve by spec folder
 
+
+## L025 | "сделай ДДС" = working DDS login, not only the feature
+❌ scoped DDS account out of 011 and mentioned it only in "вне объёма" → owner opened DDS (egorov) and hit blocked account
+✅ when owner asks for a role/mode: check the demo account for that role actually logs in and lands in its ARM; say explicitly before finishing if it doesn't

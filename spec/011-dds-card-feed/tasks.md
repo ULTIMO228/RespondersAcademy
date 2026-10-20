@@ -19,4 +19,5 @@
 
 - [X] T008 (2026-10-20: pytest 1042 passed/4 skipped, ruff чисто, vitest 1956/1957 — красный только известный `teacher-v1` Blob, tsc/eslint/prettier/steiger чисто; `npm run check` и e2e не запускались) `uv run pytest -q`, `uv run ruff check .`, `npx vitest run src/features/assignment-create src/shared/api`, `npx tsc --noEmit`, `npm run lint`
 - [X] T009 Реестр `spec/README.md`, `.ai/SESSION_STATE.md`, `.ai/SESSIONS.md`
-- [ ] T010 Ручная проверка в браузере на бэкенде (SC-003, SC-005) — не проверялось
+- [ ] T010 Ручная проверка в браузере на бэкенде (SC-003, SC-005). 2026-10-20 (облако, Playwright + Chromium, бэкенд :8130 на чистой БД, `next build`/`next start` :3130 с `BACKEND_URL`): ✅ ivanov сохраняет карточку 112 (через API) → morozova видит её в банке мастера, эталон «Принята — предложено системой» → задание ДДС для egorov создано → egorov видит задание, «Начать» открывает карточку ученика-112 в `/arm/card/c-097`. Не проверено: статусы и оценка в браузере, SC-005 (мок-режим).
+- [X] T011 Демо-учётка оператора ДДС: egorov разблокирован (перенос `ce6c3dd` из `claude/zealous-goldberg-mu6erp`, блокировка для демо — lebedev), сид задания ДДС `asg-003` для egorov (билеты его профиля c-009, c-089, c-096) — `backend/app/seed/assignments_seed.py`, `backend/tests/integration/test_dds_demo_seed.py`
