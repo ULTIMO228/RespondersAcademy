@@ -65,8 +65,8 @@ export function GenerateDialog({ incidentGroups, defaultGroup, onClose, onGenera
       {rows ? (
         <section className={styles.catalog__generated} aria-label="Результат генерации">
           <p className={styles.catalog__hint}>
-            <AiBadge /> Результат для «{group}»: сценарии поступили на проверку преподавателю — до
-            утверждения их нельзя назначить в занятие.
+            <AiBadge /> Результат для «{group}»: сценарии поступили на проверку преподавателю — до утверждения
+            их нельзя назначить в занятие.
           </p>
           <ul className={styles.catalog__list}>
             {rows.map((row) => (

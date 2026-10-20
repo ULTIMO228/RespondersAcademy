@@ -5,8 +5,7 @@ export function updateStudentSpecializations(
   studentId: string,
   specializations: Specialization[],
 ): Promise<PublicUser> {
-  return v1ApiClient.patch<PublicUser>(
-    `/teacher/students/${encodeURIComponent(studentId)}/specializations`,
-    { specializations },
-  );
+  return v1ApiClient.patch<PublicUser>(`/teacher/students/${encodeURIComponent(studentId)}/specializations`, {
+    specializations,
+  });
 }

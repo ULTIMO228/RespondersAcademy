@@ -60,8 +60,16 @@ describe("IncidentJournal — таблица и данные мок-слоя (T2
 
   it("обучающийся ДДС не может поставить напоминание или пометить происшествие важным", async () => {
     await renderJournal(undefined, { ...STUDENT, role: "student", specializations: ["dds"] });
-    expect(screen.getAllByRole("button", { name: /Важное происшествие/ }).every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
-    expect(screen.getAllByRole("button", { name: "Напоминание" }).every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+    expect(
+      screen
+        .getAllByRole("button", { name: /Важное происшествие/ })
+        .every((button) => (button as HTMLButtonElement).disabled),
+    ).toBe(true);
+    expect(
+      screen
+        .getAllByRole("button", { name: "Напоминание" })
+        .every((button) => (button as HTMLButtonElement).disabled),
+    ).toBe(true);
   });
 
   it("маркер статуса службы, красный бейдж ЧП/ЧС, тултип кода типа, индикатор СМС", async () => {

@@ -41,7 +41,10 @@ export function buildStageSeries(reports: ReportContract[]): StageSeries {
   );
   const normMs = reports[0]?.charts.byStage.normMs ?? [];
   return {
-    labels: attempts.map((attempt) => `${attempt.attemptId} ${attempt.name} (${attempt.normScope === "operator112" ? "112" : "ДДС"})`),
+    labels: attempts.map(
+      (attempt) =>
+        `${attempt.attemptId} ${attempt.name} (${attempt.normScope === "operator112" ? "112" : "ДДС"})`,
+    ),
     reactionSec: attempts.map((attempt) => toSec(attempt.factMs[REACTION_STAGE_INDEX])),
     processingSec: attempts.map((attempt) => toSec(attempt.factMs[PROCESSING_STAGE_INDEX])),
     reactionNormSec: toSec(normMs[REACTION_STAGE_INDEX] ?? 0),

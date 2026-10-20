@@ -34,7 +34,9 @@ function SpecializationEditor({
   student: PublicUser;
   onSave: (values: Specialization[]) => Promise<void>;
 }) {
-  const [values, setValues] = useState<Specialization[]>(student.specializations?.length ? student.specializations : ["dds"]);
+  const [values, setValues] = useState<Specialization[]>(
+    student.specializations?.length ? student.specializations : ["dds"],
+  );
   const [isSaving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const toggle = (value: Specialization, checked: boolean) => {
@@ -71,7 +73,11 @@ function SpecializationEditor({
           </label>
         ))}
       </fieldset>
-      <PlatformButton variant="secondary" disabled={isSaving || values.length === 0} onClick={() => void save()}>
+      <PlatformButton
+        variant="secondary"
+        disabled={isSaving || values.length === 0}
+        onClick={() => void save()}
+      >
         Сохранить
       </PlatformButton>
       {message ? <span role="status">{message}</span> : null}

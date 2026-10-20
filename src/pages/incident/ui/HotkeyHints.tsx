@@ -3,7 +3,13 @@ import { HOTKEY_GROUPS } from "../config/hotkeys";
 import styles from "./IncidentPage.module.css";
 
 /** Подсказки по комбинациям клавиш при зажатом Alt (spec п. 15). */
-export function HotkeyHints({ isVisible, isDdsLearner = false }: { isVisible: boolean; isDdsLearner?: boolean }) {
+export function HotkeyHints({
+  isVisible,
+  isDdsLearner = false,
+}: {
+  isVisible: boolean;
+  isDdsLearner?: boolean;
+}) {
   if (!isVisible) return null;
   const groups = isDdsLearner
     ? HOTKEY_GROUPS.filter((group) => group.isActive).map((group) =>

@@ -31,7 +31,12 @@ function formatSigns(signs: string[]): string {
  * «Что случилось»: тёмный заголовок типа, строка атрибутов анкеты (свёрнутая опросная карта),
  * «Класс.:», «[ВИС] Класс.:» (только у ВИС-карточек). Клик по заголовку разворачивает опросную карту (read-only).
  */
-export function WhatHappened({ what, classifierEntries, isFromVis = false, readOnly = false }: WhatHappenedProps) {
+export function WhatHappened({
+  what,
+  classifierEntries,
+  isFromVis = false,
+  readOnly = false,
+}: WhatHappenedProps) {
   const [isExpanded, setExpanded] = useState(false);
   const classifierCode = what.classifierCode ?? "";
   const cardEntry = classifierEntries.find((entry) => entry.code === classifierCode);
