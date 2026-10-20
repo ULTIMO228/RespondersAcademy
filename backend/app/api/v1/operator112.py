@@ -1,6 +1,7 @@
 """Режим специалиста-112 (`contracts/v1-endpoints.md`, «Режим специалиста-112»; T084):
 `POST /operator112/attempts`, `…/answer`, `…/events`, `GET …/notification-list`, `POST …/submit`, `GET …/evaluation`,
 `GET /streets?q=&limit=`. Все эндпоинты требуют сессию (401); обучающийся — только свои попытки (403).
+Зона 112 (фича 007): весь роутер доступен только обучающимся со специализацией «специалист 112» (учитель и администратор — просмотр).
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.compat.auth import read_body
-from app.api.deps import Viewer, require_viewer
+from app.api.deps import Viewer, ensure_zone_access, require_viewer
 from app.api.errors import validation_failed
 from app.db.session import get_db
 from app.schemas.scenarios import parse_body
@@ -71,6 +72,7 @@ async def attempt_evaluation(attempt_id: str, db: AsyncSession = Depends(get_db)
 
 @router.get("/streets")
 async def streets(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> list[dict[str, Any]]:
+    await ensure_zone_access(db, viewer, "operator112", "поиск улиц")
     query = (request.query_params.get("q") or "").strip()
     if len(query) < STREETS_MIN_QUERY:
         raise validation_failed(f"Параметр «q» — не менее {STREETS_MIN_QUERY} символов")

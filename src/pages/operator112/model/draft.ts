@@ -46,7 +46,7 @@ export const EMPTY_FORM: DraftForm = {
 };
 
 /** Карточка к передаче. АОН заявителя — из попытки: обучающийся его не вводит. */
-export function toCardDraft(form: DraftForm, aon: string): CardDraft {
+export function toCardDraft(form: DraftForm, aon: string, notificationConfirmed: boolean): CardDraft {
   return {
     applicant: { name: form.applicantName.trim(), status: form.applicantStatus.trim() },
     phones: { aon, provided: form.phoneProvided.trim(), onSite: form.phoneOnSite.trim() },
@@ -65,6 +65,7 @@ export function toCardDraft(form: DraftForm, aon: string): CardDraft {
       serviceId: item.serviceId,
       addedBy: item.addedBy,
     })),
+    notificationConfirmed,
   };
 }
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -18,11 +19,11 @@ from app.services import session_engine
 router = APIRouter()
 
 
-def _report_builder():
+def _report_builder(viewer: Viewer):
     try:
         from app.services.report_builder import build_session_report
 
-        return build_session_report
+        return partial(build_session_report, viewer=viewer)
     except ImportError:
         return None
 
@@ -73,7 +74,7 @@ async def post_control(session_id: str, request: Request, db: AsyncSession = Dep
     row = await session_engine.require_session_row(db, session_id)
     _assert_control_access(viewer, row.teacher_id)
     body = await read_body(request)
-    response = await session_engine.post_control(db, session_id, body, _report_builder())
+    response = await session_engine.post_control(db, session_id, body, _report_builder(viewer))
     await db.commit()
     return response
 

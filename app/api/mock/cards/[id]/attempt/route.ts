@@ -1,1 +1,1 @@
-export { handlePostCardAttempt as POST } from "@/shared/api/mock/routes";
+export { handlePostCardAttempt as POST } from "../../../_server/handlers";

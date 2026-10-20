@@ -132,7 +132,7 @@ async def accept(db: AsyncSession, student_id: str, rec_id: str) -> dict[str, An
     return row.to_contract()
 
 
-async def profile(db: AsyncSession, student_id: str) -> dict[str, Any]:
+async def profile(db: AsyncSession, student_id: str, viewer: Viewer | None = None) -> dict[str, Any]:
     student = await db.get(User, student_id)
     if student is None or student.role != "student":
         raise not_found("Обучающийся не найден")
@@ -143,7 +143,7 @@ async def profile(db: AsyncSession, student_id: str) -> dict[str, Any]:
         errors = Counter(str(error.get("type") or "unknown") for row in history if row["mode"] == mode for error in row["errors"])
         typical[mode] = [{"type": key, "count": value} for key, value in errors.most_common(3)]
     return {"ratings": scores, "strongerMode": recommender.stronger_mode(scores),
-            "typicalErrors": typical, "recommendations": await generate(db, student_id, 10)}
+            "typicalErrors": typical, "recommendations": await generate(db, student_id, 10, viewer)}
 
 
 async def group_insights(db: AsyncSession, group_id: str, assignment_id: str | None = None) -> dict[str, Any]:

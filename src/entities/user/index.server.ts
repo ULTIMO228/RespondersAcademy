@@ -3,6 +3,7 @@ export { findUser, getDemoUser } from "./model/demoUser";
 export {
   getSessionUser,
   requireSessionUser,
+  requireSpecialization,
   SessionVerificationError,
   verifySession,
 } from "./model/server-session";

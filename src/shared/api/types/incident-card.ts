@@ -43,4 +43,6 @@ export interface IncidentCard {
   duplicateOf?: IncidentCardId;
   /** [расширение] автор-обучающийся — пул для cardSource='studentCreated'. */
   createdByStudentId?: string;
+  /** [расширение] статус карточки ПОВ-112 в фиче 007. */
+  cardStatus?: string;
 }

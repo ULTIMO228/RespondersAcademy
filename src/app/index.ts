@@ -1,5 +1,6 @@
 export { AdminLayout } from "./layouts/AdminLayout";
-export { ArmSectionLayout } from "./layouts/ArmSectionLayout";
+export { AdminOnlyLayout } from "./layouts/AdminOnlyLayout";
+export { ArmOperator112Layout, ArmPhoneLayout } from "./layouts/ArmSectionLayout";
 export { ArmCardLayout } from "./layouts/ArmCardLayout";
 export { ArmJournalLayout } from "./layouts/ArmJournalLayout";
 export { LightArmLayout } from "./layouts/LightArmLayout";

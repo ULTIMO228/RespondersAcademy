@@ -1,7 +1,8 @@
 "use client";
 
+import { SPECIALIZATION_TITLES } from "@/entities/user";
 import { Input, Select } from "@/shared/ui";
-import type { Role } from "@/shared/api";
+import type { Role, Specialization } from "@/shared/api";
 
 import type { RoleOption } from "../model/types";
 import type { UserFormErrors, UserFormValues } from "../model/user-form";
@@ -22,6 +23,8 @@ type UserFormFieldsProps = {
  * Поля учётной записи (spec/000-фронт/04-pages/20-admin-users.md): общие для создания и редактирования.
  * № АРМ обязателен для всех ролей — в реальном АРМ-112 вход выполняется с номером АРМ (02-roles.md).
  */
+const SPECIALIZATION_ORDER: Specialization[] = ["operator112", "dds"];
+
 export function UserFormFields({ values, errors, groups, roleOptions, mode, onChange }: UserFormFieldsProps) {
   const groupOptions = groups.map((group) => ({ value: group, label: group }));
   const toggleAssigned = (group: string) =>
@@ -29,6 +32,13 @@ export function UserFormFields({ values, errors, groups, roleOptions, mode, onCh
       assignedGroups: values.assignedGroups.includes(group)
         ? values.assignedGroups.filter((entry) => entry !== group)
         : [...values.assignedGroups, group],
+    });
+
+  const toggleSpecialization = (item: Specialization) =>
+    onChange({
+      specializations: values.specializations.includes(item)
+        ? values.specializations.filter((entry) => entry !== item)
+        : SPECIALIZATION_ORDER.filter((entry) => entry === item || values.specializations.includes(entry)),
     });
 
   return (
@@ -86,6 +96,25 @@ export function UserFormFields({ values, errors, groups, roleOptions, mode, onCh
           value={values.group}
           onChange={(event) => onChange({ group: event.target.value })}
         />
+      ) : null}
+      {values.role === "student" ? (
+        <fieldset className={[styles.form__groups, styles.form__wide].join(" ")}>
+          {/* [расширение, спека 007] специализация определяет рабочие зоны симулятора обучающегося. */}
+          <legend className={styles.form__legend}>Специализация</legend>
+          {SPECIALIZATION_ORDER.map((item) => (
+            <label key={item} className={styles.form__check}>
+              <input
+                type="checkbox"
+                checked={values.specializations.includes(item)}
+                onChange={() => toggleSpecialization(item)}
+              />{" "}
+              {SPECIALIZATION_TITLES[item]}
+            </label>
+          ))}
+          {errors.specializations ? (
+            <span className={styles.form__error}>{errors.specializations}</span>
+          ) : null}
+        </fieldset>
       ) : null}
       {values.role !== "admin" ? (
         <Input

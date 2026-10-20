@@ -138,6 +138,8 @@ export type IncidentCardViewProps = {
   linkedCards: LinkedCard[];
   isExceeded?: boolean;
   readOnly?: boolean;
+  /** Режим обучающегося-ДДС: поля и действия, принадлежащие 112, только для чтения. */
+  isDdsLearner?: boolean;
   /** Ссылка-переключатель состояния норматива (dev: «?state=exceeded»); без неё таймер не кликабелен. */
   stateToggleHref?: string;
   /** Тренажёрный таймер отработки, по умолчанию «3:00» (статичная строка волны 0). */

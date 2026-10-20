@@ -12,6 +12,8 @@ type AssignmentCardProps = {
   view: AssignmentView;
   /** Возвращает сообщение об отказе (например, 409 сервера) либо null, если переход выполнен. */
   onStart: (view: AssignmentView) => Promise<string | null>;
+  /** Причина недоступности (чужая специализация, спека 007): вместо запуска показывается сообщение. */
+  unavailableReason?: string;
 };
 
 const STATUS_TITLES = {
@@ -35,14 +37,14 @@ function actionTitle(view: AssignmentView): string {
 }
 
 /** Карточка задания: условия, статус по прогрессу, итог, запуск/продолжение. Кнопки «Завершить» нет — задание завершает преподаватель. */
-export function AssignmentCard({ view, onStart }: AssignmentCardProps) {
+export function AssignmentCard({ view, onStart, unavailableReason }: AssignmentCardProps) {
   const { assignment, progress } = view;
   const [message, setMessage] = useState<string | null>(null);
   const [isStarting, setStarting] = useState(false);
   const isExam = assignment.format === "exam";
   const params = assignment.params;
   const average = averageScore(progress);
-  const canStart = view.status === "available" || view.status === "inProgress";
+  const canStart = !unavailableReason && (view.status === "available" || view.status === "inProgress");
 
   const start = async () => {
     setStarting(true);
@@ -124,6 +126,7 @@ export function AssignmentCard({ view, onStart }: AssignmentCardProps) {
         </>
       ) : null}
 
+      {unavailableReason ? <Alert tone="warning">{unavailableReason}</Alert> : null}
       {view.awaitsTeacher ? (
         <Alert tone="warning">Этап ДДС ожидает проверки и подтверждения преподавателем.</Alert>
       ) : null}

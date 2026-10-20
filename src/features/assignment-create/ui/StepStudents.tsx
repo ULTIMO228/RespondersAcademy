@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import type { PublicUser } from "@/shared/api";
+import type { PublicUser, TrainingMode } from "@/shared/api";
 import { Alert, EmptyState, ErrorState, Skeleton, ServerRequiredState } from "@/shared/ui/platform";
 import { useResource } from "@/shared/ui/platform";
 
@@ -17,6 +17,7 @@ type StepStudentsProps = {
   api: AssignmentCreateApi;
   /** Закреплённые за преподавателем группы: если заданы, показываются только они. */
   assignedGroups?: string[];
+  trainingMode: TrainingMode;
   selected: string[];
   errors: StepErrors;
   onChange: (studentIds: string[]) => void;
@@ -27,6 +28,7 @@ type StepStudentsProps = {
 export function StepStudents({
   api,
   assignedGroups,
+  trainingMode,
   selected,
   errors,
   onChange,
@@ -41,12 +43,12 @@ export function StepStudents({
   const groups = useMemo(() => {
     if (state.status !== "ready") return [];
     const byGroup = new Map<string, PublicUser[]>();
-    for (const user of assignableStudents(state.data, assignedGroups)) {
+    for (const user of assignableStudents(state.data, assignedGroups, trainingMode)) {
       const group = user.group ?? NO_GROUP;
       byGroup.set(group, [...(byGroup.get(group) ?? []), user]);
     }
     return [...byGroup.entries()].sort(([left], [right]) => left.localeCompare(right, "ru"));
-  }, [state, assignedGroups]);
+  }, [state, assignedGroups, trainingMode]);
 
   if (state.status === "loading") return <Skeleton label="Загрузка обучающихся…" lines={3} />;
   if (state.status === "serverRequired") return <ServerRequiredState onRetry={reload} />;
@@ -55,7 +57,7 @@ export function StepStudents({
     return (
       <EmptyState
         title="Нет доступных обучающихся"
-        text="Назначать можно только активных обучающихся закреплённых за вами групп."
+        text="В выбранном режиме нет активных обучающихся с нужной специализацией в закреплённых за вами группах."
       />
     );
   }

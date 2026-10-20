@@ -43,7 +43,7 @@ export function ReportCharts({ reports, groupReport }: ReportChartsProps) {
           />
         </div>
         <ChartDataTable
-          caption={`Тайминги по попыткам, с (нормативы ${stages.reactionNormSec} / ${stages.processingNormSec} с)`}
+          caption={`Тайминги по попыткам, с; подпись 112/ДДС указывает область норматива (показаны ${stages.reactionNormSec} / ${stages.processingNormSec} с)`}
           labelTitle="Попытка"
           labels={stages.labels}
           columns={[

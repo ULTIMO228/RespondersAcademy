@@ -387,7 +387,13 @@ def activity(attempt: dict[str, Any]) -> ComponentResult:
     events = list(attempt.get("events") or [])
     replays = int(attempt.get("replays") or sum(1 for e in events if e.get("type") == "replay"))
     hints = int(attempt.get("hintsShown") or sum(1 for e in events if e.get("type") == "hintShown"))
-    result = ComponentResult(name="activity", score=1.0, applicable=False, details={"replays": replays, "hintsShown": hints, "events": len(events)})
+    outcomes = [e.get("type") for e in events if e.get("type") in ("noContact", "callDropped")]
+    result = ComponentResult(
+        name="activity",
+        score=1.0,
+        applicable=False,
+        details={"replays": replays, "hintsShown": hints, "events": len(events), "callOutcomes": outcomes},
+    )
     if replays > 1:
         result.warnings.append(f"Запись прослушана повторно: {replays} раз(а)")
     if hints:

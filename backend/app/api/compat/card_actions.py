@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.compat.auth import read_body
-from app.api.deps import Viewer, get_viewer
+from app.api.deps import Viewer, deny_specialization, ensure_zone_access, get_viewer
 from app.api.errors import forbidden, unauthorized, validation_failed
 from app.config import get_settings
 from app.db.ids import PREFIX, format_id, max_suffix
@@ -26,6 +26,19 @@ from app.services.time import is_iso, now_iso, parse_iso_ms
 
 router = APIRouter()
 DEFAULT_OPERATOR = "оп. 1"
+
+
+async def _require_operator112_for_student(db: AsyncSession, viewer: Viewer | None, where: str) -> None:
+    """Пишущие действия 112 закрыты для обучающегося-ДДС; анонимные пути остаются в scope фичи 008."""
+    if viewer is not None and viewer.is_student and not viewer.has_specialization("operator112"):
+        await deny_specialization(db, viewer, "operator112", where)
+
+
+async def _require_card_zone(db: AsyncSession, card_id: str, viewer: Viewer | None, where: str) -> None:
+    resolved = await require_card(db, card_id)
+    row = await db.get(IncidentCard, card_id) if resolved.kind == "training" else None
+    mode = "operator112" if row is not None and row.mode_origin == "operator112" else "dds"
+    await ensure_zone_access(db, viewer, mode, where)
 
 
 def _optional_string(body: dict[str, Any], key: str) -> str | None:
@@ -51,7 +64,8 @@ async def _next_runtime_id(db: AsyncSession, prefix: str, collection: str) -> st
 
 
 @router.post("/cards/{card_id}/status")
-async def post_status(card_id: str, request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def post_status(card_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
+    await ensure_zone_access(db, viewer, "dds", "статус службы по карточке")
     await require_card(db, card_id)
     body = await read_body(request)
     dds_status = body.get("ddsStatus")
@@ -90,7 +104,8 @@ def _find_root(card: dict[str, Any], by_id: dict[str, dict[str, Any]]) -> str:
 
 
 @router.post("/cards/{card_id}/links")
-async def post_links(card_id: str, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def post_links(card_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
+    await _require_card_zone(db, card_id, viewer, "чтение связей карточки")
     resolved = await require_card(db, card_id)
     if resolved.kind == "fixture":
         return {"cardId": card_id, "chain": []}
@@ -104,7 +119,8 @@ async def post_links(card_id: str, db: AsyncSession = Depends(get_db)) -> dict[s
 
 
 @router.post("/cards/{card_id}/worklines")
-async def post_workline(card_id: str, request: Request, db: AsyncSession = Depends(get_db)) -> JSONResponse:
+async def post_workline(card_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> JSONResponse:
+    await ensure_zone_access(db, viewer, "dds", "отработка службы по карточке")
     await require_card(db, card_id)
     body = await read_body(request)
     if body.get("confirmed") is not True:
@@ -126,7 +142,8 @@ async def post_workline(card_id: str, request: Request, db: AsyncSession = Depen
 
 
 @router.post("/cards/{card_id}/reminders")
-async def post_reminder(card_id: str, request: Request, db: AsyncSession = Depends(get_db)) -> JSONResponse:
+async def post_reminder(card_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> JSONResponse:
+    await _require_operator112_for_student(db, viewer, "напоминание по карточке")
     await require_card(db, card_id)
     body = await read_body(request)
     text = _required_string(body, "text", "Текст напоминания")
@@ -141,14 +158,16 @@ async def post_reminder(card_id: str, request: Request, db: AsyncSession = Depen
 
 
 @router.get("/cards/{card_id}/sms")
-async def list_sms(card_id: str, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
+async def list_sms(card_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> list[dict[str, Any]]:
+    await _require_card_zone(db, card_id, viewer, "просмотр SMS по карточке")
     await require_card(db, card_id)
     sms = (await read_runtime(db, card_id))["sms"]
     return sorted(sms, key=lambda item: parse_iso_ms(item["at"]))
 
 
 @router.post("/cards/{card_id}/sms")
-async def post_sms(card_id: str, request: Request, db: AsyncSession = Depends(get_db)) -> JSONResponse:
+async def post_sms(card_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> JSONResponse:
+    await _require_operator112_for_student(db, viewer, "отправка SMS по карточке")
     resolved = await require_card(db, card_id)
     body = await read_body(request)
     text = _required_string(body, "text", "Текст SMS")

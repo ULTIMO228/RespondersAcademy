@@ -221,3 +221,32 @@ async def test_audit_filters_and_pagination(client: AsyncClient):
     assert (await client.get("/admin/audit", params={"type": "nope"})).status_code == 400
     assert (await client.get("/admin/audit", params={"from": "not-a-date"})).status_code == 400
     assert (await client.get("/admin/audit", params={"page": "x"})).status_code == 400
+
+
+async def test_admin_edits_student_specializations(client: AsyncClient):
+    """T018 (фича 007): специализация обучающегося — только администратором; правила по роли; аудит `user.specialization_changed`."""
+    await login_as(client, "admin")
+    body = {"adminId": ADMIN_ID, "fullName": "Специализация Тестовая", "login": "spec.tester", "password": "Temp-1234", "role": "student", "armNumber": 34}
+    created = await client.post("/admin/users", json=body)
+    assert created.status_code == 201, created.text
+    user_id = created.json()["id"]
+    assert created.json()["specializations"] == ["dds"]  # новая учётная запись без выбора — «оператор ДДС» (допущение 10)
+    both = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["operator112", "dds"]})
+    assert both.status_code == 200 and both.json()["specializations"] == ["operator112", "dds"]
+    for bad in ([], ["dds", "dds"], ["pilot"], "dds"):
+        rejected = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": bad})
+        assert rejected.status_code == 400 and rejected.json()["error"]["code"] == "validationFailed", (bad, rejected.text)
+    audit = (await client.get("/admin/audit", params={"type": "users", "perPage": 100})).json()["items"]
+    changed = [e for e in audit if e["action"] == "user.specialization_changed" and user_id in e["details"]]
+    assert len(changed) == 1 and changed[0]["userId"] == ADMIN_ID
+
+    teacher = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "role": "teacher"})
+    assert teacher.status_code == 200 and "specializations" not in teacher.json()
+    assert (await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["dds"]})).status_code == 400
+    back = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "role": "student"})
+    assert back.status_code == 200 and back.json()["specializations"] == ["dds"]
+
+    await login_as(client, "teacher")
+    assert (await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["dds"]})).status_code == 403
+    await login_as(client, "admin")
+    assert (await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["operator112"]})).status_code == 200

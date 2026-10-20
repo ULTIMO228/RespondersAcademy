@@ -5,6 +5,7 @@ export const USER_TABLE_COLUMNS = [
   { key: "fullName", title: "ФИО" },
   { key: "login", title: "Логин" },
   { key: "role", title: "Роль" },
+  { key: "specialization", title: "Специализация" },
   { key: "arm", title: "№ АРМ" },
   { key: "group", title: "Группа" },
   { key: "service", title: "Служба" },

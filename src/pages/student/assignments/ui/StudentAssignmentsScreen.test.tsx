@@ -2,8 +2,9 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mocked } from "vitest";
 
+import { SessionProvider } from "@/entities/user";
 import { ApiError, ServerRequiredError } from "@/shared/api";
-import type { Assignment, AssignmentDetail, AssignmentProgress } from "@/shared/api";
+import type { Assignment, AssignmentDetail, AssignmentProgress, PublicUser } from "@/shared/api";
 
 import type { StudentAssignmentsApi } from "../api/assignmentsApi";
 import { StudentAssignmentsScreen } from "./StudentAssignmentsScreen";
@@ -120,6 +121,57 @@ describe("StudentAssignmentsScreen: список заданий", () => {
     render(<StudentAssignmentsScreen api={api} />);
     expect(await card(/тренировка/)).toHaveTextContent("Прогресс по заданию не загрузился");
     expect(await card(/экзамен/)).not.toHaveTextContent("не загрузился");
+  });
+});
+
+const studentWith = (specializations: PublicUser["specializations"]): PublicUser => ({
+  id: "u-005",
+  login: "ivanov",
+  fullName: "Иванов Сергей Петрович",
+  role: "student",
+  armNumber: 1,
+  isActive: true,
+  specializations,
+});
+
+describe("StudentAssignmentsScreen: специализация обучающегося (спека 007)", () => {
+  const DDS: Assignment = { ...TRAINING, id: "asg-010", trainingMode: "dds", title: "ДДС-тренировка" };
+  const CHAIN: Assignment = { ...TRAINING, id: "asg-011", trainingMode: "chain", title: "Цепочка" };
+
+  function renderFor(specializations: PublicUser["specializations"], items: Assignment[]) {
+    return render(
+      <SessionProvider user={studentWith(specializations)}>
+        <StudentAssignmentsScreen api={makeApi(items)} />
+      </SessionProvider>,
+    );
+  }
+
+  it("ДДС-обучающийся не видит заданий режима 112", async () => {
+    renderFor(["dds"], [TRAINING, DDS]);
+    const own = within(await card("ДДС-тренировка"));
+    expect(own.getByRole("button", { name: "Начать" })).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: /Режим 112/ })).toBeNull();
+  });
+
+  it("112-обучающийся видит только своё задание", async () => {
+    renderFor(["operator112"], [TRAINING, DDS]);
+    expect(within(await card(/Режим 112/)).getByRole("button", { name: "Начать" })).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "ДДС-тренировка" })).toBeNull();
+  });
+
+  it("цепочка доступна только с обеими специализациями", async () => {
+    const { unmount } = renderFor(["dds"], [CHAIN]);
+    expect(await screen.findByText(/Заданий пока нет/)).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "Цепочка" })).toBeNull();
+    unmount();
+    renderFor(["operator112", "dds"], [CHAIN]);
+    expect(within(await card("Цепочка")).getByRole("button", { name: "Начать" })).toBeInTheDocument();
+  });
+
+  it("если все задания чужого режима — показывается пустое состояние без раскрытия чужих заданий", async () => {
+    renderFor(["dds"], [TRAINING]);
+    expect(await screen.findByText(/Заданий пока нет/)).toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: /Режим 112/ })).toBeNull();
   });
 });
 

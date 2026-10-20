@@ -33,7 +33,7 @@ type AssignmentWizardProps = {
 
 const REVIEW_STEP = WIZARD_STEPS.length - 1;
 const FIRST_ERROR_STEP: Record<string, number> = {
-  studentIds: 0,
+  studentIds: 1,
   cardIds: 2,
   ruleCount: 2,
 };
@@ -62,7 +62,7 @@ export function AssignmentWizard({
   const [unavailableInitial, setUnavailableInitial] = useState(0);
 
   const handleStudentsLoaded = (loaded: PublicUser[]) => {
-    const available = new Set(assignableStudents(loaded, assignedGroups).map((user) => user.id));
+    const available = new Set(assignableStudents(loaded, assignedGroups, draft.trainingMode).map((user) => user.id));
     setStudents(loaded);
     setStudentsLoaded(true);
     setUnavailableInitial((initial?.studentIds ?? []).filter((id) => !available.has(id)).length);
@@ -79,9 +79,17 @@ export function AssignmentWizard({
     setServerError(null);
   };
 
-  const changeMode = (trainingMode: WizardDraft["trainingMode"]) =>
-    // Источник билетов и выбранные версии зависят от режима: смена режима сбрасывает выбор билетов.
-    patch({ trainingMode, ticketSource: "cards", cardIds: [], scenarioVersions: [] });
+  const changeMode = (trainingMode: WizardDraft["trainingMode"]) => {
+    const available = new Set(assignableStudents(students, assignedGroups, trainingMode).map((user) => user.id));
+    // Выбор обучающихся и билетов зависит от режима: снимаем неподходящих и сбрасываем выбор билетов.
+    patch({
+      trainingMode,
+      studentIds: draft.studentIds.filter((id) => available.has(id)),
+      ticketSource: "cards",
+      cardIds: [],
+      scenarioVersions: [],
+    });
+  };
 
   const next = () => {
     const found = validateStep(step, draft);
@@ -119,6 +127,16 @@ export function AssignmentWizard({
       <Stepper steps={[...WIZARD_STEPS]} current={step} />
       <Card title={WIZARD_STEPS[step]} aria-label={`Шаг ${step + 1}: ${WIZARD_STEPS[step]}`}>
         {step === 0 ? (
+          <StepMode
+            title={draft.title}
+            trainingMode={draft.trainingMode}
+            format={draft.format}
+            onTitle={(title) => patch({ title })}
+            onMode={changeMode}
+            onFormat={(format) => patch({ format })}
+          />
+        ) : null}
+        {step === 1 ? (
           <>
             {unavailableInitial > 0 ? (
               <Alert tone="warning">
@@ -128,22 +146,13 @@ export function AssignmentWizard({
             <StepStudents
               api={api}
               assignedGroups={assignedGroups}
+              trainingMode={draft.trainingMode}
               selected={draft.studentIds}
               errors={errors}
               onChange={(studentIds) => patch({ studentIds })}
               onLoaded={handleStudentsLoaded}
             />
           </>
-        ) : null}
-        {step === 1 ? (
-          <StepMode
-            title={draft.title}
-            trainingMode={draft.trainingMode}
-            format={draft.format}
-            onTitle={(title) => patch({ title })}
-            onMode={changeMode}
-            onFormat={(format) => patch({ format })}
-          />
         ) : null}
         {step === 2 ? (
           <StepTickets api={api} draft={draft} errors={errors} onChange={patch} focusStage={focusStage} />
@@ -166,7 +175,7 @@ export function AssignmentWizard({
             Назад
           </PlatformButton>
           {step < REVIEW_STEP ? (
-            <PlatformButton variant="primary" onClick={next} disabled={step === 0 && !studentsLoaded}>
+            <PlatformButton variant="primary" onClick={next} disabled={step === 1 && !studentsLoaded}>
               Далее
             </PlatformButton>
           ) : (

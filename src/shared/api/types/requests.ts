@@ -18,7 +18,7 @@ import type {
   SessionFeedEvent,
   SessionState,
 } from "./session";
-import type { PublicUser, Role } from "./user";
+import type { PublicUser, Role, Specialization } from "./user";
 
 /** POST /api/mock/auth/login. Номер АРМ необязателен: платформа входит по логину и паролю; если передан — сверяется. */
 export interface LoginRequest {
@@ -195,6 +195,11 @@ export interface AdminUserRoleFields {
   service?: string;
   /** [app-расширение] закреплённые группы преподавателя (расхождение №5). */
   assignedGroups?: string[];
+  /**
+   * [расширение, спека 007] специализации обучающегося: непустой список без дублей. Для teacher/admin не принимается (400);
+   * при создании обучающегося без поля — «dds».
+   */
+  specializations?: Specialization[];
 }
 
 /** POST /api/mock/admin/users — создание учётной записи (id `u-NNN` выдаёт мок-слой). */

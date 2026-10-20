@@ -245,3 +245,62 @@ describe("block / unblock / reset-password (T4.1-03, T4.1-09)", () => {
     ).toBe(403);
   });
 });
+
+describe("специализации обучающегося (спека 007, T017/T018)", () => {
+  it("список отдаёт specializations обучающимся из спек-моков, преподавателям — нет", async () => {
+    const users = await list();
+    const byId = (id: string) => users.find((user) => user.id === id);
+    expect(byId("u-005")?.specializations).toEqual(["operator112", "dds"]);
+    expect(byId("u-016")?.specializations).toEqual(["operator112"]);
+    expect(byId(TEACHER_ID)?.specializations).toBeUndefined();
+  });
+
+  it("PATCH задаёт специализацию обучающегося и пишет аудит user.specialization_changed", async () => {
+    const response = await patch(STUDENT_ID, { adminId: ADMIN_ID, specializations: ["dds"] });
+    expect(response.status).toBe(200);
+    expect(((await response.json()) as PublicUser).specializations).toEqual(["dds"]);
+    const entry = (await audit()).find((item) => item.action === "user.specialization_changed");
+    expect(entry).toMatchObject({ userId: ADMIN_ID });
+    expect(entry?.details).toContain("u-005");
+  });
+
+  it("PATCH без поля specializations сохраняет прежние значения", async () => {
+    const response = await patch(STUDENT_ID, { adminId: ADMIN_ID, fullName: "Иванов С. П." });
+    expect(((await response.json()) as PublicUser).specializations).toEqual(["operator112", "dds"]);
+  });
+
+  it("пустой список, дубли и неизвестное значение для обучающегося → 400; парный корректный → 200", async () => {
+    for (const bad of [[], ["dds", "dds"], ["pilot"], "dds"]) {
+      expect((await patch(STUDENT_ID, { adminId: ADMIN_ID, specializations: bad })).status, String(bad)).toBe(
+        400,
+      );
+    }
+    expect((await patch(STUDENT_ID, { adminId: ADMIN_ID, specializations: ["operator112"] })).status).toBe(
+      200,
+    );
+  });
+
+  it("специализация преподавателю или администратору → 400", async () => {
+    expect((await patch(TEACHER_ID, { adminId: ADMIN_ID, specializations: ["dds"] })).status).toBe(400);
+    expect((await patch(ADMIN_ID, { adminId: ADMIN_ID, specializations: ["dds"] })).status).toBe(400);
+    expect((await patch(TEACHER_ID, { adminId: ADMIN_ID, fullName: "Петров П. П." })).status).toBe(200);
+  });
+
+  it("смена роли на преподавателя снимает специализации; обратно в обучающегося — по умолчанию «dds»", async () => {
+    const toTeacher: PublicUser = await (
+      await patch(STUDENT_ID, { adminId: ADMIN_ID, role: "teacher" })
+    ).json();
+    expect(toTeacher.specializations).toBeUndefined();
+    const back: PublicUser = await (await patch(STUDENT_ID, { adminId: ADMIN_ID, role: "student" })).json();
+    expect(back.specializations).toEqual(["dds"]);
+  });
+
+  it("создание обучающегося: переданная специализация сохраняется, без неё — «dds»", async () => {
+    const withSpec: PublicUser = await (
+      await create({ ...NEW_STUDENT, specializations: ["operator112"] })
+    ).json();
+    expect(withSpec.specializations).toEqual(["operator112"]);
+    const without: PublicUser = await (await create({ ...NEW_STUDENT, login: "novikov2" })).json();
+    expect(without.specializations).toEqual(["dds"]);
+  });
+});

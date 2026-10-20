@@ -38,7 +38,7 @@ async def accept(rec_id: str, db: AsyncSession = Depends(get_db),
 @router.get("/teacher/students/{student_id}/profile")
 async def student_profile(student_id: str, db: AsyncSession = Depends(get_db),
                           viewer: Viewer = Depends(teacher_or_admin)) -> dict[str, Any]:
-    result = await service.profile(db, student_id)
+    result = await service.profile(db, student_id, viewer)
     await db.commit()
     return result
 

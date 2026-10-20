@@ -8,6 +8,7 @@ import type {
   AssignmentDetail,
   AssignmentLinkState,
   AssignmentProgress,
+  Specialization,
   TrainingMode,
 } from "@/shared/api";
 
@@ -23,6 +24,19 @@ export const LINK_STATE_TITLES: Record<AssignmentLinkState, string> = {
   submitted: "Передан",
   notCompleted: "Не выполнено",
 };
+
+/**
+ * Доступен ли режим задания обучающемуся с такими зонами (спека 007): 112 и ДДС — по своей специализации, цепочка
+ * 112 → ДДС требует обе (сервер проверяет то же самое и отвечает 403).
+ */
+export function isModeAvailable(mode: TrainingMode, zones: readonly Specialization[]): boolean {
+  return requiredSpecializations(mode).every((item) => zones.includes(item));
+}
+
+/** Специализации, нужные для режима задания: цепочка — обе. */
+export function requiredSpecializations(mode: TrainingMode): Specialization[] {
+  return mode === "chain" ? ["operator112", "dds"] : [mode];
+}
 
 export type CardStatus = "available" | "inProgress" | "done" | "finished";
 

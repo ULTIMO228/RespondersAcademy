@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, NoReturn
 from urllib.parse import unquote
 
 from fastapi import Depends, Request
@@ -15,13 +15,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.errors import forbidden, unauthorized, validation_failed
 from app.db.session import get_db
 from app.models.auth_session import AuthSession
-from app.models.user import User
+from app.models.user import MODE_TITLES, User, covers_mode, required_specializations
+from app.services import audit
 from app.services.security import decode_token, jti_hash
 
 SESSION_COOKIE = "arm112_session"
 OWN_DATA_ONLY_MESSAGE = "Обучающемуся доступны только собственные результаты"
 SESSION_REQUIRED_MESSAGE = "Войдите в систему, чтобы просмотреть результаты"
+SPECIALIZATION_MESSAGE = "Недоступно для вашей специализации"
 ROLES = ("student", "teacher", "admin")
+STAFF_ROLES = ("teacher", "admin")
 
 
 @dataclass(frozen=True)
@@ -29,10 +32,19 @@ class Viewer:
     user_id: str
     role: str
     session_hash: str = ""
+    # Специализации обучающегося из строки User (`get_viewer`, без отдельного запроса); у учителя и администратора пусто.
+    specializations: tuple[str, ...] = ()
 
     @property
     def is_student(self) -> bool:
         return self.role == "student"
+
+    def has_specialization(self, mode: str) -> bool:
+        """Учитель и администратор проходят любую зону (режим просмотра); обучающийся — по списку специализаций."""
+        required_specializations(mode)  # неизвестный режим — ошибка вызова, а не отказ
+        if self.role in STAFF_ROLES:
+            return True
+        return self.role == "student" and covers_mode(self.specializations, mode)
 
 
 def _parse_cookie(raw: str | None) -> dict[str, Any] | None:
@@ -104,7 +116,7 @@ async def get_viewer(request: Request, db: AsyncSession = Depends(get_db)) -> Vi
         return None
     if session.user_id != viewer.user_id:
         return None
-    return viewer
+    return replace(viewer, specializations=tuple(user.specializations or ()))
 
 
 async def require_viewer(viewer: Viewer | None = Depends(get_viewer)) -> Viewer:
@@ -168,6 +180,52 @@ async def require_teacher_actor(db: AsyncSession, viewer: Viewer | None, user_id
 
 def actor_role(viewer: Viewer | None, fallback: str = "teacher") -> str:
     return viewer.role if viewer is not None else fallback
+
+
+async def deny_specialization(db: AsyncSession, viewer: Viewer, mode: str, where: str, student_id: str | None = None) -> NoReturn:
+    """Отказ по специализации: запись аудита без текстов вызовов, затем 403 (`get_db` не коммитит сам)."""
+    actor = await db.get(User, viewer.user_id)
+    target = f"; обучающийся {student_id}" if student_id else ""
+    await audit.record(
+        db,
+        action="access.denied.specialization",
+        user_id=viewer.user_id,
+        role=viewer.role,
+        details=f"Отказ в доступе к зоне «{MODE_TITLES[mode]}» ({where}){target}",
+        operator_arm=actor.arm_number if actor is not None else None,
+    )
+    await db.commit()
+    raise forbidden(SPECIALIZATION_MESSAGE)
+
+
+def require_specialization(mode: str):
+    """Зависимость маршрута: обучающийся без нужной специализации → 403; учитель и администратор проходят."""
+
+    async def dependency(request: Request, viewer: Viewer = Depends(require_viewer), db: AsyncSession = Depends(get_db)) -> Viewer:
+        if not viewer.has_specialization(mode):
+            await deny_specialization(db, viewer, mode, f"{request.method} {request.url.path}")
+        return viewer
+
+    return dependency
+
+
+async def ensure_zone_access(db: AsyncSession, viewer: Viewer | None, mode: str, where: str, student_id: str | None = None) -> None:
+    """Зона режима для действия над попыткой или заданием (внутри сервиса и компат-маршрута).
+
+    Вьюер-обучающийся — по своей специализации; учитель и администратор — по целевому обучающемуся (`student_id`),
+    чтобы нельзя было открыть попытку 112 обучающемуся только с ДДС. Аноним не проверяется (D4: анонимные пути вне фичи 007).
+    """
+    if viewer is None:
+        return
+    if viewer.is_student:
+        if not viewer.has_specialization(mode):
+            await deny_specialization(db, viewer, mode, where)
+        return
+    if student_id is None:
+        return
+    target = await db.get(User, student_id)
+    if target is None or target.role != "student" or not covers_mode(target.specializations, mode):
+        await deny_specialization(db, viewer, mode, where, student_id=student_id)
 
 
 DbDep = Depends(get_db)

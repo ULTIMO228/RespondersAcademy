@@ -47,7 +47,7 @@ describe("GET /api/mock/admin/users", () => {
     const body = JSON.parse(raw) as PublicUser[];
     expect(body).toHaveLength(USER_COUNT);
     expect(body.every((user) => !("password" in user))).toBe(true);
-    expect(raw).not.toMatch(/password|112"/);
+    expect(raw).not.toMatch(/password|(student|teacher|admin)112/); // значение «operator112» в specializations допустимо
   });
 });
 

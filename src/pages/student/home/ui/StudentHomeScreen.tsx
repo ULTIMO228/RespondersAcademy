@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   daysUntilDue,
   formatLimit,
+  isModeAvailable,
   MODE_TITLES,
   pickNextAssignment,
   pickOpenAttempt,
@@ -19,7 +20,7 @@ import {
   summarizePerformance,
   toneAgainstNorm,
 } from "@/entities/report";
-import { useSessionUser } from "@/entities/user";
+import { useSessionUser, zonesOf } from "@/entities/user";
 import type { HistoryItem } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import { formatDate, formatDuration } from "@/shared/lib";
@@ -163,6 +164,8 @@ export function StudentHomeScreen({
   const analytics = useResource((signal) => api.analytics(signal), [api]);
   const recommendations = useResource((signal) => api.recommendations(RECOMMENDATION_LIMIT, signal), [api]);
   const history = useResource((signal) => api.history(HISTORY_LIMIT, signal), [api]);
+  /* Без сессии на клиенте (тесты, предзагрузка) фильтра нет; запрет всё равно держит сервер. */
+  const zones = user ? zonesOf(user) : null;
 
   return (
     <div className={styles.stack}>
@@ -233,14 +236,22 @@ export function StudentHomeScreen({
             onRetry={assignments.reload}
             errorTitle="Не удалось загрузить задания"
           >
-            {(views) => {
+            {(allViews) => {
+              const views = zones
+                ? allViews.filter((view) => isModeAvailable(view.assignment.trainingMode, zones))
+                : allViews;
+              const hiddenCount = allViews.length - views.length;
               const next = pickNextAssignment(views);
               const open = pickOpenAttempt(views);
               if (!next) {
                 return (
                   <EmptyState
                     title="Активных заданий нет"
-                    text="Задание назначает преподаватель. Когда оно появится, здесь будет кнопка «Начать»."
+                    text={
+                      hiddenCount > 0
+                        ? "Назначенные задания недоступны для вашей специализации — подробности на странице заданий."
+                        : "Задание назначает преподаватель. Когда оно появится, здесь будет кнопка «Начать»."
+                    }
                     action={<LinkButton href={ROUTES.studentAssignments}>К заданиям</LinkButton>}
                   />
                 );

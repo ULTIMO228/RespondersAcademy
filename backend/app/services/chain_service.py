@@ -9,7 +9,7 @@ from app.db.ids import PREFIX, next_id
 from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.card import IncidentCard
 from app.models.session import Attempt, TrainingSession
-from app.models.user import User
+from app.models.user import DEFAULT_STUDENT_SPECIALIZATIONS, User, covers_mode
 from app.services.time import now_iso
 
 
@@ -62,8 +62,9 @@ async def issue_submitted_card(db: AsyncSession, card: IncidentCard, source: Att
     users = {u.id: u for u in (await db.execute(select(User).where(User.role == "student", User.is_active.is_(True)))).scalars().all()}
     delivered = False
     for session in eligible_sessions:
-        recipients = [sid for sid in session.student_ids or [] if sid != source.student_id and sid in users
+        recipients = [sid for sid in session.student_ids or [] if sid in users
                       and (assignment is None or session.mode != f"assignment:{assignment.id}" or sid in (assignment.student_ids or []))
+                      and covers_mode(users[sid].specializations or DEFAULT_STUDENT_SPECIALIZATIONS, "dds")
                       and any(_matches(users[sid].service, service) for service in card.expected_services or [])]
         for recipient in recipients:
             if any(item.get("cardId") == card.id and item.get("studentId") == recipient for item in session.card_flow or []):

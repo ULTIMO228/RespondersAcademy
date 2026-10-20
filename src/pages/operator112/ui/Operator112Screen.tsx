@@ -59,6 +59,7 @@ export function Operator112Screen({ assignmentId, api = operator112Api, clock }:
         expired={op.expired}
         nextProblem={op.nextProblem}
         onNext={() => void op.next()}
+        onCardStatus={(type) => void op.updateCardStatus(type)}
       />
     );
   }
@@ -73,7 +74,7 @@ export function Operator112Screen({ assignmentId, api = operator112Api, clock }:
       answerError={op.answerError}
       isSubmitting={op.isSubmitting}
       errors={op.errors}
-      sendEvent={(event) => api.sendEvent(attempt.id, event)}
+      sendEvent={op.sendEvent}
       onAnswer={() => void op.answer()}
       onSubmit={(draft, examZero) => void op.submit(draft, examZero)}
     />

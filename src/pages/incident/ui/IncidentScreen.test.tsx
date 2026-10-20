@@ -137,18 +137,16 @@ describe("IncidentScreen — статусы, итог, хоткеи (T2.3-12, T2
     expect(await within(result).findByText("Разбор ошибок")).toBeInTheDocument();
   });
 
-  it("Alt — подсказки; Alt+T не действует; Shift+F2 — дополнение; Esc — закрытие карточки", async () => {
+  it("для оператора ДДС показываются только доступные горячие клавиши", async () => {
     await renderCard("card-36814854", student("u-105"));
     fireEvent.keyDown(document, { key: "Alt", altKey: true });
-    expect(screen.getByRole("dialog", { name: "Горячие клавиши" })).toHaveTextContent("Alt+T");
+    const hints = screen.getByRole("dialog", { name: "Горячие клавиши" });
+    expect(hints).toHaveTextContent("Shift+F1");
+    expect(hints).not.toHaveTextContent("Alt+T");
     fireEvent.keyDown(document, { key: "t", code: "KeyT", altKey: true });
     fireEvent.keyUp(document, { key: "Alt" });
     expect(screen.queryByRole("dialog", { name: "Горячие клавиши" })).toBeNull();
     expect(push).not.toHaveBeenCalled();
-    fireEvent.keyDown(document, { key: "F2", shiftKey: true });
-    expect(screen.getByRole("region", { name: "Дополнение карточки" })).toBeInTheDocument();
-    fireEvent.keyDown(document, { key: "F1", shiftKey: true });
-    expect(screen.queryByRole("region", { name: "Дополнение карточки" })).toBeNull();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(push).toHaveBeenCalledWith("/arm");
   });
@@ -198,11 +196,10 @@ describe("IncidentScreen — подсказки и «Действие диспе
     expect(screen.getByLabelText("Номер наряда")).toHaveValue("Н-5");
   });
 
-  it("входящая СМС-карточка: текст СМС предзаполняет «Описание со слов заявителя»", async () => {
+  it("обучающийся ДДС не может редактировать поля 112 карточки", async () => {
     await renderCard("card-36814859", student("u-110"));
     fireEvent.click(screen.getByRole("button", { name: "дополнение" }));
-    expect(screen.getByLabelText("Описание со слов заявителя")).toHaveValue(
-      "Помогите мне! Дым в квартире. Имя: Адрес: Группа крови…",
-    );
+    expect(screen.queryByLabelText("Описание со слов заявителя")).toBeNull();
+    expect(screen.getByLabelText("Действие диспетчера")).toBeDisabled();
   });
 });

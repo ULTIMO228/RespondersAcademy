@@ -18,7 +18,12 @@ from app.api.deps import Viewer, get_viewer, require_admin_actor
 from app.api.errors import conflict, forbidden, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import (
+    DEFAULT_STUDENT_SPECIALIZATIONS,
+    SPECIALIZATION_TITLES,
+    User,
+    normalize_specializations,
+)
 from app.schemas.admin import (
     ADMIN_ONLY_MESSAGE,
     ADMIN_USER_STATES,
@@ -77,6 +82,24 @@ def _apply_role_fields(user: User, role: str, group: str | None, service: str | 
     user.assigned_groups = (assigned_groups or user.assigned_groups) if role == "teacher" else None
 
 
+def _apply_specializations(user: User, role: str, requested: list[str] | None) -> None:
+    """Специализация по роли (фича 007): переданное значение проверяется; без значения у обучающегося сохраняется
+    действующее или ставится «оператор ДДС»; у учителя и администратора поле снимается."""
+    try:
+        if requested is not None:
+            user.specializations = normalize_specializations(role, requested)
+        elif role != "student":
+            user.specializations = None
+        elif not user.specializations:
+            user.specializations = list(DEFAULT_STUDENT_SPECIALIZATIONS)
+    except ValueError as exc:
+        raise validation_failed(str(exc)) from exc
+
+
+def _describe_specializations(values: list[str] | None) -> str:
+    return ", ".join(SPECIALIZATION_TITLES[item] for item in values or []) or "—"
+
+
 @router.get("/admin/users")
 async def list_admin_users(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> list[dict[str, Any]]:
     _assert_admin_viewer(viewer)
@@ -120,6 +143,7 @@ async def create_admin_user(request: Request, db: AsyncSession = Depends(get_db)
         is_active=True,
     )
     _apply_role_fields(user, body.role, body.group, body.service, body.assigned_groups)
+    _apply_specializations(user, body.role, body.specializations)
     db.add(user)
     await db.flush()
     await _audit(db, admin, "user.create", f"Создана учётная запись {_describe(user)}, роль «{ROLE_TITLE[user.role]}», АРМ {user.arm_number}")
@@ -150,7 +174,7 @@ async def update_admin_user(user_id: str, request: Request, db: AsyncSession = D
     admin = await _actor(db, viewer, raw)
     body: AdminUserUpdateRequest = parse_body(AdminUserUpdateRequest, raw)
     user = await _require_user(db, user_id)
-    before = {"full_name": user.full_name, "login": user.login, "arm_number": user.arm_number, "group": user.group, "service": user.service, "assigned_groups": list(user.assigned_groups or []), "role": user.role}
+    before = {"full_name": user.full_name, "login": user.login, "arm_number": user.arm_number, "group": user.group, "service": user.service, "assigned_groups": list(user.assigned_groups or []), "role": user.role, "specializations": list(user.specializations or [])}
     next_role = body.role or user.role
     if body.full_name is not None:
         user.full_name = body.full_name
@@ -160,10 +184,13 @@ async def update_admin_user(user_id: str, request: Request, db: AsyncSession = D
     if body.arm_number is not None:
         user.arm_number = body.arm_number
     _apply_role_fields(user, next_role, body.group, body.service, body.assigned_groups)
+    _apply_specializations(user, next_role, body.specializations)
     await db.flush()
     if next_role != before["role"]:
         await revoke_user_sessions(db, user.id)
         await _audit(db, admin, "user.roleChange", f"Изменена роль учётной записи {_describe(user)}: «{ROLE_TITLE[before['role']]}» → «{ROLE_TITLE[next_role]}»")
+    if (before["specializations"] or None) != (user.specializations or None):
+        await _audit(db, admin, "user.specialization_changed", f"Изменена специализация {_describe(user)}: {_describe_specializations(before['specializations'])} → {_describe_specializations(user.specializations)}")
     changes = _collect_changes(before, user)
     if changes:
         await _audit(db, admin, "user.update", f"Изменена учётная запись {_describe(user)}: {'; '.join(changes)}")

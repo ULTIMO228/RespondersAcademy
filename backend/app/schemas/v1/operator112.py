@@ -16,8 +16,8 @@ from app.schemas.common import ApiModel
 Voice = Literal["male", "female", "auto"]
 AudioStatus = Literal["pending", "ready", "failed"]
 AttemptState = Literal["ringing", "answered", "submitted"]
-EventType = Literal["fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown"]
-EVENT_TYPES: tuple[str, ...] = ("fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown")
+EventType = Literal["fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown", "noContact", "callDropped", "processed", "close"]
+EVENT_TYPES: tuple[str, ...] = ("fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown", "noContact", "callDropped", "processed", "close")
 ADDRESS_SOURCES = ("directory", "manual")
 
 
@@ -117,7 +117,7 @@ class OperatorEventCreate(ApiModel):
     @classmethod
     def _type(cls, value: Any) -> Any:
         if value not in EVENT_TYPES:
-            raise ValueError("Поле «type» — fieldChanged, signSelected, serviceAdded, replay или hintShown")
+            raise ValueError("Неизвестный тип события попытки 112")
         return value
 
     @field_validator("payload", mode="before")
@@ -201,6 +201,7 @@ class CardDraft(ApiModel):
     description: str = ""
     emergency: CardDraftEmergency = Field(default_factory=CardDraftEmergency)
     notification_list: list[CardDraftNotification] = Field(default_factory=list)
+    notification_confirmed: bool = False
 
     @field_validator("description", mode="before")
     @classmethod

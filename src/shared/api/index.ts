@@ -106,6 +106,7 @@ export {
 } from "./endpoints";
 export { ADMIN_USER_FAILURE_MESSAGES, adminCreateUser, adminResetUserPassword } from "./endpoints";
 export { adminSetUserActive, adminSetUserRole, adminUpdateUser, mapAdminUserError } from "./endpoints";
+export { updateStudentSpecializations } from "./endpoints";
 export type { AdminUserFailure, AdminUserFailureReason } from "./endpoints";
 export type { LoginFailure, LoginFailureReason, LoginResult } from "./endpoints";
 export type { ArmCardFixture, CardEvent, NotificationEntry, NotificationStatus } from "./prototype-types";
@@ -190,7 +191,7 @@ export type { UsageStats, UsageStatsPeriod, UsageStatsPeriodId, UsageStatsQuery 
 export { SETTINGS_LIMITS, SETTINGS_MESSAGES, SETTINGS_NORMS } from "./validation/settings";
 export { validateSettings, validateSettingsPatch } from "./validation/settings";
 export type { SettingsFieldError } from "./validation/settings";
-export type { TranscriptLine, TranscriptSpeaker, User, UserRole } from "./types";
+export type { Specialization, TranscriptLine, TranscriptSpeaker, User, UserRole } from "./types";
 export type { CardSearchFilters, WorkLine as WorkLineContract } from "./types";
 export type { CallReply, CallReplyRequest, CallTurn, CallVoice, CardCallRequest } from "./types";
 export type { CardCallResponse } from "./types";

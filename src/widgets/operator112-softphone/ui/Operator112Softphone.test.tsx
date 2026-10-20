@@ -78,6 +78,16 @@ describe("Operator112Softphone: входящий вызов", () => {
     expect(onAnswer).toHaveBeenCalledTimes(1);
   });
 
+  it("фиксирует исходы «Нет контакта» и «Срыв звонка»", () => {
+    const onNoContact = vi.fn();
+    const onCallDropped = vi.fn();
+    render(view({ onNoContact, onCallDropped }));
+    fireEvent.click(screen.getByRole("button", { name: "Нет контакта" }));
+    fireEvent.click(screen.getByRole("button", { name: "Срыв звонка" }));
+    expect(onNoContact).toHaveBeenCalledTimes(1);
+    expect(onCallDropped).toHaveBeenCalledTimes(1);
+  });
+
   it("после норматива таймер краснеет, кнопка остаётся доступной", () => {
     render(view({ nowMs: OPENED + 41_000 }));
     expect(screen.getByRole("timer")).toHaveAttribute("data-exceeded", "true");

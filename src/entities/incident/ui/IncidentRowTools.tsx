@@ -83,6 +83,7 @@ export function IncidentRowTools({
         aria-pressed={isImportant}
         aria-label={importantTitle}
         title={importantTitle}
+        disabled={actions.dispatcherActionsDisabled}
         onClick={() => actions.onToggleImportant(item.id)}
       >
         <ArmIcon name="row-important" width={ICON_WIDTH} height={ICON_HEIGHT} />
@@ -93,6 +94,7 @@ export function IncidentRowTools({
         aria-pressed={hasReminder}
         aria-label={hasReminder ? "Напоминание установлено" : "Напоминание"}
         title="Напоминание (Alt + R)"
+        disabled={actions.dispatcherActionsDisabled}
         onClick={() => actions.onReminder?.(item.id)}
       >
         <ArmIcon name="row-reminder" width={ICON_WIDTH} height={ICON_HEIGHT} />

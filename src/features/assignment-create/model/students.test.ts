@@ -26,12 +26,24 @@ describe("assignableStudents", () => {
   ];
 
   it("оставляет активных обучающихся закреплённых групп", () => {
-    expect(assignableStudents(roster, ["Группа 1"]).map((item) => item.id)).toEqual(["a"]);
+    expect(assignableStudents(roster, ["Группа 1"], "dds").map((item) => item.id)).toEqual(["a"]);
   });
 
   it("без закреплённых групп доступных нет; обучающийся без группы — только при явной записи «Без группы»", () => {
-    expect(assignableStudents(roster, undefined)).toEqual([]);
-    expect(assignableStudents(roster, [])).toEqual([]);
-    expect(assignableStudents(roster, [NO_GROUP]).map((item) => item.id)).toEqual(["d"]);
+    expect(assignableStudents(roster, undefined, "dds")).toEqual([]);
+    expect(assignableStudents(roster, [], "dds")).toEqual([]);
+    expect(assignableStudents(roster, [NO_GROUP], "dds").map((item) => item.id)).toEqual(["d"]);
+  });
+
+  it("фильтрует по специализации режима; цепочке нужны обе", () => {
+    const roster = [
+      user("both", "Группа 1", { specializations: ["operator112", "dds"] }),
+      user("112", "Группа 1", { specializations: ["operator112"] }),
+      user("dds", "Группа 1", { specializations: ["dds"] }),
+      user("legacy", "Группа 1"),
+    ];
+    expect(assignableStudents(roster, ["Группа 1"], "operator112").map((item) => item.id)).toEqual(["both", "112"]);
+    expect(assignableStudents(roster, ["Группа 1"], "dds").map((item) => item.id)).toEqual(["both", "dds", "legacy"]);
+    expect(assignableStudents(roster, ["Группа 1"], "chain").map((item) => item.id)).toEqual(["both"]);
   });
 });

@@ -27,6 +27,7 @@ const USER: PublicUser = {
   role: "student",
   armNumber: 1,
   isActive: true,
+  specializations: ["operator112", "dds"],
 };
 const NOW = Date.parse("2026-09-29T12:00:00+03:00");
 
@@ -118,6 +119,50 @@ function renderHome(api: StudentHomeApi) {
     </SessionProvider>,
   );
 }
+
+describe("главная обучающегося: специализация (спека 007)", () => {
+  function renderAs(specializations: PublicUser["specializations"], api: StudentHomeApi) {
+    return render(
+      <SessionProvider user={{ ...USER, specializations }}>
+        <StudentHomeScreen api={api} focusApi={focusApi} nowMs={NOW} />
+      </SessionProvider>,
+    );
+  }
+
+  it("ДДС-обучающийся не видит заданий режима 112 как «ближайшее»: ссылка на запуск не строится", async () => {
+    renderAs(["dds"], makeApi());
+    expect(await screen.findByText("Активных заданий нет")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Начать задание" })).toBeNull();
+    expect(screen.getByText(/недоступны для вашей специализации/)).toBeInTheDocument();
+  });
+
+  it("парный случай: со специализацией 112 то же задание — «ближайшее» с запуском", async () => {
+    renderAs(["operator112"], makeApi());
+    const lead = await screen.findByRole("region", { name: "Ближайшее задание" });
+    expect(await within(lead).findByRole("link", { name: "Начать задание" })).toBeInTheDocument();
+  });
+
+  it("из нескольких заданий выбирается только подходящее специализации", async () => {
+    const api = makeApi({
+      assignments: vi.fn(async () => [
+        toView(assignment({ id: "asg-112", title: "Только 112", dueAt: "2026-09-29T18:00:00+03:00" }), null),
+        toView(
+          assignment({
+            id: "asg-dds",
+            title: "Для ДДС",
+            trainingMode: "dds",
+            dueAt: "2026-10-10T18:00:00+03:00",
+          }),
+          null,
+        ),
+      ]),
+    });
+    renderAs(["dds"], api);
+    const lead = await screen.findByRole("region", { name: "Ближайшее задание" });
+    expect(await within(lead).findByText("Для ДДС")).toBeInTheDocument();
+    expect(within(lead).queryByText("Только 112")).toBeNull();
+  });
+});
 
 describe("главная обучающегося", () => {
   it("блок «Над чем поработать» показан, когда сервер ответил, и скрыт без сервера", async () => {

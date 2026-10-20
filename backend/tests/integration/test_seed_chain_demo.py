@@ -103,6 +103,7 @@ async def test_fixture_chain_runs_operator112_then_waits_for_teacher_then_opens_
     submitted = await v1.post(
         f"/operator112/attempts/{attempt['id']}/submit",
         json={
+            "notificationConfirmed": True,
             "applicant": {"name": "Учебный заявитель", "status": "очевидец"},
             "phones": {"provided": "0000000000"},
             "address": {"formal": source_fields["address"], "source": "directory"},

@@ -56,6 +56,7 @@ async def v1(app) -> AsyncIterator[AsyncClient]:
 
 def _draft_for_c010(**overrides: Any) -> dict[str, Any]:
     draft: dict[str, Any] = {
+        "notificationConfirmed": True,
         "applicant": {"name": "Сидорова Анна Викторовна", "status": "очевидец"},
         "phones": {"aon": "+7 (916) 126-34-71", "provided": "+7 (916) 126-34-71", "onSite": ""},
         "address": {"formal": "Россия, Москва, улица Грина, дом неизвестен, библиотека № 19", "street": "ул. Грина", "house": "", "source": "directory", "descriptive": "в доме библиотека № 19"},
@@ -282,6 +283,9 @@ async def test_operator112_full_cycle(v1: AsyncClient):
     assert (await v1.get(f"/attempts/{attempt_id}/evaluation")).status_code == 404  # compat-эндпоинт не запускает оценщик ДДС
     assert (await v1.post(f"/operator112/attempts/{attempt_id}/submit", json={})).status_code == 400
 
+    unconfirmed = _draft_for_c010(notificationConfirmed=False)
+    denied_save = await v1.post(f"/operator112/attempts/{attempt_id}/submit", json=unconfirmed)
+    assert denied_save.status_code == 409 and "Подтвердите список оповещения" in denied_save.json()["error"]["message"]
     submitted = await v1.post(f"/operator112/attempts/{attempt_id}/submit", json=_draft_for_c010())
     assert submitted.status_code == 200, submitted.text
     result = submitted.json()
@@ -289,8 +293,19 @@ async def test_operator112_full_cycle(v1: AsyncClient):
     assert result["evaluationId"] == attempt_id
     card = result["card"]
     assert card["id"].startswith("c-") and card["createdByStudentId"] == "u-005" and card["sourceCardId"] == "c-010" and card["cardStatus"] == "registered"
+    assert any(event["type"] == "save" for event in result["attempt"]["events"])
     assert card["group"] == "пожар в жилом доме" and card["expectedServices"] and "svc-mgts" not in card["expectedServices"] and "МГТС" in card["expectedServices"]
     assert (await v1.post(f"/operator112/attempts/{attempt_id}/submit", json=_draft_for_c010())).status_code == 409
+    processed = await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "processed"})
+    assert processed.status_code == 201, processed.text
+    async with get_sessionmaker()() as db:
+        saved = await db.get(IncidentCard, card["id"])
+        assert saved is not None and saved.extra["cardStatus"] == "processed"
+    closed = await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "close"})
+    assert closed.status_code == 201, closed.text
+    async with get_sessionmaker()() as db:
+        saved = await db.get(IncidentCard, card["id"])
+        assert saved is not None and saved.extra["cardStatus"] == "closed"
 
     evaluation = await v1.get(f"/operator112/attempts/{attempt_id}/evaluation")
     assert evaluation.status_code == 200, evaluation.text
@@ -314,6 +329,23 @@ async def test_operator112_full_cycle(v1: AsyncClient):
     assert any(t["id"] == card["id"] for t in generated.json())
 
 
+async def test_no_contact_marks_card_completed_and_allows_close(v1: AsyncClient):
+    await login_as(v1, "student")
+    created = await v1.post("/operator112/attempts", json={"assignmentId": TRAINING, "cardId": "c-050"})
+    assert created.status_code == 201, created.text
+    attempt_id = created.json()["id"]
+    marked = await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "noContact"})
+    assert marked.status_code == 201, marked.text
+    submitted = await v1.post(f"/operator112/attempts/{attempt_id}/submit", json=_draft_for_c010())
+    assert submitted.status_code == 200, submitted.text
+    assert submitted.json()["card"]["cardStatus"] == "completed"
+    closed = await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "close"})
+    assert closed.status_code == 201, closed.text
+    async with get_sessionmaker()() as db:
+        saved = await db.get(IncidentCard, submitted.json()["card"]["id"])
+        assert saved is not None and saved.extra["cardStatus"] == "closed"
+
+
 async def test_operator112_exam_rules(v1: AsyncClient):
     await login_as(v1, "student2")
     created = await v1.post("/operator112/attempts", json={"assignmentId": EXAM, "cardId": "c-071"})
@@ -327,7 +359,7 @@ async def test_operator112_exam_rules(v1: AsyncClient):
     second = await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "replay"})
     assert second.status_code == 409 and second.json()["error"]["code"] == "conflict"
     assert (await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "hintShown"})).status_code == 409
-    weak = {"applicant": {"name": "", "status": ""}, "address": {"formal": "Москва, ул. Ленина, 1", "source": "manual"}, "what": {"signs": ["Драка"], "classifierCode": "15060202", "casualties": {"injured": False}}, "description": "Что-то случилось", "notificationList": []}
+    weak = {"applicant": {"name": "", "status": ""}, "address": {"formal": "Москва, ул. Ленина, 1", "source": "manual"}, "what": {"signs": ["Драка"], "classifierCode": "15060202", "casualties": {"injured": False}}, "description": "Что-то случилось", "notificationList": [], "notificationConfirmed": True}
     submitted = await v1.post(f"/operator112/attempts/{attempt_id}/submit", json=weak)
     assert submitted.status_code == 200, submitted.text
     evaluation = (await v1.get(f"/operator112/attempts/{attempt_id}/evaluation")).json()
@@ -353,6 +385,10 @@ async def test_operator112_teacher_creates_for_student_and_gateway_script(v1: As
         created = await v1.post("/operator112/attempts", json={"assignmentId": TRAINING, "cardId": "c-050", "studentId": "u-006"})
         assert created.status_code in (200, 201), created.text
         assert created.json()["studentId"] == "u-006"
+        attempt_id = created.json()["id"]
+        assert (await v1.post(f"/operator112/attempts/{attempt_id}/answer")).status_code == 403
+        assert (await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": "fieldChanged", "payload": {"field": "description", "value": "teacher edit"}})).status_code == 403
+        assert (await v1.post(f"/operator112/attempts/{attempt_id}/submit", json=_draft_for_c010())).status_code == 403
         regenerated = await v1.post("/tickets/c-050/audio", json={})
         assert regenerated.status_code == 202 and regenerated.json()["transcript"].startswith("Здравствуйте, это Соколова")
     finally:

@@ -7,7 +7,7 @@ export { handleGetAdminServices, handleGetAdminSettings } from "./admin";
 export { handleGetAdminUsers, handlePatchAdminUser, handlePostAdminToggleActive } from "./admin-users";
 export { handlePostAdminUser, handlePostAdminUserBlock, handlePostAdminUserUnblock } from "./admin-users";
 export { handlePostAdminUserResetPassword } from "./admin-users";
-export { handlePostAttemptProgress, handlePostCardAttempt } from "./attempts";
+export { createPostCardAttemptHandler, handlePostAttemptProgress } from "./attempts";
 export { handleGetAuthPolicy, handleGetAuthSession, handlePostLogin, handlePostLogout } from "./auth";
 export { handlePostLogoutAll, handlePostPassword } from "./auth";
 export { handlePostCallReply, handlePostCardCall } from "./calls";

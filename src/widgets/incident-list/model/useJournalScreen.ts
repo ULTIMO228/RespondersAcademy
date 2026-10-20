@@ -82,6 +82,7 @@ export function useJournalInteractions(student: PublicUser, data: JournalData) {
     onToggleImportant: rowActions.toggleImportant,
     onOpen: data.session.recordOpen,
     onReminder: rowActions.openReminder,
+    dispatcherActionsDisabled: student.role === "student",
   };
   return {
     rows,

@@ -79,6 +79,7 @@ export function PhoneBar({ card, readOnly = false, isLive = false, amend, isLock
               type="button"
               className={styles.bar__copy}
               onClick={() => copyToClipboard(card.phones.aon)}
+              disabled={readOnly}
               aria-label="Копировать АОН"
               title="Копировать АОН"
             >

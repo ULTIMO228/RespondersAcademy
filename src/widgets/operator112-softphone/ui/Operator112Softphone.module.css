@@ -75,6 +75,12 @@
   min-width: 200px;
 }
 
+.softphone__disposition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
 .softphone__player,
 .softphone__transcript {
   display: flex;

@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 
 import { LogoutLink } from "@/entities/user";
 import { ROUTES } from "@/shared/config";
-import type { UserRole } from "@/shared/api";
+import type { Specialization, UserRole } from "@/shared/api";
 import { ArmIcon } from "@/shared/ui";
 
-import { NAV_ITEMS } from "../config/navItems";
+import { navItemsFor } from "../config/navItems";
 
 import styles from "./AppNav.module.css";
 
@@ -17,6 +17,8 @@ type AppNavProps = {
   roleTitle: string;
   userName: string;
   armNumber: number;
+  /** Зоны обучающегося: вкладки чужой зоны скрываются (спека 007). */
+  zones?: Specialization[];
 };
 
 function isActive(pathname: string, href: string): boolean {
@@ -25,7 +27,7 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 /** Шапка раздела в стиле тёмной панели ПОВ-112 (p12_Image66: вкладки разделов, активная — синяя). */
-export function AppNav({ role, roleTitle, userName, armNumber }: AppNavProps) {
+export function AppNav({ role, roleTitle, userName, armNumber, zones }: AppNavProps) {
   const pathname = usePathname() ?? "";
   return (
     <header className={styles.nav}>
@@ -34,7 +36,7 @@ export function AppNav({ role, roleTitle, userName, armNumber }: AppNavProps) {
         <span className={styles.nav__role}>{roleTitle}</span>
       </div>
       <nav className={styles.nav__tabs} aria-label="Разделы">
-        {NAV_ITEMS[role].map((item) => (
+        {navItemsFor(role, zones).map((item) => (
           <Link
             key={item.href}
             href={item.href}

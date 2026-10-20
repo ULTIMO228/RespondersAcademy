@@ -3,12 +3,13 @@
  * сборка ответа — Attempt.to_operator_contract и services/operator112_service.py). Формы 1:1 с бэкендом.
  * Попытка по id не читается (GET /operator112/attempts/{id} нет): выдача и восстановление — assignments.startAssignment.
  */
+import type { AiServedBy } from "./ai-settings";
 
 export type OperatorAttemptState = "ringing" | "answered" | "submitted";
 /** Типы событий, которые отправляет клиент (POST …/events); иное сервер отклоняет 400. */
-export type OperatorEventType = "fieldChanged" | "signSelected" | "serviceAdded" | "replay" | "hintShown";
+export type OperatorEventType = "fieldChanged" | "signSelected" | "serviceAdded" | "replay" | "hintShown" | "noContact" | "callDropped" | "processed" | "close";
 /** Событие в ленте попытки: клиентские типы + answerTimeout, который сервер пишет сам при ответе позже норматива. */
-export type OperatorEventKind = OperatorEventType | "answerTimeout";
+export type OperatorEventKind = OperatorEventType | "answerTimeout" | "save";
 export type TicketAudioStatus = "pending" | "ready" | "failed";
 export type AddressSource = "directory" | "manual";
 export type NotificationAdder = "auto" | "manual";
@@ -129,6 +130,7 @@ export interface CardDraft {
   description: string;
   emergency: CardDraftEmergency;
   notificationList: CardDraftNotification[];
+  notificationConfirmed: boolean;
 }
 
 /** Служба списка оповещения (обязательная — services, условная — conditional). */
@@ -179,6 +181,8 @@ export interface OperatorEvaluation {
   grammarErrors: Record<string, unknown>[];
   errors: Record<string, unknown>[];
   aiComment: string;
+  /** Источник поясняющего текста; старые данные читаются как шаблон. */
+  aiCommentSource?: AiServedBy;
   fieldDiff: FieldDiff[];
   mode: string;
   assessorVersion: string;

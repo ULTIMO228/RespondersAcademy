@@ -15,17 +15,29 @@ const NO: RoleAccess = { allowed: false };
 /** Матрица доступа к разделам — дословно по spec/000-фронт/02-roles.md (ТЗ §8, Q&A в14). */
 export const ROLE_ACCESS_ROWS: RoleAccessRow[] = [
   { route: "/login", title: "Вход", access: { student: YES, teacher: YES, admin: YES } },
-  { route: "/arm", title: "Главный экран АРМ-112", access: { student: YES, teacher: NO, admin: NO } },
+  {
+    route: "/arm",
+    title: "Главный экран АРМ-112",
+    access: { student: { allowed: true, note: "только со специализацией ДДС" }, teacher: NO, admin: NO },
+  },
   {
     route: "/arm/card/[id]",
     title: "Карточка происшествия (отработка)",
-    access: { student: { allowed: true, note: "только свои занятия" }, teacher: NO, admin: NO },
+    access: {
+      student: { allowed: true, note: "только свои занятия, со специализацией ДДС" },
+      teacher: NO,
+      admin: NO,
+    },
   },
-  { route: "/arm/phone", title: "Софтфон", access: { student: YES, teacher: NO, admin: NO } },
+  {
+    route: "/arm/phone",
+    title: "Софтфон (связь со службами)",
+    access: { student: { allowed: true, note: "только со специализацией ДДС" }, teacher: NO, admin: NO },
+  },
   {
     route: "/arm/operator112",
     title: "Режим «Специалист-112»",
-    access: { student: YES, teacher: NO, admin: NO },
+    access: { student: { allowed: true, note: "только со специализацией 112" }, teacher: NO, admin: NO },
   },
   { route: "/student", title: "Кабинет обучающегося", access: { student: YES, teacher: NO, admin: NO } },
   {

@@ -24,6 +24,7 @@ vi.mock("next/link", () => ({
 
 /** Курсант без профильной привязки службы — лента занятия без профильного фильтра. */
 const STUDENT_NO_PROFILE: PublicUser = { ...STUDENT, service: undefined };
+const TEACHER: PublicUser = { ...STUDENT, id: "u-002", role: "teacher" };
 const SECOND = 1000;
 const ISSUE_STEP_MS = 180_000;
 
@@ -174,7 +175,7 @@ describe("Поступление карточек и таймер 30 сек (T2.
 describe("Будильник «напоминание» (T2.2-11)", () => {
   async function createReminder() {
     const deps = createTestDeps();
-    await renderJournal(deps);
+    await renderJournal(deps, TEACHER);
     const row = screen.getAllByRole("rowgroup")[0];
     fireEvent.click(within(row).getByRole("button", { name: "Напоминание" }));
     const dialog = screen.getByRole("dialog");

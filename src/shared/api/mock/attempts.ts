@@ -14,8 +14,9 @@ import type {
   Session,
 } from "../types";
 import { requireCard } from "./cards";
+import { findStoredUser } from "./store-admin";
 import { isRecord, readJsonBody } from "./request";
-import { notFound, validationFailed } from "./respond";
+import { forbidden, notFound, validationFailed } from "./respond";
 import { MOCK_ID_PREFIX, nextMockId } from "./store";
 import {
   insertStoredSession,
@@ -25,6 +26,7 @@ import {
   updateStoredSession,
 } from "./store-training";
 import { nowIso, parseIso } from "./time";
+import type { MockViewer } from "./viewer";
 
 const RUNNING_STATE: Session["state"] = "running";
 
@@ -129,8 +131,26 @@ function createAttempt(session: Session, cardId: string, request: CardAttemptReq
   return attempt;
 }
 
+export const DDS_ZONE_ONLY_MESSAGE = "Карточки ДДС недоступны для вашей специализации";
+
+/**
+ * Зона ДДС (спека 007): карточка и попытка по ней — только обучающемуся со специализацией «dds». Проверка по сессии;
+ * запрос без сессии идёт прежним путём (анонимные записывающие эндпоинты закроет фича 008, решение D4). Обучающийся без
+ * поля specializations считается «dds» — как ранее заведённые учётки после миграции бэкенда.
+ */
+function assertDdsZone(viewer: MockViewer | null | undefined): void {
+  if (viewer?.role !== "student") return;
+  const specializations = findStoredUser(viewer.userId)?.specializations ?? ["dds"];
+  if (!specializations.includes("dds")) throw forbidden(DDS_ZONE_ONLY_MESSAGE);
+}
+
 /** POST /cards/[id]/attempt — идемпотентно: повторное открытие возвращает ту же попытку (created: false). */
-export async function openCardAttempt(cardId: string, httpRequest: Request): Promise<CardAttemptResponse> {
+export async function openCardAttempt(
+  cardId: string,
+  httpRequest: Request,
+  viewer?: MockViewer | null,
+): Promise<CardAttemptResponse> {
+  assertDdsZone(viewer);
   requireCard(cardId);
   const request = parseAttemptRequest(await readJsonBody(httpRequest));
   const sessions = listStoredSessions();

@@ -6,6 +6,7 @@ import {
   averageScore,
   daysUntilDue,
   formatLimit,
+  isModeAvailable,
   pickNextAssignment,
   pickOpenAttempt,
   ticketTotal,
@@ -163,5 +164,20 @@ describe("pickNextAssignment — «Ближайшее задание» глав�
     expect(daysUntilDue(assignment({ dueAt: "2026-09-30T12:00:00+03:00" }), now)).toBe(1);
     expect(daysUntilDue(assignment({ dueAt: "2026-09-27T12:00:00+03:00" }), now)).toBe(-2);
     expect(daysUntilDue(assignment(), now)).toBeNull();
+  });
+});
+
+describe("isModeAvailable: режим задания и специализация (спека 007)", () => {
+  it("режим 112 — только со специализацией 112, ДДС — только с ДДС", () => {
+    expect(isModeAvailable("operator112", ["operator112"])).toBe(true);
+    expect(isModeAvailable("operator112", ["dds"])).toBe(false);
+    expect(isModeAvailable("dds", ["dds"])).toBe(true);
+    expect(isModeAvailable("dds", ["operator112"])).toBe(false);
+  });
+
+  it("цепочка требует обе специализации", () => {
+    expect(isModeAvailable("chain", ["operator112", "dds"])).toBe(true);
+    expect(isModeAvailable("chain", ["operator112"])).toBe(false);
+    expect(isModeAvailable("chain", ["dds"])).toBe(false);
   });
 });

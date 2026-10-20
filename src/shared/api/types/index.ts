@@ -1,5 +1,5 @@
 /* Public API контрактных типов мок-слоя (spec/000-фронт/05-data-models.md + транспорт /api/mock/*). */
-export type { AuthPolicy, AuthSession, PublicUser, Role, User } from "./user";
+export type { AuthPolicy, AuthSession, PublicUser, Role, Specialization, User } from "./user";
 export type { CallerStatus, CardStatus, CardStatusDef, ClassifierRowsRef, DdsStatus } from "./reference";
 export type { DdsStatusDef, District, InternalNumber, ReferenceData, ServiceKind } from "./reference";
 export type { ServiceRef, ServiceStatus, ServiceStatusDef } from "./reference";

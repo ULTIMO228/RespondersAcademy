@@ -16,6 +16,7 @@ export interface ReportStudent {
 export interface ReportTimeMetric {
   cardId: string;
   stage: string;
+  normScope?: "operator112" | "dds";
   normMs: number;
   factMs: number;
   deviationMs: number;
@@ -40,6 +41,7 @@ export interface ReportError {
 export interface ReportStageAttempt {
   attemptId: string;
   cardId: string;
+  normScope?: "operator112" | "dds";
   factMs: number[];
 }
 

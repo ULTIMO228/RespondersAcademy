@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { POST as loginRoute } from "../../../../../app/api/mock/auth/login/route";
+import { SESSION_COOKIE } from "@/shared/config";
 import { GET as getEvaluation } from "../../../../../app/api/mock/attempts/[id]/evaluation/route";
 import { POST as postProgress } from "../../../../../app/api/mock/attempts/[id]/progress/route";
 import { POST as postAttempt } from "../../../../../app/api/mock/cards/[id]/attempt/route";
@@ -28,6 +30,48 @@ async function openAttempt(cardId: string, studentId: string) {
 }
 
 beforeEach(() => resetMockStore());
+
+/** Cookie мок-сессии: вход под логином (пароль всех учёток обучающихся — из мока). */
+async function sessionCookie(login: string, password = "student112"): Promise<string> {
+  const response = await loginRoute(
+    new Request("http://localhost/api/mock/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ login, password }),
+    }),
+  );
+  const value = new RegExp(`${SESSION_COOKIE}=([^;]+)`).exec(response.headers.get("set-cookie") ?? "")?.[1];
+  return `${SESSION_COOKIE}=${value}`;
+}
+
+function postAs(cookie: string, body: unknown): Request {
+  return new Request("http://localhost/api/mock", {
+    method: "POST",
+    headers: { "content-type": "application/json", cookie },
+    body: JSON.stringify(body),
+  });
+}
+
+describe("POST /api/mock/cards/[id]/attempt: зона ДДС по специализации (спека 007, T031)", () => {
+  it("обучающийся только со специализацией 112 → 403; парный: с ДДС → попытка создана", async () => {
+    const only112 = await sessionCookie("alekseeva");
+    const denied = await postAttempt(postAs(only112, { studentId: "u-016" }), context("c-094"));
+    expect(denied.status).toBe(403);
+    expect(((await denied.json()) as { error: { code: string } }).error.code).toBe("forbidden");
+    const dds = await sessionCookie("ivanov");
+    const allowed = await postAttempt(postAs(dds, { studentId: "u-005" }), context("c-094"));
+    expect(allowed.status).toBe(201);
+  });
+
+  it("отказ не создаёт попытку", async () => {
+    await postAttempt(postAs(await sessionCookie("alekseeva"), { studentId: "u-016" }), context("c-094"));
+    const attempts = listStoredSessions().flatMap((session) => session.cardEvents);
+    expect(attempts.some((event) => event.studentId === "u-016" && event.cardId === "c-094")).toBe(false);
+  });
+
+  it("запрос без сессии идёт прежним путём (анонимный путь остаётся, решение D4)", async () => {
+    expect((await openAttempt("c-094", "u-016")).status).toBe(201);
+  });
+});
 
 describe("POST /api/mock/cards/[id]/attempt (T2.3-01)", () => {
   it("создаёт попытку в идущем занятии курсанта; повторное открытие не дублирует CardEvent", async () => {

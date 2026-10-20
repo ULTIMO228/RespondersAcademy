@@ -9,11 +9,12 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import type { PublicUser, UserRole } from "@/shared/api";
+import type { PublicUser, Specialization, UserRole } from "@/shared/api";
 import { APP_ENV, ROUTES } from "@/shared/config";
 
 import { buildLoginHref } from "./route-access";
 import { RETURN_URL_HEADER, SESSION_COOKIE } from "./session";
+import { hasSpecialization } from "./specialization";
 
 const HTTP_UNAUTHORIZED = 401;
 const SESSION_PATH = "/auth/session";
@@ -82,5 +83,16 @@ export const verifySession = cache(async (): Promise<SessionUser> => {
 export async function requireSessionUser(role: UserRole): Promise<SessionUser> {
   const sessionUser = await verifySession();
   if (sessionUser.user.role !== role) redirect(ROUTES.forbidden);
+  return sessionUser;
+}
+
+/**
+ * Гвард рабочей зоны симулятора (спека 007): роль «Обучающийся» + специализация зоны. Отказ — тот же путь, что для чужой
+ * роли (/forbidden). Преподаватель и администратор специализацией не ограничиваются, но в зоны обучающегося их не пускает
+ * проверка роли (как и раньше).
+ */
+export async function requireSpecialization(mode: Specialization): Promise<SessionUser> {
+  const sessionUser = await requireSessionUser("student");
+  if (!hasSpecialization(sessionUser.user, mode)) redirect(ROUTES.forbidden);
   return sessionUser;
 }

@@ -1,8 +1,15 @@
 /* Клиент-безопасный public API (серверные функции — "@/entities/user/index.server"). */
-export type { PublicUser, Role, User, UserRole } from "@/shared/api";
+export type { PublicUser, Role, Specialization, User, UserRole } from "@/shared/api";
 export { ROLE_ACCESS_ROWS, ROLE_ORDER } from "./config/roleAccess";
 export type { RoleAccess, RoleAccessRow } from "./config/roleAccess";
 export { formatShortName, ROLE_TITLES } from "./model/roles";
+export {
+  ALL_ZONES,
+  hasSpecialization,
+  SPECIALIZATION_TITLES,
+  ZONE_HOME,
+  zonesOf,
+} from "./model/specialization";
 export { isSessionExpired, readSessionClaims, RETURN_URL_HEADER } from "./model/session";
 export { SESSION_COOKIE, SESSION_TTL_SECONDS } from "./model/session";
 export type { SessionClaims } from "./model/session";

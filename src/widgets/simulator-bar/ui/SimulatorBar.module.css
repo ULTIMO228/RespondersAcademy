@@ -31,3 +31,28 @@
 .bar__hint {
   margin-left: auto;
 }
+
+.bar__zones {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.bar__role {
+  color: var(--color-white);
+  font-weight: var(--font-weight-medium);
+}
+
+.bar__zone {
+  color: var(--color-light-muted);
+  text-decoration: underline;
+}
+
+.bar__zone:hover {
+  color: var(--color-white);
+}
+
+.bar__zone:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

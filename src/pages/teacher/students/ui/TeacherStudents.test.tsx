@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { SessionProvider } from "@/entities/user";
@@ -52,6 +52,7 @@ const PROFILE: StudentProfile = {
 const makeApi = (overrides: Partial<TeacherStudentsApi> = {}): TeacherStudentsApi => ({
   listStudents: vi.fn().mockResolvedValue(STUDENTS),
   profile: vi.fn().mockResolvedValue(PROFILE),
+  setSpecializations: vi.fn().mockResolvedValue(student("u-5", "Иванов", "Г-1")),
   ...overrides,
 });
 
@@ -84,6 +85,20 @@ describe("страница «Обучающиеся»", () => {
       "href",
       expect.stringContaining("/teacher/groups/"),
     );
+  });
+
+  it("позволяет изменить специализацию обучающегося своей группы", async () => {
+    const api = makeApi();
+    render(
+      <SessionProvider user={teacher}>
+        <TeacherStudentsScreen api={api} />
+      </SessionProvider>,
+    );
+    const fieldset = await screen.findByRole("group", { name: "Специализация: Иванов" });
+    fireEvent.click(within(fieldset).getByLabelText("Специалист 112"));
+    fireEvent.click(screen.getAllByRole("button", { name: "Сохранить" })[0]);
+    expect(api.setSpecializations).toHaveBeenCalledWith("u-5", ["operator112", "dds"]);
+    expect(await screen.findByRole("status")).toHaveTextContent("Специализация сохранена");
   });
 
   it("группы не закреплены за обучающимися — пустое состояние", async () => {

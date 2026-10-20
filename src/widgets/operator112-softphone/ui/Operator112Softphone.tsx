@@ -32,6 +32,8 @@ type Operator112SoftphoneProps = {
   nowMs: number;
   isAnswering?: boolean;
   onAnswer: () => void;
+  onNoContact?: () => void;
+  onCallDropped?: () => void;
   /** Тренировка: повторное прослушивание фиксируется событием replay (в экзамене кнопки нет). */
   onReplay?: () => void;
   audioLoader?: CallerAudioLoader;
@@ -48,6 +50,8 @@ export function Operator112Softphone({
   nowMs,
   isAnswering = false,
   onAnswer,
+  onNoContact,
+  onCallDropped,
   onReplay,
   audioLoader,
 }: Operator112SoftphoneProps) {
@@ -100,6 +104,12 @@ export function Operator112Softphone({
           >
             {isAnswering ? "Соединение…" : "Ответить на вызов"}
           </Button>
+          {onNoContact || onCallDropped ? (
+            <div className={styles.softphone__disposition}>
+              {onNoContact ? <Button variant="secondary" onClick={onNoContact}>Нет контакта</Button> : null}
+              {onCallDropped ? <Button variant="secondary" onClick={onCallDropped}>Срыв звонка</Button> : null}
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className={styles.softphone__talk}>

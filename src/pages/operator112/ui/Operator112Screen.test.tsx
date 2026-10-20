@@ -126,6 +126,11 @@ async function answerCall() {
   await waitFor(() => expect(screen.getByLabelText("Описание")).toBeEnabled());
 }
 
+async function confirmSave() {
+  fireEvent.click(await screen.findByRole("button", { name: "Сохранить карточку" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Подтвердить и сохранить" }));
+}
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
@@ -142,7 +147,7 @@ describe("Operator112Screen: основной путь", () => {
     expect(api.answerAttempt).toHaveBeenCalledWith("att-100");
     fireEvent.change(screen.getByLabelText("Описание"), { target: { value: "Горит балкон на 13 этаже" } });
     fireEvent.change(screen.getByLabelText("Улица"), { target: { value: "улица Грина" } });
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);
     const [attemptId, draft] = api.submitAttempt.mock.calls[0];
@@ -158,10 +163,26 @@ describe("Operator112Screen: основной путь", () => {
     expect(screen.queryByRole("button", { name: /Завершить/ })).toBeNull();
   });
 
+  it("после «Отработана» специалист может закрыть карточку", async () => {
+    const api = makeApi({
+      submitAttempt: vi.fn().mockResolvedValue({
+        attempt: attempt({ state: "submitted", completedAt: "2026-09-29T10:01:00+03:00" }),
+        card: { cardStatus: "registered" },
+        evaluationId: "att-100",
+      }),
+    });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await answerCall();
+    await confirmSave();
+    fireEvent.click(await screen.findByRole("button", { name: "Отработана" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Закрыть карточку" }));
+    await waitFor(() => expect(api.sendEvent).toHaveBeenLastCalledWith("att-100", { type: "close" }));
+  });
+
   it("поля недоступны до ответа, передача — тоже", async () => {
     render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
     expect(await screen.findByLabelText("Описание")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Передать карточку" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Сохранить карточку" })).toBeDisabled();
     expect(screen.getByText(/Сначала примите вызов/)).toBeInTheDocument();
   });
 
@@ -174,10 +195,10 @@ describe("Operator112Screen: основной путь", () => {
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     await answerCall();
     fireEvent.change(screen.getByLabelText("Описание"), { target: { value: "Горит балкон" } });
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     expect(await screen.findByText("Заполните адресный блок")).toBeInTheDocument();
     expect(screen.getByLabelText("Описание")).toHaveValue("Горит балкон");
-    expect(screen.getByRole("button", { name: "Передать карточку" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Сохранить карточку" })).toBeEnabled();
     expect(screen.queryByLabelText("Разбор попытки")).toBeNull();
   });
 
@@ -189,7 +210,7 @@ describe("Operator112Screen: основной путь", () => {
     });
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     await answerCall();
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     expect(await screen.findByRole("alert")).toHaveTextContent("Карточка уже отправлена");
   });
 
@@ -200,9 +221,10 @@ describe("Operator112Screen: основной путь", () => {
     });
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     await answerCall();
-    const submit = screen.getByRole("button", { name: "Передать карточку" });
-    fireEvent.click(submit);
-    fireEvent.click(submit);
+    fireEvent.click(screen.getByRole("button", { name: "Сохранить карточку" }));
+    const confirm = await screen.findByRole("button", { name: "Подтвердить и сохранить" });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);
     await act(async () =>
       release({ attempt: attempt({ state: "submitted" }), card: {}, evaluationId: "att-100" }),
@@ -214,7 +236,7 @@ describe("Operator112Screen: основной путь", () => {
     const api = makeApi();
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     await answerCall();
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     await screen.findByLabelText("Разбор попытки");
     api.startAssignment.mockRejectedValueOnce(
       new ApiError(409, "conflict", "Все билеты задания уже выполнены"),
@@ -395,7 +417,7 @@ describe("Operator112Screen: лимит времени экзамена на п�
         ],
       }),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     expect(await screen.findByText("Время на билет истекло")).toBeInTheDocument();
     expect(api.submitAttempt).not.toHaveBeenCalled();
   });
@@ -404,7 +426,7 @@ describe("Operator112Screen: лимит времени экзамена на п�
     const api = examApi("answered");
     render(<Operator112Screen assignmentId="asg-002" api={api} />);
     await screen.findByLabelText("Описание");
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);
   });
@@ -450,7 +472,7 @@ describe("Operator112Screen: цепочка 112 → ДДС", () => {
     });
     render(<Operator112Screen assignmentId="asg-011" api={api} />);
     await answerCall();
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await confirmSave();
     await screen.findByLabelText("Разбор попытки");
   }
 

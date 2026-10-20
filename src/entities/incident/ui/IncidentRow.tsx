@@ -18,6 +18,7 @@ export type IncidentRowActions = {
   onOpen?: (incidentId: string) => void;
   /** Будильник «напоминание». */
   onReminder?: (incidentId: string) => void;
+  dispatcherActionsDisabled?: boolean;
 };
 
 type IncidentRowProps = {

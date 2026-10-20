@@ -85,7 +85,28 @@ describe("Таблица реестра (T4.1-05)", () => {
     renderRegistry();
     await waitRows(USER_COUNT);
     const headers = screen.getAllByRole("columnheader").map((cell) => cell.textContent);
-    expect(headers).toEqual(["ФИО", "Логин", "Роль", "№ АРМ", "Группа", "Служба", "Состояние", "Действия"]);
+    expect(headers).toEqual([
+      "ФИО",
+      "Логин",
+      "Роль",
+      "Специализация",
+      "№ АРМ",
+      "Группа",
+      "Служба",
+      "Состояние",
+      "Действия",
+    ]);
+  });
+
+  it("колонка «Специализация»: у обучающихся — подписи, у преподавателя и администратора — прочерк", async () => {
+    renderRegistry();
+    await waitRows(USER_COUNT);
+    const cell = (userId: string) => row(userId).querySelectorAll("td")[3].textContent;
+    expect(cell("u-005")).toBe("Специалист 112, Оператор ДДС");
+    expect(cell("u-016")).toBe("Специалист 112");
+    expect(cell("u-007")).toBe("Оператор ДДС");
+    expect(cell("u-002")).toBe("—");
+    expect(cell(ADMIN_ID)).toBe("—");
   });
 
   it("бейджи ролей — ровно три значения", async () => {
@@ -225,6 +246,60 @@ describe("Редактирование и смена роли (T4.1-08)", () => 
     expect(listAuditLog().find((e) => e.action === "user.roleChange")?.details).toContain(
       "«Обучающийся» → «Преподаватель»",
     );
+  });
+});
+
+describe("Специализация обучающегося в форме (спека 007, T019)", () => {
+  async function openEdit(userId: string) {
+    renderRegistry();
+    await waitRows(USER_COUNT);
+    fireEvent.click(within(row(userId)).getByRole("button", { name: "Изменить" }));
+    return screen.getByRole("dialog");
+  }
+
+  it("у обучающегося отмечены его специализации; у преподавателя блока нет", async () => {
+    const student = await openEdit("u-016");
+    expect(within(student).getByLabelText("Специалист 112")).toBeChecked();
+    expect(within(student).getByLabelText("Оператор ДДС")).not.toBeChecked();
+  });
+
+  it("у преподавателя блока специализации нет", async () => {
+    const teacher = await openEdit("u-002");
+    expect(within(teacher).queryByLabelText("Специалист 112")).not.toBeInTheDocument();
+    expect(within(teacher).queryByLabelText("Оператор ДДС")).not.toBeInTheDocument();
+  });
+
+  it("сохранение меняет специализацию и пишет user.specialization_changed", async () => {
+    const dialog = await openEdit("u-016");
+    fireEvent.click(within(dialog).getByLabelText("Оператор ДДС"));
+    fireEvent.click(within(dialog).getByLabelText("Специалист 112"));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Сохранить" }));
+    await waitFor(() =>
+      expect(listAuditLog().some((entry) => entry.action === "user.specialization_changed")).toBe(true),
+    );
+    await waitFor(() => expect(row("u-016").querySelectorAll("td")[3]).toHaveTextContent("Оператор ДДС"));
+  });
+
+  it("снять обе специализации нельзя: сообщение, запрос не уходит; с одной отмеченной — уходит", async () => {
+    const dialog = await openEdit("u-016");
+    fireEvent.click(within(dialog).getByLabelText("Специалист 112"));
+    const before = requestedUrls.length;
+    fireEvent.click(within(dialog).getByRole("button", { name: "Сохранить" }));
+    expect(within(dialog).getByText("Отметьте хотя бы одну специализацию")).toBeInTheDocument();
+    expect(requestedUrls.length).toBe(before);
+    fireEvent.click(within(dialog).getByLabelText("Оператор ДДС"));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Сохранить" }));
+    await waitFor(() => expect(requestedUrls.length).toBeGreaterThan(before));
+  });
+
+  it("форма создания: у обучающегося по умолчанию «Оператор ДДС», при смене роли блок скрывается", async () => {
+    renderRegistry();
+    await waitRows(USER_COUNT);
+    fireEvent.click(screen.getByRole("button", { name: "Создать учётную запись" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByLabelText("Оператор ДДС")).toBeChecked();
+    fireEvent.change(within(dialog).getByLabelText("Роль"), { target: { value: "teacher" } });
+    expect(within(dialog).queryByLabelText("Оператор ДДС")).not.toBeInTheDocument();
   });
 });
 

@@ -26,7 +26,7 @@ import type {
   OperatorAttempt,
   OperatorEventRequest,
 } from "@/shared/api";
-import { Button, Input, TimerBadge } from "@/shared/ui";
+import { Button, Input, Modal, TimerBadge } from "@/shared/ui";
 
 import { FIELD, restoreForm, toCardDraft } from "../model/draft";
 import type { DraftForm, FormErrors } from "../model/draft";
@@ -68,6 +68,7 @@ export function Operator112Workspace({
   const norms = resolveNorms(assignment.params);
   const limitSec = resolveTimeLimitSec(assignment.params);
   const [form, setForm] = useState<DraftForm>(() => restoreForm(attempt.events));
+  const [isConfirmingSave, setConfirmingSave] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const events = useFieldEvents(sendEvent, setNotice);
@@ -153,8 +154,27 @@ export function Operator112Workspace({
 
   const submit = () => {
     events.flush();
-    onSubmit(toCardDraft(form, attempt.aon), remaining === 0);
+    setConfirmingSave(true);
   };
+  const confirmSave = () => {
+    setConfirmingSave(false);
+    onSubmit(toCardDraft(form, attempt.aon, true), remaining === 0);
+  };
+  const endCall = (type: "noContact" | "callDropped") => {
+    void sendEvent({ type }).then(
+      () => setNotice(type === "noContact" ? "Зафиксировано: нет контакта" : "Зафиксирован срыв звонка"),
+      (error: unknown) => setNotice(error instanceof Error ? error.message : "Не удалось зафиксировать результат звонка"),
+    );
+  };
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.altKey || event.key.toLowerCase() !== "s" || !editable || isConfirmingSave) return;
+      event.preventDefault();
+      submit();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [editable, isConfirmingSave, submit]);
 
   return (
     <div className={styles.work} data-state={attempt.state}>
@@ -197,6 +217,8 @@ export function Operator112Workspace({
             nowMs={nowMs}
             isAnswering={isAnswering}
             onAnswer={onAnswer}
+            onNoContact={() => endCall("noContact")}
+            onCallDropped={() => endCall("callDropped")}
             onReplay={
               assignment.format === "exam"
                 ? undefined
@@ -335,10 +357,35 @@ export function Operator112Workspace({
             {errors.general}
           </p>
         ) : null}
-        <Button variant="primary" size="lg" disabled={!editable} onClick={submit}>
-          {isSubmitting ? "Передача…" : "Передать карточку"}
+        <Button variant="primary" size="lg" disabled={!editable} onClick={submit} title="Сохранить карточку (Alt+S)">
+          {isSubmitting ? "Сохранение…" : "Сохранить карточку"}
         </Button>
       </footer>
+      {isConfirmingSave ? (
+        <Modal
+          title="Подтверждение оповещения служб"
+          onClose={() => setConfirmingSave(false)}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setConfirmingSave(false)}>
+                Вернуться к карточке
+              </Button>
+              <Button variant="primary" disabled={isSubmitting} onClick={confirmSave}>
+                Подтвердить и сохранить
+              </Button>
+            </>
+          }
+        >
+          <p>После подтверждения карточка будет зарегистрирована, а службы из списка оповещения получат её.</p>
+          {form.notifications.length > 0 ? (
+            <ul aria-label="Список оповещения">
+              {form.notifications.map((service) => <li key={service.serviceId}>{service.title}</li>)}
+            </ul>
+          ) : (
+            <p>Список оповещения пуст.</p>
+          )}
+        </Modal>
+      ) : null}
     </div>
   );
 }

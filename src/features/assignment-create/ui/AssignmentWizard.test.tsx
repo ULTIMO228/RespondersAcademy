@@ -17,6 +17,7 @@ const student = (id: string, fullName: string, group: string, isActive = true): 
   armNumber: 1,
   isActive,
   group,
+  specializations: ["operator112", "dds"],
 });
 
 const ticket = (id: string, group: string, approved = true): Ticket =>
@@ -74,6 +75,7 @@ describe("мастер назначения", () => {
     render(
       <AssignmentWizard api={makeApi()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />,
     );
+    next();
     await screen.findByText("Иванов Иван");
     expect(screen.queryByText(/Заблокированный/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Чужой/)).not.toBeInTheDocument();
@@ -84,17 +86,18 @@ describe("мастер назначения", () => {
 
   it("шаг 1: без закреплённых групп обучающихся нет", async () => {
     render(<AssignmentWizard api={makeApi()} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    next();
     expect(await screen.findByText("Нет доступных обучающихся")).toBeInTheDocument();
     expect(screen.queryByText("Иванов Иван")).not.toBeInTheDocument();
   });
 
-  it("полный путь: обучающийся → режим → билеты → параметры → создание", async () => {
+  it("полный путь: режим → подходящий обучающийся → билеты → параметры → создание", async () => {
     const api = makeApi();
     const onCreated = vi.fn();
     render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={onCreated} onCancel={vi.fn()} />);
-    await pickStudent(/Иванов Иван/);
-    next();
     fireEvent.change(screen.getByLabelText("Название задания"), { target: { value: "Пожары" } });
+    next();
+    await pickStudent(/Иванов Иван/);
     next();
     // Только утверждённые билеты
     expect(await screen.findByText("c-010")).toBeInTheDocument();
@@ -126,8 +129,8 @@ describe("мастер назначения", () => {
   it("случайный набор: ровно один источник — randomRule без cardIds; количество 1–100", async () => {
     const api = makeApi();
     render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
-    await pickStudent(/Иванов Иван/);
     next();
+    await pickStudent(/Иванов Иван/);
     next();
     fireEvent.click(screen.getByRole("button", { name: "Случайный набор" }));
     fireEvent.change(await screen.findByLabelText("Количество билетов"), { target: { value: "101" } });
@@ -158,9 +161,9 @@ describe("мастер назначения", () => {
         onCancel={vi.fn()}
       />,
     );
-    await pickStudent(/Иванов Иван/);
-    next();
     fireEvent.click(screen.getByRole("radio", { name: /Экзамен/ }));
+    next();
+    await pickStudent(/Иванов Иван/);
     next();
     fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
     next();
@@ -180,9 +183,10 @@ describe("мастер назначения", () => {
   it("цепочка: выбираются только утверждённые версии operator112, у каждого билета — своя версия", async () => {
     const api = makeApi();
     render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    fireEvent.click(screen.getByRole("radio", { name: /Цепочка/ }));
+    next();
     await pickStudent(/Иванов Иван/);
     next();
-    fireEvent.click(screen.getByRole("radio", { name: /Цепочка/ }));
     next();
     fireEvent.click(await screen.findByRole("button", { name: "Показать утверждённые версии" }));
     const versionRow = await screen.findByRole("checkbox", { name: /Версия 2/ });
@@ -204,6 +208,7 @@ describe("мастер назначения", () => {
     render(
       <AssignmentWizard api={makeApi()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={onCancel} />,
     );
+    next();
     await pickStudent(/Петров Пётр/);
     next();
     fireEvent.click(screen.getByRole("button", { name: "Назад" }));
@@ -230,13 +235,13 @@ describe("мастер назначения: начальные значения
         onCancel={vi.fn()}
       />,
     );
+    expect(screen.getByLabelText("Название задания")).toHaveValue("Тренировка: Пожар");
+    expect(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) })).toBeChecked();
+    next();
     expect(await screen.findByRole("checkbox", { name: /Иванов Иван/ })).toBeChecked();
     expect(screen.queryByText(/Заблокированный/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Чужой/)).not.toBeInTheDocument();
     expect(screen.getByText(/они не выбраны: 3/)).toBeInTheDocument();
-    next();
-    expect(screen.getByLabelText("Название задания")).toHaveValue("Тренировка: Пожар");
-    expect(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) })).toBeChecked();
     next();
     fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
     next();
@@ -262,6 +267,7 @@ describe("мастер назначения: начальные значения
         onCancel={vi.fn()}
       />,
     );
+    next();
     expect(await screen.findByRole("checkbox", { name: /Иванов Иван/ })).not.toBeChecked();
     next();
     expect(screen.getByRole("alert")).toHaveTextContent("Выберите хотя бы одного обучающегося");
@@ -284,6 +290,7 @@ describe("мастер назначения: начальные значения
         onCancel={vi.fn()}
       />,
     );
+    next();
     expect(screen.getByRole("button", { name: "Далее" })).toBeDisabled();
     await act(async () => resolveStudents([student("u-005", "Иванов Иван", "Группа 1")]));
     expect(await screen.findByRole("checkbox", { name: /Иванов Иван/ })).toBeChecked();
@@ -300,9 +307,10 @@ describe("мастер назначения: начальные значения
         onCancel={vi.fn()}
       />,
     );
+    next();
     fireEvent.click(await screen.findByRole("checkbox", { name: /Иванов Иван/ }));
     next();
-    expect(await screen.findByRole("heading", { name: "Режим и формат" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Билеты" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Назад" }));
     expect(await screen.findByRole("checkbox", { name: /Петров Пётр/ })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: /Иванов Иван/ })).not.toBeChecked();
@@ -319,6 +327,7 @@ describe("мастер назначения: начальные значения
         onCancel={vi.fn()}
       />,
     );
+    next();
     await screen.findByRole("checkbox", { name: /Иванов Иван/ });
     next();
     next();
@@ -336,21 +345,19 @@ describe("мастер назначения: начальные значения
         onCancel={vi.fn()}
       />,
     );
-    await screen.findByRole("checkbox", { name: /Иванов Иван/ });
-    next();
     expect(screen.getByLabelText("Название задания")).toHaveValue("я".repeat(120));
+    next();
+    await screen.findByRole("checkbox", { name: /Иванов Иван/ });
   });
 
   it("без начальных значений: режим оператора 112 по умолчанию, название пустое, подсказки о этапе нет", async () => {
     render(
       <AssignmentWizard api={makeApi()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />,
     );
-    await pickStudent(/Иванов Иван/);
-    next();
     expect(screen.getByLabelText("Название задания")).toHaveValue("");
-    expect(
-      screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.operator112) }),
-    ).toBeChecked();
+    expect(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.operator112) })).toBeChecked();
+    next();
+    await pickStudent(/Иванов Иван/);
     next();
     expect(await screen.findByText("c-010")).toBeInTheDocument();
     expect(screen.queryByText(/Подберите билеты/)).not.toBeInTheDocument();

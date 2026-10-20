@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import Viewer
+from app.api.deps import Viewer, ensure_zone_access
 from app.api.errors import conflict, forbidden, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.ai_scenario import ScenarioVersion
@@ -15,7 +15,7 @@ from app.models.assignment import Assignment, AssignmentAttempt, AssignmentScena
 from app.models.card import IncidentCard
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TrainingSession
-from app.models.user import User
+from app.models.user import MODE_TITLES, User, covers_mode
 from app.services import audit, operator112_service
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso, parse_iso_ms
@@ -101,6 +101,9 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
     students = list((await db.execute(select(User).where(User.id.in_(body["studentIds"])))).scalars().all())
     if len(students) != len(body["studentIds"]) or any(u.role != "student" or not u.is_active for u in students):
         raise validation_failed("Все studentIds должны указывать на активных обучающихся")
+    unfit = [u.id for u in students if not covers_mode(u.specializations, body["trainingMode"])]
+    if unfit:
+        raise validation_failed(f"Обучающиеся без нужной специализации для режима «{MODE_TITLES[body['trainingMode']]}»: {', '.join(sorted(unfit))}")
     selected = list(body.get("cardIds") or [])
     ai_links: list[tuple[ScenarioVersion, str]] = []
     for item in body.get("scenarioVersions") or []:
@@ -266,6 +269,7 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
         raise conflict("Задание завершено")
     await _expire(db, row)
     student = _student(viewer, student_id, row)
+    await ensure_zone_access(db, viewer, row.training_mode, "старт задания", student_id=student)
     links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id, AssignmentAttempt.student_id == student).order_by(AssignmentAttempt.id))).scalars().all()
     opened = next((link for link in links if link.state not in ("submitted", "notCompleted")), None)
     if opened is not None:

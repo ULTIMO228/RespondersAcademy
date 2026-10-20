@@ -11,6 +11,7 @@ import type {
   ClassifierEntry,
   OperatorAttempt,
   OperatorEvaluation,
+  OperatorEventRequest,
 } from "@/shared/api";
 
 import type { Operator112Api } from "../api/operator112Api";
@@ -31,6 +32,7 @@ export type Screen =
 export type Result = {
   evaluation: OperatorEvaluation;
   chainReview?: ChainSubmitReview;
+  cardStatus: string;
 };
 
 /** Итог попытки, закрытой сервером по лимиту времени экзамена (оценка 0, «не выполнено»). */
@@ -115,6 +117,22 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
     }
   }, [api, attempt, isAnswering]);
 
+  const sendEvent = useCallback(async (event: OperatorEventRequest) => {
+    if (!attempt) throw new Error("Попытка не загружена");
+    const saved = await api.sendEvent(attempt.id, event);
+    setAttempt((current) => {
+      if (!current) return current;
+      const endedWithoutAnswer = event.type === "noContact" || event.type === "callDropped";
+      return {
+        ...current,
+        state: endedWithoutAnswer ? "answered" : current.state,
+        answeredAt: endedWithoutAnswer ? saved.at : current.answeredAt,
+        events: [...current.events, saved],
+      };
+    });
+    return saved;
+  }, [api, attempt]);
+
   /** Чтение задания применяет истечение лимита на сервере: возвращает итог, если текущая попытка закрыта по времени. */
   const checkExpiry = useCallback(async (): Promise<boolean> => {
     if (!attempt) return false;
@@ -143,7 +161,7 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
         const submitted = await api.submitAttempt(attempt.id, draft);
         setAttempt(submitted.attempt);
         const evaluation = await api.getEvaluation(attempt.id);
-        setResult({ evaluation, chainReview: submitted.chainReview });
+        setResult({ evaluation, chainReview: submitted.chainReview, cardStatus: submitted.card.cardStatus ?? "registered" });
       } catch (error) {
         const message =
           error instanceof Error && error.message ? error.message : "Не удалось передать карточку";
@@ -172,6 +190,17 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
     }
   }, [api, applyStart, assignmentId, screen]);
 
+  const updateCardStatus = useCallback(async (type: "processed" | "close") => {
+    if (!attempt || !result) return;
+    setNextProblem(null);
+    try {
+      await api.sendEvent(attempt.id, { type });
+      setResult((current) => current ? { ...current, cardStatus: type === "processed" ? "processed" : "closed" } : current);
+    } catch (error) {
+      setNextProblem(toProblem(error).message);
+    }
+  }, [api, attempt, result]);
+
   return {
     screen,
     attempt,
@@ -183,8 +212,10 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
     expired,
     nextProblem,
     answer,
+    sendEvent,
     submit,
     next,
+    updateCardStatus,
     checkExpiry,
   };
 }

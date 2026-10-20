@@ -3,6 +3,7 @@
  * services/recommendation_service.py): история, аналитика, рекомендации.
  */
 import type { AssignmentFormat } from "./assignments";
+import type { AiServedBy } from "./ai-settings";
 
 export type LobbyMode = "dds" | "operator112";
 
@@ -68,6 +69,9 @@ export interface Recommendation {
   targetId: string;
   title: string;
   reason: RecommendationReason;
+  /** Источник пояснения; старые рекомендации читаются как шаблон. */
+  source?: AiServedBy;
+  text?: string;
   createdAt: string;
   /** Есть — рекомендация принята (теряет приоритет выдачи). */
   acceptedAt?: string;
