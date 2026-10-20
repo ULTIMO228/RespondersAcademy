@@ -303,3 +303,5 @@ export type {
   AiSettingsUpdate,
   AiSourceKind,
 } from "./types";
+export { postAttemptChat } from "./endpoints";
+export type { ChatMessage, ChatRequest, ChatResponse, ChatTurn } from "./types";

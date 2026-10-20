@@ -1,0 +1,102 @@
+.input {
+  padding: var(--pf-space-3) var(--pf-space-4);
+  border-top: 1px solid var(--pf-border);
+  background: var(--pf-bg-card);
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--pf-space-2);
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  max-height: 140px;
+  padding: 10px var(--pf-space-3);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+  color: var(--pf-text);
+  font-family: var(--pf-font-ui);
+  font-size: 14px;
+  line-height: 1.4;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.field:focus {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.send {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--pf-action);
+  color: var(--pf-text-on-action);
+  cursor: pointer;
+}
+
+.send:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.send:disabled {
+  background: var(--pf-bg-hover);
+  color: var(--pf-text-muted);
+  cursor: not-allowed;
+}
+
+/* Во время ожидания кнопка остаётся «живой» по цвету: блокировку показывает спиннер. */
+.send[aria-busy="true"]:disabled {
+  background: var(--pf-action);
+  color: var(--pf-text-on-action);
+  cursor: progress;
+}
+
+@media (hover: hover) {
+  .send:hover:not(:disabled) {
+    background: var(--pf-action-hover);
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+.counter {
+  margin: var(--pf-space-1) 0 0;
+  color: var(--pf-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2400ms;
+  }
+}

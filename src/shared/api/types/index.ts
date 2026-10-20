@@ -205,3 +205,4 @@ export type {
   AiSettingsUpdate,
   AiSourceKind,
 } from "./ai-settings";
+export type { ChatMessage, ChatRequest, ChatResponse, ChatTurn } from "./ai-chat";

@@ -1077,6 +1077,52 @@
    "optional": [],
    "extends": []
   },
+  "ChatMessage": {
+   "file": "ai-chat.ts",
+   "required": [
+    "id",
+    "role",
+    "content",
+    "status",
+    "timestamp"
+   ],
+   "optional": [
+    "source",
+    "modelName"
+   ],
+   "extends": []
+  },
+  "ChatRequest": {
+   "file": "ai-chat.ts",
+   "required": [
+    "attemptId",
+    "mode",
+    "message",
+    "history"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ChatResponse": {
+   "file": "ai-chat.ts",
+   "required": [
+    "reply",
+    "source",
+    "provider",
+    "modelName"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ChatTurn": {
+   "file": "ai-chat.ts",
+   "required": [
+    "role",
+    "content"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ClassifierEntry": {
    "file": "classifier.ts",
    "required": [

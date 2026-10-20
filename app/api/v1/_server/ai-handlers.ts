@@ -25,3 +25,4 @@ export const handlePostAiAssessmentResolve = handlers.postAssessmentResolve;
 export const handleGetAiSessionErrors = handlers.getSessionErrors;
 export const handleGetAiSessionErrorSummary = handlers.getSessionErrorSummary;
 export const handleGetAiMyErrors = handlers.getMyErrors;
+export const handlePostAiChat = handlers.postAttemptChat;

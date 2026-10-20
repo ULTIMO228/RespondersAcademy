@@ -18,6 +18,7 @@ PURPOSES = {
     "scenario_generation": "генерация сценария",
     "error_map_explain": "пояснение карты ошибок",
     "connection_probe": "проверка подключения",
+    "attempt_chat": "ответ чата разбора попытки",
 }
 SERVED = {
     "cloud": "ответила облачная модель",

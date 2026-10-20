@@ -111,6 +111,42 @@ describe("tokens-platform.css — контраст (WCAG 2.2 AA)", () => {
   });
 });
 
+/** Пары шторки чата разбора (спека 010, T028): каждая встречается в CSS-модулях src/widgets/attempt-chat. */
+const CHAT_TEXT_PAIRS: [string, string, string][] = [
+  ["--pf-text", "--pf-bg-selected", "баббл пользователя"],
+  ["--pf-text", "--pf-bg-subtle", "баббл ассистента"],
+  ["--pf-text", "--pf-bg-card", "шапка и фон шторки"],
+  ["--pf-text-muted", "--pf-bg-card", "подпись и счётчик символов"],
+  ["--pf-text-muted", "--pf-bg-hover", "иконка заблокированной кнопки отправки"],
+  ["--pf-text-on-action", "--pf-action", "иконка кнопки отправки"],
+  ["--pf-text-on-action", "--pf-action-hover", "иконка кнопки отправки при наведении"],
+  ["--pf-link", "--pf-bg-card", "чип быстрого вопроса"],
+  ["--pf-link-hover", "--pf-bg-hover", "чип при наведении"],
+  ["--pf-danger", "--pf-danger-bg", "сообщение об ошибке в ленте"],
+];
+const CHAT_NON_TEXT_PAIRS: [string, string, string][] = [
+  ["--pf-border-control", "--pf-bg-card", "рамка поля ввода"],
+  ["--pf-focus", "--pf-bg-card", "кольцо фокуса в шторке"],
+  ["--pf-danger", "--pf-bg-selected", "рамка неотправленной реплики"],
+];
+
+describe("шторка чата — контраст токенов (T028)", () => {
+  it.each(CHAT_TEXT_PAIRS)("%s на %s ≥ 4,5:1 — %s", (foreground, background) => {
+    expect(contrast(resolve(foreground), resolve(background))).toBeGreaterThanOrEqual(TEXT_MIN);
+  });
+
+  it.each(CHAT_NON_TEXT_PAIRS)("%s на %s ≥ 3:1 — %s", (foreground, background) => {
+    expect(contrast(resolve(foreground), resolve(background))).toBeGreaterThanOrEqual(NON_TEXT_MIN);
+  });
+
+  it("CSS-модули чата без жёстких hex-цветов", () => {
+    const dir = join(SRC_DIR, "widgets/attempt-chat");
+    const modules = collectCss(dir);
+    expect(modules.length).toBeGreaterThan(3);
+    for (const path of modules) expect(readFileSync(path, "utf8")).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+  });
+});
+
 describe("tokens-platform.css — состав", () => {
   it("все токены с префиксом --pf-", () => {
     const names = [...tokensCss.matchAll(/^\s*(--[a-z0-9-]+):/gm)].map((match) => match[1]);

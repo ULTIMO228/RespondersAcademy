@@ -22,6 +22,8 @@ export { systemClock } from "./clock";
 export type { Clock, TimerHandle } from "./clock";
 export { createCookieStorage, createMemoryStorage, createWebStorage } from "./storage";
 export type { CookieDocument, KeyValueStorage, StorageWriteOptions } from "./storage";
+export { CHAT_HISTORY_LIMIT, chatHistoryKey, createChatHistoryStore } from "./chat-history";
+export type { ChatHistoryEntry, ChatHistoryStore } from "./chat-history";
 export { appConnectivity, browserConnectivitySource, createConnectivity } from "./network";
 export type { Connectivity, ConnectivityListener, ConnectivitySource } from "./network";
 export { createFeedSubscription, FEED_TICK_MS, pickFeedTransport } from "./realtime";

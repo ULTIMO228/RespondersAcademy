@@ -9,6 +9,7 @@ export { adminResetUserPassword, adminSetUserActive, adminSetUserRole } from "./
 export { adminUpdateUser, mapAdminUserError } from "./admin-users";
 export type { AdminUserFailure, AdminUserFailureReason } from "./admin-users";
 export { postAttemptProgress, postCardAttempt } from "./attempts";
+export { postAttemptChat } from "./ai-chat";
 export { LOGIN_FAILURE_MESSAGES, changePassword, getAuthPolicy, getSession, login, logout } from "./auth";
 export { logoutAll, mapLoginError } from "./auth";
 export { postCallReply, postCardCall } from "./calls";

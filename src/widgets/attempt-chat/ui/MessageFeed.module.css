@@ -1,0 +1,64 @@
+.feed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--pf-space-3);
+  min-height: 0;
+  padding: var(--pf-space-4);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.bubble {
+  max-width: 88%;
+  padding: 10px var(--pf-space-3);
+  border: 1px solid var(--pf-border);
+  color: var(--pf-text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.bubble--user {
+  align-self: flex-end;
+  border-radius: 12px 12px 2px 12px;
+  background: var(--pf-bg-selected);
+}
+
+.bubble--assistant {
+  align-self: flex-start;
+  border-radius: 12px 12px 12px 2px;
+  background: var(--pf-bg-subtle);
+}
+
+.bubble[data-failed] {
+  border-color: var(--pf-danger);
+}
+
+.text {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.badge {
+  margin-top: var(--pf-space-2);
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-2);
+  align-items: flex-start;
+  padding: 10px var(--pf-space-3);
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--pf-radius-card);
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+  font-size: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed {
+    scroll-behavior: auto;
+  }
+}

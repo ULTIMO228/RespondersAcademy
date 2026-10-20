@@ -8,6 +8,7 @@ from fastapi import APIRouter
 def build_router() -> APIRouter:
     from app.api.v1 import (
         ai_assessments,
+        ai_chat,
         ai_errors,
         ai_provider,
         ai_scenarios,
@@ -28,6 +29,7 @@ def build_router() -> APIRouter:
     router = APIRouter()
     for module in (
         ai_assessments,
+        ai_chat,
         ai_errors,
         ai_provider,
         ai_scenarios,

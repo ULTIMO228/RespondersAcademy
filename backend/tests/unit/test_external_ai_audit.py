@@ -161,3 +161,9 @@ async def test_cloud_error_falls_back_to_local_model_for_explanation(maker, monk
     assert result.source_kind is None and result.model == "semantic-review"  # FR-018: облако упало → локальная
     entries = await _audit(maker)
     assert len(entries) == 1 and "invalid_key" in entries[0].details and KEY not in entries[0].details
+
+
+def test_attempt_chat_purpose_has_russian_title():
+    from app.services.external_ai_audit import PURPOSES
+
+    assert PURPOSES["attempt_chat"] == "ответ чата разбора попытки"

@@ -61,6 +61,15 @@ async def app(seeded_db):
     return create_app()
 
 
+@pytest.fixture(autouse=True)
+def _reset_chat_rate_limiter():
+    """Лимит запросов чата (фича 010) живёт в памяти процесса: сбрасывается между тестами, чтобы они не мешали друг другу."""
+    from app.services import attempt_chat
+
+    attempt_chat.rate_limiter.reset()
+    yield
+
+
 @pytest_asyncio.fixture
 async def client(app) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api/mock") as http:

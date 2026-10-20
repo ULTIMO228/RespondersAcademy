@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     polza_timeout_sec: float = Field(default=60.0, alias="POLZA_TIMEOUT_SEC")
     polza_rpm: int = Field(default=20, ge=1, alias="POLZA_RPM")  # запросов в минуту
     polza_daily_limit: int = Field(default=500, ge=1, alias="POLZA_DAILY_LIMIT")  # запросов в сутки
+    # Чат разбора попытки (фича 010, research R2): вопрос обучающегося — свободный текст, поэтому облачная ветка для цели
+    # `attempt_chat` разрешена решением владельца (AGENTS.md §2, 2026-10-20): чат следует модели администратора.
+    # `CHAT_CLOUD_ENABLED=false` — выключатель: чат отвечает только локальной моделью или шаблоном.
+    chat_cloud_enabled: bool = Field(default=True, alias="CHAT_CLOUD_ENABLED")
+    chat_rate_per_minute: int = Field(default=10, ge=1, alias="CHAT_RATE_PER_MINUTE")  # запросов чата на пользователя
     # Мастер-ключ шифрования ключа облака в БД (фича 006); не задан — производный от JWT_SECRET (HKDF).
     ai_settings_key: SecretStr | None = Field(default=None, alias="AI_SETTINGS_KEY")
     api_prefixes: list[str] = Field(default=["/api/mock", "/api/v1"], alias="API_PREFIXES")
