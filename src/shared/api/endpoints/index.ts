@@ -90,7 +90,14 @@ export {
 export type { ErrorMapPdfParams, ErrorMapQuery } from "./error-map";
 export {
   createGraphScenario,
+  deriveGraphScenarioVersion,
+  finishScenarioRun,
   getGraphScenarioVersion,
+  getScenarioRun,
+  listAssignedScenarios,
+  listScenarioRuns,
+  performScenarioAction,
+  startScenarioRun,
   getScenarioPermissions,
   listGraphScenarios,
   listGraphScenarioVersions,

@@ -21,6 +21,7 @@ type VersionPanelProps = {
   onSubmit: () => void;
   onReview: (decision: "accept" | "reject", comment: string) => void;
   onPublish: () => void;
+  onDerive: (comment: string) => void;
 };
 
 /** Процесс версии: статус и кнопки «Сохранить / На проверку / Принять / Отклонить / Опубликовать» по состоянию и правам. */
@@ -34,9 +35,11 @@ export function VersionPanel({
   onSubmit,
   onReview,
   onPublish,
+  onDerive,
 }: VersionPanelProps) {
   const [comment, setComment] = useState("");
   const [rejectError, setRejectError] = useState<string | null>(null);
+  const [deriveComment, setDeriveComment] = useState("");
   return (
     <section className={styles.versions} aria-label="Версия сценария">
       <div className={styles.versions__head}>
@@ -98,6 +101,27 @@ export function VersionPanel({
               }}
             >
               Отклонить
+            </Btn>
+          </div>
+        </div>
+      ) : null}
+      {actions.canDerive ? (
+        <div className={styles.review}>
+          <TextArea
+            label="Комментарий к новой версии (необязательно)"
+            rows={2}
+            value={deriveComment}
+            onChange={(event) => setDeriveComment(event.target.value)}
+          />
+          <div className={styles.versions__buttons}>
+            <Btn
+              onClick={() => {
+                onDerive(deriveComment);
+                setDeriveComment("");
+              }}
+              disabled={busy}
+            >
+              Создать новую версию
             </Btn>
           </div>
         </div>

@@ -65,6 +65,10 @@ function makeApi(
       }),
     ),
     publishGraphScenario: vi.fn(async () => makeVersion({ approval: "approved" })),
+    deriveGraphScenarioVersion: vi.fn(async (_id, version) =>
+      makeVersion({ version: version + 1, parentVersion: version, approval: "draft" }),
+    ),
+    listScenarioRuns: vi.fn(async () => []),
     ...overrides,
   };
 }
@@ -280,6 +284,108 @@ describe("ScenarioGraphEditor: процесс версий и права", () =>
         expect.objectContaining({ version: 1 }),
       ),
     );
+  });
+});
+
+describe("ScenarioGraphEditor: новая версия из принятой", () => {
+  it("кнопка видна только у принятой версии", async () => {
+    const draft = render(<ScenarioGraphEditor scenarioId="s-ai-001" api={makeApi(makeVersion())} />);
+    await screen.findByRole("group", { name: /Холст графа сценария/ });
+    expect(screen.queryByRole("button", { name: "Создать новую версию" })).not.toBeInTheDocument();
+    draft.unmount();
+
+    await renderEditor(makeApi(makeVersion({ approval: "approved" })));
+    expect(screen.getByRole("button", { name: "Создать новую версию" })).toBeInTheDocument();
+  });
+
+  it("создаёт версию с комментарием, перечитывает версии и открывает черновик", async () => {
+    const approved = makeVersion({ approval: "approved" });
+    const list = vi.fn().mockResolvedValueOnce([approved]);
+    const api = makeApi(approved, [], { listAIScenarioVersions: list });
+    list.mockResolvedValue([approved, makeVersion({ version: 2, parentVersion: 1, approval: "draft" })]);
+    await renderEditor(api);
+    fireEvent.change(screen.getByLabelText(/Комментарий к новой версии/), { target: { value: "уточнить" } });
+    fireEvent.click(screen.getByRole("button", { name: "Создать новую версию" }));
+    await waitFor(() =>
+      expect(api.deriveGraphScenarioVersion).toHaveBeenCalledWith(
+        "s-ai-001",
+        1,
+        expect.objectContaining({ comment: "уточнить", requestId: expect.any(String) }),
+      ),
+    );
+    expect(await screen.findByText("Версия 2:", { exact: false })).toBeInTheDocument();
+    expect(screen.getByTestId("approval-status")).toHaveTextContent("Черновик");
+    expect(screen.getByText("Создана версия 2 (черновик)")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Создать новую версию" })).not.toBeInTheDocument();
+  });
+
+  it("409 «уже есть неопубликованная версия» показывается понятным текстом, версия не меняется", async () => {
+    const api = makeApi(makeVersion({ approval: "approved" }), [], {
+      deriveGraphScenarioVersion: vi.fn(async () => {
+        throw new ApiError(409, "conflict", "conflict");
+      }),
+    });
+    await renderEditor(api);
+    fireEvent.click(screen.getByRole("button", { name: "Создать новую версию" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Уже есть неопубликованная версия");
+    expect(screen.getByTestId("approval-status")).toHaveTextContent("Принята");
+  });
+});
+
+describe("ScenarioGraphEditor: прохождения", () => {
+  const run = (overrides: Record<string, unknown> = {}) => ({
+    runId: "run-1",
+    scenarioId: "s-ai-001",
+    version: 1,
+    studentId: "u-005",
+    status: "completed" as const,
+    createdAt: "2026-10-20T10:00:00+03:00",
+    finishedAt: "2026-10-20T10:02:05+03:00",
+    result: {
+      score: 80,
+      passed: true,
+      outcome: "completed",
+      outcomeTitle: "Вызов обработан",
+      wrongAttempts: 1,
+      steps: 4,
+      durationMs: 125_000,
+      finishedAt: "2026-10-20T10:02:05+03:00",
+      path: ["n1", "n3", "n4"],
+      branches: ["Дерево"],
+    },
+    ...overrides,
+  });
+
+  it("таблица показывает балл, зачёт, неверные и время; строка раскрывается маршрутом и ветками", async () => {
+    const api = makeApi(makeVersion(), [], { listScenarioRuns: vi.fn(async () => [run()]) });
+    await renderEditor(api);
+    const table = await screen.findByRole("table");
+    expect(api.listScenarioRuns).toHaveBeenCalledWith({ scenarioId: "s-ai-001" }, expect.anything());
+    const row = within(table).getByText(/u-005/).closest("tr") as HTMLElement;
+    expect(within(row).getByText("80")).toBeInTheDocument();
+    expect(within(row).getByText(/Зачтено/)).toBeInTheDocument();
+    expect(within(row).getByText("02:05")).toBeInTheDocument();
+    expect(screen.queryByText("n1 → n3 → n4")).not.toBeInTheDocument();
+    fireEvent.click(within(row).getByRole("button", { name: /u-005/ }));
+    expect(screen.getByText("n1 → n3 → n4")).toBeInTheDocument();
+    expect(screen.getByText("Дерево", { selector: "dd" })).toBeInTheDocument();
+  });
+
+  it("незавершённый прогон — без результата; пусто и ошибка с повтором", async () => {
+    const api = makeApi(makeVersion(), [], {
+      listScenarioRuns: vi
+        .fn()
+        .mockRejectedValueOnce(new ApiError(500, "internal", "Сбой списка"))
+        .mockResolvedValueOnce([run({ status: "waiting", result: undefined, finishedAt: undefined })])
+        .mockResolvedValue([]),
+    });
+    await renderEditor(api);
+    const section = screen.getByRole("region", { name: "Прохождения" });
+    expect(await within(section).findByText("Сбой списка")).toBeInTheDocument();
+    fireEvent.click(within(section).getByRole("button", { name: "Повторить" }));
+    expect(await within(section).findByText("В процессе")).toBeInTheDocument();
+    fireEvent.click(within(section).getByRole("button", { name: "Обновить" }));
+    expect(await within(section).findByText("Прохождений пока нет")).toBeInTheDocument();
   });
 });
 

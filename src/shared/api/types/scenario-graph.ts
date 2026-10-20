@@ -156,3 +156,83 @@ export interface ScenarioPublishRequest {
   version: number;
   requestId: string;
 }
+
+export interface ScenarioDeriveRequest {
+  comment?: string;
+  requestId: string;
+}
+
+/* Прохождение графа обучающимся (спека 005 §4, этап S6): /ai/scenario-assignments, /ai/scenario-runs*. */
+export type ScenarioRunStatus = "waiting" | "completed" | "aborted" | "faulted";
+
+export interface ScenarioRunResult {
+  score: number;
+  passed: boolean;
+  outcome: string;
+  outcomeTitle: string;
+  wrongAttempts: number;
+  steps: number;
+  durationMs: number;
+  finishedAt: string;
+}
+
+/** Результат в списке прогонов преподавателя: дополнительно маршрут и выбранные ветки. */
+export interface ScenarioRunResultDetail extends ScenarioRunResult {
+  path: string[];
+  branches: string[];
+}
+
+export interface ScenarioRunStep {
+  title: string | null;
+  prompt: string | null;
+  input: { options: { value: string; label: string }[] } | null;
+}
+
+export interface ScenarioRunAction {
+  action: string;
+  label: string;
+}
+
+/** Вид прогона для обучающегося: маршрут и правильное действие не раскрываются. */
+export interface ScenarioRunView {
+  runId: string;
+  scenarioId: string;
+  version: number;
+  studentId: string;
+  status: ScenarioRunStatus;
+  outcome: string | null;
+  steps: number;
+  step?: ScenarioRunStep;
+  actions?: ScenarioRunAction[];
+  result?: ScenarioRunResult;
+}
+
+export interface AssignedScenario {
+  assignmentId: string;
+  assignmentTitle: string;
+  scenarioId: string;
+  version: number;
+  title: string;
+  mode: AIWorkflowMode;
+  attempts: number;
+  activeRunId: string | null;
+  lastResult?: ScenarioRunResult;
+  dueAt?: string;
+}
+
+export interface ScenarioActionRequest {
+  action: string;
+  expectedSteps: number;
+  choice?: string;
+}
+
+export interface ScenarioRunListItem {
+  runId: string;
+  scenarioId: string;
+  version: number;
+  studentId: string;
+  status: ScenarioRunStatus;
+  createdAt: string;
+  finishedAt?: string;
+  result?: ScenarioRunResultDetail;
+}

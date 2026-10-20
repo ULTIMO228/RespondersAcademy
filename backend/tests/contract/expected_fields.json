@@ -409,6 +409,24 @@
    ],
    "extends": []
   },
+  "AssignedScenario": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "assignmentId",
+    "assignmentTitle",
+    "scenarioId",
+    "version",
+    "title",
+    "mode",
+    "attempts",
+    "activeRunId"
+   ],
+   "optional": [
+    "lastResult",
+    "dueAt"
+   ],
+   "extends": []
+  },
   "Assignment": {
    "file": "assignments.ts",
    "required": [
@@ -2299,6 +2317,27 @@
    ],
    "extends": []
   },
+  "ScenarioActionRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "action",
+    "expectedSteps"
+   ],
+   "optional": [
+    "choice"
+   ],
+   "extends": []
+  },
+  "ScenarioDeriveRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "requestId"
+   ],
+   "optional": [
+    "comment"
+   ],
+   "extends": []
+  },
   "ScenarioGenerateRequest": {
    "file": "teacher.ts",
    "required": [
@@ -2397,6 +2436,93 @@
    ],
    "optional": [
     "comment"
+   ],
+   "extends": []
+  },
+  "ScenarioRunAction": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "action",
+    "label"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioRunListItem": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "runId",
+    "scenarioId",
+    "version",
+    "studentId",
+    "status",
+    "createdAt"
+   ],
+   "optional": [
+    "finishedAt",
+    "result"
+   ],
+   "extends": []
+  },
+  "ScenarioRunResult": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "score",
+    "passed",
+    "outcome",
+    "outcomeTitle",
+    "wrongAttempts",
+    "steps",
+    "durationMs",
+    "finishedAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioRunResultDetail": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "score",
+    "passed",
+    "outcome",
+    "outcomeTitle",
+    "wrongAttempts",
+    "steps",
+    "durationMs",
+    "finishedAt",
+    "path",
+    "branches"
+   ],
+   "optional": [],
+   "extends": [
+    "ScenarioRunResult"
+   ]
+  },
+  "ScenarioRunStep": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "title",
+    "prompt",
+    "input"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioRunView": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "runId",
+    "scenarioId",
+    "version",
+    "studentId",
+    "status",
+    "outcome",
+    "steps"
+   ],
+   "optional": [
+    "step",
+    "actions",
+    "result"
    ],
    "extends": []
   },

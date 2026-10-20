@@ -29,6 +29,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
   student: [
     { href: ROUTES.studentHome, title: "Главная", icon: "home", exact: true },
     { href: ROUTES.studentAssignments, title: "Задания", icon: "tasks" },
+    { href: ROUTES.studentScenarios, title: "Сценарии", icon: "doc" },
     { href: ROUTES.studentResults, title: "Результаты", icon: "results" },
     { href: ROUTES.studentAnalytics, title: "Аналитика", icon: "analytics" },
     REFERENCE,

@@ -293,6 +293,41 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
     );
   }, [actions.canPublish, api, latest, perform, replaceVersion, scenarioId]);
 
+  /** Новая версия-черновик из принятой/опубликованной: перечитывает версии и открывает черновик. */
+  const derive = useCallback(
+    async (comment: string) => {
+      if (!latest || latest.approval !== "approved") return null;
+      setBusy(true);
+      setNotice(null);
+      try {
+        const created = await api.deriveGraphScenarioVersion(scenarioId, latest.version, {
+          requestId: newRequestId(),
+          ...(comment.trim() ? { comment: comment.trim() } : {}),
+        });
+        let list: AIScenarioVersion[];
+        try {
+          list = await api.listAIScenarioVersions(scenarioId);
+        } catch {
+          list = [...versions.filter((item) => item.version !== created.version), created];
+        }
+        adopt(created.graph ? created : { ...created, graph: latest.graph }, list);
+        setValidation({ status: "idle" });
+        setNotice({ kind: "success", text: `Создана версия ${created.version} (черновик)` });
+        return created;
+      } catch (error) {
+        const text =
+          error instanceof ApiError && error.status === 409
+            ? "Уже есть неопубликованная версия этого сценария. Завершите её (отправьте на проверку или опубликуйте), затем создайте новую."
+            : errorMessage(error, "Не удалось создать новую версию");
+        setNotice({ kind: "error", text });
+        return null;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [adopt, api, latest, scenarioId, versions],
+  );
+
   const editor = {
     addNode: (kind: GraphNodeType) => {
       if (!graph) return;
@@ -355,5 +390,6 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
     submit,
     review,
     publish,
+    derive,
   };
 }

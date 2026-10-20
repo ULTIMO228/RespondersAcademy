@@ -15,6 +15,7 @@ import { CreateGraphForm } from "./CreateGraphForm";
 import { GraphCanvas } from "./GraphCanvas";
 import { GraphSettings } from "./GraphSettings";
 import { NodeProperties } from "./NodeProperties";
+import { RunsSection } from "./RunsSection";
 import { ValidationList } from "./ValidationList";
 import { VersionPanel } from "./VersionPanel";
 
@@ -114,6 +115,7 @@ export function ScenarioGraphEditor({
           onSubmit={() => void ed.submit()}
           onReview={(decision, comment) => void ed.review(decision, comment)}
           onPublish={() => void ed.publish()}
+          onDerive={(comment) => void ed.derive(comment)}
         />
       ) : null}
       <div className={styles.toolbar} role="toolbar" aria-label="Палитра блоков">
@@ -202,6 +204,7 @@ export function ScenarioGraphEditor({
           <GraphSettings graph={graph} readOnly={readOnly} onChange={editor.patchGraph} />
         </div>
       </div>
+      <RunsSection scenarioId={ed.scenarioId} api={api} />
     </section>
   );
 }

@@ -4,7 +4,14 @@ import { ApiError } from "../client";
 import type { ScenarioGraph } from "../types";
 import {
   createGraphScenario,
+  deriveGraphScenarioVersion,
+  finishScenarioRun,
   getScenarioPermissions,
+  getScenarioRun,
+  listAssignedScenarios,
+  listScenarioRuns,
+  performScenarioAction,
+  startScenarioRun,
   listGraphScenarios,
   publishGraphScenario,
   reviseGraphScenario,
@@ -82,5 +89,51 @@ describe("клиент графа сценариев /api/v1/ai/scenarios", () =
       status: 403,
       message: "Нет права публикации",
     });
+  });
+});
+
+describe("клиент прохождения и derive", () => {
+  it("derive — POST на путь версии с requestId и комментарием", async () => {
+    const fetchMock = stubFetch(201, { version: 3 });
+    await deriveGraphScenarioVersion("s-1", 2, { requestId: "r-1", comment: "правка" });
+    const call = sent(fetchMock);
+    expect(call.method).toBe("POST");
+    expect(call.url.pathname).toBe("/api/v1/ai/scenarios/s-1/versions/2/derive");
+    expect(call.body).toEqual({ requestId: "r-1", comment: "правка" });
+  });
+
+  it("derive: 409 приходит ApiError с сообщением сервера", async () => {
+    stubFetch(409, { error: { code: "conflict", message: "Уже есть неопубликованная версия" } });
+    await expect(deriveGraphScenarioVersion("s-1", 2, { requestId: "r" })).rejects.toMatchObject({
+      status: 409,
+      message: "Уже есть неопубликованная версия",
+    });
+  });
+
+  it("назначенные сценарии, запуск, чтение, действие и завершение — свои пути", async () => {
+    const assigned = stubFetch(200, []);
+    await listAssignedScenarios();
+    expect(sent(assigned).url.pathname).toBe("/api/v1/ai/scenario-assignments");
+    const start = stubFetch(201, {});
+    await startScenarioRun("s-1", 2);
+    expect(sent(start).method).toBe("POST");
+    expect(sent(start).url.pathname).toBe("/api/v1/ai/scenarios/s-1/versions/2/runs");
+    const read = stubFetch(200, {});
+    await getScenarioRun("run 1");
+    expect(sent(read).url.pathname).toBe("/api/v1/ai/scenario-runs/run%201");
+    const act = stubFetch(200, {});
+    await performScenarioAction("run-1", { action: "a", expectedSteps: 1, choice: "x" });
+    expect(sent(act).url.pathname).toBe("/api/v1/ai/scenario-runs/run-1/actions");
+    expect(sent(act).body).toEqual({ action: "a", expectedSteps: 1, choice: "x" });
+    const fin = stubFetch(200, {});
+    await finishScenarioRun("run-1");
+    expect(sent(fin).url.pathname).toBe("/api/v1/ai/scenario-runs/run-1/finish");
+  });
+
+  it("список прогонов — GET с scenarioId в query", async () => {
+    const fetchMock = stubFetch(200, []);
+    await listScenarioRuns({ scenarioId: "s-1" });
+    expect(sent(fetchMock).url.pathname).toBe("/api/v1/ai/scenario-runs");
+    expect(sent(fetchMock).url.searchParams.get("scenarioId")).toBe("s-1");
   });
 });

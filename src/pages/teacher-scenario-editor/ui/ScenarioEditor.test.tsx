@@ -84,6 +84,8 @@ function createApi(overrides: Partial<ScenarioEditorApi> = {}): ScenarioEditorAp
     submitGraphScenario: vi.fn(async () => aiVersion),
     reviewGraphScenario: vi.fn(async () => aiVersion),
     publishGraphScenario: vi.fn(async () => aiVersion),
+    deriveGraphScenarioVersion: vi.fn(async () => aiVersion),
+    listScenarioRuns: vi.fn(async () => []),
     reviseAIScenario: vi.fn(async () => aiVersion),
     approveAIScenario: vi.fn(async () => ({
       ...aiVersion,

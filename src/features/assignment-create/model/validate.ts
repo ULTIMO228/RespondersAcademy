@@ -34,6 +34,16 @@ export function validateTickets(draft: WizardDraft): StepErrors {
           : "Выберите хотя бы один билет",
     };
   }
+  if (draft.trainingMode !== "chain" && draft.scenarioVersions.length > 0) {
+    // Сервер принимает scenarioVersions только если они в точности покрывают cardIds (schemas/v1/assignments.py).
+    const fromScenarios = new Set(draft.scenarioVersions.map((item) => item.cardId));
+    if (draft.cardIds.length !== fromScenarios.size || draft.cardIds.some((id) => !fromScenarios.has(id))) {
+      return {
+        cardIds:
+          "Сценарии с графом нельзя смешивать с обычными билетами: оставьте в задании только сценарии или снимите их",
+      };
+    }
+  }
   if (draft.trainingMode === "chain") {
     const covered = new Set(draft.scenarioVersions.map((item) => item.cardId));
     if (draft.cardIds.some((cardId) => !covered.has(cardId))) {
@@ -119,7 +129,9 @@ export function buildRequest(draft: WizardDraft): AssignmentCreateRequest {
     };
   } else {
     request.cardIds = draft.cardIds;
-    if (draft.trainingMode === "chain") request.scenarioVersions = draft.scenarioVersions;
+    if (draft.trainingMode === "chain" || draft.scenarioVersions.length > 0) {
+      request.scenarioVersions = draft.scenarioVersions;
+    }
   }
   return request;
 }

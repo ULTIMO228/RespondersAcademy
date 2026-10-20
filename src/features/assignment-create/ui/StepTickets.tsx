@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import type { AIScenarioVersion, AssignmentScenarioVersion, Scenario, Ticket } from "@/shared/api";
+import type {
+  AIScenarioListItem,
+  AIScenarioVersion,
+  AssignmentScenarioVersion,
+  Scenario,
+  Ticket,
+} from "@/shared/api";
 import {
   Alert,
   EmptyState,
@@ -59,7 +65,10 @@ export function StepTickets({ api, draft, errors, onChange, focusStage }: StepTi
       {isChain ? (
         <ChainVersions api={api} draft={draft} errors={errors} onChange={onChange} />
       ) : draft.ticketSource === "cards" ? (
-        <CardList api={api} draft={draft} errors={errors} onChange={onChange} />
+        <>
+          <CardList api={api} draft={draft} errors={errors} onChange={onChange} />
+          <GraphScenarios api={api} draft={draft} onChange={onChange} />
+        </>
       ) : (
         <RandomRule api={api} draft={draft} errors={errors} onChange={onChange} />
       )}
@@ -326,5 +335,97 @@ function ScenarioVersions({
         </CheckRow>
       ))}
     </div>
+  );
+}
+
+type GraphScenariosProps = {
+  api: AssignmentCreateApi;
+  draft: WizardDraft;
+  onChange: (patch: Partial<WizardDraft>) => void;
+};
+
+/**
+ * Раздел «Сценарии с графом» (режимы operator112 и dds): опубликованные сценарии режима задания. Выбор версии
+ * подтягивает её карточку; пара (сценарий, версия, карточка) уходит в scenarioVersions, карточка — в cardIds.
+ */
+function GraphScenarios({ api, draft, onChange }: GraphScenariosProps) {
+  const mode = draft.trainingMode;
+  const { state, reload } = useResource(
+    async () =>
+      (await api.listGraphScenarios({ approval: "approved" })).filter(
+        (item) => item.hasGraph && item.approval === "approved" && item.mode === mode,
+      ),
+    [api, mode],
+  );
+  const [pending, setPending] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const isSelected = (item: AIScenarioListItem) =>
+    draft.scenarioVersions.some(
+      (entry) => entry.scenarioId === item.scenarioId && entry.version === item.latestVersion,
+    );
+
+  const toggle = async (item: AIScenarioListItem, checked: boolean) => {
+    setMessage(null);
+    if (!checked) {
+      const entry = draft.scenarioVersions.find(
+        (value) => value.scenarioId === item.scenarioId && value.version === item.latestVersion,
+      );
+      if (!entry) return;
+      onChange({
+        scenarioVersions: draft.scenarioVersions.filter((value) => value !== entry),
+        cardIds: draft.cardIds.filter((cardId) => cardId !== entry.cardId),
+      });
+      return;
+    }
+    setPending(item.scenarioId);
+    try {
+      const loaded = await api.getGraphScenarioVersion(item.scenarioId, item.latestVersion);
+      const cardId = loaded.cardSnapshot.id;
+      const entry: AssignmentScenarioVersion = {
+        scenarioId: item.scenarioId,
+        version: item.latestVersion,
+        cardId,
+      };
+      onChange({
+        scenarioVersions: [...draft.scenarioVersions, entry],
+        cardIds: draft.cardIds.includes(cardId) ? draft.cardIds : [...draft.cardIds, cardId],
+      });
+    } catch (error) {
+      setMessage(error instanceof Error && error.message ? error.message : "Не удалось загрузить версию");
+    } finally {
+      setPending(null);
+    }
+  };
+
+  return (
+    <fieldset className={styles.group}>
+      <legend className={styles.group__title}>Сценарии с графом</legend>
+      {state.status === "loading" ? <Skeleton lines={2} label="Загрузка сценариев с графом…" /> : null}
+      {state.status === "serverRequired" ? (
+        <p className={styles.step__note}>Сценарии с графом доступны при работе с сервером тренажёра.</p>
+      ) : null}
+      {state.status === "error" ? <ErrorState message={state.message} onRetry={reload} /> : null}
+      {state.status === "ready" && state.data.length === 0 ? (
+        <p className={styles.step__note}>Опубликованных сценариев с графом для этого режима нет.</p>
+      ) : null}
+      {message ? (
+        <Alert tone="danger" role="alert">
+          {message}
+        </Alert>
+      ) : null}
+      {state.status === "ready"
+        ? state.data.map((item) => (
+            <CheckRow
+              key={item.scenarioId}
+              checked={isSelected(item)}
+              disabled={pending === item.scenarioId}
+              onChange={(checked) => void toggle(item, checked)}
+            >
+              <strong>{item.title}</strong> · версия {item.latestVersion}
+            </CheckRow>
+          ))
+        : null}
+    </fieldset>
   );
 }

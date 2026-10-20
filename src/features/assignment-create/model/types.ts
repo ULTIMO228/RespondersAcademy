@@ -18,7 +18,10 @@ export type WizardDraft = {
   format: AssignmentFormat;
   ticketSource: TicketSource;
   cardIds: string[];
-  /** Только для цепочки: утверждённые версии operator112 по выбранным билетам. */
+  /**
+   * Утверждённые версии AI-сценариев по выбранным билетам: в цепочке — operator112, в режимах operator112 и dds —
+   * сценарии с графом (карточка версии = билет задания).
+   */
   scenarioVersions: AssignmentScenarioVersion[];
   ruleGroups: string[];
   ruleDifficulty: number[];

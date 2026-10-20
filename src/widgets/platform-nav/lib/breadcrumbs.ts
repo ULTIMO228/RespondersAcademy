@@ -10,6 +10,11 @@ type CrumbRule = { prefix: string; exact?: boolean; crumbs: Crumb[] };
 const RULES: CrumbRule[] = [
   { prefix: ROUTES.studentHome, exact: true, crumbs: [{ title: "Главная" }] },
   { prefix: ROUTES.studentAssignments, crumbs: [{ title: "Задания" }] },
+  { prefix: ROUTES.studentScenarios, exact: true, crumbs: [{ title: "Сценарии" }] },
+  {
+    prefix: ROUTES.studentScenarios,
+    crumbs: [{ title: "Сценарии", href: ROUTES.studentScenarios }, { title: "Прохождение сценария" }],
+  },
   { prefix: ROUTES.studentResults, exact: true, crumbs: [{ title: "Результаты" }] },
   {
     prefix: ROUTES.studentResults,

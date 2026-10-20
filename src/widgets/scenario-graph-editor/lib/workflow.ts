@@ -18,6 +18,8 @@ export type WorkflowActions = {
   canSubmit: boolean;
   canReview: boolean;
   canPublish: boolean;
+  /** Создать новую версию-черновик из принятой (derive); права автора/админа проверяет сервер. */
+  canDerive: boolean;
   /** Подсказка, когда решение за экспертом, а права нет. */
   reviewHint: string | null;
   readOnly: boolean;
@@ -43,6 +45,7 @@ export function workflowActions(
     canSubmit: approval === "draft" && !dirty,
     canReview,
     canPublish: approval === "approved" && permissions.includes("scenario.publish"),
+    canDerive: approval === "approved",
     reviewHint:
       approval === "pending_review" && !canReview
         ? "Принять или отклонить версию может эксперт с правом «scenario.review»."

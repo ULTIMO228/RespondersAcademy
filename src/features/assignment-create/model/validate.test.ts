@@ -37,6 +37,19 @@ describe("валидация мастера назначения", () => {
     expect(validateTickets(withVersions)).toEqual({});
   });
 
+  it("сценарии с графом в operator112/dds: только сценарии допустимы, смесь с обычными билетами — отказ", () => {
+    const graph = [{ scenarioId: "sc-g", version: 1, cardId: "c-900" }];
+    for (const trainingMode of ["operator112", "dds"] as const) {
+      expect(validateTickets(draft({ trainingMode, cardIds: ["c-900"], scenarioVersions: graph }))).toEqual(
+        {},
+      );
+      expect(
+        validateTickets(draft({ trainingMode, cardIds: ["c-900", "c-010"], scenarioVersions: graph }))
+          .cardIds,
+      ).toContain("нельзя смешивать");
+    }
+  });
+
   it("параметры: нормативы > 0, порог 0–100, лимит > 0 или пуст", () => {
     expect(validateParams(draft({ answerSec: "0" })).answerSec).toBeTruthy();
     expect(validateParams(draft({ submitSec: "abc" })).submitSec).toBeTruthy();
@@ -101,6 +114,14 @@ describe("buildRequest", () => {
     expect(buildRequest(draft({ workMessagesEnabled: true })).params?.workMessageIntervalsSec).toEqual([
       20, 50, 90, 150,
     ]);
+  });
+
+  it("operator112 со сценарием с графом: scenarioVersions уходят в запросе; без сценариев поля нет", () => {
+    const versions = [{ scenarioId: "sc-g", version: 1, cardId: "c-900" }];
+    const withGraph = buildRequest(draft({ cardIds: ["c-900"], scenarioVersions: versions }));
+    expect(withGraph.cardIds).toEqual(["c-900"]);
+    expect(withGraph.scenarioVersions).toEqual(versions);
+    expect(buildRequest(draft())).not.toHaveProperty("scenarioVersions");
   });
 
   it("цепочка: cardIds и scenarioVersions; срок — конец дня по Москве", () => {

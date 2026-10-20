@@ -1,8 +1,10 @@
 /* Зависимости редактора графа от сети: тип для инъекции в тестах и реализация поверх shared/api. */
 import {
   createGraphScenario,
+  deriveGraphScenarioVersion,
   getScenarioPermissions,
   listAIScenarioVersions,
+  listScenarioRuns,
   listScenarioSources,
   publishGraphScenario,
   reviewGraphScenario,
@@ -14,11 +16,13 @@ import type {
   AIScenarioVersion,
   GraphValidationResult,
   ScenarioGraph,
+  ScenarioDeriveRequest,
   ScenarioGraphCreateRequest,
   ScenarioGraphReviseRequest,
   ScenarioPermissionsResponse,
   ScenarioPublishRequest,
   ScenarioReviewRequest,
+  ScenarioRunListItem,
   ScenarioSourceItem,
   ScenarioSubmitRequest,
 } from "@/shared/api";
@@ -33,6 +37,12 @@ export type ScenarioGraphEditorApi = {
   submitGraphScenario: (scenarioId: string, body: ScenarioSubmitRequest) => Promise<AIScenarioVersion>;
   reviewGraphScenario: (scenarioId: string, body: ScenarioReviewRequest) => Promise<AIScenarioVersion>;
   publishGraphScenario: (scenarioId: string, body: ScenarioPublishRequest) => Promise<AIScenarioVersion>;
+  deriveGraphScenarioVersion: (
+    scenarioId: string,
+    version: number,
+    body: ScenarioDeriveRequest,
+  ) => Promise<AIScenarioVersion>;
+  listScenarioRuns: (query: { scenarioId: string }, signal?: AbortSignal) => Promise<ScenarioRunListItem[]>;
 };
 
 export const defaultScenarioGraphEditorApi: ScenarioGraphEditorApi = {
@@ -45,4 +55,6 @@ export const defaultScenarioGraphEditorApi: ScenarioGraphEditorApi = {
   submitGraphScenario,
   reviewGraphScenario,
   publishGraphScenario,
+  deriveGraphScenarioVersion,
+  listScenarioRuns,
 };

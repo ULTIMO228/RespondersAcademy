@@ -29,6 +29,12 @@ describe("workflowActions", () => {
     });
   });
 
+  it("новая версия доступна только из принятой", () => {
+    expect(workflowActions("approved", [], false).canDerive).toBe(true);
+    for (const approval of ["draft", "pending_review", "rejected", "validation_failed"] as const)
+      expect(workflowActions(approval, [], false).canDerive).toBe(false);
+  });
+
   it("отклонённую и непрошедшую проверку версию можно править", () => {
     expect(workflowActions("rejected", [], true).canSave).toBe(true);
     expect(workflowActions("validation_failed", [], true).canSave).toBe(true);
