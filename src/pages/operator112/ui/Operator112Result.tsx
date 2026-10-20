@@ -11,6 +11,8 @@ import styles from "./Operator112.module.css";
 
 type Operator112ResultProps = {
   assignment: AssignmentDetail;
+  /** Id попытки: ведёт на экран разбора с ИИ-ассистентом (чат живёт только там). */
+  attemptId?: string;
   result: Result | null;
   expired: Expired | null;
   nextProblem: string | null;
@@ -24,6 +26,7 @@ type Operator112ResultProps = {
  */
 export function Operator112Result({
   assignment,
+  attemptId,
   result,
   expired,
   nextProblem,
@@ -68,6 +71,11 @@ export function Operator112Result({
         <Button variant="primary" onClick={onNext}>
           Следующий билет
         </Button>
+        {attemptId && evaluation ? (
+          <Link href={ROUTES.studentResult(attemptId, "operator112")} className={styles.problem__link}>
+            Разбор с ИИ-ассистентом
+          </Link>
+        ) : null}
         <Link href={ROUTES.studentAssignments} className={styles.problem__link}>
           К заданиям
         </Link>

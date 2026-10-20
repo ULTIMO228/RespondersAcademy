@@ -70,6 +70,7 @@ export function Operator112Screen({ assignmentId, api = operator112Api, clock }:
     return (
       <Operator112Result
         assignment={screen.assignment}
+        attemptId={attempt.id}
         result={op.result}
         expired={op.expired}
         nextProblem={op.nextProblem}
