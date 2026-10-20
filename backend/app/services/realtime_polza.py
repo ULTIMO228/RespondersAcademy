@@ -12,6 +12,7 @@ import asyncio
 import base64
 import importlib.util
 import logging
+import time
 from collections import deque
 from uuid import uuid4
 
@@ -88,6 +89,9 @@ class PolzaSession(CascadeSession):
         self.mood = persona.DEFAULT_MOOD
         self.stt_lock = asyncio.Lock()
         self.transcriptions: set[asyncio.Task] = set()
+        self.first_clause_from = 20  # первая фраза — до запятой: голос раньше на время дописывания предложения
+        self.turn_mark: float | None = None  # конец речи оператора — для замера задержки ответа
+        self.turn_marks: set[str] = set()
 
 
     async def __aenter__(self):
@@ -173,6 +177,18 @@ class PolzaSession(CascadeSession):
         return ("Верни только произносимую реплику с метками из списка выше, без markdown и кавычек. "
                 "Не читай названия полей карточки. Обращайся к оператору естественно.")
 
+    async def emit(self, kind: str, **fields):
+        # Замер хода: от конца речи оператора до первого слова модели и первого звука (без текста реплик).
+        if self.turn_mark is not None and kind in ("response.text.delta", "response.audio.delta"):
+            stage = "первое слово" if kind == "response.text.delta" else "первый звук"
+            if stage not in self.turn_marks:
+                self.turn_marks.add(stage)
+                logger.info("Ход заявителя: %s через %d мс после конца речи оператора", stage,
+                            (time.monotonic() - self.turn_mark) * 1000)
+            if stage == "первый звук":
+                self.turn_mark = None
+        await super().emit(kind, **fields)
+
     # --- распознавание: локальный VAD режет реплики, текст — Polza STT ---
     async def transcribe(self, pcm: bytes) -> str:
         settings = get_settings()
@@ -190,11 +206,18 @@ class PolzaSession(CascadeSession):
         except ValueError as exc:
             raise ApiError(503, "internal", f"{PROVIDER} вернул некорректный ответ распознавания") from exc
 
-    async def commit(self, item_id: str, pcm: bytes):
+    async def commit(self, item_id: str, pcm: bytes, turn_end: asyncio.Event, speech_end: float):
+        """Распознавание может стартовать до конца реплики (ранняя пауза); в разговор текст
+        попадает только после turn_end, а если оператор продолжил говорить — задача отменяется."""
         try:
             # Реплики распознаются по порядку: поздний ответ STT не обгоняет более раннюю фразу.
             async with self.stt_lock:
+                started = time.monotonic()
                 text = await self.transcribe(pcm)
+                request_ms = (time.monotonic() - started) * 1000
+            await turn_end.wait()
+            logger.info("Ход оператора: распознавание готово через %d мс после конца речи (запрос %d мс)",
+                        (time.monotonic() - speech_end) * 1000, request_ms)
             if not text:
                 return
             await self.emit("input_audio_buffer.committed", item_id=item_id)
@@ -202,6 +225,7 @@ class PolzaSession(CascadeSession):
             self.history.append({"role": "user", "content": text})
             self.history = self.history[-16:]
             await self.cancel_response()
+            self.turn_mark, self.turn_marks = speech_end, set()
             self.response = asyncio.create_task(self.respond())
         except asyncio.CancelledError:
             raise
@@ -214,6 +238,16 @@ class PolzaSession(CascadeSession):
         preroll: deque[bytes] = deque()
         utterance = bytearray()
         voiced_ms = 0.0
+        early: asyncio.Task | None = None  # распознавание, начатое на ранней паузе
+        turn_end = asyncio.Event()
+
+        def start_commit(event: asyncio.Event) -> asyncio.Task:
+            task = asyncio.create_task(self.commit(self.item_id, bytes(utterance), event,
+                                                   time.monotonic() - self.silent_ms / 1000))
+            self.transcriptions.add(task)
+            task.add_done_callback(self.transcriptions.discard)
+            return task
+
         try:
             while True:
                 pcm = await self.audio.get()
@@ -239,14 +273,24 @@ class PolzaSession(CascadeSession):
                 utterance += pcm
                 voiced_ms += duration if voiced else 0
                 self.silent_ms = 0 if voiced else self.silent_ms + duration
-                if self.silent_ms < settings.live_call_end_silence_ms and len(utterance) < MAX_UTTERANCE_MS * 32:
+                if voiced and early is not None:
+                    early.cancel()  # оператор продолжил фразу: распознаем её целиком
+                    early = None
+                end_ms, early_ms = settings.live_call_end_silence_ms, settings.live_call_early_commit_ms
+                if (early is None and 0 < early_ms < end_ms and self.silent_ms >= early_ms
+                        and voiced_ms >= MIN_VOICED_MS):
+                    turn_end = asyncio.Event()
+                    early = start_commit(turn_end)
+                if self.silent_ms < end_ms and len(utterance) < MAX_UTTERANCE_MS * 32:
                     continue
+                if voiced_ms >= MIN_VOICED_MS:
+                    if early is None:
+                        turn_end = asyncio.Event()
+                        start_commit(turn_end)
+                    turn_end.set()
+                early = None
                 self.speaking, self.onset_ms, self.silent_ms = False, 0, 0
                 await self.emit("input_audio_buffer.speech_stopped", item_id=self.item_id)
-                if voiced_ms >= MIN_VOICED_MS:
-                    task = asyncio.create_task(self.commit(self.item_id, bytes(utterance)))
-                    self.transcriptions.add(task)
-                    task.add_done_callback(self.transcriptions.discard)
                 utterance = bytearray()
         except asyncio.CancelledError:
             raise

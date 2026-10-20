@@ -105,9 +105,29 @@ async def stream_reply(messages: list[dict[str, str]], client: httpx.AsyncClient
         raise ApiError(503, "internal", "Нет связи с разговорной моделью") from exc
 
 
-def take_phrase(buffer: str) -> tuple[str, str]:
-    """Передаём предложения целиком: не рубим адрес/число/сокращение на токенах."""
-    abbreviations = {"ул", "д", "корп", "стр", "кв", "под", "эт", "г", "им", "пр", "пер", "наб", "обл", "т", "е"}
+ABBREVIATIONS = {"ул", "д", "корп", "стр", "кв", "под", "эт", "г", "им", "пр", "пер", "наб", "обл", "т", "е"}
+ADDRESS_WORDS = {"улица", "дом", "корпус", "строение", "квартира", "подъезд", "этаж", "проспект", "переулок",
+                 "набережная", "шоссе", "бульвар", "проезд", "площадь", "телефон", "номер"}
+
+
+def take_clause(buffer: str, clause_from: int) -> tuple[str, str]:
+    """Первая фраза ответа — до запятой: голос звучит, пока модель дописывает предложение.
+    Адрес, номера и телефоны по запятой не режем — там интонация и цифры должны остаться целыми."""
+    for match in re.finditer(r",\s", buffer):
+        if match.start() < clause_from:
+            continue
+        head, tail = buffer[:match.start() + 1], buffer[match.end():]
+        words = {word.lower() for word in re.findall(r"[\w-]+", head + " " + tail.split(" ", 1)[0])}
+        if re.search(r"\d", head) or words & (ABBREVIATIONS | ADDRESS_WORDS):
+            return "", buffer
+        return head.strip(), tail.lstrip()
+    return "", buffer
+
+
+def take_phrase(buffer: str, clause_from: int | None = None) -> tuple[str, str]:
+    """Передаём предложения целиком: не рубим адрес/число/сокращение на токенах.
+    clause_from — для первой фразы ответа: допускается граница по запятой не раньше этого символа."""
+    abbreviations = ABBREVIATIONS
     for match in re.finditer(r"[.!?]+(?=\s|$)", buffer):
         end = match.end()
         if buffer[match.start()] == ".":
@@ -127,6 +147,8 @@ def take_phrase(buffer: str) -> tuple[str, str]:
             split = buffer.rfind(" ", 100, 260)
         if split > 0:
             return buffer[:split].strip(), buffer[split:].lstrip()
+    if clause_from is not None:
+        return take_clause(buffer, clause_from)
     return "", buffer
 
 
@@ -148,6 +170,8 @@ class CascadeSession:
         self.silent_ms = 0.0
         self.item_id = ""
         self.closed = False
+        # Первая фраза ответа может закончиться запятой не раньше этого символа (None — только предложения).
+        self.first_clause_from: int | None = None
 
     async def __aenter__(self):
         self.recognizer = await asyncio.to_thread(warmup)
@@ -282,6 +306,7 @@ class CascadeSession:
         async def generate():
             nonlocal text
             buffer = ""
+            spoken = False
             shown = self.text_filter()
             messages = [{"role": "system", "content": self.instructions}, *self.history]
             if initial:
@@ -292,8 +317,9 @@ class CascadeSession:
                 visible = shown.feed(delta) if shown else delta
                 if visible:
                     await self.emit("response.text.delta", response_id=rid, delta=visible)
-                phrase, buffer = take_phrase(buffer)
+                phrase, buffer = take_phrase(buffer, None if spoken else self.first_clause_from)
                 while phrase:
+                    spoken = True
                     await phrases.put(phrase)
                     phrase, buffer = take_phrase(buffer)
                 if len(text) > 600:

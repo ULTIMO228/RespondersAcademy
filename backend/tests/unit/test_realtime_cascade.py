@@ -196,3 +196,17 @@ async def test_noise_does_not_cancel_caller_response():
     assert session.response is answering and not answering.done()
     assert session.events.empty()
     await session.__aexit__()
+
+
+def test_first_phrase_can_end_at_comma_so_voice_starts_sooner():
+    # Первая фраза ответа уходит в озвучку по запятой: оператор слышит голос, пока модель пишет дальше.
+    assert cascade.take_phrase("[паника] Алло, помогите пожалуйста, у нас", clause_from=20) == (
+        "[паника] Алло, помогите пожалуйста,", "у нас")
+    assert cascade.take_phrase("Алло, помогите", clause_from=20) == ("", "Алло, помогите")  # коротко — ждём
+    # Адрес, номер и телефон по запятой не режем: интонация и цифры остаются целыми.
+    assert cascade.take_phrase("Москва, улица Грина, дом 11, кв", clause_from=20)[0] == ""
+    assert cascade.take_phrase("Записывайте телефон 8 916 123, 45", clause_from=20)[0] == ""
+    assert cascade.take_phrase("Помогите пожалуйста, д. 11", clause_from=20)[0] == ""
+    # Без clause_from — прежнее поведение: только целые предложения.
+    assert cascade.take_phrase("[паника] Алло, помогите пожалуйста, у нас") == (
+        "", "[паника] Алло, помогите пожалуйста, у нас")

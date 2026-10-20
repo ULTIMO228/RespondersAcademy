@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     live_call_polza_tts_format: Literal["wav", "pcm"] = Field(default="wav", alias="LIVE_CALL_POLZA_TTS_FORMAT")
     live_call_polza_tts_instructions: bool = Field(default=True, alias="LIVE_CALL_POLZA_TTS_INSTRUCTIONS")
     live_call_end_silence_ms: int = Field(default=700, ge=300, le=2000, alias="LIVE_CALL_END_SILENCE_MS")
+    # Распознавание стартует уже после этой паузы (раньше конца реплики) и перекрывает остаток паузы; 0 — выключено.
+    live_call_early_commit_ms: int = Field(default=250, ge=0, le=2000, alias="LIVE_CALL_EARLY_COMMIT_MS")
     live_call_sounds_dir: Path | None = Field(default=None, alias="LIVE_CALL_SOUNDS_DIR")
     speechkit_api_key: SecretStr | None = Field(default=None, alias="SPEECHKIT_API_KEY", repr=False)
     speechkit_folder_id: str | None = Field(default=None, alias="SPEECHKIT_FOLDER_ID")

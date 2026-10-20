@@ -84,3 +84,9 @@ Focus: latency + Russian voice for live caller
 Done: ✅ filler removed (owner) | serve() logs unexpected errors | Silero v5.6 local TTS engine + prepare_models tts-live + warmup | real call ~5s
 Decisions: 🧠 SpeechKit rejected by owner; Polza TTS accent + ~3s → local Silero (CC BY-NC, ok for hackathon)
 Next: !1 local STT gigaam-v3 | !2 headset test by owner | !3 transcript of interrupted lines (owner decision)
+
+## 2026-10-20 claude/awesome-curie-i39fyz
+focus:live caller latency
+done:early STT (LIVE_CALL_EARLY_COMMIT_MS) | first-phrase comma split | per-stage latency log | docs/LIVE-CALLER-POLZA.md
+checks:pytest 1009 passed/3 skipped, ruff clean | live call not run (no key, huggingface blocked)
+next:owner live call + read latency log; local GigaAM-v3 STT

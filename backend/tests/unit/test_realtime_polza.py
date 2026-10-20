@@ -422,3 +422,122 @@ async def test_empty_answer_is_retried_once(settings):
     assert [d async for d in session.reply_stream([])] == ["Сидорова Анна Викторовна."]
     assert len(calls) == 2
     await session.client.aclose()
+
+
+def _speech_session(settings, monkeypatch, handler):
+    monkeypatch.setattr(settings, "live_call_end_silence_ms", 600)
+    monkeypatch.setattr(settings, "live_call_early_commit_ms", 200)
+
+    class Detector:
+        def push(self, pcm):
+            return 0.99 if np.abs(np.frombuffer(pcm, dtype="<i2")).max() > 100 else 0.01
+
+    session = _session(handler)
+    session.detector = Detector()
+    return session
+
+
+SPEECH = (np.ones(1600, dtype=np.int16) * 3000).astype("<i2").tobytes()  # 100 мс речи
+SILENCE = b"\0" * 3200  # 100 мс тишины
+
+
+async def _drain(session):
+    for _ in range(200):
+        if session.audio.empty():
+            break
+        await asyncio.sleep(0.005)
+    await asyncio.sleep(0.05)
+
+
+async def test_stt_starts_before_end_of_turn_but_reply_waits_for_it(settings, monkeypatch):
+    # Распознавание (~2,4 с у Polza) стартует на короткой паузе, а не после всей паузы конца реплики:
+    # время тишины перекрывается сетевым запросом. Отвечать заявитель начинает только после конца реплики.
+    calls = []
+    session = _speech_session(settings, monkeypatch, lambda r: calls.append(r) or httpx.Response(200, json={"text": "Где горит?"}))
+    responded = asyncio.Event()
+
+    async def respond(initial=False):
+        responded.set()
+        await asyncio.Future()
+
+    monkeypatch.setattr(session, "respond", respond)
+    session.listener = asyncio.create_task(session.listen())
+    for chunk in [SPEECH] * 5 + [SILENCE] * 3:  # 300 мс тишины: больше 200, меньше 600
+        await session.audio.put(chunk)
+    await _drain(session)
+    assert len(calls) == 1  # запрос уже ушёл
+    assert not responded.is_set() and session.history == []  # но ход оператора не закончен
+    for _ in range(4):
+        await session.audio.put(SILENCE)
+    await asyncio.wait_for(responded.wait(), 2)
+    assert len(calls) == 1  # повторно то же аудио не распознаём
+    assert session.history == [{"role": "user", "content": "Где горит?"}]
+    await session.__aexit__()
+
+
+async def test_early_stt_is_dropped_when_operator_keeps_talking(settings, monkeypatch):
+    # Оператор сделал паузу посреди фразы: ранний результат выбрасывается, в модель уходит вся фраза.
+    texts = iter(["Назовите", "Назовите адрес"])
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(200, json={"text": next(texts)})
+
+    session = _speech_session(settings, monkeypatch, handler)
+    responded = asyncio.Event()
+
+    async def respond(initial=False):
+        responded.set()
+        await asyncio.Future()
+
+    monkeypatch.setattr(session, "respond", respond)
+    session.listener = asyncio.create_task(session.listen())
+    for chunk in [SPEECH] * 5 + [SILENCE] * 3:
+        await session.audio.put(chunk)
+    await _drain(session)
+    for chunk in [SPEECH] * 5 + [SILENCE] * 7:
+        await session.audio.put(chunk)
+    await asyncio.wait_for(responded.wait(), 2)
+    assert len(calls) == 2
+    assert session.history == [{"role": "user", "content": "Назовите адрес"}]
+    events = [session.events.get_nowait() for _ in range(session.events.qsize())]
+    shown = [e["transcript"] for e in events if e["type"] == "conversation.item.input_audio_transcription.completed"]
+    assert shown == ["Назовите адрес"]  # оборванный вариант оператору не показываем
+    await session.__aexit__()
+
+
+def test_early_commit_setting_is_bounded():
+    from app.config import Settings
+
+    assert Settings(LIVE_CALL_EARLY_COMMIT_MS=0).live_call_early_commit_ms == 0  # 0 — выключено
+    with pytest.raises(ValueError):
+        Settings(LIVE_CALL_EARLY_COMMIT_MS=-1)
+
+
+async def test_turn_latency_is_logged_by_stage(settings, monkeypatch, caplog):
+    # Замер задержки в живом звонке: распознавание, первое слово модели, первый звук — в лог сервера, без текста реплик.
+    import logging
+
+    caplog.set_level(logging.INFO, logger="app.services.realtime_polza")
+
+    async def tokens(*_args):
+        yield "Горит балкон."
+
+    session = _speech_session(settings, monkeypatch, lambda _r: httpx.Response(200, json={"text": "Что горит?"}))
+    monkeypatch.setattr(session, "reply_stream", tokens)
+
+    async def tts(text, mood=None):
+        return b"\0\0" * 240
+
+    session.tts = tts
+    session.listener = asyncio.create_task(session.listen())
+    for chunk in [SPEECH] * 5 + [SILENCE] * 8:
+        await session.audio.put(chunk)
+    for _ in range(200):
+        if "первый звук" in caplog.text:
+            break
+        await asyncio.sleep(0.01)
+    assert "распознавание" in caplog.text and "первое слово" in caplog.text and "первый звук" in caplog.text
+    assert "Что горит" not in caplog.text and "балкон" not in caplog.text
+    await session.__aexit__()
