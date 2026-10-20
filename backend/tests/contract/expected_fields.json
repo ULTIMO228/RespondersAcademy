@@ -1518,6 +1518,14 @@
    "optional": [],
    "extends": []
   },
+  "Journal112MatchesResponse": {
+   "file": "operator112.ts",
+   "required": [
+    "matches"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "Journal112Response": {
    "file": "operator112.ts",
    "required": [

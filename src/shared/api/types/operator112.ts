@@ -205,6 +205,11 @@ export interface Journal112Response {
   total: number;
 }
 
+/** Совпадения вызова с карточками журнала (спека 009, US5): пустой matches — окно «Есть карточка…» не показывается. */
+export interface Journal112MatchesResponse {
+  matches: Journal112Row[];
+}
+
 /** Служба списка оповещения (обязательная — services, условная — conditional). */
 export interface NotificationListItem {
   serviceId: string;

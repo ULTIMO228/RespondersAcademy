@@ -45,9 +45,9 @@
 
 ### Журнал на сервере
 
-- [ ] T010 [P] Тесты (красные) `backend/tests/integration/test_operator112_journal.py`: `GET /api/v1/operator112/journal?assignmentId=` под ivanov → 200, `rows` отсортированы «Дата ↓»; учётка без профиля 112 (008, `allows(user, "operator112") == False`) → 403, пара ivanov → 200; чужое задание → 404, пара своё → 200; два ученика на одном задании — карточки второго не попадают в `rows` первого (FR-007); строка ожидающего вызова имеет `queued: true`
-- [ ] T011 Реализовать журнал в `backend/app/services/operator112_service.py` (фон задания + собственные карточки ученика из его попыток 112 + `queued`-строка текущей попытки в состоянии `ringing`) и маршрут в `backend/app/api/v1/operator112.py`; схема `Journal112Row` в `backend/app/schemas/v1/operator112.py`; T010 зелёный
-- [ ] T012 [P] Клиент `journal(assignmentId)` в `src/shared/api/endpoints/operator112.ts` и тест рядом; в автономном режиме без бэкенда — состояние «требуется сервер», как остальной v1 (AGENTS §3)
+- [X] T010 [P] Тесты (красные) `backend/tests/integration/test_operator112_journal.py`: `GET /api/v1/operator112/journal?assignmentId=` под ivanov → 200, `rows` отсортированы «Дата ↓»; учётка без профиля 112 (008, `allows(user, "operator112") == False`) → 403, пара ivanov → 200; чужое задание → 404, пара своё → 200; два ученика на одном задании — карточки второго не попадают в `rows` первого (FR-007); строка ожидающего вызова имеет `queued: true`
+- [X] T011 Реализовать журнал в `backend/app/services/operator112_service.py` (фон задания + собственные карточки ученика из его попыток 112 + `queued`-строка текущей попытки в состоянии `ringing`) и маршрут в `backend/app/api/v1/operator112.py`; схема `Journal112Row` в `backend/app/schemas/v1/operator112.py`; T010 зелёный
+- [X] T012 [P] Клиент `journal(assignmentId)` в `src/shared/api/endpoints/operator112.ts` и тест рядом; в автономном режиме без бэкенда — состояние «требуется сервер», как остальной v1 (AGENTS §3)
 
 ### Каркас экрана
 
@@ -136,8 +136,8 @@
 
 ### Оценка
 
-- [ ] T044 [P] [US3] Тест (красный) `backend/tests/unit/test_assess_operator112_address_v2.py`: адрес без улицы, но с `subject`, `locality`, `object`, `descriptive`, совпадающими с `ticket.address` (Московская область) → компонент `address` засчитан; московский адрес из справочника → результат тот же, что до изменений
-- [ ] T045 [US3] Компонент `address` в `backend/ml/assess/operator112.py`: если `street` и `formal` пусты, сравнивать `subject + locality + object + descriptive` с `ticket.address` по словам (research R4); `what` читается из `incidents[0]`, если `what` пуст; T044 зелёный
+- [X] T044 [P] [US3] Тест (красный) `backend/tests/unit/test_assess_operator112_address_v2.py`: адрес без улицы, но с `subject`, `locality`, `object`, `descriptive`, совпадающими с `ticket.address` (Московская область) → компонент `address` засчитан; московский адрес из справочника → результат тот же, что до изменений
+- [X] T045 [US3] Компонент `address` в `backend/ml/assess/operator112.py`: если `street` и `formal` пусты, сравнивать `subject + locality + object + descriptive` с `ticket.address` по словам (research R4); `what` читается из `incidents[0]`, если `what` пуст; T044 зелёный
 
 **Checkpoint**: окна 3, 4, 5, 6 сверены; карточку можно заполнить целиком.
 
@@ -165,10 +165,10 @@
 **Goal**: окно «Есть карточка с заявителем по этому номеру», привязка, «Показ связей», оценка привязки в баллах.
 **Independent Test**: билет с `repeatOf` → окно совпадения → «привязать» → «связана» в карточке и цепочка в журнале; «Показ связей» → «отвязать», «сделать главной»; неверная привязка снижает балл (ИНСТРУКЦИЯ_62, 65).
 
-- [ ] T053 [P] [US5] Тесты (красные) `backend/tests/integration/test_operator112_matches.py`: `GET /api/v1/operator112/attempts/{id}/matches` — совпадение по АОН и по адресу среди карточек журнала ученика → `matches` не пусто; без совпадений → `[]`; чужая попытка → 403, пара своя → 200
-- [ ] T054 [US5] Реализовать `/matches` в `backend/app/services/operator112_service.py` и `backend/app/api/v1/operator112.py`; клиент `matches(attemptId)` в `src/shared/api/endpoints/operator112.ts`
-- [ ] T055 [P] [US5] Тест (красный) `backend/tests/unit/test_assess_operator112_links.py`: билет с `repeatOf` и верной привязкой → потерь нет; без привязки или с привязкой к другой карточке, или с неверной главной → потеря **с весом пропущенной службы** и замечание в одну строку со ссылкой на правило; билет без `repeatOf` и лишняя привязка → такая же потеря; билет без `repeatOf` и без связей → компонента `links` нет в `components` (баллы как раньше, SC-004)
-- [ ] T056 [US5] Компонент `links` в `backend/ml/assess/operator112.py` (007 FR-030, research R9); T055 зелёный
+- [X] T053 [P] [US5] Тесты (красные) `backend/tests/integration/test_operator112_matches.py`: `GET /api/v1/operator112/attempts/{id}/matches` — совпадение по АОН и по адресу среди карточек журнала ученика → `matches` не пусто; без совпадений → `[]`; чужая попытка → 403, пара своя → 200
+- [X] T054 [US5] Реализовать `/matches` в `backend/app/services/operator112_service.py` и `backend/app/api/v1/operator112.py`; клиент `matches(attemptId)` в `src/shared/api/endpoints/operator112.ts`
+- [X] T055 [P] [US5] Тест (красный) `backend/tests/unit/test_assess_operator112_links.py`: билет с `repeatOf` и верной привязкой → потерь нет; без привязки или с привязкой к другой карточке, или с неверной главной → потеря **с весом пропущенной службы** и замечание в одну строку со ссылкой на правило; билет без `repeatOf` и лишняя привязка → такая же потеря; билет без `repeatOf` и без связей → компонента `links` нет в `components` (баллы как раньше, SC-004)
+- [X] T056 [US5] Компонент `links` в `backend/ml/assess/operator112.py` (007 FR-030, research R9); T055 зелёный
 - [X] T057 [P] [US5] Тест и окно совпадения `src/features/card-links/ui/MatchWindow.tsx` (+ тест): малиновое «Есть карточка с заявителем по этому номеру:», таблица найденной карточки (колонки журнала), «привязать», внизу «закрыть и продолжить заполнение новой»; показывается после «Принять», если `matches` не пусто; поверх, данные карточки не теряются (FR-024)
 - [X] T058 [P] [US5] Тест и вид «Показ связей» `src/features/card-links/ui/LinksView.tsx` (+ тест): таблица связанных карточек, главная синяя, «отвязать» у подчинённых, «сделать главной», малиновая полоса «← вернуться в карточку · Показ связей: карточек N» (FR-025); события `linkAdded` / `linkRemoved` / `linkPrimary`
 - [ ] T059 [US5] Кнопка «связана» в карточке и значок-цепочка в колонке «Связи» журнала (FR-026); `links` попадают в `CardDraft` при сохранении; тест в `Operator112Screen.test.tsx`
@@ -200,7 +200,7 @@
 - [ ] T068 Клавиатура и скринридер (FR-032): Shift+F1, Shift+F2, Alt+E, Alt+A, Alt+T, Alt+M, Enter на экранах 112; `aria-label` у всех кнопок-значков; тест `src/pages/operator112/ui/Operator112Screen.hotkeys.test.tsx`
 - [ ] T069 [P] Снимки `e2e/arm-112-visual.spec.ts`, 1920×1080: журнал, окно вызова, окно SMS, карточка на 00:09 (тёмный таймер) и на 01:23 (красный таймер; часы подменяются), опросная карта, адрес, карта, «Добавьте службы», совпадение, «Показ связей», «История сообщений», блокировка, напоминание, «Сообщить о проблеме»
 - [ ] T070 Ручная сверка всех 14 окон по `checklists/visual-112.md` (пара «референс / наш экран»), результат с датой; расхождения — задачами, не допущениями
-- [ ] T071 [P] Старые попытки (FR-033, SC-006): результаты прежних попыток 112 в `/student/results` и у преподавателя открываются без ошибок; тест в `backend/tests/integration/test_operator112_legacy.py` на снимке карточки старого формата
+- [X] T071 [P] Старые попытки (FR-033, SC-006): результаты прежних попыток 112 в `/student/results` и у преподавателя открываются без ошибок; тест в `backend/tests/integration/test_operator112_legacy.py` на снимке карточки старого формата
 - [ ] T072 Пройти `quickstart.md` сценарии 1–13 на стенде `./scripts/demo-up.sh`, отметить результат там же
 - [ ] T073 [P] Документация: статус 009 в `spec/README.md`; `AGENTS.md` §3 (новые слайсы `widgets/operator112-journal`, `widgets/operator112-card`, `features/operator112-{incoming,type-tabs,services}`, `features/{card-links,problem-report}`; удалён `widgets/operator112-softphone`; миграция `0007`); `docs/LIBRARIES.md` не меняется (новых зависимостей нет)
 - [ ] T074 Обновить `.ai/SESSION_STATE.md`, дописать `.ai/SESSIONS.md`, при ошибках — `.ai/LESSONS.md`; удалить `baseline.txt` / `affected-tests.md`, только если владелец согласен

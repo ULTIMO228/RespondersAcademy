@@ -74,6 +74,8 @@ export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } fr
 export { fetchTicketAudioFile, getNotificationList, getOperatorEvaluation } from "./endpoints";
 export {
   getTicketAudio,
+  journal,
+  matches,
   searchStreets,
   sendAttemptEvent,
   submitAttempt,
