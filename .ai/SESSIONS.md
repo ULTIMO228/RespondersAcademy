@@ -102,3 +102,87 @@ focus:caller barge-in (liveliness)
 done:backend barge_in + STILL_TALKING prompt + relay interrupting; front playback overlapping
 checks:pytest 1020/3 skipped, ruff clean, vitest 40/40 (realtime-audio, softphone), tsc ok | npm run check, e2e not run
 next:owner headset test; tune LIVE_CALL_BARGE_IN_SEC
+---
+## 2026-10-20 | @claude | branch:SASHA | mode:normal
+Focus: speckit install, 009 plan+tasks (student-112 only), 008 finish (T039-T041)
+Done: ✅
+  - specify CLI 1.2.3.dev0 via uv tool; project .specify stays 1.0.9 (no init over it); ps scripts not runnable (no pwsh) → steps by hand
+  - 009 => plan, research R1-R13 (R7a timer pixels: dark #2f353a, red #ff0000 = existing tokens; R13 services panel orange #ec653b only 112 fill card, DDS grey #49555d), data-model, contracts, quickstart, tasks T001-T074 (MVP US1-US4)
+  - 008 T039 => browser 1,4,5,7,10 on demo-up; SC-004 measured equal; found ivanov "Открыть АРМ" → DDS journal
+  - 008 T041 => hide «Открыть АРМ» for profile 112 + /arm,/arm/card,/arm/phone → /forbidden (requireSessionUser mode); browser ivanov/tarasova pair ✅
+  - 008 T040 => owner: keep baseline.txt/affected-tests.md; 008 added to spec/README registry
+Decisions: 🧠
+  - 009 plan in spec/009 (refines 007 for 112) > plan in 007
+  - colors only from pixel measure of same screen+role > spec wording (owner asked why orange)
+  - layout-level mode guard (same as role guard) > API data lock: owner asked "hide"
+Next:
+  !1: owner texts for 009 T009 tickets + ok for DB reset/0007
+  !2: speckit-implement 009 Phase 1-2
+Caution:
+  ⚠️ no lsof here: kill stale next-server by PID before demo-up, else EADDRINUSE + old build answers "READY"
+  ⚠️ no Co-Authored-By trailer
+
+---
+## 2026-10-20 (2) | @claude | branch:SASHA | mode:normal
+Focus: 009 speckit-implement Phase 1 + start Phase 2; services panel color rule
+Done: ✅ T001-T006 (baseline, affected tests, visual checklist, additive CardDraft contract TS+Pydantic, expected_fields)
+Decisions: 🧠
+  - panel color by card state (new #ec653b / saved #49555d, same in 112 instruction ИНСТРУКЦИЯ_94 and DDS) > by role (R13a)
+  - what = incidents[0] server-side > assessor change (SC-004 kept: old body = 96)
+Next: !1 T007 events | then T008-T020 | owner: T009 ticket texts + DB reset/0007 ok
+
+---
+## 2026-10-20 (3) | @claude | branch:SASHA | mode:normal
+Focus: 004 T007 (Polza real-key check)
+Done: spec/004-polza-provider/quickstart.md (steps 1-6 + protocol) ✅ | offline polza tests 33 passed, ruff clean
+Blocked: ❌ no POLZA_API_KEY, polza.ai 403 by env network policy → real call not run, T007 stays [ ]
+Next: !1 owner: key in backend/.env + allow polza.ai → run quickstart, fill protocol
+---
+
+---
+## 2026-10-20 (4) | @claude | branch:SASHA | mode:normal
+Focus: 009 T007 (new operator112 event types)
+Done: ✅ EVENT_TYPES +typeAdded/typeRemoved/serviceRemoved/linkAdded/linkRemoved/linkPrimary/callHidden, payload checks; linkAdded outside journal → 400 | tests 17 passed | pytest 1000/3 known red | ruff clean
+Decisions: 🧠 journal bg = ArmCardFixture (global) + own 112 IncidentCards; other students' cards → 400 (FR-007)
+Lesson: ❌ first took handoff from stale local SESSION_STATE (004 T007) → ✅ git fetch branch before reading handoff
+Next: !1 T008 mock validator | owner: T009 ticket texts + DB reset/0007
+---
+
+---
+## 2026-10-20 (5) | @claude | branch:SASHA | mode:normal
+Focus: merge develop (live caller) + plug it into 009 voice point (T020)
+Done: ✅ merge d08ce53 (doc conflicts only) | owner: live caller in training AND exam | useApplicantVoice (21 tests) | hooks moved softphone→entity | backend exam allowed (test pair 409 finished / 200 exam)
+Decisions: 🧠 build-flag selects impl at module level (no conditional hooks) | no recording fallback when live server unconfigured (develop rule kept) | trainerText only for trainer strip (FR-027)
+Next: !1 T008 | owner: renumber 005 dup, T009 texts, Polza key + polza.ai allowed for real call
+---
+
+## 2026-10-20d claude/kind-goldberg-ij6veq (from develop)
+focus:DDS operator — teacher feeds cards (feature 011, variant 3)
+done:spec/011-dds-card-feed (spec+tasks) | GET /student-cards + proposed etalon | studentCards in assignments + eval by teacher etalon | no auto-push to live DDS | wizard bank block + review | v1-endpoints.md
+decisions:owner — feed in assignments wizard; etalon edited at selection; auto-push removed; chain untouched
+checks:pytest 1042/4 skipped, ruff, vitest 1956/1957 (known Blob), tsc, steiger | check/e2e/browser not run
+next:T010 browser check; DDS card per spec 007 (SASHA) after merge
+
+## 2026-10-20 | claude/zealous-goldberg-mu6erp | unblock DDS operator egorov
+done: users.json u-010 egorov isActive=true | +u-025 lebedev blocked (АРМ 30) as demo of 403 accountBlocked | tests (front+back), e2e/auth-security, scripts/e2e-admin.sh, login hint, audit seed, README → lebedev | regress tests: egorov login 200 (mock route + backend contract)
+decision: owner chose "new blocked user" over dropping blocked demo; spec/000 12-tasks.md left as history (finished feature)
+🧠 role ≠ mode: all students are same role; ДДС/112/chain = TrainingMode of assignment, not account
+next: PR review/merge; reseed existing backend DBs
+
+## 2026-10-20e claude/kind-goldberg-ij6veq + feat/011-dds-card-feed
+focus:DDS account ready w/ ARM (owner: egorov blocked)
+done:cherry-pick ce6c3dd (egorov unblocked, lebedev blocked) | seed asg-003 dds for egorov | browser check 112→bank→DDS assignment→egorov ARM card ✅
+checks:pytest 1044/4 skipped, ruff | vitest see SESSION_STATE | demo-up.sh blocked by auto-mode classifier → manual stand script (scratchpad)
+next:owner reseed own DB (demo-up fresh or app.seed.load); statuses+eval in browser; DDS «my service» by user service
+
+## 2026-10-20f feat/011-dds-sasha (from origin/SASHA d0c9d2f)
+focus:011 + DDS account on SASHA base (owner: use Sasha's new front, voice caller, ARM only for DDS)
+done:cherry-pick 011/egorov/seed onto SASHA | egorov trainingProfile=dds + login demo line | wizard step-0 fix for dds-profile students | browser path ✅
+decisions:🧠 SASHA 008 trainingProfile over codex 007 (codex lacks develop) | SASHA branch untouched
+next:owner pulls feat/011-dds-sasha + fresh demo-up; decide merge into SASHA/develop
+
+## 2026-10-20g feat/011-dds-sasha (worktree RA-012, SASHA untouched)
+focus:012 T006-T008
+done:norms in simulator bar (SimulatorBarSlot portal) | card header w/o timer for student | own service by profile (card + journal) | tests: IncidentScreen egorov/petrova pencil, mapContext, traineeService, SimulatorBar slot
+checks:pytest 1135/4 skipped, ruff, vitest 2033/2033, tsc, steiger | browser egorov full DDS cycle ✅ (SC-001..SC-003 egorov)
+next:owner — reaction metric for DDS (time to «Принята»?); merge feat/011-dds-sasha

@@ -131,7 +131,7 @@
 | Фронт, гейт | `npm run check` (ESLint, Prettier, Steiger, tsc, build) | зелёный |
 | Фронт, тесты | `npm run test` | 183 файла, 1456 passed (до фичи: 1255) |
 | Моки | `npm run mocks:validate` | PASS (8 файлов) |
-| Сквозной A → B | `backend/scripts/run_frontend_e2e.sh --only chain` (Playwright `e2e/two-mode-full-path.spec.ts` против стенда с бэкендом и фикстурой `seed_chain_demo.py`) | 1 passed (~26 с): этап 112 через интерфейс → 409 до подтверждения → подтверждение преподавателем → карточка ДДС → «Принята» → сообщения служб; **браузер запускался вручную**: штатный Playwright ищет chromium-1243, установлены 1228/1234 — прогон через `PLAYWRIGHT_CONFIG` с `executablePath` установленного браузера |
+| Сквозной A → B *(выведено 20.10.2026: режим `chain`, `seed_chain_demo.py` и `two-mode-full-path.spec.ts` удалены, см. spec/007 Clarifications)* | `backend/scripts/run_frontend_e2e.sh --only chain` (Playwright `e2e/two-mode-full-path.spec.ts` против стенда с бэкендом и фикстурой `seed_chain_demo.py`) | 1 passed (~26 с): этап 112 через интерфейс → 409 до подтверждения → подтверждение преподавателем → карточка ДДС → «Принята» → сообщения служб; **браузер запускался вручную**: штатный Playwright ищет chromium-1243, установлены 1228/1234 — прогон через `PLAYWRIGHT_CONFIG` с `executablePath` установленного браузера |
 | Сквозные HTTP-скрипты | `backend/scripts/run_frontend_e2e.sh` | student: 40/40; teacher: 96/96; admin: 137/140 — 3 шага про 2FA (`e2e-admin.sh` 03, 105, 108: скрипт ожидает включаемую 2FA, а бэкенд её не поддерживает — допущение A14; до фичи не проверялось) |
 | Штатный Playwright | `npm run e2e` | **не запускался**: нет браузера нужной версии (`npx playwright install` — загрузка, без разрешения владельца не выполнялась) |
 

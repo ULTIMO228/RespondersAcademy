@@ -19,6 +19,7 @@ import type {
 import {
   clampScore,
   collectAttemptActions,
+  collectDispatcherText,
   findMissingRequiredFields,
   getExpectedCardActions,
   scoreCorrectness,
@@ -64,7 +65,8 @@ export function generateEvaluation(
   successCriteria: SuccessCriteria,
   options: GenerateEvaluationOptions = {},
 ): Evaluation {
-  const grammarErrors = checkGrammarFields(cardEvent.enteredText);
+  const dispatcherText = collectDispatcherText(cardEvent);
+  const grammarErrors = checkGrammarFields(dispatcherText);
   const time = scoreTime(cardEvent, options.timeNorms ?? resolveTimeNorms());
   const expected = getExpectedCardActions(etalon.expectedActions, cardEvent.cardId);
   const correctness = scoreCorrectness(expected, collectAttemptActions(cardEvent));
@@ -73,12 +75,12 @@ export function generateEvaluation(
     timeScore: time.score,
     correctnessScore: correctness.score,
     grammarScore: grammar.score,
-    semanticScore: scoreSemantic(etalon.keyPhrases, cardEvent.enteredText),
+    semanticScore: scoreSemantic(etalon.keyPhrases, dispatcherText),
   };
   const errors = [
     ...time.errors,
     ...correctness.errors,
-    ...findMissingRequiredFields(cardEvent.enteredText, successCriteria),
+    ...findMissingRequiredFields(dispatcherText, successCriteria),
     ...grammar.errors,
   ];
   const evaluation: Evaluation = {

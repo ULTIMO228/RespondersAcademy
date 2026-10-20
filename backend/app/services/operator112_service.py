@@ -111,6 +111,17 @@ async def next_incident_number(db: AsyncSession) -> int:
     return int(max(fixtures, attempts)) + 1
 
 
+async def in_student_journal(db: AsyncSession, student_id: str, card_id: str) -> bool:
+    """Карточка из журнала ученика-112 (спека 009, FR-007): фон журнала или собственная карточка ученика режима 112.
+
+    Карточки других обучающихся в журнал не попадают, поэтому и привязать их нельзя.
+    """
+    if await db.get(ArmCardFixture, card_id) is not None:
+        return True
+    card = await db.get(IncidentCard, card_id)
+    return card is not None and card.mode_origin == MODE and card.created_by_student_id == student_id
+
+
 def hints_of(assignment: Assignment | None) -> dict[str, Any]:
     params = dict((assignment.params if assignment else None) or {})
     hints = params.get("hints") if isinstance(params.get("hints"), dict) else {}
@@ -249,6 +260,10 @@ async def add_event(db: AsyncSession, attempt_id: str, event_type: str, payload:
             raise conflict("В экзамене запись прослушивается один раз")
         if link is not None:
             link.replays += 1
+    elif event_type == "linkAdded":
+        card_id = str(payload.get("cardId") or "").strip()
+        if not await in_student_journal(db, attempt.student_id, card_id):
+            raise validation_failed(f"Карточки «{card_id}» нет в журнале: привязать можно только карточку из журнала")
     elif event_type == "hintShown":
         if not hints_of(assignment)["enabled"]:
             raise conflict("Подсказки в этом задании отключены")
@@ -364,7 +379,7 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     await db.flush()
     from app.services.chain_service import issue_submitted_card
 
-    await issue_submitted_card(db, card, attempt, assignment)
+    await issue_submitted_card(db, card, attempt)
     contract = attempt.to_operator_contract(replays=link.replays if link else 0, hints_shown=link.hints_shown if link else 0)
     params = dict((assignment.params if assignment else None) or {})
     weights = params.get("weights") if isinstance(params.get("weights"), dict) else None
@@ -434,12 +449,7 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     from app.services.rating_service import sync as sync_rating
 
     await sync_rating(db, attempt.student_id, MODE)
-    response: dict[str, Any] = {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
-    if assignment is not None and assignment.training_mode == "chain":
-        from app.services.assignment_service import register_chain_submission
-
-        response["chainReview"] = await register_chain_submission(db, assignment, attempt)
-    return response
+    return {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
 
 
 async def saved_card_for_attempt(db: AsyncSession, attempt_id: str) -> IncidentCard:

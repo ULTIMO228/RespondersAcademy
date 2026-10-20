@@ -4,6 +4,9 @@
 
 export type Role = "student" | "teacher" | "admin";
 
+/** [расширение 008] профиль режима обучаемого: значения совпадают с режимами заданий. */
+export type TrainingProfile = "operator112" | "dds";
+
 export interface User {
   /** "u-001" … "u-024" */
   id: string;
@@ -21,6 +24,8 @@ export interface User {
   group?: string;
   /** [расширение] служба/организация. */
   service?: string;
+  /** [расширение 008] профиль режима; нет поля — «не задан», доступны оба режима; только role = student. */
+  trainingProfile?: TrainingProfile;
   /**
    * [app-расширение вне 05-data-models.md §1] закреплённые за преподавателем группы
    * (20-admin-users.md «Создание учётной записи»; зафиксированное расхождение №5 — вынести владельцу спек).

@@ -24,19 +24,6 @@ describe("валидация мастера назначения", () => {
     expect(validateTickets(draft({ ticketSource: "rule", ruleCount: "100" }))).toEqual({});
   });
 
-  it("цепочка: каждому билету нужна версия operator112", () => {
-    const chain = draft({ trainingMode: "chain", cardIds: ["c-010", "c-020"] });
-    expect(validateTickets(chain).cardIds).toBeTruthy();
-    const withVersions = {
-      ...chain,
-      scenarioVersions: [
-        { scenarioId: "sc-1", version: 2, cardId: "c-010" },
-        { scenarioId: "sc-2", version: 2, cardId: "c-020" },
-      ],
-    };
-    expect(validateTickets(withVersions)).toEqual({});
-  });
-
   it("параметры: нормативы > 0, порог 0–100, лимит > 0 или пуст", () => {
     expect(validateParams(draft({ answerSec: "0" })).answerSec).toBeTruthy();
     expect(validateParams(draft({ submitSec: "abc" })).submitSec).toBeTruthy();
@@ -103,12 +90,33 @@ describe("buildRequest", () => {
     ]);
   });
 
-  it("цепочка: cardIds и scenarioVersions; срок — конец дня по Москве", () => {
-    const versions = [{ scenarioId: "sc-1", version: 2, cardId: "c-010" }];
-    const request = buildRequest(
-      draft({ trainingMode: "chain", scenarioVersions: versions, dueDate: "2026-10-05" }),
-    );
-    expect(request.scenarioVersions).toEqual(versions);
+  it("перечень билетов без scenarioVersions; срок — конец дня по Москве", () => {
+    const request = buildRequest(draft({ trainingMode: "dds", cardIds: ["c-010"], dueDate: "2026-10-05" }));
+    expect(request).toMatchObject({ trainingMode: "dds", cardIds: ["c-010"] });
+    expect(request).not.toHaveProperty("scenarioVersions");
     expect(request.dueAt).toBe("2026-10-05T23:59:59+03:00");
+  });
+});
+
+describe("«Справочник доступен» (спека 005)", () => {
+  const draft = (patch: Partial<WizardDraft>): WizardDraft => ({
+    ...createDraft(),
+    cardIds: ["c-1"],
+    studentIds: ["u-5"],
+    ...patch,
+  });
+
+  it("по умолчанию: тренировка — доступен, экзамен — нет; умолчание следует за форматом", () => {
+    expect(buildRequest(draft({ format: "training" })).params?.referenceAllowed).toBe(true);
+    expect(buildRequest(draft({ format: "exam" })).params?.referenceAllowed).toBe(false);
+  });
+
+  it("ручной выбор преподавателя сохраняется при любом формате", () => {
+    expect(buildRequest(draft({ format: "exam", referenceAllowed: true })).params?.referenceAllowed).toBe(
+      true,
+    );
+    expect(
+      buildRequest(draft({ format: "training", referenceAllowed: false })).params?.referenceAllowed,
+    ).toBe(false);
   });
 });

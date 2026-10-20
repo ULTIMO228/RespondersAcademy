@@ -164,7 +164,7 @@ describe("StudentAssignmentsScreen: прогресс и итоги", () => {
     expect(finished.queryByRole("button")).toBeNull();
   });
 
-  it("цепочка: этап ДДС ждёт подтверждения преподавателя", async () => {
+  it("старая цепочка (режим выведен): результаты видны, кнопки запуска нет", async () => {
     const chain: Assignment = {
       ...TRAINING,
       id: "asg-011",
@@ -172,23 +172,12 @@ describe("StudentAssignmentsScreen: прогресс и итоги", () => {
       cardIds: ["c-010"],
       title: "Цепочка",
     };
-    const progress = {
-      "asg-011": [
-        link("submitted", {
-          cardId: "c-010",
-          chainReview: {
-            scenarioId: "ais-001",
-            version: 2,
-            approval: "pending_review",
-            validation: "passed",
-          },
-        }),
-      ],
-    };
+    const progress = { "asg-011": [link("submitted", { cardId: "c-010", score: 72 })] };
     render(<StudentAssignmentsScreen api={makeApi([chain], progress)} />);
-    expect(await card("Цепочка")).toHaveTextContent(
-      "Этап ДДС ожидает проверки и подтверждения преподавателем",
-    );
+    const chainCard = within(await card("Цепочка"));
+    expect(chainCard.getByText(/доступно только для просмотра/)).toBeInTheDocument();
+    expect(chainCard.getByText("72")).toBeInTheDocument();
+    expect(chainCard.queryByRole("button")).toBeNull();
   });
 });
 
@@ -202,25 +191,7 @@ describe("StudentAssignmentsScreen: запуск", () => {
     expect(api.start).not.toHaveBeenCalled();
   });
 
-  it("цепочка: start здесь; 409 остаётся сообщением на карточке; успех этапа A — на рабочее место", async () => {
-    const chain: Assignment = { ...TRAINING, id: "asg-011", trainingMode: "chain", title: "Цепочка" };
-    const api = makeApi([chain]);
-    api.start.mockRejectedValueOnce(
-      new ApiError(409, "conflict", "Вход ДДС ожидает проверки и подтверждения преподавателем"),
-    );
-    render(<StudentAssignmentsScreen api={api} />);
-    const chainCard = within(await card("Цепочка"));
-    fireEvent.click(chainCard.getByRole("button", { name: "Начать" }));
-    expect(await chainCard.findByRole("alert")).toHaveTextContent(
-      "Вход ДДС ожидает проверки и подтверждения преподавателем",
-    );
-    expect(push).not.toHaveBeenCalled();
-    api.start.mockResolvedValueOnce({ kind: "operator112", attempt: {} as never });
-    fireEvent.click(chainCard.getByRole("button", { name: "Начать" }));
-    await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/arm/operator112?assignmentId=asg-011"));
-  });
-
-  it("режим ДДС и этап B цепочки: start → переход на карточку", async () => {
+  it("режим ДДС: start → переход на карточку", async () => {
     const dds: Assignment = { ...TRAINING, id: "asg-010", trainingMode: "dds", title: "ДДС" };
     const api = makeApi([dds]);
     api.start.mockResolvedValue({
@@ -232,5 +203,19 @@ describe("StudentAssignmentsScreen: запуск", () => {
     render(<StudentAssignmentsScreen api={api} />);
     fireEvent.click(within(await card("ДДС")).getByRole("button", { name: "Начать" }));
     await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/arm/card/c-028"));
+  });
+
+  it("отказ профиля режима (spec/008, 403) показывается дословно, перехода нет", async () => {
+    const dds: Assignment = { ...TRAINING, id: "asg-011", trainingMode: "dds", title: "ДДС" };
+    const api = makeApi([dds]);
+    api.start.mockRejectedValue(
+      new ApiError(403, "forbidden", "Задание режима ДДС недоступно для учётной записи специалиста-112"),
+    );
+    render(<StudentAssignmentsScreen api={api} />);
+    fireEvent.click(within(await card("ДДС")).getByRole("button", { name: "Начать" }));
+    expect(
+      await screen.findByText("Задание режима ДДС недоступно для учётной записи специалиста-112"),
+    ).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 });

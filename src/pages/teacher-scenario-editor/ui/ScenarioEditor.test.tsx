@@ -148,7 +148,9 @@ describe("Эталон и предпросмотр вопросов (T3.1-12, T3
     expect(container.querySelectorAll("[data-key-phrase]").length).toBeGreaterThanOrEqual(
       scenario.etalon.keyPhrases.length,
     );
-    expect(screen.getAllByText(/Звонок точке C: 103/).length).toBeGreaterThan(0);
+    // Спека 012: в эталоне ДДС нет звонков 101–104 — только статусы своей службы.
+    expect(screen.getAllByText(/Статус «Принята»/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Звонок точке C: 10[1-4]/)).toBeNull();
     expect(screen.getByText("Текст поля «Действие диспетчера»")).toBeInTheDocument();
   });
 

@@ -5,7 +5,7 @@ import type { PublicUser } from "@/shared/api";
 
 import { createTestDeps } from "../lib/journalFakeApi.testing";
 import { STORAGE_KEYS } from "../model/storedValue";
-import { advance, DEMO_NOW, renderJournal, STUDENT } from "./journalTestUtils.testing";
+import { advance, DEMO_NOW, findStudent, renderJournal, STUDENT } from "./journalTestUtils.testing";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, onClick, ...rest }: React.ComponentProps<"a">) => (
@@ -24,6 +24,8 @@ vi.mock("next/link", () => ({
 
 /** Курсант без профильной привязки службы — лента занятия без профильного фильтра. */
 const STUDENT_NO_PROFILE: PublicUser = { ...STUDENT, service: undefined };
+/** spec/008: ivanov — специалист-112 («ЦОВ системы-112»); курсант ДДС Чертаново Южное — petrova. */
+const DDS_STUDENT = findStudent("u-006");
 const SECOND = 1000;
 const ISSUE_STEP_MS = 180_000;
 
@@ -92,7 +94,7 @@ describe("«Мои назначенные модули» и бейдж заня�
 
 describe("Профильный фильтр ленты (T2.2-14)", () => {
   it("ДДС Чертаново Южное: в ленту и расписание попадают только карточки профильных групп", async () => {
-    const { deps } = await renderJournal();
+    const { deps } = await renderJournal(createTestDeps(), DDS_STUDENT);
     await startModule(/Билет 05/);
     expect(deps.api.calls.createSession[0].cardFlow?.map((item) => item.cardId)).toEqual(["c-013"]);
     await advance(10 * 60 * SECOND);
@@ -101,7 +103,7 @@ describe("Профильный фильтр ленты (T2.2-14)", () => {
   });
 
   it("модуль без профильных карточек — сообщение, занятие не создаётся", async () => {
-    const { deps } = await renderJournal();
+    const { deps } = await renderJournal(createTestDeps(), DDS_STUDENT);
     await startModule(/Билет 32/);
     expect(screen.getByRole("alert")).toHaveTextContent(
       "В модуле нет карточек профильных групп службы «ДДС района Чертаново Южное»",

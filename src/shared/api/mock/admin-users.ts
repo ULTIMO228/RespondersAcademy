@@ -17,6 +17,7 @@ import type {
   AdminUserUpdateRequest,
   PublicUser,
   Role,
+  TrainingProfile,
   User,
 } from "../types";
 import { readJsonBody, readStringParam } from "./request";
@@ -126,6 +127,22 @@ function readGroupList(value: unknown): string[] | undefined {
   return groups.length > 0 ? groups : undefined;
 }
 
+/** spec/008: подписи профиля режима — как в backend/app/services/training_profile.py. */
+const PROFILE_TITLE: Record<TrainingProfile, string> = {
+  operator112: "Специалист системы-112",
+  dds: "Диспетчер ДДС",
+};
+const NO_PROFILE = "Не задан";
+
+/** undefined — поле не передано; null — «не задан» (сброс). */
+function readTrainingProfile(fields: AdminUserRoleFields): TrainingProfile | null | undefined {
+  if (!("trainingProfile" in fields) || fields.trainingProfile === undefined) return undefined;
+  const value = fields.trainingProfile as unknown;
+  if (value === null || value === "") return null;
+  if (value === "operator112" || value === "dds") return value;
+  throw validationFailed("Профиль режима: специалист системы-112, диспетчер ДДС или не задан");
+}
+
 /**
  * Ролевые поля по правилам роли (T4.1-08): обучающийся — группа и служба; преподаватель — закреплённые
  * группы; администратор — без учебных привязок. Лишние поля отбрасываются, а не «переезжают» с ролью.
@@ -135,10 +152,13 @@ function applyRoleFields(draft: Omit<User, "id">, role: Role, fields: AdminUserR
   const group = readOptionalText(fields.group, "группа");
   const service = readOptionalText(fields.service, "служба");
   const assignedGroups = readGroupList(fields.assignedGroups);
+  const trainingProfile = readTrainingProfile(fields);
   draft.role = role;
   draft.group = role === "student" ? (group ?? draft.group) : undefined;
   draft.service = role === "admin" ? undefined : (service ?? draft.service);
   draft.assignedGroups = role === "teacher" ? (assignedGroups ?? draft.assignedGroups) : undefined;
+  const nextProfile = trainingProfile === undefined ? draft.trainingProfile : (trainingProfile ?? undefined);
+  draft.trainingProfile = role === "student" ? nextProfile : undefined;
 }
 
 /* ── Список ── */
@@ -218,6 +238,10 @@ function collectChanges(before: User, after: User): string[] {
   if (before.group !== after.group) changes.push(`группа «${before.group ?? "—"}» → «${after.group ?? "—"}»`);
   if (before.service !== after.service) {
     changes.push(`служба «${before.service ?? "—"}» → «${after.service ?? "—"}»`);
+  }
+  if (before.trainingProfile !== after.trainingProfile) {
+    const title = (profile?: TrainingProfile) => (profile ? PROFILE_TITLE[profile] : NO_PROFILE);
+    changes.push(`профиль «${title(before.trainingProfile)}» → «${title(after.trainingProfile)}»`);
   }
   if ((before.assignedGroups ?? []).join(", ") !== (after.assignedGroups ?? []).join(", ")) {
     changes.push(

@@ -29,6 +29,7 @@ async def test_session_to_report_flow(client):
     student = await login_as(client, "student2")
     student_id = student["userId"]
     client.cookies.clear()
+    await login_as(client, "teacher")
 
     created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": [student_id], "scenarioIds": [SCENARIO_ID], "mode": "practice", "cardSource": "generated"})
     assert created.status_code == 201, created.text

@@ -66,8 +66,9 @@ async def writable(db: AsyncSession, attempt_id: str, viewer: Viewer) -> Attempt
     attempt, link, assignment = await require_attempt(db, attempt_id, viewer)
     if not viewer.is_student or attempt.student_id != viewer.user_id:
         raise forbidden("Разговаривать может только обучающийся в своей попытке")
-    if not assignment or assignment.format != "training" or assignment.state != "active" or not link or link.state == "notCompleted":
-        raise conflict("Живой разговор доступен в активной тренировке")
+    # Решение владельца 2026-10-20 (спека 009, R6): живой заявитель — и в тренировке, и в экзамене.
+    if not assignment or assignment.state != "active" or not link or link.state == "notCompleted":
+        raise conflict("Живой разговор доступен в активном задании")
     if attempt.state != "answered":
         raise conflict("Сначала примите вызов; завершённую попытку открыть нельзя")
     if not get_settings().live_calls_enabled:

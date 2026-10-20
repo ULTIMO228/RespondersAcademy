@@ -144,16 +144,14 @@ describe("/arm/phone — софтфон", () => {
     expect(screen.getByText("Руководитель дежурной смены ДДС", { selector: "span" })).toBeInTheDocument();
   });
 
-  it("из карточки c-095: подсвечены номера, ожидаемые по эталону сценария", async () => {
+  it("из карточки c-095: софтфон не подсказывает, кому звонить по эталону (спека 012, FR-006)", async () => {
     await renderScreen({ cardId: "c-095" });
     const expected = screen
       .getAllByRole("listitem")
-      .filter((item) => item.getAttribute("data-expected") === "true")
-      .map((item) => within(item).getByText(/^\d+$/).textContent);
-    expect(expected).toEqual(["101", "102", "103"]);
-    expect(screen.getAllByText(/Ожидается по эталону \(карточка 36814850, эталон сценария\)/)).toHaveLength(
-      3,
-    );
+      .filter((item) => item.getAttribute("data-expected") === "true");
+    expect(expected).toEqual([]);
+    expect(screen.queryByText(/Ожидается по эталону/)).not.toBeInTheDocument();
+    expect(screen.getAllByText("Руководитель дежурной смены ДДС").length).toBeGreaterThan(0);
   });
 
   it("полный цикл: вызов → ответ ИИ → реплика → подтверждение → завершение → запись в попытку и журнал", async () => {

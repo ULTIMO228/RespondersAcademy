@@ -18,8 +18,8 @@ const NOW = "2026-09-19T12:00:00+03:00";
 const TEACHER = "u-002";
 /** Курсант профиля «Мосгаз (учебный профиль)» (users.json). */
 const GAS_STUDENT = "u-009";
-/** Курсант профиля «ДДС района Чертаново Южное». */
-const FIRE_STUDENT = "u-005";
+/** Курсант профиля «ДДС района Чертаново Южное» (spec/008: ivanov — специалист-112, поэтому petrova). */
+const FIRE_STUDENT = "u-006";
 /** Курсант без строки привязки («ДДС района Царицыно») — профильный фильтр к нему не применяется. */
 const ANY_STUDENT = "u-013";
 const GAS_GROUP = "Запах газа в помещении (в доме, в квартире)";
@@ -180,14 +180,17 @@ describe("адаптивная выдача (T3.2-06, Q&A в10)", () => {
     const session = await start(
       (
         await createSession({
-          // У FIRE_STUDENT в моках две попытки со средним баллом 96,5 (att-01, att-02).
-          studentIds: [FIRE_STUDENT],
+          // У ivanov (u-005) в моках две попытки со средним баллом 96,5 (att-01, att-02). С spec/008 у него служба
+          // «ЦОВ системы-112» — фильтр службы ДДС не сужает билеты, поэтому проверяется порядок, а не точный состав.
+          studentIds: ["u-005"],
           scenarioIds: ["s-002", "s-005"],
           plan: { issueOrder: "adaptive" },
         })
       ).id,
     );
-    expect(session.cardFlow.map((item) => item.level)).toEqual([4, 2]);
+    const levels = session.cardFlow.map((item) => item.level);
+    expect(new Set(levels)).toEqual(new Set([4, 2]));
+    expect(levels).toEqual([...levels].sort((left, right) => right - left));
   });
 
   it("слабому курсанту (последние оценки ≤ 60) темп снижается, простая карточка повторяется", () => {

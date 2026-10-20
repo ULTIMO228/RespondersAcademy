@@ -1,4 +1,39 @@
-## Facts
+## F012 on feat/011-dds-sasha 2026-10-20 (evening) — T001-T008 done
+done:T006 norms → simulator bar (slot+portal, TrainerNorms, showTimer=false for student; mirror keeps timer) | T007 own service = User.service → PROFILE_MAPPING_SEED[0] (egorov svc-upr-obruchev, petrova svc-upr-chert), tile prepended if absent, journal same resolver
+Checks@2026-10-20 (macOS, worktree RA-012):{uv run pytest -q 1135 passed/4 skipped | ruff clean | npx vitest run 2033/2033 | tsc, steiger, eslint/prettier(changed) pass}
+Browser@2026-10-20 demo-up fresh db: egorov c-009 Принята(наряд+comment)→…→Работы завершены → correctness 100, no «пропущен звонок», no dispatcherAction ✅ | petrova not run in browser (vitest covers)
+⚠️ reaction = openedAt − issuedAt (spec 000) → always 0:00 in DDS assignment, not time to «Принята» → owner decision
+⚠️ out of scope: DDS feed only cards where own service in notification list
+
+## F011 on SASHA 2026-10-20 (branch feat/011-dds-sasha, base origin/SASHA d0c9d2f; SASHA itself NOT pushed)
+done:011 card feed (bank /student-cards, studentCards in DDS assignments, eval by teacher etalon) + no auto-push 112→live DDS (SASHA test_chain moved to D4) + egorov unblocked (lebedev blocked) + egorov trainingProfile=dds + login demo line «Диспетчер ДДС» + seed asg-003 dds for egorov
+fix:assignment wizard step 0 validated with mode filter → dds-profile student blocked at «Обучающиеся» (default mode 112) → step 0 validates raw selection
+Checks@2026-10-20:{uv run pytest -q 1133 passed/4 skipped | ruff clean | npx vitest run 2017/2018 (teacher-v1 Blob env) before wizard fix; assignment-create 46/46 after | tsc, steiger, eslint/prettier (changed) pass | mocks:validate pass}
+Browser@2026-10-20 (cloud chromium, fresh db, next start :3130 BACKEND_URL):{ivanov no «Открыть АРМ» | egorov has it | 112 card → teacher bank → DDS assignment → egorov «Начать» → /arm/card/c-097 | /arm journal} | not run: statuses+eval in browser, npm run check, e2e
+⚠️ DDS card «my service» = first notification-list service by kind, not user's (src/pages/incident/lib/cardView.ts)
+⚠️ codex/feature-007-learner-role-split = parallel role model, based on old main (no develop/voice) → not merged; SASHA 008 trainingProfile used
+
+## Handoff 2026-10-20 (evening) → next window
+Branch:SASHA (pushed, HEAD 7edccf6 + this handoff) | develop merged in (d08ce53) | spec:009-arm-112-student
+Where: tasks.md Phase 2 Foundational | done T001-T007 + T020 | NEXT: T008 mock validator (channel∈{call,sms}, smsText if sms, repeatOf→existing card|null, lockedBy only bg) → T009 (owner texts!) → T010-T012 journal (reuse operator112_service.in_student_journal) → T013-T019
+Owner decisions 2026-10-20:
+  - live AI caller (005-live-caller) replaces recording in 112 ARM, BOTH training+exam; recording only if NEXT_PUBLIC_LIVE_CALLS_ENABLED=false; no silent fallback when live server unconfigured (state unavailable)
+  - only student-112 workplace now; DDS code untouched (R14)
+  - design = ARM 1:1; compare vs СРАВНЕНИЕ-ИНТЕРФЕЙСА-АРМ.md (до/после) + окна-АРМ-112.html; proposal (not yet accepted): add до/после items to checklists/visual-112.md + T070, screenshot pairs 1920×1080
+Voice point (T020 ✅): entities/operator112-attempt/model/useApplicantVoice.ts → {kind live|recording, state checking|idle|connecting|playing|unavailable|ended, start, stop, mute, level, recordingUrl, trainerText(only trainer strip, FR-027)}; useRealtimeCaller+useCallerAudio moved softphone→entity; backend live_call_service.writable: any active assignment (exam ok)
+T007 ✅: 7 new event types + payload checks; linkAdded cardId ∈ journal (ArmCardFixture bg | own 112 IncidentCard) else 400
+🧠 assumption: journal bg = all ArmCardFixture (no per-assignment bg) — recheck in T011
+Checks@2026-10-20 after merge: pytest 1122 passed/4 skipped/0 red | ruff clean | vitest 2008/2011 (teacher-v1 Blob = env; IncidentScreen+PresentScreen flaky under load, pass alone) | tsc+eslint(changed)+steiger pass | next build NOT run
+Blocked/owner:
+  !1 renumber duplicate spec 005 (005-arm-reference-panel vs 005-live-caller)
+  !2 T009 synthetic ticket texts (1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + ok for migration 0007/DB reset
+  !3 real live call: POLZA_API_KEY+models in backend/.env, polza.ai allowed in cloud env (now 403) → ./scripts/demo-up.sh --live
+  !4 004 T007 real-key check: spec/004-polza-provider/quickstart.md
+  ⚠️ Silero TTS license CC BY-NC (risk outside hackathon)
+Env notes: cloud container: npm ci done this window (fresh containers need it + npm run mocks:sync before vitest) | uv sync --group dev | no lsof → kill by PID (L023)
+Rules: TDD pairs 400/200 | commits w/o Co-Authored-By | git fetch before reading handoff (L024) | prettier only changed files (it reformats foreign files)
+
+## Facts (develop: live-caller, merged into SASHA 2026-10-20)
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
 Finals:2026-10-23 online pitch | rule(moderator 17–19.10): API only for open-weight models deployable on TZ server (CPU≥6c,32GB,no GPU), no hardcode
@@ -6,6 +41,14 @@ Tests@2026-10-20 (cloud, uv run pytest -q):{pytest:1034 passed/3 skipped/0 red, 
 Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanceOf red on clean main too (env), 1 more flaky in first run} | not run:{npm run check, e2e, simulator-visual}
 Updated:2026-10-19
 
+## Facts
+Proj:RespondersAcademy | Branch:SASHA | Mode:normal | HEAD:SASHA pushed | tree:clean after commit
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza ✅ T001-T006, T007 open | 005 arm-reference ✅ | 006 student-rating ✅ | 007 arm-one-to-one spec only | 008 operator112-student ✅ T001-T041 | 009 arm-112-student IN PROGRESS: T001-T006 ✅, next T007 | 010 lesson-call-session spec, owner answers in}
+Scope@2026-10-20(owner): only student-112 workplace now; DDS profile+ARM = other teammate → never edit DDS code (widgets/{incident-card,incident-list,service-panel}, pages/{incident,journal,phone}); 112 in own slices (009 R14); voice dialog (007 FR-031..034) = friend, later; plug point useApplicantVoice (009 R6)
+Stand:./scripts/demo-up.sh (front :3130, back :8130, db backend/var/demo.db) | stop: ps aux|grep -E "next-server|next start|uvicorn" → kill PIDs (no lsof in cloud container)
+Tests@2026-10-20:{vitest:1951 passed/1 red teacher-v1.test.ts downloadReportExport "Blob not instance of Blob" — red on clean HEAD too (Node22+jsdom env), not ours | tsc:pass | steiger:pass | eslint(changed):pass | pytest:not rerun this session}
+SC-004(008)@2026-10-20: 5 identical 112 runs c-010 before(5f4988e)/after(HEAD) = 96/81/81/89/86 both, all components equal ✅
+Updated:2026-10-20
 ## Story
 0000000000000 2026-10-20 owner: emotion «чуть уменьшить» → STYLE: restrained, fillers rarely, [паника] only on threat to life, calmer examples | targeted tests 75 passed
 000000000000 2026-10-20 owner: Qwen «сухо, только по делу» ← my prompt «answer first, ≤1 filler, 1–2 phrases» + temp 0.3 → STYLE allows feelings/questions/thanks (no new facts), 3 fact-free manner examples, LIVE_CALL_POLZA_TEMPERATURE=0.7 | not checked live
@@ -25,6 +68,7 @@ Updated:2026-10-19
 3 v1 router duplicates removed (test_v1_router_unique)
 4 polza transport: app/services/realtime_polza.py (VAD segmentation → /audio/transcriptions; /chat/completions stream; /audio/speech + instructions) | persona: app/services/caller_persona.py
 5 POLZA_MODEL default removed; AGENTS §2 + spec 004 amended
+6 2026-10-20 egorov (u-010) unblocked via cherry-pick ce6c3dd (claude/zealous-goldberg-mu6erp) → active DDS student for 011 demo; blocked demo → u-025 lebedev
 
 ## Reasoning
 tags kept in LLM history (style continuity), stripped from shown text/transcript
@@ -32,6 +76,14 @@ STT batch per utterance (Polza has no streaming STT) → VAD end-silence 700ms; 
 model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configured()=False until all 3 set
 
 ## Action
+!0 009: owner to approve synthetic tickets (T009: 1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + DB reset/migration 0007 → then speckit-implement Phase 1
+!1 004 T007 polza real-key check: procedure+protocol ready spec/004-polza-provider/quickstart.md (2026-10-20) | blocked: no key + cloud env 403 on polza.ai | next: owner adds key + allows polza.ai → steps 1-6
+!2 T072 usability check w/ ≥3 teachers + T073 manual scenarios 1-14 (quickstart.md) NOT done
+ 3 simulator-visual playwright (SC-010) NOT run
+ 4 backend/var/dev.db lacks error_map_verdicts → alembic upgrade head or app.seed.load --reset (ask owner first)
+ 5 `npm run mocks:sync` — spec mocks (sessions/users) changed, mocks/ copy not refreshed
+ 6 owner checklist (screenshot): 5.1 filter sizes 44/16px (a11y.test only scans cursor:pointer rules → fields may be missed), 5.3 group assignments in existing DB, 5.4 student recommendations rating race (old phase-14 code, not ours)
+ 7 T061 docs/demo.mp4 — owner records; never fabricate
 !000000 owner (Mac): uv sync --group dev --extra tts --extra stt-local → uv run python -m scripts.gigaam_check → if fast: LIVE_CALL_STT_ENGINE=gigaam; numbers for pitch
 !00000 owner: backend/.env CHAT_MODEL=qwen/qwen3-30b-a3b-instruct-2507, drop LIVE_CALL_POLZA_REASONING_* → headset check quality
 !0000 owner: talk_caller --card c-010 --tags → judge new prompt; give bad-reply examples if still poor; rotate Polza key (pasted in chat 20.10)
@@ -44,6 +96,7 @@ model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configu
  3 latency on TZ-like CPU box; Silero TTS license CC BY-NC (risk) if used
  4 PR from this branch to main — team decision; not opened
  5 old open items: T072/T073, simulator-visual, T061 demo.mp4, dev.db migration 0005
+!F011 existing backend DBs: egorov still blocked + no u-025 → `uv run python -m app.seed.load` (upsert) or demo-up (fresh demo.db)
 
 ## Caution
 ⚠️ cloud container: polza.ai, huggingface.co blocked → no real provider calls verified

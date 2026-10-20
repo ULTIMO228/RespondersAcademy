@@ -1,4 +1,7 @@
 /*
+ * УСТАРЕЛ (20.10.2026): записывает путь «цепочка 112 → ДДС», а режим chain выведен (spec/007 Clarifications) вместе с
+ * backend/scripts/seed_chain_demo.py. Перед следующей записью сценарий нужно переписать под отдельные задания 112 и ДДС.
+ *
  * Автозапись демо-видео (≤ 5 мин) по сценарию docs/demo-script.md на РЕАЛЬНОМ стенде `./scripts/demo-up.sh`.
  * Экран — настоящая запись Playwright, закадровый голос — Silero TTS (офлайн; нужен backend/models/silero/v5_ru.pt и uv), сборка — ffmpeg.
  *

@@ -16,9 +16,12 @@ from app.models.card import IncidentCard
 from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TrainingSession
 from app.models.user import User
-from app.services import audit, operator112_service
+from app.services import audit, operator112_service, student_card_service, training_profile
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso, parse_iso_ms
+
+# Режим «цепочка A → B» выведен 20.10.2026 (spec/007 Clarifications): старые задания chain только читаются.
+LEGACY_CHAIN_MESSAGE = "Режим «Цепочка 112 → ДДС» выведен: задание доступно только для просмотра"
 
 
 async def require_assignment(db: AsyncSession, assignment_id: str) -> Assignment:
@@ -30,6 +33,13 @@ async def require_assignment(db: AsyncSession, assignment_id: str) -> Assignment
 
 def _can_manage(row: Assignment, viewer: Viewer) -> bool:
     return viewer.role == "admin" or (viewer.role == "teacher" and row.teacher_id == viewer.user_id)
+
+
+async def _assert_profile(db: AsyncSession, row: Assignment, student_id: str) -> None:
+    """spec/008: курсант с профилем другого режима не открывает и не запускает задание."""
+    student = await db.get(User, student_id)
+    if student is not None and not training_profile.allows(student, row.training_mode):
+        raise forbidden(training_profile.blocked_message(student, row.training_mode))
 
 
 def _assert_visible(row: Assignment, viewer: Viewer) -> None:
@@ -101,6 +111,10 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
     students = list((await db.execute(select(User).where(User.id.in_(body["studentIds"])))).scalars().all())
     if len(students) != len(body["studentIds"]) or any(u.role != "student" or not u.is_active for u in students):
         raise validation_failed("Все studentIds должны указывать на активных обучающихся")
+    order = {student_id: index for index, student_id in enumerate(body["studentIds"])}
+    _, blocked = training_profile.split_by_profile(sorted(students, key=lambda u: order[u.id]), body["trainingMode"])
+    if blocked:
+        raise validation_failed(training_profile.create_rejection(blocked, body["trainingMode"]))
     selected = list(body.get("cardIds") or [])
     ai_links: list[tuple[ScenarioVersion, str]] = []
     for item in body.get("scenarioVersions") or []:
@@ -111,11 +125,16 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
             raise forbidden("Нет права назначать сценарий другого преподавателя")
         if version.card_snapshot.get("id") != item["cardId"]:
             raise validation_failed("cardId не соответствует снимку версии сценария")
-        if body["trainingMode"] != "chain" and version.mode != body["trainingMode"]:
+        if version.mode != body["trainingMode"]:
             raise validation_failed("Режим версии сценария не соответствует заданию")
         ai_links.append((version, item["cardId"]))
+    params = dict(body.get("params") or {})
+    params.pop("studentCards", None)  # эталоны карточек обучающихся — только из проверенного поля studentCards
+    student_card_ids = await student_card_service.check_assignment_cards(db, viewer, body["trainingMode"], selected, body.get("studentCards") or [])
+    if student_card_ids:
+        params["studentCards"] = list(body.get("studentCards") or [])
     if selected:
-        approved = await _approved_ids(db)
+        approved = await _approved_ids(db) | student_card_ids
         ai_card_ids = {card_id for _, card_id in ai_links}
         if any(card_id not in approved and card_id not in ai_card_ids for card_id in selected):
             raise validation_failed("В задание можно включать только существующие утверждённые билеты")
@@ -133,7 +152,7 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
     row = Assignment(
         id=await next_id(db, PREFIX["assignment"], Assignment.id), teacher_id=teacher_id,
         student_ids=body["studentIds"], training_mode=body["trainingMode"], format=body["format"],
-        card_ids=selected, random_rule=rule, params=body.get("params") or {}, due_at=body.get("dueAt"),
+        card_ids=selected, random_rule=rule, params=params, due_at=body.get("dueAt"),
         state="active", created_at=now_iso(), title=body.get("title") or "",
     )
     db.add(row)
@@ -151,7 +170,8 @@ async def create(db: AsyncSession, body: dict[str, Any], viewer: Viewer) -> dict
     )
     await db.flush()
     await _audit(db, viewer, "assignment.create",
-                 f"Задание {row.id}: режим {row.training_mode}, {row.format}, обучающихся {len(row.student_ids)}")
+                 f"Задание {row.id}: режим {row.training_mode}, {row.format}, обучающихся {len(row.student_ids)}, "
+                 f"справочник: {'доступен' if (row.params or {}).get('referenceAllowed', row.format == 'training') else 'недоступен'}")
     return row.to_contract()
 
 
@@ -182,6 +202,9 @@ async def list_rows(db: AsyncSession, viewer: Viewer, *, student_id: str | None 
         if student_id and student_id != viewer.user_id:
             raise forbidden("Обучающемуся доступны только свои задания")
         rows = [r for r in rows if viewer.user_id in (r.student_ids or [])]
+        me = await db.get(User, viewer.user_id)
+        if me is not None:
+            rows = [r for r in rows if training_profile.allows(me, r.training_mode)]
     elif viewer.role == "teacher":
         rows = [r for r in rows if r.teacher_id == viewer.user_id]
     if student_id:
@@ -198,30 +221,14 @@ async def list_rows(db: AsyncSession, viewer: Viewer, *, student_id: str | None 
 async def detail(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[str, Any]:
     row = await require_assignment(db, assignment_id)
     _assert_visible(row, viewer)
+    if viewer.is_student:
+        await _assert_profile(db, row, viewer.user_id)
     await _expire(db, row)
     links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id).order_by(AssignmentAttempt.id))).scalars().all()
     progress = []
     for link in links:
         evaluation = await db.get(Evaluation, link.attempt_id)
         item = {"studentId": link.student_id, "cardId": link.card_id, "attemptId": link.attempt_id, "state": link.state}
-        if row.training_mode == "chain" and viewer.role in ("teacher", "admin"):
-            review = (
-                await db.execute(
-                    select(ScenarioVersion)
-                    .where(
-                        ScenarioVersion.source_attempt_id == link.attempt_id,
-                        ScenarioVersion.mode == "dds",
-                    )
-                    .order_by(ScenarioVersion.version.desc())
-                )
-            ).scalars().first()
-            if review is not None:
-                item["chainReview"] = {
-                    "scenarioId": review.scenario_id,
-                    "version": review.version,
-                    "approval": review.approval,
-                    "validation": review.validation,
-                }
         if evaluation is not None:
             item["score"] = evaluation.total_score
         if link.passed is not None:
@@ -264,45 +271,24 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
     _assert_visible(row, viewer)
     if row.state != "active":
         raise conflict("Задание завершено")
+    if row.training_mode == "chain":
+        raise conflict(LEGACY_CHAIN_MESSAGE)
     await _expire(db, row)
     student = _student(viewer, student_id, row)
+    await _assert_profile(db, row, student)
     links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id, AssignmentAttempt.student_id == student).order_by(AssignmentAttempt.id))).scalars().all()
     opened = next((link for link in links if link.state not in ("submitted", "notCompleted")), None)
     if opened is not None:
         attempt = await db.get(Attempt, opened.attempt_id)
-        if row.training_mode in ("operator112", "chain") and attempt.mode == "operator112":
+        if row.training_mode == "operator112" and attempt.mode == "operator112":
             return {"attempt": await operator112_service.contract_of(db, attempt, opened, row)}
         return {"attempt": {"sessionId": attempt.session_id, "attempt": attempt.to_contract(), "created": False}}
-    if row.training_mode == "chain" and links:
-        last_link = links[-1]
-        last_attempt = await db.get(Attempt, last_link.attempt_id)
-        if last_attempt is not None and last_attempt.mode == "dds":
-            raise conflict("Цепочка A → B уже завершена")
-        if last_attempt is None or last_attempt.state != "submitted" or last_link.state != "submitted":
-            raise conflict("Сначала сохраните карточку режима 112")
-        dds_version = (
-            await db.execute(
-                select(ScenarioVersion)
-                .where(
-                    ScenarioVersion.source_attempt_id == last_attempt.id,
-                    ScenarioVersion.mode == "dds",
-                )
-                .order_by(ScenarioVersion.version.desc())
-            )
-        ).scalars().first()
-        if dds_version is None or not dds_version.available_for_training:
-            raise conflict("Вход ДДС ожидает проверки и подтверждения преподавателя")
-        saved_card = await operator112_service.saved_card_for_attempt(db, last_attempt.id)
-        if dds_version.card_snapshot.get("id") != saved_card.id or dds_version.source_card_id != saved_card.id:
-            raise conflict("Сохранённая карточка изменилась после подтверждения ДДС")
-        await _audit(db, viewer, "assignment.start", f"Задание {row.id}: этап ДДС цепочки, обучающийся {student}, билет {saved_card.id}")
-        return {"attempt": await _dds_start(db, row, student, saved_card.id)}
     card_ids = list(row.card_ids or [])
     if not card_ids and row.random_rule:
         card_ids = await candidate_card_ids(db, row.random_rule, [student], row.training_mode)
     used = {link.card_id for link in links}
     card_id = next((value for value in card_ids if value not in used), None)
-    if row.format == "training" and (row.params or {}).get("adaptive") and row.training_mode != "chain":
+    if row.format == "training" and (row.params or {}).get("adaptive"):
         from app.services.rating_service import sync as sync_rating
         from ml.insights.recommender import adaptive_order
 
@@ -318,34 +304,12 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
         card_id = ordered[0]["cardId"] if ordered else None
     if card_id is None:
         raise conflict("Все билеты задания уже выполнены")
-    if row.training_mode == "chain":
-        assignment_version = (
-            await db.execute(
-                select(AssignmentScenarioVersion).where(
-                    AssignmentScenarioVersion.assignment_id == row.id,
-                    AssignmentScenarioVersion.card_id == card_id,
-                    AssignmentScenarioVersion.mode == "operator112",
-                )
-            )
-        ).scalars().first()
-        if assignment_version is None:
-            raise conflict("Цепочке A → B не назначена утверждённая версия operator112")
-        selected_version = await db.get(ScenarioVersion, (assignment_version.scenario_id, assignment_version.version))
-        if selected_version is None or not selected_version.available_for_training:
-            raise conflict("Назначенная версия operator112 больше недоступна")
-    if row.training_mode in ("operator112", "chain"):
+    if row.training_mode == "operator112":
         attempt, _ = await operator112_service.create_attempt(db, row.id, card_id, student, viewer, background)
         await _audit(db, viewer, "assignment.start", f"Задание {row.id}: выдан билет {card_id}, обучающийся {student}")
         return {"attempt": attempt}
     await _audit(db, viewer, "assignment.start", f"Задание {row.id}: выдан билет {card_id}, обучающийся {student}")
     return {"attempt": await _dds_start(db, row, student, card_id)}
-
-
-async def register_chain_submission(db: AsyncSession, assignment: Assignment, attempt: Attempt) -> dict[str, Any]:
-    """Создаёт этап ДДС только из сохранённой A-карточки и возвращает его review-ссылку учителю."""
-    from app.services.scenario_service import create_chain_dds_input
-
-    return await create_chain_dds_input(db, attempt, assignment)
 
 
 async def finish(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[str, Any]:

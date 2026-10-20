@@ -46,9 +46,9 @@ async def cleanup() -> AsyncIterator[None]:
         await db.commit()
 
 
-async def _assign(v1: AsyncClient, mode: str, card_id: str, title: str) -> str:
+async def _assign(v1: AsyncClient, mode: str, card_id: str, title: str, student_id: str = "u-005") -> str:
     await login_as(v1, "teacher")
-    created = await v1.post("/assignments", json={"studentIds": ["u-005"], "trainingMode": mode, "format": "training", "cardIds": [card_id], "params": {}, "title": f"{TITLE} {title}"})
+    created = await v1.post("/assignments", json={"studentIds": [student_id], "trainingMode": mode, "format": "training", "cardIds": [card_id], "params": {}, "title": f"{TITLE} {title}"})
     assert created.status_code == 201, created.text
     return created.json()["id"]
 
@@ -71,13 +71,13 @@ async def test_student_cannot_touch_another_students_operator_attempt(v1: AsyncC
 
 
 async def test_student_cannot_read_messages_or_send_report_for_another_dds_attempt(v1: AsyncClient):
-    assignment_id = await _assign(v1, "dds", "c-010", "ДДС")
-    await login_as(v1, "student")
+    assignment_id = await _assign(v1, "dds", "c-010", "ДДС", "u-006")  # spec/008: ДДС — petrova
+    await login_as(v1, "student2")
     started = await v1.post(f"/assignments/{assignment_id}/start")
     assert started.status_code == 200, started.text
     attempt_id = started.json()["attempt"]["attempt"]["id"]
     assert (await v1.get(f"/attempts/{attempt_id}/work-messages")).status_code == 200  # свои — пусто без workMessagesEnabled
-    await login_as(v1, "student2")
+    await login_as(v1, "student3")
     assert (await v1.get(f"/attempts/{attempt_id}/work-messages")).status_code == 403
     denied = await v1.post(f"/attempts/{attempt_id}/report-audio", files={"file": ("r.wav", b"RIFF", "audio/wav")})
     assert denied.status_code == 403

@@ -411,9 +411,3 @@ async def bind_text_check(db: AsyncSession, scenario_id: str, scenario_version: 
     if scenario_version is not None and scenario_version != current:
         raise conflict(f"Текст относится к версии {scenario_version}, текущая версия сценария — {current}; повторите проверку")
     return {"scenarioId": scenario_id, "scenarioVersion": int(current)}
-
-
-async def create_chain_dds_input(db: AsyncSession, attempt: Any, assignment: Any) -> dict[str, Any]:
-    from app.services.ai_scenario_service import create_chain_dds_draft
-
-    return await create_chain_dds_draft(db, attempt=attempt, assignment=assignment)

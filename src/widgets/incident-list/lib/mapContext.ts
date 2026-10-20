@@ -1,14 +1,13 @@
 import type { IncidentMapContext } from "@/entities/incident";
-import { getServiceStatusTone } from "@/entities/service";
+import { getServiceStatusTone, resolveTraineeServiceId } from "@/entities/service";
 import type { ReferenceData } from "@/shared/api";
 
-/** Служба обучающегося (User.service — полное название) → id ServiceRef; не найдена — undefined. */
+/** Служба обучающегося (User.service) → id ServiceRef, как в карточке (спека 012 FR-007); не найдена — undefined. */
 export function resolveMyServiceId(
   reference: ReferenceData,
   service: string | undefined,
 ): string | undefined {
-  if (!service) return undefined;
-  return reference.services.find((candidate) => candidate.name === service)?.id;
+  return resolveTraineeServiceId(service, reference.services);
 }
 
 /** Справочники для списочной проекции строк (названия служб/статусов, тон маркера, моя служба). */

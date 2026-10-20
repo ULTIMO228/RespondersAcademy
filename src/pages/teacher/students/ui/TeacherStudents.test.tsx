@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SessionProvider } from "@/entities/user";
 import { ApiError } from "@/shared/api";
-import type { PublicUser, StudentProfile } from "@/shared/api";
+import type { ErrorMapResponse, PublicUser, StudentProfile, StudentStats } from "@/shared/api";
 
 import type { TeacherStudentsApi } from "../api/teacherStudentsApi";
 import { TeacherStudentScreen } from "./TeacherStudentScreen";
@@ -149,5 +149,124 @@ describe("профиль обучающегося", () => {
       />,
     );
     expect(await screen.findByText("Обучающийся не найден")).toBeInTheDocument();
+  });
+});
+
+describe("полная статистика (спека 006)", () => {
+  const summary = (attempts: number) => ({
+    attempts,
+    averageScore: attempts ? 75 : null,
+    averageReactionMs: attempts ? 42_000 : null,
+    averageProcessingMs: attempts ? 120_000 : null,
+    withinNormsShare: attempts ? 0.5 : null,
+  });
+  const STATS: StudentStats = {
+    studentId: "u-5",
+    fullName: "Иванов",
+    groupId: "Г-1",
+    period: "all",
+    mode: "all",
+    norms: { reactionMs: 30_000, processingMs: 180_000 },
+    summary: summary(2),
+    byMode: { dds: summary(2), operator112: summary(0) },
+    dynamics: [
+      {
+        attemptId: "a-1",
+        at: "2026-10-01T10:00:00+03:00",
+        mode: "dds",
+        score: 70,
+        reactionMs: 40_000,
+        processingMs: 120_000,
+      },
+      {
+        attemptId: "a-2",
+        at: "2026-10-02T10:00:00+03:00",
+        mode: "dds",
+        score: 80,
+        reactionMs: 44_000,
+        processingMs: 120_000,
+      },
+    ],
+    attempts: [
+      {
+        attemptId: "a-2",
+        at: "2026-10-02T10:00:00+03:00",
+        mode: "dds",
+        score: 80,
+        reactionMs: 44_000,
+        processingMs: 120_000,
+        sessionId: "ses-1",
+        format: "training",
+        title: "Пожар на балконе",
+        passed: null,
+      },
+    ],
+  };
+  const MAP: ErrorMapResponse = {
+    scope: { kind: "student", groupId: "Г-1", studentId: "u-5", title: "Иванов" },
+    mode: "dds",
+    period: "all",
+    attempts: 6,
+    stages: [
+      { id: "address", order: 1, title: "Адрес" },
+      { id: "statuses", order: 2, title: "Статусы" },
+    ],
+    levels: [
+      {
+        stageId: "address",
+        attempts: 6,
+        attemptsWithError: 3,
+        share: 0.5,
+        level: "often",
+        affectedStudents: 1,
+      },
+      {
+        stageId: "statuses",
+        attempts: 6,
+        attemptsWithError: 0,
+        share: 0,
+        level: "rare",
+        affectedStudents: 0,
+      },
+    ],
+    headline: { kind: "problems", stageIds: ["address"], text: "—" },
+    generatedAt: "2026-10-02T10:00:00+03:00",
+  };
+  const full = () =>
+    makeApi({
+      stats: vi.fn().mockResolvedValue(STATS),
+      errorMap: vi
+        .fn()
+        .mockImplementation((_id: string, mode: string) =>
+          Promise.resolve(mode === "dds" ? MAP : { ...MAP, mode, levels: [] }),
+        ),
+    });
+
+  it("скорость, слабые этапы и попытки со ссылкой на отчёт", async () => {
+    render(<TeacherStudentScreen studentId="u-5" api={full()} />);
+    expect((await screen.findAllByText("Средняя реакция")).length).toBe(2);
+    expect(screen.getByText("Попыток в этом режиме нет.")).toBeInTheDocument();
+    expect(screen.getByText(/часто: 50 % попыток с ошибкой/)).toBeInTheDocument();
+    expect(screen.queryByText(/Статусы ·/)).not.toBeInTheDocument();
+    expect(screen.getByText("Пожар на балконе")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Отчёт занятия" })).toHaveAttribute(
+      "href",
+      "/teacher/reports/ses-1",
+    );
+  });
+
+  it("«Назад к рейтингу» только для адреса рейтинга; «Назначить тренировку» с учеником", async () => {
+    const { unmount } = render(
+      <TeacherStudentScreen studentId="u-5" from="/teacher/rating?groupId=Г-1&sort=attempts" api={full()} />,
+    );
+    expect(await screen.findByRole("link", { name: "Назад к рейтингу" })).toHaveAttribute(
+      "href",
+      "/teacher/rating?groupId=Г-1&sort=attempts",
+    );
+    expect(screen.getByRole("link", { name: "Назначить тренировку" }).getAttribute("href")).toContain("u-5");
+    unmount();
+    render(<TeacherStudentScreen studentId="u-5" from="https://evil.example" api={full()} />);
+    expect(await screen.findByRole("link", { name: "К списку" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Назад к рейтингу" })).not.toBeInTheDocument();
   });
 });

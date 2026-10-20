@@ -42,7 +42,8 @@ export interface SessionErrorSummaryResponse {
   critical: number;
   major: number;
   minor: number;
-  byCategory: Record<string, number>;
+  /** Только автономный мок: у записей реального бэкенда категории нет. */
+  byCategory?: Record<string, number>;
   byRule: Record<string, number>;
   byDetector: Record<string, number>;
   byStudent: Record<string, number>;

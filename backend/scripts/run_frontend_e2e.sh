@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # T074 — гейт волны A: бэкенд с чистым сидом + собранный фронт (rewrite /api/mock → BACKEND_URL) + три сквозных
 # скрипта фронта (scripts/e2e-student.sh, e2e-teacher.sh, e2e-admin.sh). Запуск из корня репозитория или из backend/:
-#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|chain|platform|error-map]
-# --only chain (спека 002, T026): чистая БД + фикстура цепочки A → B (backend/scripts/seed_chain_demo.py) + Playwright
-# e2e/two-mode-full-path.spec.ts против этого стенда (штатный Playwright сам поднимает только фронт без бэкенда).
+#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|platform|error-map]
+# --only chain удалён: режим «цепочка A → B» выведен 20.10.2026 (spec/007 Clarifications), вместе с ним —
+# seed_chain_demo.py и e2e/two-mode-full-path.spec.ts.
 # --only platform (спека 002, T058): чистая БД + Playwright e2e/platform.spec.ts (путь по платформе) и
 # e2e/auth-security.spec.ts (cookie, подделка, повтор после выхода, две вкладки, смена пароля, лимит попыток) против стенда.
 # --only error-map (спека 003, T068): чистая БД + демо-набор карты ошибок (seed_error_map_demo.py) + scripts/e2e-error-map.sh.
@@ -119,21 +119,6 @@ FRONT_PID=$!
 wait_for "http://127.0.0.1:$FRONT_PORT/api/mock/auth/policy" 90 || { tail -50 "$LOG_DIR/front.log"; exit 1; }
 
 STATUS=0
-if [ "$ONLY" = "chain" ]; then
-  echo "▸ фикстура цепочки A → B (seed_chain_demo.py)"
-  CHAIN_JSON="$(cd "$BACKEND_DIR" && uv run python scripts/seed_chain_demo.py)" || { echo "  FAIL фикстура цепочки"; exit 1; }
-  echo "$CHAIN_JSON"
-  # Точный адрес карточки сценария: обучающийся вводит его в «Описательный адрес» (см. e2e/two-mode-full-path.spec.ts).
-  export E2E_CHAIN_ADDRESS="$(printf '%s' "$CHAIN_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("address", ""))')"
-  echo "▸ Playwright: e2e/two-mode-full-path.spec.ts (стенд на :$FRONT_PORT)"
-  if (cd "$ROOT" && E2E_REUSE_SERVER=true E2E_BASE_URL="http://127.0.0.1:$FRONT_PORT" npx playwright test ${PLAYWRIGHT_CONFIG:+--config "$PLAYWRIGHT_CONFIG"} e2e/two-mode-full-path.spec.ts 2>&1 | tee "$LOG_DIR/e2e-chain.log" | tail -25); then
-    echo "  PASS e2e-chain (лог: $LOG_DIR/e2e-chain.log)"
-  else
-    echo "  FAIL e2e-chain (полный вывод: $LOG_DIR/e2e-chain.log)"
-    STATUS=1
-  fi
-  exit "$STATUS"
-fi
 if [ "$ONLY" = "platform" ]; then
   echo "▸ Playwright: e2e/platform.spec.ts e2e/auth-security.spec.ts (стенд на :$FRONT_PORT)"
   if (cd "$ROOT" && E2E_BACKEND=1 E2E_REUSE_SERVER=true E2E_BASE_URL="http://127.0.0.1:$FRONT_PORT" npx playwright test ${PLAYWRIGHT_CONFIG:+--config "$PLAYWRIGHT_CONFIG"} e2e/platform.spec.ts e2e/auth-security.spec.ts 2>&1 | tee "$LOG_DIR/e2e-platform.log" | tail -25); then

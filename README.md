@@ -142,10 +142,11 @@ BACKEND_URL=http://localhost:8130 npm run dev
 
 | Роль | Логин | Пароль | № АРМ | Примечание |
 |---|---|---|---|---|
-| Обучающийся | `ivanov` | `student112` | 1 | Иванов С. П., группа ДДС-01 |
+| Обучающийся | `ivanov` | `student112` | 1 | Иванов С. П., группа ДДС-01; профиль «Специалист системы-112» — только задания режима 112 (`spec/008-operator112-student/`) |
+| Обучающийся | `petrova` | `student112` | 2 | Петрова А. Д., группа ДДС-01; профиль не задан — для демонстрации режима ДДС |
 | Преподаватель | `morozova` | `teacher112` | 21 | Морозова Е. С. |
 | Администратор | `admin` | `admin112` | 24 | Соколов А. В. |
-| Заблокированная | `egorov` | `student112` | 6 | для показа отказа входа (403 `accountBlocked`) |
+| Заблокированная | `lebedev` | `student112` | 30 | для показа отказа входа (403 `accountBlocked`); `egorov` (АРМ 6) с 2026-10-20 активен |
 
 ## Проверки
 
@@ -206,7 +207,7 @@ backend/        FastAPI + SQLAlchemy + ML: app/ (api, services, models, schemas,
                 ml/ (assess, classify, generate, nlp, speech), tests/, alembic/;
                 backend/models и backend/var — вне git
 mocks/          рабочая копия мок-данных (генерируется из spec/000-фронт/mocks; local/ и admin/ — app-уровень)
-e2e/            Playwright: smoke, demo-path, platform, two-mode-full-path, auth-security, simulator-visual
+e2e/            Playwright: smoke, demo-path, platform, auth-security, simulator-visual
 scripts/        setup.sh, ai-up.sh, demo-up.sh, sync-mocks.mjs, e2e-*.sh, demo-video/
 spec/, specs/   спецификации фич (фронт) и speckit-пакеты бэкенда
 docs/           артефакты сдачи (см. «Документация»)

@@ -4,10 +4,10 @@
  */
 import type { AuthCredentials } from "@/features/auth-form";
 import { users } from "@/shared/api";
-import type { UserRole } from "@/shared/api";
+import type { TrainingProfile, UserRole } from "@/shared/api";
 import { DEMO_USER_IDS } from "@/shared/config";
 
-import { BLOCKED_DEMO_LOGIN } from "../config/loginContent";
+import { BLOCKED_DEMO_LOGIN, DDS_DEMO_LOGIN } from "../config/loginContent";
 
 /** Тестовая учётка для подсказки (проекция User из mocks/users.json). */
 export type DemoAccount = {
@@ -16,6 +16,8 @@ export type DemoAccount = {
   role: UserRole;
   armNumber: number;
   isActive: boolean;
+  /** Профиль режима обучаемого (spec/008): подпись в подсказке — профиль, а не роль. */
+  trainingProfile?: TrainingProfile;
 };
 
 const ROLES: UserRole[] = ["student", "teacher", "admin"];
@@ -27,16 +29,16 @@ export function isUserRole(role: unknown): role is UserRole {
 function toDemoAccount(login: string): DemoAccount[] {
   const user = users.find((candidate) => candidate.login === login);
   if (!user || !isUserRole(user.role)) return [];
-  const { password, role, armNumber, isActive } = user;
-  return [{ login, password, role, armNumber, isActive }];
+  const { password, role, armNumber, isActive, trainingProfile } = user;
+  return [{ login, password, role, armNumber, isActive, ...(trainingProfile ? { trainingProfile } : {}) }];
 }
 
-/** Подсказки демо-режима: по учётке на роль + заблокированная (демо отказа входа). */
+/** Подсказки демо-режима: по учётке на роль + оператор ДДС + заблокированная (демо отказа входа). */
 export function pickDemoAccounts(): DemoAccount[] {
   const demoLogins = users
     .filter((user) => Object.values<string>(DEMO_USER_IDS).includes(user.id))
     .map((user) => user.login)
-    .concat(BLOCKED_DEMO_LOGIN);
+    .concat(DDS_DEMO_LOGIN, BLOCKED_DEMO_LOGIN);
   return demoLogins.flatMap(toDemoAccount);
 }
 

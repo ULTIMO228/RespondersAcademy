@@ -5,16 +5,16 @@ import { AmendBlock } from "./AmendBlock";
 import { ApplicantRow } from "./ApplicantRow";
 import { CardHeader } from "./CardHeader";
 import { CardLinks } from "./CardLinks";
-import { DispatcherAction } from "./DispatcherAction";
 import { EventJournal } from "./EventJournal";
 import { PhoneBar } from "./PhoneBar";
 import { WhatHappened } from "./WhatHappened";
-import { WorkLines } from "./WorkLines";
 
 import styles from "./IncidentCardView.module.css";
 
 /**
  * Карточка происшествия в режиме диспетчера ДДС (spec/000-фронт/04-pages/02-arm-card.md, ДДС_image6, p23_Image108).
+ * Спека 012: как «Вид карточки на АРМ-112 ДДС» памятки (стр. 23) — без «Действия диспетчера» и отработок: текст и номер
+ * наряда диспетчер вводит в форме статуса своей службы.
  * readOnly — просмотр преподавателем: контролы неактивны/скрыты, без смены статусов, ввода и запросов к API.
  * controls — живой режим обучающегося (данные и действия из pages/incident).
  */
@@ -27,7 +27,7 @@ export function IncidentCardView({
   stateToggleHref,
   timerValue = DEFAULT_TIMER_VALUE,
   reactionValue = DEFAULT_REACTION_VALUE,
-  serviceNames = [],
+  showTimer = true,
   controls,
 }: IncidentCardViewProps) {
   const live = readOnly ? undefined : controls;
@@ -51,6 +51,7 @@ export function IncidentCardView({
           isExceeded={isExceeded}
           timerValue={timerValue}
           reactionValue={reactionValue}
+          showTimer={showTimer}
           stateToggleHref={readOnly ? undefined : stateToggleHref}
           readOnly={readOnly}
           isReactionExceeded={live?.isReactionExceeded}
@@ -78,7 +79,6 @@ export function IncidentCardView({
             extraEntries={live?.journalExtra}
           />
           {amend ? <AmendBlock amend={amend} isLocked={isLocked} /> : null}
-          <DispatcherAction readOnly={readOnly} control={live?.dispatcher} isDisabled={isInputBlocked} />
         </div>
         <div className={styles.card__column}>
           <WhatHappened
@@ -89,13 +89,6 @@ export function IncidentCardView({
           <CardLinks linkedCards={linkedCards} readOnly={readOnly} />
         </div>
       </div>
-      <WorkLines
-        workLines={card.workLines}
-        serviceNames={serviceNames}
-        readOnly={readOnly}
-        control={live?.workLines}
-        isLocked={isInputBlocked}
-      />
     </article>
   );
 }

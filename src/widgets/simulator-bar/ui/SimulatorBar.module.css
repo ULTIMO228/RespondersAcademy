@@ -28,6 +28,16 @@
   box-shadow: var(--focus-ring);
 }
 
+.bar__slot {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.bar__slot:empty {
+  display: none;
+}
+
 .bar__hint {
   margin-left: auto;
 }

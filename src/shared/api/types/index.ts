@@ -1,5 +1,5 @@
 /* Public API контрактных типов мок-слоя (spec/000-фронт/05-data-models.md + транспорт /api/mock/*). */
-export type { AuthPolicy, AuthSession, PublicUser, Role, User } from "./user";
+export type { AuthPolicy, AuthSession, PublicUser, Role, TrainingProfile, User } from "./user";
 export type { CallerStatus, CardStatus, CardStatusDef, ClassifierRowsRef, DdsStatus } from "./reference";
 export type { DdsStatusDef, District, InternalNumber, ReferenceData, ServiceKind } from "./reference";
 export type { ServiceRef, ServiceStatus, ServiceStatusDef } from "./reference";
@@ -107,17 +107,17 @@ export type {
 export type {
   AssignmentRandomRule,
   AssignmentState,
-  ChainReview,
-  ChainSubmitReview,
+  AssignableMode,
   StartAssignmentResult,
 } from "./assignments";
 export type { TrainingMode } from "./assignments";
 export type { AssignmentScenarioVersion } from "./assignments";
 export type { Ticket, TicketOrigin, TicketsQuery } from "./tickets";
+export type { StudentCard, StudentCardDecision, StudentCardEtalon } from "./student-cards";
 export type { GroupInsight, GroupInsights, StudentProfile, TypicalError } from "./lobby";
 export type { Analytics, AnalyticsDynamics, AnalyticsTopError, HistoryItem, HistoryQuery } from "./lobby";
 export type { LobbyMode, Recommendation, RecommendationKind, RecommendationReason, Stats } from "./lobby";
-export type { KbArticle, KbArticlePatch, KbArticlesQuery, KbSections } from "./kb";
+export type { KbArticle, KbArticlePatch, KbArticlesQuery, KbSections, ReferenceAccess } from "./kb";
 export type { ReportAudioResponse, ReportCall, ReportCheck, ReportCheckResult } from "./work-messages";
 export type { ReportTranscriptLine, WorkMessage, WorkMessageKind, WorkMessageStatus } from "./work-messages";
 export type {
@@ -153,6 +153,8 @@ export type {
 } from "./operator112";
 export type { OperatorHintStep } from "./operator112";
 export type { OperatorHints, Street, TicketAudio, TicketAudioStatus } from "./operator112";
+export type { CardChannel, CardDraftLink, CardOutcome } from "./operator112";
+export type { Journal112Response, Journal112Row } from "./operator112";
 export type { HealthStatus } from "./health";
 export type {
   ErrorMapChainLink,
@@ -182,3 +184,16 @@ export type {
   StageLevelWord,
   VerdictKind,
 } from "./error-map";
+export type {
+  RatingGroup,
+  RatingMode,
+  RatingNorms,
+  RatingPeriod,
+  StudentRatingResponse,
+  StudentRatingRow,
+  StudentStats,
+  StudentStatsAttempt,
+  StudentStatsByMode,
+  StudentStatsPoint,
+  StudentStatsSummary,
+} from "./student-rating";

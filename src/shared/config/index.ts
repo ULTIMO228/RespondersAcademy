@@ -5,3 +5,4 @@ export { describeAuditAction, resolveAuditType } from "./auditEvents";
 export { PROFILE_MAPPING_SEED } from "./profileCategories";
 export type { ProfileMappingSeedRow } from "./profileCategories";
 export { ASSIGNMENT_NEW_QUERY, DEMO_USER_IDS, ROUTES } from "./routes";
+export { NO_PROFILE_TITLE, PROFILE_GENITIVE, PROFILE_SHORT, TRAINING_PROFILE_TITLES, allowsMode } from "./trainingProfile";

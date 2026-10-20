@@ -18,6 +18,7 @@ import type { SideNavItem } from "@/shared/ui/platform";
 
 import { isNavEntryActive, PLATFORM_NAV } from "../config/navItems";
 import { resolveCrumbs } from "../lib/breadcrumbs";
+import { visibleNavEntries } from "../model/visibleNav";
 import { toInitials, toShortName } from "../lib/initials";
 
 type PlatformFrameProps = {
@@ -31,7 +32,7 @@ type PlatformFrameProps = {
  */
 export function PlatformFrame({ user, children }: PlatformFrameProps) {
   const pathname = usePathname() ?? "";
-  const items: SideNavItem[] = PLATFORM_NAV[user.role].map((entry) => ({
+  const items: SideNavItem[] = visibleNavEntries(user).map((entry) => ({
     href: entry.href,
     title: entry.title,
     icon: entry.icon,

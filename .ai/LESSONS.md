@@ -94,3 +94,24 @@
 ## L021 persona prompt: limits overshoot
 ❌ fixed «overacting» with hard caps (one filler, 1–2 phrases, answer only) → Qwen literal → dry questionnaire
 ✅ say what IS allowed (feelings, questions) + what is forbidden (new facts); show tone by fact-free examples; check temperature
+## L022 | colors / ARM authenticity
+❌ take a color from spec wording or from another role's screen (owner: "почему оранжевое то, что в АРМ не оранжевое")
+✅ measure pixel on reference of the SAME screen + SAME role (PIL), comment token w/ file+coord; 112 fill card panel #ec653b, DDS panel #49555d
+! same block differs by role/state in real ARM
+
+## L023 | stand restart in cloud container
+❌ `lsof -ti … | xargs kill` → no lsof here, old next-server keeps :3130; new demo-up dies EADDRINUSE, old build answers health check
+✅ `ps aux | grep -E "next-server|next start|uvicorn"` → kill PIDs; check `.next/BUILD_ID` mtime and that BOTH :3130 and :8130 answer before browser checks
+
+## L024 | handoff from another account/session
+❌ read local `.ai/SESSION_STATE.md` without fetching → stale handoff, worked on wrong T007 (004 instead of 009)
+✅ `git fetch origin <branch>` + `git log HEAD..origin/<branch>` BEFORE reading handoff; task ids (TNNN) repeat across specs → resolve by spec folder
+
+
+## L025 | "сделай ДДС" = working DDS login, not only the feature
+❌ scoped DDS account out of 011 and mentioned it only in "вне объёма" → owner opened DDS (egorov) and hit blocked account
+✅ when owner asks for a role/mode: check the demo account for that role actually logs in and lands in its ARM; say explicitly before finishing if it doesn't
+
+## L026 | base branch for owner-visible work
+❌ built 011 on develop while newest front + voice lived in SASHA → owner saw old UI (ARM button at 112, no voice)
+✅ before feature work: git fetch all; compare develop vs active team branches (merge-base, last commits); ask/announce base

@@ -1,5 +1,6 @@
 import type { AssignmentCreateRequest, AssignmentParams } from "@/shared/api";
 
+import { referenceAllowedOf } from "./types";
 import type { StepErrors, WizardDraft } from "./types";
 
 function toInt(value: string): number | null {
@@ -27,18 +28,19 @@ export function validateTickets(draft: WizardDraft): StepErrors {
     return {};
   }
   if (draft.cardIds.length === 0) {
-    return {
-      cardIds:
-        draft.trainingMode === "chain"
-          ? "Выберите утверждённую версию сценария"
-          : "Выберите хотя бы один билет",
-    };
+    const empty = {
+      dds: "Выберите хотя бы один билет или карточку обучающегося-112",
+      operator112: "Выберите хотя бы один билет",
+    } as const;
+    return { cardIds: empty[draft.trainingMode] };
   }
-  if (draft.trainingMode === "chain") {
-    const covered = new Set(draft.scenarioVersions.map((item) => item.cardId));
-    if (draft.cardIds.some((cardId) => !covered.has(cardId))) {
-      return { cardIds: "Для цепочки нужна утверждённая версия operator112 у каждого билета" };
-    }
+  const withoutTarget = draft.studentCards.filter(
+    (item) => item.expectedDecision === "notAccepted" && !item.expectedTransferTo?.trim(),
+  );
+  if (withoutTarget.length > 0) {
+    return {
+      studentCards: `Укажите, кому передана информация: ${withoutTarget.map((item) => item.cardId).join(", ")}`,
+    };
   }
   return {};
 }
@@ -93,6 +95,7 @@ export function buildParams(draft: WizardDraft): AssignmentParams {
     // Экзамен сервер всё равно создаёт без подсказок — фронт не даёт их включить.
     hints: isExam ? { enabled: false } : { enabled: draft.hintsEnabled, idleSec: Number(draft.hintIdleSec) },
     workMessagesEnabled: draft.workMessagesEnabled,
+    referenceAllowed: referenceAllowedOf(draft),
   };
   if (isExam) params.passThreshold = Number(draft.passThreshold);
   if (draft.timeLimitSec.trim() !== "") params.timeLimitSec = Number(draft.timeLimitSec);
@@ -119,7 +122,13 @@ export function buildRequest(draft: WizardDraft): AssignmentCreateRequest {
     };
   } else {
     request.cardIds = draft.cardIds;
-    if (draft.trainingMode === "chain") request.scenarioVersions = draft.scenarioVersions;
+    if (draft.trainingMode === "dds" && draft.studentCards.length > 0) {
+      request.studentCards = draft.studentCards.map((item) =>
+        item.expectedDecision === "notAccepted"
+          ? { ...item, expectedTransferTo: item.expectedTransferTo?.trim() }
+          : { cardId: item.cardId, expectedDecision: item.expectedDecision },
+      );
+    }
   }
   return request;
 }

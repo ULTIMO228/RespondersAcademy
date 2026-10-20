@@ -2,20 +2,20 @@
   "meta": {
     "title": "Пользователи тренажёра (мок)",
     "model": "spec/000-фронт/05-data-models.md → User; МОКИ-ДАННЫЕ п. 1.1",
-    "seed": "1 admin (АРМ 24) + 3 teacher (АРМ 21–23) + 20 student (АРМ 1–20 учебного класса)",
-    "note": "Все ФИО вымышленные. Расширения нормативной схемы User (МОКИ-ДАННЫЕ п. 1.1): password — мок для демо-входа (admin / admin112, преподаватели / teacher112, курсанты / student112); group и service — только у студентов (группы ДДС-01/ДДС-02; профиль: ДДС районов либо учебные профили Мосводоканал/Мосгаз). У курсанта u-010 (egorov) isActive=false — демо отказа входа."
+    "seed": "1 admin (АРМ 24) + 3 teacher (АРМ 21–23) + 21 student (АРМ 1–20 учебного класса и АРМ 30 у заблокированного)",
+    "note": "Все ФИО вымышленные. Расширения нормативной схемы User (МОКИ-ДАННЫЕ п. 1.1): password — мок для демо-входа (admin / admin112, преподаватели / teacher112, курсанты / student112); group и service — только у студентов (группы ДДС-01/ДДС-02; профиль: ДДС районов либо учебные профили Мосводоканал/Мосгаз). У курсанта u-025 (lebedev) isActive=false — демо отказа входа (до 2026-10-20 эту роль играл u-010 egorov, он разблокирован). trainingProfile — профиль режима обучаемого (spec/008): у ivanov (u-005) — специалист-112, служба «ЦОВ системы-112»; у egorov (u-010) — диспетчер ДДС (спека 011, демо оператора ДДС); у остальных не задан."
   },
   "users": [
     { "id": "u-001", "login": "admin", "password": "admin112", "fullName": "Соколов Андрей Викторович", "role": "admin", "armNumber": 24, "isActive": true },
     { "id": "u-002", "login": "morozova", "password": "teacher112", "fullName": "Морозова Елена Сергеевна", "role": "teacher", "armNumber": 21, "isActive": true, "assignedGroups": ["ДДС-01"] },
     { "id": "u-003", "login": "kovalev", "password": "teacher112", "fullName": "Ковалёв Дмитрий Павлович", "role": "teacher", "armNumber": 22, "isActive": true, "assignedGroups": ["ДДС-02"] },
     { "id": "u-004", "login": "vinogradova", "password": "teacher112", "fullName": "Виноградова Ирина Николаевна", "role": "teacher", "armNumber": 23, "isActive": true },
-    { "id": "u-005", "login": "ivanov", "password": "student112", "fullName": "Иванов Сергей Петрович", "role": "student", "armNumber": 1, "isActive": true, "group": "ДДС-01", "service": "ДДС района Чертаново Южное" },
+    { "id": "u-005", "login": "ivanov", "password": "student112", "fullName": "Иванов Сергей Петрович", "role": "student", "armNumber": 1, "isActive": true, "group": "ДДС-01", "service": "ЦОВ системы-112", "trainingProfile": "operator112" },
     { "id": "u-006", "login": "petrova", "password": "student112", "fullName": "Петрова Анна Дмитриевна", "role": "student", "armNumber": 2, "isActive": true, "group": "ДДС-01", "service": "ДДС района Чертаново Южное" },
     { "id": "u-007", "login": "sidorova", "password": "student112", "fullName": "Сидорова Мария Игоревна", "role": "student", "armNumber": 3, "isActive": true, "group": "ДДС-01", "service": "ДДС района Зюзино" },
     { "id": "u-008", "login": "kuzmin", "password": "student112", "fullName": "Кузьмин Олег Андреевич", "role": "student", "armNumber": 4, "isActive": true, "group": "ДДС-01", "service": "Мосводоканал (учебный профиль)" },
     { "id": "u-009", "login": "vasileva", "password": "student112", "fullName": "Васильева Ольга Николаевна", "role": "student", "armNumber": 5, "isActive": true, "group": "ДДС-01", "service": "Мосгаз (учебный профиль)" },
-    { "id": "u-010", "login": "egorov", "password": "student112", "fullName": "Егоров Павел Сергеевич", "role": "student", "armNumber": 6, "isActive": false, "group": "ДДС-01", "service": "ДДС района Обручевский" },
+    { "id": "u-010", "login": "egorov", "password": "student112", "fullName": "Егоров Павел Сергеевич", "role": "student", "armNumber": 6, "isActive": true, "group": "ДДС-01", "service": "ДДС района Обручевский", "trainingProfile": "dds" },
     { "id": "u-011", "login": "nikolaeva", "password": "student112", "fullName": "Николаева Дарья Андреевна", "role": "student", "armNumber": 7, "isActive": true, "group": "ДДС-01", "service": "ДДС района Зюзино" },
     { "id": "u-012", "login": "fedorov", "password": "student112", "fullName": "Фёдоров Максим Игоревич", "role": "student", "armNumber": 8, "isActive": true, "group": "ДДС-01", "service": "Мосводоканал (учебный профиль)" },
     { "id": "u-013", "login": "orlova", "password": "student112", "fullName": "Орлова Ксения Дмитриевна", "role": "student", "armNumber": 9, "isActive": true, "group": "ДДС-01", "service": "ДДС района Царицыно" },
@@ -29,6 +29,7 @@
     { "id": "u-021", "login": "pavlov", "password": "student112", "fullName": "Павлов Кирилл Дмитриевич", "role": "student", "armNumber": 17, "isActive": true, "group": "ДДС-02", "service": "ДДС района Чертаново Южное" },
     { "id": "u-022", "login": "semenova", "password": "student112", "fullName": "Семёнова Алина Сергеевна", "role": "student", "armNumber": 18, "isActive": true, "group": "ДДС-02", "service": "Мосводоканал (учебный профиль)" },
     { "id": "u-023", "login": "gusev", "password": "student112", "fullName": "Гусев Владимир Олегович", "role": "student", "armNumber": 19, "isActive": true, "group": "ДДС-02", "service": "ДДС района Царицыно" },
-    { "id": "u-024", "login": "kiseleva", "password": "student112", "fullName": "Киселёва Полина Андреевна", "role": "student", "armNumber": 20, "isActive": true, "group": "ДДС-02", "service": "Мосгаз (учебный профиль)" }
+    { "id": "u-024", "login": "kiseleva", "password": "student112", "fullName": "Киселёва Полина Андреевна", "role": "student", "armNumber": 20, "isActive": true, "group": "ДДС-02", "service": "Мосгаз (учебный профиль)" },
+    { "id": "u-025", "login": "lebedev", "password": "student112", "fullName": "Лебедев Антон Игоревич", "role": "student", "armNumber": 30, "isActive": false, "group": "ДДС-01", "service": "ДДС района Обручевский" }
   ]
 }

@@ -12,3 +12,4 @@ export { CARD_CLOSE_HOLD_MS, createTelephonyStore, getNextTelephonyStatus } from
 export { TELEPHONY_STATUS_TITLES, TELEPHONY_STATUSES, telephonyStore } from "./model/telephony";
 export type { TelephonyStatus, TelephonyStore } from "./model/telephony";
 export { useCardTelephonyHold, useTelephonyStatus } from "./model/useTelephony";
+export { resolveTraineeServiceId } from "./model/traineeService";

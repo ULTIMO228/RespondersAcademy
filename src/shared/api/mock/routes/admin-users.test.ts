@@ -28,8 +28,8 @@ const BASE = "http://localhost/api/mock/admin/users";
 const ADMIN_ID = "u-001";
 const TEACHER_ID = "u-002";
 const STUDENT_ID = "u-005";
-const BLOCKED_ID = "u-010";
-const USER_COUNT = 24;
+const BLOCKED_ID = "u-025";
+const USER_COUNT = 25;
 
 type RouteHandler = (request: Request, context: { params: Promise<{ id: string }> }) => Promise<Response>;
 
@@ -95,7 +95,7 @@ describe("GET /api/mock/admin/users — фильтры и поиск (T4.1-02)",
     expect(users.every((user) => !("password" in user))).toBe(true);
   });
 
-  it("role=student&state=blocked → u-010", async () => {
+  it("role=student&state=blocked → u-025", async () => {
     const users = await list("?role=student&state=blocked");
     expect(users.map((user) => user.id)).toEqual([BLOCKED_ID]);
   });
@@ -107,8 +107,8 @@ describe("GET /api/mock/admin/users — фильтры и поиск (T4.1-02)",
   });
 
   it("поиск q регистронезависим, по ФИО и по логину", async () => {
-    expect((await list("?q=EGOROV")).map((user) => user.id)).toEqual([BLOCKED_ID]);
-    expect((await list("?q=егоров")).map((user) => user.id)).toEqual([BLOCKED_ID]);
+    expect((await list("?q=LEBEDEV")).map((user) => user.id)).toEqual([BLOCKED_ID]);
+    expect((await list("?q=лебедев")).map((user) => user.id)).toEqual([BLOCKED_ID]);
     expect((await list("?q=Морозова")).map((user) => user.id)).toEqual([TEACHER_ID]);
   });
 
@@ -184,6 +184,31 @@ describe("PATCH /api/mock/admin/users/[id] — редактирование и �
     expect(updated.assignedGroups).toEqual(["ДДС-01", "ДДС-02"]);
     const roleEntry = (await audit()).find((entry) => entry.action === "user.roleChange");
     expect(roleEntry?.details).toContain("«Обучающийся» → «Преподаватель»");
+  });
+
+  it("профиль режима (spec/008): ivanov — специалист-112; смена и сброс пишутся в аудит, мусор → 400", async () => {
+    const ivanov = (await list()).find((user) => user.id === STUDENT_ID);
+    expect(ivanov?.trainingProfile).toBe("operator112");
+    expect(ivanov?.service).toBe("ЦОВ системы-112");
+
+    const reset = await patch(STUDENT_ID, { adminId: ADMIN_ID, trainingProfile: null });
+    expect(reset.status).toBe(200);
+    expect((await reset.json()).trainingProfile).toBeUndefined();
+    expect((await audit())[0].details).toContain("профиль «Специалист системы-112» → «Не задан»");
+
+    const dds = await patch(STUDENT_ID, { adminId: ADMIN_ID, trainingProfile: "dds" });
+    expect((await dds.json()).trainingProfile).toBe("dds");
+    const kept = await patch(STUDENT_ID, { adminId: ADMIN_ID, fullName: "Иванов Сергей Петрович (2)" });
+    expect((await kept.json()).trainingProfile).toBe("dds");
+
+    const bad = await patch(STUDENT_ID, { adminId: ADMIN_ID, trainingProfile: "chain" });
+    expect(bad.status).toBe(400);
+    const teacher = await patch(STUDENT_ID, {
+      adminId: ADMIN_ID,
+      role: "teacher",
+      assignedGroups: ["ДДС-01"],
+    });
+    expect((await teacher.json()).trainingProfile).toBeUndefined();
   });
 
   it("правка без изменений не засоряет журнал аудита", async () => {

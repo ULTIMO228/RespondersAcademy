@@ -13,11 +13,10 @@ import {
   hasAnswerTimeout,
   isReplayBlocked,
   talkSeconds,
+  useCallerAudio,
 } from "@/entities/operator112-attempt";
-import type { AttemptNorms } from "@/entities/operator112-attempt";
+import type { AttemptNorms, CallerAudioLoader } from "@/entities/operator112-attempt";
 
-import { useCallerAudio } from "../model/useCallerAudio";
-import type { CallerAudioLoader } from "../model/useCallerAudio";
 import { RealtimeCaller } from "./RealtimeCaller";
 
 import styles from "./Operator112Softphone.module.css";
@@ -44,7 +43,8 @@ export type Operator112SoftphoneProps = {
  * разговора, плеер записи заявителя, аварийный транскрипт. Оформление — токены softphone/АРМ, форм новых контролов нет.
  */
 export function Operator112Softphone(props: Operator112SoftphoneProps) {
-  return APP_ENV.liveCallsEnabled && props.format === "training" ? (
+  // Решение владельца 2026-10-20 (спека 009, R6): живой заявитель и в тренировке, и в экзамене; запись — при выключенном флаге.
+  return APP_ENV.liveCallsEnabled ? (
     <RealtimeCaller {...props} />
   ) : (
     <RecordedOperator112Softphone {...props} />

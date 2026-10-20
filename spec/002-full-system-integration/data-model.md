@@ -15,7 +15,7 @@
 |---|---|---|
 | `id` | string | `asg-NNN` |
 | `teacherId`, `studentIds[]` | string / string[] | |
-| `trainingMode` | `dds` \| `operator112` \| `chain` | Определяет, какой экран открывать |
+| `trainingMode` | `dds` \| `operator112` \| `chain` | Определяет, какой экран открывать | `chain` выведен 20.10.2026 (spec/007 Clarifications): приходит только у старых заданий, создать нельзя (`AssignableMode`).
 | `format` | `training` \| `exam` | Экзамен: подсказки выключены сервером |
 | `cardIds[]` | string[] | Билеты; при `randomRule` — набор считается сервером |
 | `params` | объект | `norms{answerSec,submitSec}`, `hints{enabled,idleSec,steps?}`, `passThreshold?`, `timeLimitSec?`, `maxGrammarErrors?`, `workMessagesEnabled?`, `workMessageIntervalsSec?` |
@@ -29,7 +29,7 @@
 | `studentId`, `cardId`, `attemptId` | string | |
 | `state` | `ringing` \| `answered` \| `submitted` \| `notCompleted` | Состояние ссылки «задание ↔ попытка» |
 | `score?`, `passed?` | int / bool | `passed` пуст для тренировки без порога |
-| `chainReview?` | `{ scenarioId, version, approval, validation }` | Только `chain`, только после `submit` этапа A |
+| `chainReview?` | `{ scenarioId, version, approval, validation }` | Только `chain`, только после `submit` этапа A | *(выведено 20.10.2026: режим `chain` убран, см. spec/007 Clarifications)* — поле удалено из ответа.
 
 **Правила**: студенту видны только задания, где он назначен (403 иначе, `assignment_service.py:170-175`); запуск возможен, пока `state = active`; повторный `start` возвращает открытую попытку.
 
@@ -107,6 +107,8 @@
 **Ограничения входа**: WAV моно PCM 16 бит, 8 или 16 кГц, ≤ 20 МБ, непустой; иначе 400.
 
 ### 1.13. Вход ДДС цепочки — `ChainReview`
+
+> **Режим `chain` выведен 20.10.2026, см. [spec/007 Clarifications](../007-arm-one-to-one/spec.md#clarifications).** Тип `ChainReview`/`ChainSubmitReview` удалён из фронта и бэкенда.
 `{ scenarioId, version, approval, validation }`. В БД — версия сценария `mode = dds`, `sourceKind = student_card`, `approval = pending_review → approved` (подтверждает преподаватель/администратор `POST /ai/scenarios/{scenarioId}/approve` с `{ version, requestId }`); карточка обучающегося получает `sourceCardId` = исходный билет.
 
 ---

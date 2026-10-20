@@ -116,3 +116,38 @@ def test_components_and_weights_normalized(reference):
     assert all(0.0 <= c["score"] <= 1.0 for c in components.values())
     assert components["address"]["details"]["applicable"] is False
     assert components["report"]["details"]["applicable"] is False
+
+
+# ─── Фича 012: ДДС как в памятке ──────────────────────────────────────────────────────────────────
+
+
+def _memo_attempt(reference: dict, *, comment: str, duty: str) -> dict:
+    doc = load("etalon")
+    attempt = dict(doc["attempt"])
+    attempt["enteredText"] = {}
+    attempt["calls"] = []
+    attempt["servicesCalled"] = []
+    statuses = [dict(s) for s in attempt.get("statuses") or []]
+    for mark in statuses:
+        mark.pop("dutyNumber", None)
+        if mark.get("ddsStatus") == "accepted":
+            mark["comment"] = comment
+            if duty:
+                mark["dutyNumber"] = duty
+    attempt["statuses"] = statuses
+    scenario = dict(doc["scenario"])
+    scenario["successCriteria"] = {**(scenario.get("successCriteria") or {}), "requiredFields": ["dispatcherAction", "outfitNumber"]}
+    return {**doc, "attempt": attempt, "scenario": scenario}
+
+
+def test_required_fields_are_closed_by_status_form(reference):
+    """Памятка, стр. 23–24: в карточке ДДС нет «Действия диспетчера» — текст и номер наряда пишутся в форме статуса."""
+    evaluation = evaluate(_memo_attempt(reference, comment="Сообщение принято, бригада направлена на место", duty="Н-215"), reference)
+    assert "requiredFieldMissing" not in types(evaluation)
+
+
+def test_required_fields_missing_in_status_form_are_named_humanly(reference):
+    evaluation = evaluate(_memo_attempt(reference, comment="", duty=""), reference)
+    messages = [e["message"] for e in evaluation["errors"] if e["type"] == "requiredFieldMissing"]
+    assert messages and all("dispatcherAction" not in m and "outfitNumber" not in m for m in messages)
+    assert any("номер наряда" in m for m in messages)

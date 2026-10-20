@@ -32,10 +32,26 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 /** Cookie мок-сессии текущего обучающегося: серверный fetch мок-слоя определяет пользователя по ней. */
 let sessionCookie: string | undefined;
 
-function student(id: string, armNumber = 1): PublicUser {
+function student(id: string, armNumber = 1, service?: string): PublicUser {
   ensureTestStudent(id);
   sessionCookie = buildSessionCookie(id);
-  return { id, login: id, fullName: "Иванов Сергей Петрович", role: "student", armNumber, isActive: true };
+  return {
+    id,
+    login: id,
+    fullName: "Иванов Сергей Петрович",
+    role: "student",
+    armNumber,
+    isActive: true,
+    service,
+  };
+}
+
+/** Плитка панели служб, в которой стоит карандаш «Сменить статус» (блок своей службы, памятка стр. 24). */
+function pencilTile(): HTMLElement {
+  const pencil = screen.getByRole("button", { name: "Сменить статус (Alt + E)" });
+  const tile = pencil.closest<HTMLElement>("[data-active]");
+  if (!tile) throw new Error("Карандаш не в плитке службы");
+  return tile;
 }
 
 let fetcher: MockApiFetch;
@@ -91,6 +107,38 @@ describe("IncidentScreen — загрузка и попытка (T2.3-01)", () =
     expect(attempts).toHaveLength(1);
   });
 
+  it("спека 012 FR-001/FR-002: в шапке карточки нет таймера, нормативы 0:30 и 3:00 — в полосе тренажёра", async () => {
+    render(
+      <>
+        <div data-simulator-bar data-testid="simulator-bar">
+          <div data-simulator-bar-slot />
+        </div>
+        <IncidentScreen cardId="c-094" student={student("u-106")} />
+      </>,
+    );
+    const header = await screen.findByTestId("card-header", {}, { timeout: 4000 });
+    expect(within(header.parentElement as HTMLElement).queryByRole("timer")).toBeNull();
+    expect(screen.queryByText(/Реакция:/)).toBeNull();
+    const bar = screen.getByTestId("simulator-bar");
+    const norms = await within(bar).findByTestId("trainer-norms");
+    expect(norms).toHaveTextContent("норматив 0:30");
+    expect(norms).toHaveTextContent("норматив 3:00");
+    expect(within(norms).getByRole("timer")).toHaveAttribute("data-exceeded", "false");
+  });
+
+  it("спека 012 FR-007: у egorov (ДДС района Обручевский) карандаш на «Упр. Обручевский», не на чужой службе", async () => {
+    await renderCard("c-096", student("u-010", 6, "ДДС района Обручевский"));
+    expect(screen.getAllByRole("button", { name: "Сменить статус (Alt + E)" })).toHaveLength(1);
+    expect(pencilTile()).toHaveTextContent("Упр. Обручевский");
+    expect(pencilTile()).toHaveTextContent(/Получена службой/);
+  });
+
+  it("спека 012 FR-007: у petrova (ДДС района Чертаново Южное) карандаш на «Упр. Чертаново Южное»", async () => {
+    await renderCard("c-095", student("u-006", 2, "ДДС района Чертаново Южное"));
+    expect(screen.getAllByRole("button", { name: "Сменить статус (Alt + E)" })).toHaveLength(1);
+    expect(pencilTile()).toHaveTextContent("Упр. Чертаново Южное");
+  });
+
   it("неизвестная карточка → сообщение и ссылка в список", async () => {
     render(<IncidentScreen cardId="card-000" student={student("u-103")} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("не найдена");
@@ -127,7 +175,6 @@ describe("IncidentScreen — статусы, итог, хоткеи (T2.3-12, T2
       "/arm/card/c-095",
     );
     fireEvent.click(within(result).getByRole("button", { name: "Просмотр карточки" }));
-    expect(screen.getByLabelText("Действие диспетчера")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Сменить статус (Alt + E)" })).toBeNull();
   });
 
@@ -168,34 +215,24 @@ describe("IncidentScreen — потеря соединения (T2.3-20)", () =>
   });
 });
 
-describe("IncidentScreen — подсказки и «Действие диспетчера» (T2.3-13, T2.3-09)", () => {
+describe("IncidentScreen — подсказки; без «Действия диспетчера» (T2.3-13, спека 012)", () => {
   it("hints.enabled: плашка с текстом шага меняется после «Принята»; без флага плашки нет", async () => {
     await renderCard("c-004", student("u-107"));
     const hint = screen.getByRole("complementary", { name: "Подсказка" });
-    expect(hint).toHaveTextContent("Откройте карточку в течение 30 секунд");
+    expect(hint).toHaveTextContent("Откройте карточку и в течение 30 секунд");
     await setStatus("Принята");
-    await waitFor(() => expect(hint).toHaveTextContent("Задымление без открытого пламени"));
+    await waitFor(() => expect(hint).toHaveTextContent("Ход работ — по факту информации от бригады"));
     cleanupScreen();
     await renderCard("c-094", student("u-108"));
     expect(screen.queryByRole("complementary", { name: "Подсказка" })).toBeNull();
   });
 
-  it("ввод автосохраняется в буфер (курсант + карточка), уходит в enteredText и переживает перезагрузку", async () => {
-    const first = await renderCard("card-36814853", student("u-109"));
-    fireEvent.change(screen.getByLabelText("Действие диспетчера"), {
-      target: { value: "Сообщение принято" },
-    });
-    fireEvent.change(screen.getByLabelText("Номер наряда"), { target: { value: "Н-5" } });
-    await waitFor(() =>
-      expect(window.localStorage.getItem("arm112:draft:u-109:card-36814853")).toContain("Н-5"),
-    );
-    await waitFor(() =>
-      expect(fetcher.calls.some((call) => /POST \/attempts\/.+\/progress/.test(call))).toBe(true),
-    );
-    first.unmount();
+  it("текст и номер наряда — только в форме статуса своей службы (памятка, стр. 24)", async () => {
     await renderCard("card-36814853", student("u-109"));
-    expect(screen.getByLabelText("Действие диспетчера")).toHaveValue("Сообщение принято");
-    expect(screen.getByLabelText("Номер наряда")).toHaveValue("Н-5");
+    expect(screen.queryByLabelText("Действие диспетчера")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Сменить статус (Alt + E)" }));
+    expect(screen.getByLabelText("Номер наряда")).toBeInTheDocument();
+    expect(screen.getByLabelText("Комментарий")).toBeInTheDocument();
   });
 
   it("входящая СМС-карточка: текст СМС предзаполняет «Описание со слов заявителя»", async () => {

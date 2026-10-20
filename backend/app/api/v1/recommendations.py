@@ -11,6 +11,7 @@ from app.api.deps import Viewer, require_role
 from app.api.errors import forbidden
 from app.db.session import get_db
 from app.schemas.common import read_int, read_string
+from app.services import error_map_access
 from app.services import recommendation_service as service
 
 router = APIRouter()
@@ -38,6 +39,8 @@ async def accept(rec_id: str, db: AsyncSession = Depends(get_db),
 @router.get("/teacher/students/{student_id}/profile")
 async def student_profile(student_id: str, db: AsyncSession = Depends(get_db),
                           viewer: Viewer = Depends(teacher_or_admin)) -> dict[str, Any]:
+    # Только обучающиеся закреплённых групп; администратор — любой (спека 006, FR-009; ТЗ §8).
+    await error_map_access.require_student_access(db, viewer, student_id)
     result = await service.profile(db, student_id)
     await db.commit()
     return result

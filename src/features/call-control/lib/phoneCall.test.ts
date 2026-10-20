@@ -56,9 +56,22 @@ describe("сборка PhoneCall", () => {
   });
 
   it("пропуск ожидаемого звонка попадает в Evaluation (missedRequiredCall), выполненный — нет", () => {
-    const scenario = scenarios.find((candidate) => candidate.cardIds.includes("c-095"));
-    if (!scenario) throw new Error("нет сценария c-095");
-    const call = finishCall({ number: "103", subscriberTitle: "СМП" }, STARTED_AT, STARTED_AT + 1000, LINES);
+    const found = scenarios.find((candidate) => candidate.cardIds.includes("c-095"));
+    if (!found) throw new Error("нет сценария c-095");
+    // Спека 012: ожидаемые звонки ДДС — только доклад точке C (в датасете их нет, задаём в тесте).
+    const scenario = {
+      ...found,
+      etalon: {
+        ...found.etalon,
+        expectedActions: ["openCard:c-095", "status:accepted", "call:301", "call:302"],
+      },
+    };
+    const call = finishCall(
+      { number: "301", subscriberTitle: "Руководитель смены" },
+      STARTED_AT,
+      STARTED_AT + 1000,
+      LINES,
+    );
     const { studentId, ...phoneCall } = buildCardCallRequest(call, "u-005");
     const attempt: CardEventContract = {
       id: "att-test",
@@ -76,9 +89,6 @@ describe("сборка PhoneCall", () => {
     const missed = generateEvaluation(attempt, scenario.etalon, scenario.successCriteria)
       .errors.filter((error) => error.type === "missedRequiredCall")
       .map((error) => error.message);
-    expect(missed).toEqual([
-      "Пропущен ожидаемый звонок точке C (102)",
-      "Пропущен ожидаемый звонок точке C (101)",
-    ]);
+    expect(missed).toEqual(["Пропущен ожидаемый звонок точке C (302)"]);
   });
 });

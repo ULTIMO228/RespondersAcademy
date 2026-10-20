@@ -1,10 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Mocked } from "vitest";
 
 import { MODE_TITLES } from "@/entities/assignment";
-import { ApiError } from "@/shared/api";
-import type { AIScenarioVersion, PublicUser, Scenario, Ticket } from "@/shared/api";
+import { ApiError, ServerRequiredError } from "@/shared/api";
+import type { PublicUser, StudentCard, Ticket } from "@/shared/api";
 
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
 import { AssignmentWizard } from "./AssignmentWizard";
@@ -30,14 +30,20 @@ const ticket = (id: string, group: string, approved = true): Ticket =>
     modeOrigin: "seed",
   }) as unknown as Ticket;
 
-const version = (approval: AIScenarioVersion["approval"], number: number): AIScenarioVersion =>
-  ({
-    scenarioId: "sc-1",
-    version: number,
-    mode: "operator112",
-    approval,
-    cardSnapshot: { id: "c-500", fields: {} },
-  }) as unknown as AIScenarioVersion;
+const studentCard = (id: string, proposed: StudentCard["proposed"]): StudentCard => ({
+  id,
+  group: "Пожар",
+  summary: `Карточка ${id} обучающегося`,
+  address: "Москва, ул. Дубнинская, 2",
+  authorId: "u-005",
+  authorName: "Иванов Иван",
+  authorGroup: "Группа 1",
+  registeredAt: "2026-10-20T10:00:00.000Z",
+  sourceCardId: "c-010",
+  selectedServices: ["Мосводоканал"],
+  ticketServices: ["101 (главная)"],
+  proposed,
+});
 
 function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
   const api = {
@@ -53,8 +59,14 @@ function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
       .fn()
       .mockResolvedValue([ticket("c-010", "Пожар"), ticket("c-020", "ДТП"), ticket("c-030", "Пожар", false)]),
     listIncidentGroups: vi.fn().mockResolvedValue(["Пожар", "ДТП"]),
-    listScenarios: vi.fn().mockResolvedValue([{ id: "sc-1", title: "Сценарий один" } as Scenario]),
-    listScenarioVersions: vi.fn().mockResolvedValue([version("approved", 2), version("pending_review", 3)]),
+    listStudentCards: vi.fn().mockResolvedValue([
+      studentCard("c-901", { cardId: "c-901", expectedDecision: "accepted" }),
+      studentCard("c-902", {
+        cardId: "c-902",
+        expectedDecision: "notAccepted",
+        expectedTransferTo: "101 (главная)",
+      }),
+    ]),
     create: vi.fn().mockResolvedValue({ id: "asg-010" }),
     ...overrides,
   };
@@ -177,26 +189,14 @@ describe("мастер назначения", () => {
     expect(screen.getByRole("button", { name: "Создать задание" })).toBeEnabled();
   });
 
-  it("цепочка: выбираются только утверждённые версии operator112, у каждого билета — своя версия", async () => {
-    const api = makeApi();
-    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+  it("режимы — только 112 и ДДС: цепочки 112 → ДДС в мастере нет (выведена 20.10.2026)", async () => {
+    render(
+      <AssignmentWizard api={makeApi()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />,
+    );
     await pickStudent(/Иванов Иван/);
     next();
-    fireEvent.click(screen.getByRole("radio", { name: /Цепочка/ }));
-    next();
-    fireEvent.click(await screen.findByRole("button", { name: "Показать утверждённые версии" }));
-    const versionRow = await screen.findByRole("checkbox", { name: /Версия 2/ });
-    expect(screen.queryByRole("checkbox", { name: /Версия 3/ })).not.toBeInTheDocument();
-    fireEvent.click(versionRow);
-    next();
-    next();
-    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
-    await waitFor(() => expect(api.create).toHaveBeenCalled());
-    expect(api.create.mock.calls[0][0]).toMatchObject({
-      trainingMode: "chain",
-      cardIds: ["c-500"],
-      scenarioVersions: [{ scenarioId: "sc-1", version: 2, cardId: "c-500" }],
-    });
+    expect(screen.getAllByRole("radio", { name: /Режим (112|ДДС)/ })).toHaveLength(2);
+    expect(screen.queryByRole("radio", { name: /Цепочка/ })).not.toBeInTheDocument();
   });
 
   it("Отмена вызывает onCancel; «Назад» возвращает к прошлому шагу с сохранённым выбором", async () => {
@@ -354,5 +354,198 @@ describe("мастер назначения: начальные значения
     next();
     expect(await screen.findByText("c-010")).toBeInTheDocument();
     expect(screen.queryByText(/Подберите билеты/)).not.toBeInTheDocument();
+  });
+});
+
+describe("мастер назначения: профиль режима обучаемого (spec/008)", () => {
+  const withProfile = () =>
+    makeApi({
+      listStudents: vi
+        .fn()
+        .mockResolvedValue([
+          { ...student("u-005", "Иванов Сергей Петрович", "Группа 1"), trainingProfile: "operator112" },
+          student("u-006", "Петрова Анна Дмитриевна", "Группа 1"),
+        ]),
+    });
+
+  async function toMode(api: ReturnType<typeof makeApi>, names: RegExp[]) {
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    for (const name of names) await pickStudent(name);
+    next();
+  }
+
+  it("метка «112» у курсанта с профилем на шаге «Обучающиеся»", async () => {
+    render(
+      <AssignmentWizard api={withProfile()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />,
+    );
+    const ivanov = await screen.findByRole("checkbox", { name: /Иванов Сергей Петрович/ });
+    expect(ivanov.closest("label")).toHaveTextContent("112");
+    expect(screen.getByTitle("Профиль: Специалист системы-112")).toBeInTheDocument();
+  });
+
+  it("ivanov + petrova → ДДС: предупреждение о пропуске, в запросе только petrova", async () => {
+    const api = withProfile();
+    await toMode(api, [/Иванов Сергей/, /Петрова Анна/]);
+    expect(screen.queryByText(/Пропущены/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    expect(screen.getByText("Пропущены (профиль специалиста-112): Иванов С. П.")).toBeInTheDocument();
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    next();
+    next();
+    expect(screen.getByText("Петрова Анна Дмитриевна")).toBeInTheDocument();
+    expect(screen.getByText("Пропущены (профиль режима)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-006"], trainingMode: "dds" });
+  });
+
+  it("курсант с профилем ДДС проходит шаг «Обучающиеся» при режиме 112 по умолчанию и назначается в ДДС", async () => {
+    const api = makeApi({
+      listStudents: vi
+        .fn()
+        .mockResolvedValue([
+          { ...student("u-010", "Егоров Павел Сергеевич", "Группа 1"), trainingProfile: "dds" },
+        ]),
+    });
+    await toMode(api, [/Егоров Павел/]);
+    expect(screen.getByRole("heading", { name: "Режим и формат" })).toBeInTheDocument();
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent("Нет обучающихся для режима 112");
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-010"], trainingMode: "dds" });
+  });
+
+  it("только ivanov → ДДС: ошибка шага, дальше не пускает", async () => {
+    await toMode(withProfile(), [/Иванов Сергей/]);
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Нет обучающихся для режима ДДС: у выбранных профиль специалиста-112",
+    );
+    expect(screen.getByRole("heading", { name: "Режим и формат" })).toBeInTheDocument();
+  });
+
+  it("ivanov → 112: попадает в задание без предупреждений", async () => {
+    const api = withProfile();
+    await toMode(api, [/Иванов Сергей/]);
+    expect(screen.queryByText(/Пропущены/)).not.toBeInTheDocument();
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-005"], trainingMode: "operator112" });
+  });
+});
+
+describe("мастер назначения: карточки обучающихся-112 для ДДС (спека 011)", () => {
+  async function toDdsTickets(api: Mocked<AssignmentCreateApi>) {
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    await pickStudent(/Петров Пётр/);
+    next();
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    next();
+    await screen.findByText("c-010");
+  }
+
+  const bank = () => screen.getByRole("group", { name: "Карточки обучающихся-112" });
+
+  it("отбор карточки с эталоном, предложенным системой, и правка эталона преподавателем", async () => {
+    const api = makeApi();
+    await toDdsTickets(api);
+    expect(await screen.findByRole("checkbox", { name: /c-901/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-010/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-901/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-902/ }));
+    // Предложение системы: c-902 — «Не принята», адресат заполнен из билета.
+    expect(screen.getByLabelText("Кому передана информация (c-902)")).toHaveValue("101 (главная)");
+    expect(
+      within(bank()).getAllByText(/По билету: 101 \(главная\) · выбрал обучающийся-112: Мосводоканал/),
+    ).toHaveLength(2);
+    // Преподаватель меняет эталон c-901 на «Не принята» и указывает адресата.
+    fireEvent.click(screen.getByRole("radio", { name: /^Не принята\s*\(c-901\)$/ }));
+    fireEvent.change(screen.getByLabelText("Кому передана информация (c-901)"), {
+      target: { value: "  УК «ПИК»  " },
+    });
+    next();
+    next();
+    expect(screen.getByText(/c-901: Не принята → УК «ПИК»/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        trainingMode: "dds",
+        cardIds: ["c-010", "c-901", "c-902"],
+        studentCards: [
+          { cardId: "c-901", expectedDecision: "notAccepted", expectedTransferTo: "УК «ПИК»" },
+          { cardId: "c-902", expectedDecision: "notAccepted", expectedTransferTo: "101 (главная)" },
+        ],
+      }),
+    );
+  });
+
+  it("«Не принята» без адресата не пускает дальше; снятая карточка уходит из запроса", async () => {
+    const api = makeApi();
+    await toDdsTickets(api);
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-902/ }));
+    fireEvent.change(screen.getByLabelText("Кому передана информация (c-902)"), { target: { value: " " } });
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent("Укажите, кому передана информация: c-902");
+    fireEvent.click(screen.getByRole("radio", { name: /^Принята\s*\(c-902\)$/ }));
+    expect(screen.queryByLabelText("Кому передана информация (c-902)")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-901/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-901/ }));
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        cardIds: ["c-902"],
+        studentCards: [{ cardId: "c-902", expectedDecision: "accepted" }],
+      }),
+    );
+  });
+
+  it("без бэкенда блок банка показывает «требуется сервер», билеты выбираются как обычно", async () => {
+    const api = makeApi({ listStudentCards: vi.fn().mockRejectedValue(new ServerRequiredError()) });
+    await toDdsTickets(api);
+    expect(await within(bank()).findByText(/сервер/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: /c-010/ }));
+    next();
+    expect(screen.getByLabelText("Реакция на вызов, сек")).toBeInTheDocument();
+  });
+
+  it("пустой банк и ошибка загрузки показываются, а не прячутся", async () => {
+    const empty = makeApi({ listStudentCards: vi.fn().mockResolvedValue([]) });
+    await toDdsTickets(empty);
+    expect(await within(bank()).findByText("Обучающиеся-112 ещё не сохраняли карточки")).toBeInTheDocument();
+  });
+
+  it("ошибка загрузки банка показывается с повтором", async () => {
+    const failing = makeApi({
+      listStudentCards: vi.fn().mockRejectedValue(new ApiError(500, "internal", "Сбой банка")),
+    });
+    await toDdsTickets(failing);
+    expect(await within(bank()).findByText("Сбой банка")).toBeInTheDocument();
+  });
+
+  it("в режиме 112 блока банка нет, банк не запрашивается", async () => {
+    const api = makeApi();
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    await pickStudent(/Иванов Иван/);
+    next();
+    next();
+    await screen.findByText("c-010");
+    expect(screen.queryByRole("group", { name: "Карточки обучающихся-112" })).not.toBeInTheDocument();
+    expect(api.listStudentCards).not.toHaveBeenCalled();
   });
 });

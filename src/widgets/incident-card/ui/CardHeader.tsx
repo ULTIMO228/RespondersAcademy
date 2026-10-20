@@ -14,6 +14,8 @@ type CardHeaderProps = {
   isExceeded: boolean;
   timerValue: string;
   reactionValue: string;
+  /** Таймер и «Реакция» (спека 012: у обучающегося-ДДС скрыты, нормативы — в полосе тренажёра). */
+  showTimer?: boolean;
   stateToggleHref?: string;
   readOnly?: boolean;
   /** Норматив 30 сек нарушен — без ✓, подпись красным. */
@@ -36,7 +38,13 @@ const VIS_OPERATOR_NOTE = "АРМ оператора: нет данных (ка�
  */
 export function CardHeader(props: CardHeaderProps) {
   const { number, createdAt, registeredBy, isExceeded, timerValue, reactionValue, stateToggleHref } = props;
-  const { readOnly, isReactionExceeded = false, isFromVis = false, isAmendActive = false } = props;
+  const {
+    readOnly,
+    isReactionExceeded = false,
+    isFromVis = false,
+    isAmendActive = false,
+    showTimer = true,
+  } = props;
   const timer = <TimerBadge value={timerValue} exceeded={isExceeded} size="lg" caption={TIMER_CAPTION} />;
   const reactionLabel = isReactionExceeded
     ? `Норматив 30 сек нарушен: ${reactionValue}`
@@ -55,29 +63,31 @@ export function CardHeader(props: CardHeaderProps) {
           {isFromVis ? `ВИС: ${registeredBy}` : registeredBy}
         </span>
       </div>
-      <div className={styles.header__timer}>
-        {stateToggleHref ? (
-          <Link
-            href={stateToggleHref}
-            className={styles.header__toggle}
-            title={isExceeded ? "Показать состояние «в норме»" : "Показать превышение норматива"}
+      {showTimer ? (
+        <div className={styles.header__timer}>
+          {stateToggleHref ? (
+            <Link
+              href={stateToggleHref}
+              className={styles.header__toggle}
+              title={isExceeded ? "Показать состояние «в норме»" : "Показать превышение норматива"}
+            >
+              {timer}
+            </Link>
+          ) : (
+            timer
+          )}
+          <span
+            className={[
+              styles.header__reaction,
+              isReactionExceeded ? styles["header__reaction--late"] : "",
+            ].join(" ")}
+            aria-label={reactionLabel}
           >
-            {timer}
-          </Link>
-        ) : (
-          timer
-        )}
-        <span
-          className={[
-            styles.header__reaction,
-            isReactionExceeded ? styles["header__reaction--late"] : "",
-          ].join(" ")}
-          aria-label={reactionLabel}
-        >
-          Реакция: {reactionValue}
-          {isReactionExceeded ? null : <CardIcon name="check" size={14} className={styles.header__check} />}
-        </span>
-      </div>
+            Реакция: {reactionValue}
+            {isReactionExceeded ? null : <CardIcon name="check" size={14} className={styles.header__check} />}
+          </span>
+        </div>
+      ) : null}
       <div className={styles.header__actions}>
         <Button
           variant="blue"

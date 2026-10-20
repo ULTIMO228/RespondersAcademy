@@ -110,21 +110,6 @@
   overflow-y: auto;
 }
 
-.scenario {
-  display: flex;
-  flex-direction: column;
-  gap: var(--pf-space-1);
-  padding: var(--pf-space-2) 0;
-  border-bottom: 1px solid var(--pf-border);
-}
-
-.scenario__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--pf-space-3);
-}
-
 .review {
   display: grid;
   gap: var(--pf-space-3);
@@ -150,4 +135,16 @@
   .check {
     transition: none;
   }
+}
+
+.etalon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+  padding-left: var(--pf-space-6);
+}
+
+.review__list {
+  margin: 0;
+  padding-left: var(--pf-space-4);
 }

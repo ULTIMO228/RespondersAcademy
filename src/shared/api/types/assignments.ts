@@ -4,8 +4,14 @@
  */
 import type { CardAttemptResponse } from "./attempts";
 import type { OperatorAttempt } from "./operator112";
+import type { StudentCardEtalon } from "./student-cards";
 
+/**
+ * "chain" (цепочка A → B) выведен 20.10.2026 (spec/007 Clarifications): приходит только в старых заданиях,
+ * которые открываются на чтение. Новые задания — только AssignableMode.
+ */
 export type TrainingMode = "dds" | "operator112" | "chain";
+export type AssignableMode = Exclude<TrainingMode, "chain">;
 export type AssignmentFormat = "training" | "exam";
 export type AssignmentState = "active" | "finished";
 /** Состояние ссылки «задание ↔ попытка»; notCompleted — лимит времени или завершение задания. */
@@ -32,6 +38,10 @@ export interface AssignmentParams {
   workMessagesEnabled?: boolean;
   workMessageIntervalsSec?: number[];
   adaptive?: boolean;
+  /** «Справочник доступен» (спека 005); сервер всегда записывает итог: тренировка — true, экзамен — false по умолчанию. */
+  referenceAllowed?: boolean;
+  /** Эталоны карточек обучающихся-112, подтверждённые преподавателем (спека 011). */
+  studentCards?: StudentCardEtalon[];
 }
 
 export interface AssignmentRandomRule {
@@ -55,25 +65,6 @@ export interface Assignment {
   dueAt?: string;
 }
 
-/** Вход ДДС цепочки A → B, ожидающий подтверждения преподавателя (POST /ai/scenarios/{scenarioId}/approve). */
-export interface ChainReview {
-  scenarioId: string;
-  version: number;
-  approval: string;
-  validation: string;
-}
-
-/**
- * Вход ДДС в ответе submit этапа A (services/ai_scenario_service.create_chain_dds_draft): только адрес версии и сохранённая
- * карточка. Статус подтверждения (ChainReview.approval) приходит отдельно — в progress задания.
- */
-export interface ChainSubmitReview {
-  scenarioId: string;
-  version: number;
-  /** id карточки, сохранённой при передаче этапа A; с неё начнётся этап ДДС. */
-  cardId: string;
-}
-
 export interface AssignmentProgress {
   studentId: string;
   cardId: string;
@@ -81,7 +72,6 @@ export interface AssignmentProgress {
   attemptId: string;
   score?: number;
   passed?: boolean;
-  chainReview?: ChainReview;
 }
 
 export interface AssignmentDetail extends Assignment {
@@ -94,12 +84,12 @@ export type AssignmentListQuery = {
   state?: AssignmentState;
 };
 
-/** Ответ start в размеченном виде: попытка режима 112 (в т.ч. этап A цепочки) либо compat-попытка ДДС. */
+/** Ответ start в размеченном виде: попытка режима 112 либо compat-попытка ДДС. */
 export type StartAssignmentResult =
   | { kind: "operator112"; attempt: OperatorAttempt }
   | { kind: "dds"; sessionId: string; attempt: CardAttemptResponse["attempt"]; created: boolean };
 
-/** Версия сценария, выбранная для билета (обязательна для chain: утверждённая версия operator112). */
+/** Утверждённая версия AI-сценария, выбранная для билета (её режим совпадает с режимом задания). */
 export interface AssignmentScenarioVersion {
   scenarioId: string;
   version: number;
@@ -113,10 +103,12 @@ export interface AssignmentScenarioVersion {
 export interface AssignmentCreateRequest {
   studentIds: string[];
   teacherId?: string;
-  trainingMode: TrainingMode;
+  trainingMode: AssignableMode;
   format: AssignmentFormat;
   cardIds?: string[];
   scenarioVersions?: AssignmentScenarioVersion[];
+  /** Только режим ДДС: по записи на каждую карточку обучающегося-112 из cardIds (спека 011). */
+  studentCards?: StudentCardEtalon[];
   randomRule?: AssignmentRandomRule;
   params?: AssignmentParams;
   dueAt?: string;

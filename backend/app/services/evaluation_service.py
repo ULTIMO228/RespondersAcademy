@@ -14,8 +14,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai_gateway import get_gateway
-from app.api.deps import Viewer, assert_own_attempt
-from app.api.errors import evaluation_pending, forbidden, not_found, validation_failed
+from app.api.deps import SESSION_REQUIRED_MESSAGE, Viewer, assert_own_attempt
+from app.api.errors import evaluation_pending, forbidden, not_found, unauthorized, validation_failed
 from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.card import IncidentCard
 from app.models.report import CalibrationSample
@@ -24,12 +24,14 @@ from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSes
 from app.models.user import User
 from app.models.work_message import WorkMessage
 from app.services import audit
+from app.services.chain_service import etalon_for_decision
 from app.services.reference import read_reference
 from app.services.session_engine import evaluation_contract, session_contract
 from app.services.time import now_iso
 
 AUDIT_ACTION_OVERRIDE = "evaluation.override"
-TEACHER_ONLY_MESSAGE = "Действие доступно преподавателю и администратору"
+TEACHER_ONLY_MESSAGE = "Оценку и обратную связь даёт только преподаватель"
+OTHER_TEACHER_MESSAGE = "Результат относится к занятию другого преподавателя"
 MIN_SCORE, MAX_SCORE = 0, 100
 
 
@@ -47,6 +49,19 @@ async def _cards_index(db: AsyncSession) -> dict[str, dict[str, Any]]:
     return {row.id: row.to_contract() for row in rows}
 
 
+async def confirmed_student_card_etalon(db: AsyncSession, attempt: Attempt, session: TrainingSession | None) -> dict[str, Any] | None:
+    """Эталон карточки обучающегося-112, подтверждённый преподавателем в задании ДДС (спека 011, §5.3)."""
+    mode = (session.mode if session else "") or ""
+    if not mode.startswith("assignment:"):
+        return None
+    assignment = await db.get(Assignment, mode.removeprefix("assignment:"))
+    entries = ((assignment.params or {}).get("studentCards") or []) if assignment is not None else []
+    entry = next((item for item in entries if item.get("cardId") == attempt.card_id), None)
+    if entry is None:
+        return None
+    return etalon_for_decision(attempt.card_id, str(entry["expectedDecision"]), entry.get("expectedTransferTo"))
+
+
 async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, Any] | None:
     """Готовая оценка — как есть; иначе оценщик по эталону (нет эталона → None). Сохраняет `evaluations`."""
     existing = await evaluation_contract(db, attempt.id)
@@ -57,7 +72,9 @@ async def evaluate_if_possible(db: AsyncSession, attempt: Attempt) -> dict[str, 
     session = await db.get(TrainingSession, attempt.session_id)
     scenario = await find_scenario_for_attempt(db, attempt, session)
     chain_card = await db.get(IncidentCard, attempt.card_id)
-    chain_etalon = (chain_card.extra or {}).get("chainEtalon") if chain_card else None
+    chain_etalon = await confirmed_student_card_etalon(db, attempt, session)
+    if chain_etalon is None:
+        chain_etalon = (chain_card.extra or {}).get("chainEtalon") if chain_card else None
     if scenario is None and not isinstance(chain_etalon, dict):
         return None
     reference = await read_reference(db)
@@ -205,17 +222,38 @@ async def get_or_create_evaluation(db: AsyncSession, attempt_id: str, viewer: Vi
 
 
 async def _read_teacher(db: AsyncSession, body: dict[str, Any], viewer: Viewer | None) -> User:
-    """Автор действия: id из тела (как в моке), роль сверяется по users; viewer-обучающийся → 403."""
-    if viewer is not None and viewer.is_student:
+    """Автор оценки — только преподаватель из действующей сессии (02-roles: администратор оценки не меняет).
+
+    `teacherId` в теле оставлен для совместимости с фронтом: если передан, должен совпадать с сессией.
+    """
+    if viewer is None:
+        raise unauthorized(SESSION_REQUIRED_MESSAGE)
+    if viewer.role != "teacher":
         raise forbidden(TEACHER_ONLY_MESSAGE)
     teacher_id = body.get("teacherId")
-    teacher_id = teacher_id.strip() if isinstance(teacher_id, str) else ""
-    if not teacher_id:
-        raise validation_failed("Укажите «teacherId»")
-    teacher = await db.get(User, teacher_id)
-    if teacher is None or teacher.role not in ("teacher", "admin"):
+    if isinstance(teacher_id, str) and teacher_id.strip() and teacher_id.strip() != viewer.user_id:
+        raise forbidden(OTHER_TEACHER_MESSAGE)
+    teacher = await db.get(User, viewer.user_id)
+    if teacher is None or teacher.role != "teacher":
         raise forbidden(TEACHER_ONLY_MESSAGE)
     return teacher
+
+
+async def assert_teacher_owns_attempt(db: AsyncSession, attempt_id: str, teacher_id: str) -> None:
+    """Преподаватель оценивает только попытки своих занятий и заданий (02-roles: не вмешиваться в работу других)."""
+    owners: set[str] = set()
+    attempt = await db.get(Attempt, attempt_id)
+    if attempt is not None:
+        session = await db.get(TrainingSession, attempt.session_id)
+        if session is not None:
+            owners.add(session.teacher_id)
+    link = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.attempt_id == attempt_id))).scalar_one_or_none()
+    if link is not None:
+        assignment = await db.get(Assignment, link.assignment_id)
+        if assignment is not None:
+            owners.add(assignment.teacher_id)
+    if owners and teacher_id not in owners:
+        raise forbidden(OTHER_TEACHER_MESSAGE)
 
 
 def _read_score(value: Any) -> int:
@@ -234,6 +272,7 @@ def _read_comment(value: Any) -> str:
 async def override_evaluation(db: AsyncSession, attempt_id: str, body: dict[str, Any], viewer: Viewer | None) -> dict[str, Any]:
     """Правка балла: `teacher_overrides` + аудит «было → стало» с ФИО + пример калибровки."""
     teacher = await _read_teacher(db, body, viewer)
+    await assert_teacher_owns_attempt(db, attempt_id, teacher.id)
     score = _read_score(body.get("score"))
     comment = _read_comment(body.get("comment"))
     current = await get_or_create_evaluation(db, attempt_id, viewer)

@@ -30,11 +30,16 @@ export function toServiceStatus(statusCode: string, context: IncidentMapContext)
   };
 }
 
+/**
+ * Строка своей службы. Служба обучающегося известна, но её нет в списке оповещения — карточка всё равно направлена ей
+ * (спека 012 FR-007): статус «Добавлена», а не статус чужой службы. Служба не известна — первая строка списка.
+ */
 function pickMyEntry(
   entries: NotificationEntryContract[],
   myServiceId?: string,
 ): NotificationEntryContract | undefined {
-  return entries.find((entry) => entry.serviceId === myServiceId) ?? entries[0];
+  if (!myServiceId) return entries[0];
+  return entries.find((entry) => entry.serviceId === myServiceId);
 }
 
 function lastStatusCode(entry: NotificationEntryContract | undefined): string {

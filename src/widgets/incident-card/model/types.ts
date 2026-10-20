@@ -54,27 +54,6 @@ export type IncidentCardData = {
   createdByVis: boolean;
 };
 
-/** Поля формы «Добавить отработку» (spec п. 12). */
-export type WorkLineFormValues = {
-  service: string;
-  calledTo: string;
-  phone: string;
-  person: string;
-  message: string;
-  confirmed: boolean;
-};
-
-/** «Действие диспетчера» (T2.3-09): управляемые поля + ссылка вызова точки C (софтфон). */
-export type DispatcherControl = {
-  text: string;
-  dutyNumber: string;
-  onTextChange: (value: string) => void;
-  onDutyNumberChange: (value: string) => void;
-  /** «Черновик сохранён» / «Сохранено локально — будет отправлено после восстановления связи». */
-  status?: string;
-  callHref?: string;
-};
-
 /** Режим дополнения (Shift+F2) и мок-блокировка параллельного редактирования (T2.3-15). */
 export type AmendControl = {
   isActive: boolean;
@@ -88,18 +67,6 @@ export type AmendControl = {
   onStart: () => void;
   onView: () => void;
   onSave: () => void;
-};
-
-export type WorkLinesControl = {
-  /** Отработки, добавленные в тренажёре (runtime мок-слоя). */
-  extra: WorkLineData[];
-  /** Сценарий разрешает добавлять отработки. */
-  canAdd: boolean;
-  onAdd: (values: WorkLineFormValues) => Promise<void>;
-  /** Ссылка вызова на номер в софтфоне. */
-  buildCallHref: (phone: string) => string;
-  /** Автоподстановка телефона по службе (внутренние номера учебного контура). */
-  phoneBook: { service: string; phone: string }[];
 };
 
 export type FlagsControl = {
@@ -117,9 +84,7 @@ export type IncidentCardControls = {
   /** Карточка закрыта для редактирования («Работы завершены» / «Отказ…»). */
   isLocked: boolean;
   isReactionExceeded?: boolean;
-  dispatcher: DispatcherControl;
   amend: AmendControl;
-  workLines: WorkLinesControl;
   flags: FlagsControl;
   /** Записи журнала, добавленные в тренажёре (дополнения). */
   journalExtra: JournalEntry[];
@@ -128,8 +93,7 @@ export type IncidentCardControls = {
 };
 
 /**
- * Контракт виджета карточки (верх карточки: телефония, шапка, заявитель, адрес, журнал, «Что случилось»,
- * «Действие диспетчера», связи, отработки). Используется pages/incident, pages/teacher-monitor,
+ * Контракт виджета карточки (верх карточки: телефония, шапка, заявитель, адрес, журнал, «Что случилось», связи). Используется pages/incident, pages/teacher-monitor,
  * pages/teacher-scenario-editor. Поля не переименовывать; новые — только опциональные.
  */
 export type IncidentCardViewProps = {
@@ -144,8 +108,11 @@ export type IncidentCardViewProps = {
   timerValue?: string;
   /** Выполненный норматив 30 сек, по умолчанию «0:18». */
   reactionValue?: string;
-  /** Службы списка оповещения — варианты поля «Служба» в форме «Добавить отработку». */
-  serviceNames?: string[];
+  /**
+   * Таймер и «Реакция» в шапке (по умолчанию да). У обучающегося-ДДС — нет: в АРМ-112 ДДС их нет (памятка стр. 23),
+   * нормативы показывает полоса тренажёра (спека 012, FR-001/FR-002). Зеркало преподавателя таймер оставляет.
+   */
+  showTimer?: boolean;
   /** Живой режим обучающегося (данные и действия из pages/incident). */
   controls?: IncidentCardControls;
 };

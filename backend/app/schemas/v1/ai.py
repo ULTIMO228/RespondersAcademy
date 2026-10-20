@@ -279,6 +279,12 @@ class SessionErrorSummaryResponse(StrictAIContractModel):
     by_mode: ModeBreakdown
     by_severity: dict[str, NonNegativeInt]
     by_student: dict[str, NonNegativeInt]
+    # Поля, которые читает панель отчёта занятия фронта (SessionErrorSummaryResponse в src/shared/api/types/errors.ts).
+    critical: NonNegativeInt
+    major: NonNegativeInt
+    minor: NonNegativeInt
+    by_rule: dict[str, NonNegativeInt]
+    by_detector: dict[str, NonNegativeInt]
     error_record_ids: list[NonEmptyString]
 
 

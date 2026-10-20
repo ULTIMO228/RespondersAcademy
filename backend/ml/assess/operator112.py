@@ -157,8 +157,10 @@ def final_type(draft: dict[str, Any], ticket: dict[str, Any], entries: list[dict
         entered_ids = chosen.service_ids  # список не передан — считаем автоматический по выбранному типу
     missing_ids = [sid for sid in expected_ids if sid not in entered_ids]
     missing_titles = [nl.service_title(sid, reference) for sid in missing_ids]
+    # Лишние — добавленные вручную сверх эталона; автоматический список по ЕКП (chosen.service_ids) не штрафуется.
+    extra_ids = [sid for sid in dict.fromkeys(entered_ids) if sid and sid not in expected_ids and sid not in chosen.service_ids]
     actual_title = chosen.final_type or _text(_get(draft, "what", "finalType"))
-    result.details = {"expectedGroup": expected_group, "actualGroup": chosen.group, "actualFinalType": actual_title, "classifierCode": chosen.classifier_code, "expectedServices": expected_ids, "enteredServices": entered_ids, "missingServices": missing_ids}
+    result.details = {"expectedGroup": expected_group, "actualGroup": chosen.group, "actualFinalType": actual_title, "classifierCode": chosen.classifier_code, "expectedServices": expected_ids, "enteredServices": entered_ids, "missingServices": missing_ids, "extraServices": extra_ids}
     if chosen.entry is None:
         result.errors.append(rules.OP_NO_FINAL_TYPE.error(step="field:what.finalType", expected=expected_group))
         result.score = 0.0
@@ -168,9 +170,15 @@ def final_type(draft: dict[str, Any], ticket: dict[str, Any], entries: list[dict
         result.errors.append(rules.OP_WRONG_FINAL_TYPE.error(step="field:what.finalType", actual=actual_title, expected=expected_group, missing=suffix))
         result.score = 0.0
         return result
+    penalty = 0.0
     if missing_titles:
         result.errors.append(rules.OP_MISSING_SERVICE.error(step="field:notificationList", services=", ".join(missing_titles)))
-        result.score = clamp01(1.0 - 0.5 * len(missing_ids) / max(1, len(expected_ids)))
+        penalty += 0.5 * len(missing_ids) / max(1, len(expected_ids))
+    if extra_ids:
+        extra_titles = [nl.service_title(sid, reference) for sid in extra_ids]
+        result.errors.append(rules.OP_EXTRA_SERVICE.error(step="field:notificationList", services=", ".join(extra_titles)))
+        penalty += 0.25 * len(extra_ids) / max(1, len(expected_ids))
+    result.score = clamp01(1.0 - penalty)
     return result
 
 
@@ -412,7 +420,7 @@ def build_field_diff(draft: dict[str, Any], ticket: dict[str, Any], components: 
         {"field": "what.signs", "entered": sf.details.get("enteredSigns", []), "expected": sf.details.get("expectedSigns", []), "ok": not sf.details.get("missingSigns")},
         {"field": "what.casualties.injured", "entered": bool(_get(draft, "what", "casualties", "injured", default=False)), "expected": bool(victims and int(victims.get("count") or 0) > 0), "ok": not errors_of(sf, "field:what.casualties.injured")},
         {"field": "description", "entered": _text(draft.get("description")), "expected": ticket.get("summary", ""), "ok": not df.errors},
-        {"field": "notificationList", "entered": [nl.service_title(s, reference) for s in ft.details.get("enteredServices", [])], "expected": [nl.service_title(s, reference) for s in ft.details.get("expectedServices", [])], "ok": not ft.details.get("missingServices")},
+        {"field": "notificationList", "entered": [nl.service_title(s, reference) for s in ft.details.get("enteredServices", [])], "expected": [nl.service_title(s, reference) for s in ft.details.get("expectedServices", [])], "ok": not ft.details.get("missingServices") and not ft.details.get("extraServices")},
     ]
     if ticket.get("noAmbulance") is not None:
         diff.append({"field": "what.casualties.ambulanceRefused", "entered": bool(_get(draft, "what", "casualties", "ambulanceRefused", default=False)), "expected": bool(ticket.get("noAmbulance")), "ok": not errors_of(sf, "field:what.casualties.ambulanceRefused")})

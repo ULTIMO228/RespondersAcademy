@@ -165,6 +165,27 @@ export function scoreSemantic(
   return clampScore((MAX_SCORE * coverages.reduce((sum, value) => sum + value, 0)) / coverages.length);
 }
 
+/** Человеческие названия обязательных полей ДДС: в АРМ-112 они вводятся в форме статуса (памятка, стр. 23–24). */
+const REQUIRED_FIELD_TITLES: Readonly<Record<string, string>> = {
+  dispatcherAction: "действие диспетчера (комментарий к статусу)",
+  outfitNumber: "номер наряда (в форме статуса)",
+};
+
+/**
+ * Ручной ввод попытки ДДС для оценки (спека 012): поля карточки (старые попытки) + форма статуса —
+ * первый непустой комментарий закрывает `dispatcherAction`, первый номер наряда — `outfitNumber`;
+ * комментарии всех статусов идут в смысловую оценку и проверку грамотности.
+ */
+export function collectDispatcherText(attempt: CardEventContract): Record<string, string> {
+  const comments = attempt.statuses.map((mark) => (mark.comment ?? "").trim()).filter(Boolean);
+  const duty = attempt.statuses.map((mark) => (mark.dutyNumber ?? "").trim()).find(Boolean);
+  const text: Record<string, string> = { ...attempt.enteredText };
+  if (!(text.dispatcherAction ?? "").trim() && comments.length > 0)
+    text.dispatcherAction = comments.join(". ");
+  if (!(text.outfitNumber ?? "").trim() && duty) text.outfitNumber = duty;
+  return text;
+}
+
 export function findMissingRequiredFields(
   enteredText: Readonly<Record<string, string>>,
   criteria: SuccessCriteria,
@@ -174,6 +195,6 @@ export function findMissingRequiredFields(
     .map((field) => ({
       type: "requiredFieldMissing",
       severity: "major",
-      message: `Не заполнено обязательное поле «${field}»`,
+      message: `Не заполнено обязательное поле «${REQUIRED_FIELD_TITLES[field] ?? field}»`,
     }));
 }

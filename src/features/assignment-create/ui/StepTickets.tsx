@@ -3,13 +3,12 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import type { AIScenarioVersion, AssignmentScenarioVersion, Scenario, Ticket } from "@/shared/api";
+import type { Ticket } from "@/shared/api";
 import {
   Alert,
   EmptyState,
   ErrorState,
   Field,
-  PlatformButton,
   SegmentedControl,
   SelectField,
   ServerRequiredState,
@@ -21,6 +20,7 @@ import {
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
 import type { StepErrors, TicketSource, WizardDraft } from "../model/types";
 import { CheckRow } from "./CheckRow";
+import { StudentCardBank } from "./StudentCardBank";
 
 import styles from "./AssignmentWizard.module.css";
 
@@ -42,10 +42,9 @@ const toggleItem = <T,>(items: T[], item: T, checked: boolean): T[] =>
   checked ? [...items, item] : items.filter((value) => value !== item);
 
 export function StepTickets({ api, draft, errors, onChange, focusStage }: StepTicketsViewProps) {
-  const isChain = draft.trainingMode === "chain";
   const sourceOptions: { value: TicketSource; label: string }[] = [
-    { value: "cards", label: isChain ? "Версии сценариев" : "Перечень билетов" },
-    ...(isChain ? [] : [{ value: "rule" as const, label: "Случайный набор" }]),
+    { value: "cards", label: "Перечень билетов" },
+    { value: "rule", label: "Случайный набор" },
   ];
   return (
     <div className={styles.step}>
@@ -53,12 +52,10 @@ export function StepTickets({ api, draft, errors, onChange, focusStage }: StepTi
       <SegmentedControl
         label="Источник билетов"
         options={sourceOptions}
-        value={isChain ? "cards" : draft.ticketSource}
+        value={draft.ticketSource}
         onChange={(value) => onChange({ ticketSource: value })}
       />
-      {isChain ? (
-        <ChainVersions api={api} draft={draft} errors={errors} onChange={onChange} />
-      ) : draft.ticketSource === "cards" ? (
+      {draft.ticketSource === "cards" ? (
         <CardList api={api} draft={draft} errors={errors} onChange={onChange} />
       ) : (
         <RandomRule api={api} draft={draft} errors={errors} onChange={onChange} />
@@ -83,9 +80,15 @@ function TicketsLoader({
 
 function CardList({ api, draft, errors, onChange }: StepTicketsProps) {
   return (
-    <TicketsLoader api={api}>
-      {(tickets) => <CardPicker tickets={tickets} draft={draft} errors={errors} onChange={onChange} />}
-    </TicketsLoader>
+    <>
+      <TicketsLoader api={api}>
+        {(tickets) => <CardPicker tickets={tickets} draft={draft} errors={errors} onChange={onChange} />}
+      </TicketsLoader>
+      {/* Спека 011: ДДС получает и карточки обучающихся-112 — только через отбор преподавателем. */}
+      {draft.trainingMode === "dds" ? (
+        <StudentCardBank api={api} draft={draft} errors={errors} onChange={onChange} />
+      ) : null}
+    </>
   );
 }
 
@@ -138,7 +141,7 @@ function CardPicker({
         </SelectField>
       </div>
       <p className={styles.step__note}>
-        Выбрано: {draft.cardIds.length} из {tickets.length}
+        Выбрано: {tickets.filter((ticket) => draft.cardIds.includes(ticket.id)).length} из {tickets.length}
       </p>
       <div className={styles.list} role="group" aria-label="Билеты">
         {visible.map((ticket) => (
@@ -218,113 +221,5 @@ function RandomRule({ api, draft, errors, onChange }: StepTicketsProps) {
         onChange={(event) => onChange({ ruleCount: event.target.value })}
       />
     </>
-  );
-}
-
-function ChainVersions({ api, draft, errors, onChange }: StepTicketsProps) {
-  const { state, reload } = useResource(() => api.listScenarios(), [api]);
-  if (state.status === "loading") return <Skeleton label="Загрузка сценариев…" lines={3} />;
-  if (state.status === "serverRequired") return <ServerRequiredState onRetry={reload} />;
-  if (state.status === "error") return <ErrorState message={state.message} onRetry={reload} />;
-  return (
-    <>
-      <Alert tone="info">
-        Для цепочки нужна утверждённая версия сценария режима 112 у каждого билета: без неё запуск задания
-        завершится отказом сервера.
-      </Alert>
-      {errors.cardIds ? (
-        <Alert tone="danger" role="alert">
-          {errors.cardIds}
-        </Alert>
-      ) : null}
-      <div className={styles.list} role="group" aria-label="Сценарии">
-        {state.data.map((scenario) => (
-          <ScenarioVersions
-            key={scenario.id}
-            api={api}
-            scenario={scenario}
-            draft={draft}
-            onChange={onChange}
-          />
-        ))}
-        {state.data.length === 0 ? <EmptyState title="Сценариев нет" /> : null}
-      </div>
-    </>
-  );
-}
-
-function ScenarioVersions({
-  api,
-  scenario,
-  draft,
-  onChange,
-}: {
-  api: AssignmentCreateApi;
-  scenario: Scenario;
-  draft: WizardDraft;
-  onChange: (patch: Partial<WizardDraft>) => void;
-}) {
-  const [versions, setVersions] = useState<AIScenarioVersion[] | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    setMessage(null);
-    try {
-      setVersions(await api.listScenarioVersions(scenario.id));
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Не удалось загрузить версии");
-    }
-    setLoading(false);
-  };
-
-  const approved = (versions ?? []).filter(
-    (item) => item.approval === "approved" && item.mode === "operator112",
-  );
-  const toggle = (version: AIScenarioVersion, checked: boolean) => {
-    const cardId = version.cardSnapshot.id;
-    const entry: AssignmentScenarioVersion = {
-      scenarioId: version.scenarioId,
-      version: version.version,
-      cardId,
-    };
-    const others = draft.scenarioVersions.filter((item) => item.cardId !== cardId);
-    const next = checked ? [...others, entry] : others;
-    onChange({ scenarioVersions: next, cardIds: next.map((item) => item.cardId) });
-  };
-
-  return (
-    <div className={styles.scenario}>
-      <div className={styles.scenario__head}>
-        <span>
-          <strong>{scenario.id}</strong> · {scenario.title}
-        </span>
-        {versions === null ? (
-          <PlatformButton variant="ghost" onClick={() => void load()} disabled={loading}>
-            Показать утверждённые версии
-          </PlatformButton>
-        ) : null}
-      </div>
-      {message ? (
-        <Alert tone="danger" role="alert">
-          {message}
-        </Alert>
-      ) : null}
-      {versions !== null && approved.length === 0 ? (
-        <p className={styles.step__note}>Утверждённых версий режима 112 нет.</p>
-      ) : null}
-      {approved.map((version) => (
-        <CheckRow
-          key={`${version.scenarioId}-${version.version}`}
-          checked={draft.scenarioVersions.some(
-            (item) => item.scenarioId === version.scenarioId && item.version === version.version,
-          )}
-          onChange={(checked) => toggle(version, checked)}
-        >
-          Версия {version.version} · билет {version.cardSnapshot.id}
-        </CheckRow>
-      ))}
-    </div>
   );
 }

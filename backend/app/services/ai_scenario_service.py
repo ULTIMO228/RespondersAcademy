@@ -23,7 +23,6 @@ from app.models.ai_scenario import (
     SanitizedTicket,
     ScenarioVersion,
 )
-from app.models.assignment import AssignmentScenarioVersion
 from app.models.card import Address, IncidentCard
 from app.models.classifier import ClassifierEntry
 from app.models.scenario import Scenario
@@ -663,124 +662,6 @@ def validate_card_snapshot(
     )
 
 
-async def create_chain_dds_draft(
-    db: AsyncSession,
-    *,
-    attempt: Any,
-    assignment: Any,
-) -> dict[str, Any]:
-    """Создаёт ожидающий подтверждения ДДС-снимок из IncidentCard, записанной submit-ом."""
-    from app.services import operator112_service
-
-    if assignment.training_mode != "chain" or attempt.mode != "operator112" or attempt.state != "submitted":
-        raise conflict("Переход A → B требует сохранённой попытки режима operator112 в задании chain")
-    if attempt.student_id not in (assignment.student_ids or []):
-        raise validation_failed("Попытка не принадлежит обучающемуся из задания chain")
-    saved_card = await operator112_service.saved_card_for_attempt(db, attempt.id)
-    parents = (
-        await db.execute(
-            select(ScenarioVersion).where(
-                ScenarioVersion.mode == "operator112",
-                ScenarioVersion.approval == "approved",
-                ScenarioVersion.validation == "passed",
-            )
-        )
-    ).scalars().all()
-    parent = next((row for row in parents if row.card_snapshot.get("id") == attempt.card_id), None)
-    if parent is None:
-        raise conflict("Для карточки задания нет утверждённой версии режима operator112")
-    prior_versions = (
-        await db.execute(select(ScenarioVersion.version).where(ScenarioVersion.scenario_id == parent.scenario_id))
-    ).scalars().all()
-    next_version = max(prior_versions, default=0) + 1
-    card = saved_card.to_contract()
-    encoded = json.dumps(card, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    source_hash = hashlib.sha256(encoded).hexdigest()
-    rule_source_ids = list(parent.rule_source_ids or [])
-    if not rule_source_ids:
-        rule_source_ids = [f"ticket:{parent.source_ticket_id}:{parent.source_situation_no}"]
-    ticket_rule = next((value for value in rule_source_ids if value.startswith("ticket:")), rule_source_ids[0])
-    classifier_rule = next((value for value in rule_source_ids if value.startswith("classifier:")), rule_source_ids[0])
-    address_rule = next((value for value in rule_source_ids if value.startswith("address:")), rule_source_ids[0])
-    actions = _action_records("dds", card, [ticket_rule, classifier_rule, address_rule])
-    etalon_id = f"{parent.scenario_id}:etalon:{next_version}"
-    classifier_rows = (await db.execute(select(ClassifierEntry).order_by(ClassifierEntry.code))).scalars().all()
-    classifier_entries = [row.to_contract() for row in classifier_rows]
-    address_rows = (await db.execute(select(Address).order_by(Address.id))).scalars().all()
-    allowed_addresses = _address_allowlist([row.doc for row in address_rows])
-    etalon = EtalonVersion(
-        id=etalon_id,
-        scenario_id=parent.scenario_id,
-        mode="dds",
-        expected_fields=_expected_fields(card),
-        expected_actions=actions,
-        semantic_facts=_semantic_facts(
-            card,
-            source_gate.ApprovedSource(
-                source_ticket_id=parent.source_ticket_id,
-                situation_no=saved_card.situation_no,
-                sanitized_text=str(card.get("summary") or ""),
-                source_hash=source_hash,
-                reviewer_id=assignment.teacher_id,
-                reviewed_at=now_iso(),
-            ),
-            [ticket_rule, classifier_rule, address_rule],
-        ),
-        rule_source_ids=[ticket_rule, classifier_rule, address_rule],
-        classifier_version="student-card-etalon-1",
-        created_at=now_iso(),
-    )
-    errors = validate_card_snapshot(
-        dict(card),
-        "dds",
-        etalon,
-        classifier_entries,
-        await _profile_groups(db),
-        allowed_addresses,
-    )
-    dds_version = ScenarioVersion(
-        scenario_id=parent.scenario_id,
-        version=next_version,
-        mode="dds",
-        source_ticket_id=parent.source_ticket_id,
-        source_situation_no=saved_card.situation_no,
-        created_by=attempt.student_id,
-        source_kind="student_card",
-        source_hash=source_hash,
-        source_attempt_id=attempt.id,
-        source_card_id=saved_card.id,
-        source_card_version=1,
-        parent_version=parent.version,
-        teacher_comment=None,
-        validation="passed" if not errors else "failed",
-        validation_report={"passed": not errors, "errors": errors},
-        approval="pending_review" if not errors else "validation_failed",
-        card_snapshot={"id": saved_card.id, "fields": card},
-        etalon_version=etalon_id,
-        rule_source_ids=[ticket_rule, classifier_rule, address_rule],
-    )
-    db.add_all([etalon, dds_version])
-    db.add(
-        AssignmentScenarioVersion(
-            assignment_id=assignment.id,
-            scenario_id=parent.scenario_id,
-            version=next_version,
-            card_id=saved_card.id,
-            mode="dds",
-        )
-    )
-    await db.flush()
-    await record(
-        db,
-        action="ai.scenario.chain_review",
-        user_id=attempt.student_id,
-        role="student",
-        details=f"Подготовлен черновик ДДС для попытки {attempt.id}; ожидает подтверждения преподавателя",
-        card_id=saved_card.id,
-    )
-    return {"scenarioId": parent.scenario_id, "version": next_version, "cardId": saved_card.id}
-
-
 # Доступны через существующий scenario_service: новый workflow остаётся частью сервиса сценариев.
 async def create_ai_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Viewer) -> list[dict[str, Any]]:
     return await create_drafts(db, body, viewer)
@@ -791,7 +672,6 @@ __all__ = [
     "_finish_request",
     "_request_hash",
     "create_ai_drafts",
-    "create_chain_dds_draft",
     "generate_from_approved_source",
     "list_versions",
     "scenario_version_contract",

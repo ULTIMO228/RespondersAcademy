@@ -59,7 +59,10 @@ describe("LoginScreen (/login)", () => {
     expect(summary.closest("details")).not.toHaveAttribute("open");
     fireEvent.click(summary);
     expect(screen.getByText("ivanov")).toBeInTheDocument();
-    expect(screen.getByText("egorov")).toBeInTheDocument();
+    expect(screen.getByText("lebedev")).toBeInTheDocument();
+    // Спека 011: у обучающихся с профилем режима подпись — профиль, оператор ДДС — отдельной строкой.
+    expect(screen.getByText("egorov").closest("li")).toHaveTextContent("Диспетчер ДДС: egorov / student112");
+    expect(screen.getByText("ivanov").closest("li")).toHaveTextContent("Специалист системы-112: ivanov");
     expect(screen.getByRole("link", { name: "преподаватель" })).toHaveAttribute(
       "href",
       "/login?demo=teacher",

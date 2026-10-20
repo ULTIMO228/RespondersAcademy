@@ -1,5 +1,5 @@
 /* Живой режим карточки обучающегося (волна 2, T2.3-03…T2.3-21): controls из pages/incident, API подменён. */
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { telephonyStore } from "@/entities/service";
@@ -33,7 +33,6 @@ function entriesOf(card: IncidentCardData) {
 function createControls(overrides: Partial<IncidentCardControls> = {}): IncidentCardControls {
   return {
     isLocked: false,
-    dispatcher: { text: "", dutyNumber: "", onTextChange: vi.fn(), onDutyNumberChange: vi.fn() },
     amend: {
       isActive: false,
       isBlocked: false,
@@ -45,13 +44,6 @@ function createControls(overrides: Partial<IncidentCardControls> = {}): Incident
       onStart: vi.fn(),
       onView: vi.fn(),
       onSave: vi.fn(),
-    },
-    workLines: {
-      extra: [],
-      canAdd: true,
-      onAdd: vi.fn(async () => undefined),
-      buildCallHref: () => "/arm/phone?cardId=card-881412",
-      phoneBook: [{ service: "Служба 101", phone: "101" }],
     },
     flags: { canEdit: true, emergency: { chs: false, chp: false }, onToggle: vi.fn() },
     journalExtra: [],
@@ -75,7 +67,6 @@ function renderLive(
       isExceeded={extra.isExceeded}
       timerValue={extra.isExceeded ? "3:01" : "0:42"}
       reactionValue={extra.reaction ?? "0:18"}
-      serviceNames={["Служба 101", "Служба 102", "Упр. Чертаново Южное"]}
     />,
   );
   return controls;
@@ -214,7 +205,6 @@ describe("журнал, дополнение, ВИС (T2.3-07, T2.3-15, T2.3-21)
     renderLive("card-881412", controls);
     expect(screen.getByRole("alert")).toHaveTextContent("Вы не можете вносить изменения");
     expect(screen.getByLabelText("Описание со слов заявителя")).toBeDisabled();
-    expect(screen.getByLabelText("Действие диспетчера")).toBeDisabled();
   });
 
   it("ВИС-карточка: пустые блоки с пометками, источник ВИС, [ВИС] Класс.", () => {
@@ -229,45 +219,12 @@ describe("журнал, дополнение, ВИС (T2.3-07, T2.3-15, T2.3-21)
   });
 });
 
-describe("отработки (T2.3-16)", () => {
-  it("без подтверждающей галочки не сохраняется; поиск службы; автоподстановка телефона; сохранение", async () => {
-    const controls = renderLive("card-881412");
-    fireEvent.click(screen.getByRole("button", { name: "Добавить отработку" }));
-    const service = screen.getByRole("combobox", { name: "Служба" });
-    fireEvent.focus(service);
-    fireEvent.change(service, { target: { value: "102" } });
-    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Служба 102"]);
-    fireEvent.change(service, { target: { value: "101" } });
-    fireEvent.mouseDown(screen.getByRole("option", { name: "Служба 101" }));
-    expect(screen.getByLabelText("Телефон")).toHaveValue("101");
-    fireEvent.change(screen.getByLabelText("Куда звонили"), { target: { value: "дежурный" } });
-    fireEvent.change(screen.getByLabelText("Кто принял"), { target: { value: "Петров" } });
-    fireEvent.change(screen.getByLabelText("Суть сообщения"), { target: { value: "Передана информация" } });
-    const save = screen.getByRole("button", { name: "Сохранить" });
-    expect(save).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Подтвердить отработку" }));
-    fireEvent.click(save);
-    await waitFor(() => expect(controls.workLines.onAdd).toHaveBeenCalled());
-    expect(controls.workLines.onAdd).toHaveBeenCalledWith(
-      expect.objectContaining({ service: "Служба 101", phone: "101", confirmed: true }),
-    );
-  });
-
-  it("добавленные отработки видны в таблице; сценарий запрещает — формы нет", () => {
-    const line = {
-      operator: "оп. 1",
-      at: "2026-09-17T11:40:00+03:00",
-      service: "Служба 102",
-      calledTo: "дежурный · 102",
-      person: "Иванов",
-      message: "Сообщено",
-    };
-    const controls = createControls();
-    controls.workLines = { ...controls.workLines, extra: [line], canAdd: false };
-    renderLive("card-881412", controls);
-    const work = screen.getByRole("region", { name: "Отработки" });
-    expect(within(work).getByText("Сообщено")).toBeInTheDocument();
-    expect(within(work).getByText("102")).toBeInTheDocument();
+describe("карточка ДДС как в памятке (спека 012, стр. 23)", () => {
+  it("нет «Действия диспетчера», номера наряда в теле карточки и отработок", () => {
+    renderLive("card-881412");
+    expect(screen.queryByLabelText("Действие диспетчера")).toBeNull();
+    expect(screen.queryByLabelText("Номер наряда")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Отработки" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Добавить отработку" })).toBeNull();
   });
 });
