@@ -10,7 +10,7 @@ Features(renumbered):013 visual-scenario-builder | 014 live-caller | 015 scenari
 Features(kept):005-performance-report | 006-llm-provider-switch | 007-arm-one-to-one | 008-full-cycle-review | 009-arm-112-student | 010-lesson-call-session | 011-dds-card-feed | 012-dds-memo-alignment
 Migrations:chains 0006-0007 (SASHA) | 0006-0010 (seva) | 0006-0009 (graph) → 0011_merge_sasha_seva → 0012_specs_from_training_profile (move+drop training_profile) → 0013_merge_scenario_graph; heads=1 ✅
 Tests@2026-10-20:vitest 2612 passed (2612) | tsc ✅ | lint ✅ | steiger ✅ | build ✅ | pytest 1681 passed/0 failed/4 skipped/3 xfailed (after fix eb9312b; gate run before fix: 1680/1) | ruff ✅ | mocks:validate ✅ | format:check ✅ except inherited окна-АРМ-112.html
-Gate@2026-10-20:HTTP e2e mock mode (next start :3130): student 40/40 ✅ | teacher 94/96 ❌ steps 82 «пересчёт балла по правке», 86 «обратная связь видна курсанту» (see journal) | admin 141/141 ✅ | Playwright smoke+platform+constructor+scenario-graph 23/23 ✅ | not run: simulator-visual, demo-path, auth-security, run_frontend_e2e.sh (backend mode)
+Gate@2026-10-20:HTTP e2e mock mode (next start :3130): student 40/40 ✅ | teacher 94/96 — steps 82, 86 inherited (same on SASHA tip) | admin 141/141 ✅ | Playwright smoke+platform+constructor+scenario-graph 23/23 ✅ | not run: simulator-visual, demo-path, auth-security, run_frontend_e2e.sh (backend mode)
 Baseline origin/main@2026-10-20:vitest 1912 | pytest 911 passed/3 failed/2 skipped | known red:test_ready_applicant_audio_is_playable_from_recordings[wav|mp3], test_release_invariants (fixed by develop 3720f58)
 Updated:2026-10-20
 

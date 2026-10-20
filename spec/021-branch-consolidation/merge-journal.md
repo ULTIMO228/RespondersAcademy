@@ -171,3 +171,16 @@
 - Гейт: lint ✅ · steiger ✅ (после группировки) · test **2612 passed** ✅ · typecheck ✅ · build ✅ · pytest **1680 passed / 1 failed / 4 skipped / 3 xfailed** · ruff ✅
 - ❌ Открыто: `tests/integration/test_generation_connection_retention.py::test_owner_whose_marker_was_reclaimed_cannot_commit[default]` — стабильно (2/2), на вершине fix зелёный → регрессия слияния `ai_scenario_service`/`scenario_service` (fix 79cba68 × graph). Диагностика — субагент; исправление отдельным коммитом
 - Итог: влит
+
+## F8 — перенумерация, документы, финальный гейт (2026-10-20)
+
+- Перенумерация (`75ae90f`): `git mv` 8 папок (R2) + 360 точечных замен ссылок (скрипт субагента Haiku по карте ссылок 7 веток); оставшиеся номера в строках — ссылки на сохранённые 005–012 (проверено); старых путей `spec/00X-<перенумерованная>` нет (`git grep`)
+- Исправление F7 (`eb9312b`): проверка владельца маркера генерации до записи черновика (причина — SAVEPOINT на SQLite без открытой транзакции фиксирует на RELEASE); `test_generation_connection_retention.py` 17/17, полный pytest в песочнице 1681 passed / 0 failed
+- Форматирование (`47eaf2f`): prettier для 9 файлов из веток; `окна-АРМ-112.html` не трогался (пришёл из ветки)
+- Документы (`eebcc35`): `AGENTS.md` §3 (состав по всем веткам, группы features, миграции 0011–0013, дрейф `mocks/` исправлен), `spec/README.md` 000–021, `.ai/SESSION_STATE.md` (перезапись), `.ai/SESSIONS.md` (+запись), `.ai/LESSONS.md` (+L041), `docs/FINAL-GATE.md` (+раздел 021)
+- Финальный гейт: lint ✅ · steiger ✅ · test **2612/2612** ✅ · typecheck ✅ · build ✅ · mocks:validate ✅ · format:check ✅ кроме унаследованного html · pytest **1681 / 0 / 4 / 3 xfailed** (после `eb9312b`) · ruff ✅ · alembic heads = 1
+- HTTP e2e (мок-режим, `next start -p 3130`): student 40/40 ✅ · admin 141/141 ✅ · teacher 94/96 — шаги 82 «пересчёт балла по правке», 86 «обратная связь видна курсанту» **унаследованы**: тот же результат на вершине `origin/SASHA` (эталон субагента Haiku, порт 3131); на вершине fix сборка не проходила (TS2741), сравнить нельзя
+- Playwright: smoke, platform, constructor, scenario-graph — **23/23** ✅
+- Не запускались: `e2e/simulator-visual.spec.ts`, `demo-path`, `auth-security`, `backend/scripts/run_frontend_e2e.sh` (бэкенд-режим), `alembic check`, ручной осмотр в браузере
+- Полнота (SC-001/SC-002): `git rev-list --no-merges HEAD..<ветка>` = 0 для всех влитых; `feat/011-dds-card-feed`/`kind-goldberg` (3) и `zealous-goldberg` (1) — содержимое уже в итоге (T009, T010); K12 `optimistic-maxwell` не влит (Q3). Маркеров конфликтов нет; артефактов (`.env`, `backend/var`, `.next`, `public/icons`, отчёты Playwright) в диффе нет
+- Открыто для владельца: push ветки и слияние в main (FR-017); В3 (объединение двух конструкторов и рейтинга со сводной успеваемостью); В4 (питч с фото, K12); В5 (удаление исходных веток); красные шаги e2e-teacher 82/86 (унаследованы из SASHA); 5 критических дефектов аудита 008 (T001–T014 открыты); курсанты без профиля SASHA стали «только ДДС» (данные seva) — пересид `app.seed.load --reset` на существующих стендах
