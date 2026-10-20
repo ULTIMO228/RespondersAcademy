@@ -1,6 +1,14 @@
 import type { AddressSource, CardDraftAddress, Street } from "@/shared/api";
 
+/** Умолчания блока адреса ПОВ-112 (КАРТОЧКА_image1: «Субъект: Москва»; спека 009, FR-014). */
+export const DEFAULT_COUNTRY = "Россия";
+export const DEFAULT_SUBJECT = "Москва";
+export const DEFAULT_LOCALITY = "Москва";
+
 export const EMPTY_ADDRESS: CardDraftAddress = {
+  country: DEFAULT_COUNTRY,
+  subject: DEFAULT_SUBJECT,
+  locality: DEFAULT_LOCALITY,
   formal: "",
   street: "",
   house: "",
@@ -10,10 +18,24 @@ export const EMPTY_ADDRESS: CardDraftAddress = {
   source: "manual",
 };
 
-/** Формальный адрес карточки из полей блока: «Москва, <улица>, дом <N>, <описательный>». */
-export function composeFormal(address: Pick<CardDraftAddress, "street" | "house" | "descriptive">): string {
+/** Адрес Москвы: справочник улиц доступен только для неё, для других субъектов — ручной ввод (FR-023). */
+export function isMoscow(address: Pick<CardDraftAddress, "subject">): boolean {
+  return (address.subject ?? DEFAULT_SUBJECT).trim().toLowerCase() === DEFAULT_SUBJECT.toLowerCase();
+}
+
+/** Очистка адреса: все поля пустые, страна/субъект/населённый пункт возвращаются к умолчаниям. */
+export function clearAddress(): CardDraftAddress {
+  return { ...EMPTY_ADDRESS };
+}
+
+/** Формальный адрес карточки из полей блока: «<нас. пункт>, <улица>, дом <N>, <описательный>». */
+export function composeFormal(
+  address: Pick<CardDraftAddress, "street" | "house" | "descriptive"> &
+    Partial<Pick<CardDraftAddress, "locality" | "subject">>,
+): string {
+  const place = address.locality?.trim() || address.subject?.trim() || DEFAULT_LOCALITY;
   return [
-    address.street.trim() ? "Москва" : "",
+    address.street.trim() ? place : "",
     address.street.trim(),
     address.house.trim() ? `дом ${address.house.trim()}` : "",
     address.descriptive.trim(),
@@ -25,7 +47,9 @@ export function composeFormal(address: Pick<CardDraftAddress, "street" | "house"
 /** Обновление полей с пересчётом formal; source не трогается (его задаёт выбор из справочника). */
 export function withFields(address: CardDraftAddress, patch: Partial<CardDraftAddress>): CardDraftAddress {
   const next = { ...address, ...patch };
-  return { ...next, formal: composeFormal(next) };
+  // Справочник — только для Москвы: смена субъекта на другой делает источник ручным.
+  const source: AddressSource = isMoscow(next) ? next.source : "manual";
+  return { ...next, source, formal: composeFormal(next) };
 }
 
 /** Выбор из подсказки справочника: улица, округ и район берутся из записи, источник — directory. */

@@ -1,4 +1,4 @@
-import type { Journal112Row } from "@/shared/api/types/operator112";
+import type { Journal112Row } from "@/shared/api";
 
 import { Journal112Header } from "./Journal112Header";
 import { Journal112Table } from "./Journal112Table";

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Journal112Row } from "@/shared/api/types/operator112";
+import type { Journal112Row } from "@/shared/api";
 
 import { Journal112Table } from "./Journal112Table";
 

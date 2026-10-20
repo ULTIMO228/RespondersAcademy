@@ -1,0 +1,57 @@
+/* Ряд заявителя ПОВ-112 (КАРТОЧКА_image1): поля с нижней линией, подсказки светло-серым. */
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-xl);
+  min-height: var(--card-row-height);
+  padding: var(--spacing-md) var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  font-family: var(--font-ui);
+}
+
+.row__name,
+.row__select {
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--card-font-title);
+}
+
+.row__name {
+  flex: 1.2;
+  min-width: 0;
+}
+
+.row__select {
+  flex: 1;
+  min-width: 0;
+}
+
+.row__name::placeholder {
+  color: var(--color-graphite-400);
+}
+
+.row__translate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-round-btn-size);
+  height: var(--card-round-btn-size);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-gray-25);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.row__translate:disabled {
+  cursor: default;
+}
+
+.row__name:focus-visible,
+.row__select:focus-visible,
+.row__translate:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

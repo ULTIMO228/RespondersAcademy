@@ -22,6 +22,12 @@
   --card-color-dashed: #ffffff;
   --card-color-reaction-ok: #2e9e3e;
   --card-color-sms-out: #e3eef6;
+  /* Карточка ПОВ-112 (спека 009): ИНСТРУКЦИЯ_image112 — «История сообщений», КАРТОЧКА_image1 — красная рамка «нет контакта». */
+  --card-color-sms-history-bg: #6f364b; /* малиновое окно «История сообщений» */
+  --card-color-sms-badge: #a51d1d; /* счётчик непрочитанных */
+  --card-color-flag-danger: #ec653b; /* «нет контакта» / «срыв звонка» */
+  --card-map-window-width: 940px; /* окно «С112 — карта», КАРТОЧКА_image5 */
+  --card-map-window-height: 840px;
 
   /* ——— Сетка и отступы ——— */
   --card-gap: 10px; /* 8 px на скрине */

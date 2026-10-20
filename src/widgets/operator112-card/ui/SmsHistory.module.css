@@ -1,0 +1,74 @@
+/* «История сообщений» ПОВ-112 (ИНСТРУКЦИЯ_image112): малиновые полосы, серо-голубое поле, графитовые строки. */
+.history {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-color-sms-history-bg);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+}
+
+.history__title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: var(--spacing-xl) var(--spacing-md);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.history__count {
+  padding: 0 var(--spacing-md);
+  border: var(--border-width) solid var(--color-white);
+  border-radius: var(--radius-md);
+  background: var(--card-color-sms-badge);
+  font-size: var(--font-size-md);
+}
+
+.history__body {
+  min-height: var(--card-history-max-height);
+  padding: var(--spacing-xl) var(--spacing-md);
+  background: var(--color-graphite-500);
+}
+
+.history__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-md);
+  text-align: left;
+}
+
+.history__table th {
+  padding: var(--spacing-md);
+  color: var(--color-light-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.history__table td {
+  padding: var(--spacing-md);
+  background: var(--color-graphite-700);
+  border: var(--border-width) solid var(--color-graphite-500);
+  font-weight: var(--font-weight-bold);
+}
+
+.history__empty {
+  margin: var(--spacing-md) 0 0;
+  color: var(--color-light-muted);
+}
+
+.history__back {
+  align-self: flex-start;
+  margin: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: var(--border-width) solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+}
+
+.history__back:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

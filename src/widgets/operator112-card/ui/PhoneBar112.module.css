@@ -1,0 +1,163 @@
+/* Полоса телефонии ПОВ-112 (КАРТОЧКА_image1). Размеры — токены tokens-card.css. */
+.bar {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-width: 0;
+  height: var(--card-phone-bar-height);
+  gap: var(--spacing-xs);
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+}
+
+.bar__handset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--card-handset-width);
+  border: 0;
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  cursor: default;
+}
+
+.bar__handset[data-ringing="true"] {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+  cursor: pointer;
+}
+
+.bar__line {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: none;
+  width: var(--card-line-block-width);
+  padding: var(--spacing-md) var(--card-block-padding-x);
+  background: var(--color-gray-50);
+}
+
+.bar__status {
+  font-size: var(--font-size-base);
+}
+
+.bar__buttons {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.bar__small {
+  position: relative;
+  height: var(--card-line-btn-height);
+  padding: 0 var(--spacing-md);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-gray-25);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--card-font-small-btn);
+  cursor: pointer;
+}
+
+.bar__small:disabled {
+  color: var(--color-graphite-400);
+  cursor: default;
+}
+
+.bar__badge {
+  margin-left: var(--spacing-xs);
+  padding: 0 var(--spacing-xs);
+  background: var(--card-color-sms-badge);
+  color: var(--color-white);
+  font-size: var(--font-size-xxs);
+}
+
+.phone {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  background: var(--color-gray-50);
+}
+
+.phone[data-active="true"] {
+  background: var(--color-white);
+}
+
+.phone__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--card-phone-icon-col-width);
+  padding: var(--spacing-md) 0;
+  background: var(--color-gray-100);
+  color: var(--card-color-icon-muted);
+}
+
+.phone__field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: var(--spacing-md) var(--card-block-padding-x);
+}
+
+.phone__label {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-ink-muted);
+  font-size: var(--card-font-label);
+}
+
+.phone[data-active="true"] .phone__label {
+  color: var(--color-accent-blue);
+}
+
+.phone__icons {
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  color: var(--color-ink);
+}
+
+.phone__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+}
+
+.phone__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--card-font-phone);
+}
+
+.phone__input:focus-visible,
+.bar__small:focus-visible,
+.phone__aon:focus-visible,
+.bar__handset:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.phone__aon {
+  width: var(--card-aon-btn-width);
+  height: var(--card-line-btn-height);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-gray-25);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--card-font-small-btn);
+  cursor: pointer;
+}
+
+.phone__aon:disabled {
+  color: var(--color-graphite-400);
+  cursor: default;
+}

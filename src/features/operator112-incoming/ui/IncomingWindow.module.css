@@ -1,4 +1,4 @@
-/* Окно «Входящий звонок» карточки 112 (ИНСТРУКЦИЯ_4). Только токены АРМ (vars.css). */
+/* Окна «Входящий звонок» / «Входящее сообщение» ПОВ-112 (ИНСТРУКЦИЯ_4, ИНСТРУКЦИЯ_107). Только токены АРМ (vars.css). */
 .overlay {
   position: fixed;
   inset: 0;
@@ -10,7 +10,7 @@
   background: var(--color-overlay-strong);
 }
 
-.call {
+.window {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -24,19 +24,20 @@
   font-family: var(--font-ui);
 }
 
-.call__title {
+.window__title {
   margin: var(--spacing-xl) 0 0;
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
 }
 
-.call__from {
+.window__line {
+  text-align: center;
   margin: 0;
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
 }
 
-.call__accept {
+.window__accept {
   min-width: 134px;
   height: 44px;
   margin-top: var(--spacing-xs);
@@ -50,16 +51,16 @@
   cursor: pointer;
 }
 
-.call__accept:hover:not(:disabled) {
+.window__accept:hover:not(:disabled) {
   background: var(--color-accent-blue-hover);
 }
 
-.call__accept:disabled {
+.window__accept:disabled {
   cursor: progress;
   opacity: 0.8;
 }
 
-.call__close {
+.window__close {
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-lg);
@@ -71,8 +72,8 @@
   cursor: pointer;
 }
 
-.call__accept:focus-visible,
-.call__close:focus-visible {
+.window__accept:focus-visible,
+.window__close:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }

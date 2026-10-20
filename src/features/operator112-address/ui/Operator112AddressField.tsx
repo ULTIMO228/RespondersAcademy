@@ -6,9 +6,18 @@ import type { KeyboardEvent, ReactNode } from "react";
 import type { CardDraftAddress, Street } from "@/shared/api";
 import { Glyph } from "@/shared/ui";
 
-import { EMPTY_ADDRESS, pickStreet, typeStreet, withFields } from "../model/address";
+import {
+  DEFAULT_SUBJECT,
+  clearAddress,
+  isMoscow,
+  pickStreet,
+  typeStreet,
+  withFields,
+} from "../model/address";
 import { useStreetSuggest } from "../model/useStreetSuggest";
 import type { StreetSearch } from "../model/useStreetSuggest";
+
+import { MapWindow } from "./MapWindow";
 
 import styles from "./Operator112AddressField.module.css";
 
@@ -20,10 +29,6 @@ type Operator112AddressFieldProps = {
   error?: string;
   search?: StreetSearch;
 };
-
-/** Субъект учебного набора: все адреса заданий — Москва (КАРТОЧКА_image1 показывает его заполненным). */
-const SUBJECT = "Москва";
-const FUTURE_FIELD = "Поле появится в следующем этапе тренажёра (спека 009, этап B)";
 
 function streetLabel(street: Street): string {
   return [street.name, street.raion, street.okrug].filter(Boolean).join(" · ");
@@ -51,11 +56,25 @@ function Field({ label, className, children, popup }: FieldProps) {
   );
 }
 
-/** Поле расширенного адреса, которого ещё нет в контракте карточки: видно, как в АРМ, но неактивно (plan.md). */
-function FutureField({ label, className }: { label: string; className?: string }) {
+type TextFieldProps = {
+  label: string;
+  className?: string;
+  value: string | undefined;
+  onChange: (text: string) => void;
+};
+
+/** Обычное текстовое поле блока адреса. */
+function TextField({ label, className, value, onChange }: TextFieldProps) {
   return (
     <Field label={label} className={className}>
-      {(id) => <input id={id} className={styles.field__input} disabled title={FUTURE_FIELD} />}
+      {(id) => (
+        <input
+          id={id}
+          className={styles.field__input}
+          value={value ?? ""}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )}
     </Field>
   );
 }
@@ -63,7 +82,8 @@ function FutureField({ label, className }: { label: string; className?: string }
 /**
  * Блок «Адрес:» карточки ПОВ-112 (КАРТОЧКА_image1; спека 009, FR-014): строка адреса с «×», поля Страна · Субъект ·
  * Населённый пункт · Объект · Округ · Район · Улица · Дом/Вл. · Корпус · Стр/соор · Квартира/офис · Подъезд · Этаж · Код ·
- * Описательный адрес и «очистить адрес». Улица — с подсказкой справочника (от 3 символов).
+ * Описательный адрес, «очистить адрес» и окно карты «С112 — карта». Умолчания — Россия / Москва / Москва; для Москвы улица
+ * подсказывается справочником (от 3 символов), для другого субъекта — ручной ввод (FR-014, FR-023).
  */
 export function Operator112AddressField({
   value,
@@ -75,8 +95,19 @@ export function Operator112AddressField({
   const [picked, setPicked] = useState<string | null>(value.source === "directory" ? value.street : null);
   const [isOpen, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const suggest = useStreetSuggest(value.street, isOpen && !disabled, search);
-  const streets = suggest.status === "ready" ? suggest.streets : [];
+  const [isMapOpen, setMapOpen] = useState(false);
+  const moscow = isMoscow(value);
+  const suggest = useStreetSuggest(value.street, isOpen && !disabled && moscow, search);
+  // Каскад округ → район → улица: заполненные округ/район сужают подсказки справочника.
+  const matches = (filter: string, own: string | undefined) =>
+    !filter.trim() || !own || own.trim().toLowerCase() === filter.trim().toLowerCase();
+  const streets =
+    suggest.status === "ready"
+      ? suggest.streets.filter(
+          (street) => matches(value.okrug, street.okrug) && matches(value.raion, street.raion),
+        )
+      : [];
+  const set = (patch: Partial<CardDraftAddress>) => onChange(withFields(value, patch));
   const listId = useId();
 
   const choose = (street: Street) => {
@@ -110,7 +141,7 @@ export function Operator112AddressField({
 
   const clear = () => {
     setPicked(null);
-    onChange(EMPTY_ADDRESS);
+    onChange(clearAddress());
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -136,14 +167,13 @@ export function Operator112AddressField({
           type="button"
           className={styles.address__map}
           aria-label="Указать на карте"
-          title="Окно карты — следующий этап тренажёра (спека 009, этап C)"
-          disabled
+          onClick={() => setMapOpen(true)}
         >
           <Glyph name="map" size={18} />
         </button>
       </div>
       <div className={styles.address__line}>
-        <span data-testid="address-formal">{value.formal || SUBJECT}</span>
+        <span data-testid="address-formal">{value.formal || value.locality || DEFAULT_SUBJECT}</span>
         <button
           type="button"
           className={styles.address__clear}
@@ -155,20 +185,38 @@ export function Operator112AddressField({
       </div>
 
       <div className={styles.address__grid}>
-        <FutureField label="Страна:" className={styles["span-4"]} />
-        <Field label="Субъект:" className={styles["span-4"]}>
-          {(id) => <input id={id} className={styles.field__input} value={SUBJECT} readOnly />}
-        </Field>
-        <FutureField label="Населенный пункт:" className={styles["span-4"]} />
+        <TextField
+          label="Страна:"
+          className={styles["span-4"]}
+          value={value.country}
+          onChange={(country) => set({ country })}
+        />
+        <TextField
+          label="Субъект:"
+          className={styles["span-4"]}
+          value={value.subject}
+          onChange={(subject) => set({ subject })}
+        />
+        <TextField
+          label="Населенный пункт:"
+          className={styles["span-4"]}
+          value={value.locality}
+          onChange={(locality) => set({ locality })}
+        />
 
-        <FutureField label="Объект:" className={styles["span-6"]} />
+        <TextField
+          label="Объект:"
+          className={styles["span-6"]}
+          value={value.object}
+          onChange={(object) => set({ object })}
+        />
         <Field label="Округ:" className={styles["span-3"]}>
           {(id) => (
             <input
               id={id}
               className={styles.field__input}
               value={value.okrug}
-              onChange={(event) => onChange(withFields(value, { okrug: event.target.value }))}
+              onChange={(event) => set({ okrug: event.target.value })}
             />
           )}
         </Field>
@@ -178,7 +226,7 @@ export function Operator112AddressField({
               id={id}
               className={styles.field__input}
               value={value.raion}
-              onChange={(event) => onChange(withFields(value, { raion: event.target.value }))}
+              onChange={(event) => set({ raion: event.target.value })}
             />
           )}
         </Field>
@@ -215,18 +263,48 @@ export function Operator112AddressField({
               id={id}
               className={styles.field__input}
               value={value.house}
-              onChange={(event) => onChange(withFields(value, { house: event.target.value }))}
+              onChange={(event) => set({ house: event.target.value })}
             />
           )}
         </Field>
-        <FutureField label="Корпус:" className={styles["span-2"]} />
+        <TextField
+          label="Корпус:"
+          className={styles["span-2"]}
+          value={value.korpus}
+          onChange={(korpus) => set({ korpus })}
+        />
         <span className={styles["span-2"]} aria-hidden="true" />
 
-        <FutureField label="Стр/соор:" className={styles["span-2"]} />
-        <FutureField label="Квартира/офис:" className={styles["span-2"]} />
-        <FutureField label="Подъезд:" className={styles["span-2"]} />
-        <FutureField label="Этаж:" className={styles["span-2"]} />
-        <FutureField label="Код:" className={styles["span-2"]} />
+        <TextField
+          label="Стр/соор:"
+          className={styles["span-2"]}
+          value={value.building}
+          onChange={(building) => set({ building })}
+        />
+        <TextField
+          label="Квартира/офис:"
+          className={styles["span-2"]}
+          value={value.flat}
+          onChange={(flat) => set({ flat })}
+        />
+        <TextField
+          label="Подъезд:"
+          className={styles["span-2"]}
+          value={value.entrance}
+          onChange={(entrance) => set({ entrance })}
+        />
+        <TextField
+          label="Этаж:"
+          className={styles["span-2"]}
+          value={value.floor}
+          onChange={(floor) => set({ floor })}
+        />
+        <TextField
+          label="Код:"
+          className={styles["span-2"]}
+          value={value.code}
+          onChange={(code) => set({ code })}
+        />
         <span className={styles["span-2"]} aria-hidden="true" />
 
         <Field label="Описательный адрес:" className={styles["span-12"]}>
@@ -236,18 +314,18 @@ export function Operator112AddressField({
               className={[styles.field__input, styles.field__area].join(" ")}
               rows={2}
               value={value.descriptive}
-              onChange={(event) => onChange(withFields(value, { descriptive: event.target.value }))}
+              onChange={(event) => set({ descriptive: event.target.value })}
             />
           )}
         </Field>
       </div>
 
-      {isOpen && suggest.status === "loading" ? (
+      {moscow && isOpen && suggest.status === "loading" ? (
         <span className={styles.address__status} role="status">
           Поиск по справочнику…
         </span>
       ) : null}
-      {isOpen && suggest.status === "ready" && streets.length === 0 ? (
+      {moscow && isOpen && suggest.status === "ready" && streets.length === 0 ? (
         <span className={styles.address__status}>В справочнике не найдено — можно ввести вручную</span>
       ) : null}
       {suggest.status === "error" ? (
@@ -266,6 +344,17 @@ export function Operator112AddressField({
           очистить адрес
         </button>
       </div>
+      {isMapOpen ? (
+        <MapWindow
+          lat={value.lat}
+          lon={value.lon}
+          onClose={() => setMapOpen(false)}
+          onApply={(point) => {
+            set(point);
+            setMapOpen(false);
+          }}
+        />
+      ) : null}
     </fieldset>
   );
 }

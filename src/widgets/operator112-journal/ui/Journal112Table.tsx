@@ -1,5 +1,5 @@
 import { ArmIcon, Toggle } from "@/shared/ui";
-import type { Journal112Row } from "@/shared/api/types/operator112";
+import type { Journal112Row } from "@/shared/api";
 
 import { splitCreatedAt } from "./format";
 import styles from "./Journal112Table.module.css";
