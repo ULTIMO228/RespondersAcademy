@@ -180,3 +180,9 @@
 ## L040 | parallel tests on shared SQLite connection
 ❌ asyncio.gather race test where savepoint rollback of one request erases the other's insert (single shared connection)
 ✅ simulate the stale read (monkeypatch the read to return None once) and assert the DB constraint path; mutate the constraint to prove the test bites
+
+## L041 | merging many branches (feature 021)
+❌ union both conflict sides blindly | trust subagent mirror built on older base | `git add -u` near NFD-named files
+✅ regex-union only for append-only logs; registries/exports — check shared prefix lines (lost `export type {` once) | compare mirror base snapshot with current `:2:` side before copying | check `git show --stat` after commit
+✅ one writer per tree: subagents read WT + write proposals to scratchpad; integrator applies and re-verifies (lines lost per side via grep)
+! SAVEPOINT on SQLite without open txn commits on RELEASE → fence check after it is too late (F7 regression, eb9312b)

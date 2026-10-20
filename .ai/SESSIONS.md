@@ -300,3 +300,11 @@ Decisions: 🧠
   - narrow toolbar → icon-only view/answers buttons (labels kept for screen reader)
 Next:
   !1: owner re-check locally (git pull)
+
+## 2026-10-20 merge/021-branch-consolidation (WT ../RespondersAcademy-merge, base origin/main ba1f7d8)
+focus:021 staged consolidation of all origin branches (spec in claude/gracious-darwin-x0znyd, executed in integration branch)
+done:fetch + K0-K12 commit map (128/128) | decomposed flattened 98705b7 (182 files → 016/017/018 + specs 007/009/010) | K5,K6 verified ⊂ K4 | T006 network defaults audit | baselines main + branch tips | F1 develop | F2 dds-sasha | F3 SASHA (6 conflicts) | F5 fix + codex | F6 gracious | F7 graph | merge revs 0011, 0013 | renumber 8 features → 013-020 | AGENTS §2/§3, spec/README, .ai, FINAL-GATE rewritten
+decisions:В1 specializations | В2 external only as OFF options | P1-P5 (see SESSION_STATE) | K12 pitch not merged | commits in integration branch allowed, push/main not
+checks:vitest 2612 passed (2612) | tsc ✅ | lint ✅ | steiger ✅ | build ✅ | pytest 1681 passed/0 failed/4 skipped/3 xfailed (after fix eb9312b; gate run before fix: 1680/1) | ruff ✅ | mocks:validate ✅ | format:check ✅ except inherited окна-АРМ-112.html ; HTTP e2e mock mode (next start :3130): student 40/40 ✅ | teacher 94/96 ❌ steps 82 «пересчёт балла по правке», 86 «обратная связь видна курсанту» (see journal) | admin 141/141 ✅ | Playwright smoke+platform+constructor+scenario-graph 23/23 ✅ | not run: simulator-visual, demo-path, auth-security, run_frontend_e2e.sh (backend mode)
+lessons:see LESSONS (merge)
+next:owner review of integration branch → push + merge to main on request | close open tasks from SESSION_STATE Open | decide 013 vs 015 constructors, 017 vs 005-performance-report

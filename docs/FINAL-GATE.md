@@ -246,3 +246,59 @@
 | Симулятор | файлы `/arm/*` не менялись; `simulatorBoundary.test.ts` проходит; `e2e/simulator-visual.spec.ts` **не запускался** |
 | Проверка людьми (SC-001…SC-003, SC-006) | **не проведена**: нет группы преподавателей целевого возраста |
 | Ручные сценарии 1–14 в браузере | **не прогонялись** |
+
+## Слияние веток (фича 021, 2026-10-20)
+
+Спека — `spec/021-branch-consolidation/`, журнал каждого куска, конфликтов и гейтов — `spec/021-branch-consolidation/merge-journal.md`. Интеграционная ветка `merge/021-branch-consolidation` от `origin/main` `ba1f7d8`; push и слияние в `main` не выполнялись.
+
+### Состав
+
+| Влито | Вершина | Фичи (новые номера) |
+|---|---|---|
+| `develop` | `db44740` | 014 (живой ИИ-заявитель, ветка AMIR), починка трёх красных тестов main |
+| `feat/011-dds-sasha` | `ada3e78` | 011, 012, 016, 017, 018, 009 (часть), справочник |
+| `SASHA` | `ad5e271` | 009 (все окна 112 один в один), миграция `0007_problem_reports` |
+| `fix/ai-connection-probe-timeout` | `5e309ef` | 005-performance-report, 006, 008 (аудит), 020, миграции `0006`–`0010` линии seva |
+| `codex/feature-007-learner-role-split` | `971261d` | 019 |
+| `claude/gracious-darwin-x0znyd` | `8c992c6` | 013 |
+| `feature/scenario-graph-builder` | `cdef678` | 015, миграции `0006`–`0009` линии графа |
+
+Не влиты: `claude/optimistic-maxwell-wxwdzs` (K12, питч с фото команды — решение владельца), дубли `feat/011-dds-card-feed`, `claude/zealous-goldberg-mu6erp` (уже содержатся в `feat/011-dds-sasha`, проверено сверкой T009/T010), `claude/kind-goldberg-ij6veq`, `claude/practical-hawking-7p9bam` (совпадают с влитыми).
+
+### Решения
+
+- В1: модель специализации — `users.specializations` (список); `training_profile` убран или производный.
+- В2: внешние сервисы (SpeechKit, GigaAM, Polza.ai для живого заявителя, отчётов, чата) — только опции, по умолчанию выключены; проверено по коду (`merge-journal.md`, T006). Это расхождение с буквой принципа I конституции («никаких внешних сетей») зафиксировано в `AGENTS.md` §2.
+- P2–P5 (два конструктора, рейтинг и сводная успеваемость, окно 112, слот simulator-bar), перенумерация фич 005–010 → 013–020 — `spec/README.md`, `merge-journal.md`.
+- Миграции: три цепочки от `0005_error_map_verdicts` сведены merge-ревизиями `0011_merge_sasha_seva` и `0013_merge_scenario_graph` без перешивки; число голов alembic — 1 (`0013_merge_scenario_graph`).
+
+### Результаты гейта
+
+Команды и числа записывает интегратор; пустое — «не проверялось».
+
+| Проверка | Команда | Результат (дата 2026-10-20) |
+|---|---|---|
+| Линтер, формат | `npm run lint`, `npm run format:check` | lint ✅; format:check ✅, кроме унаследованного `окна-АРМ-112.html` |
+| FSD-гейт | `npm run steiger` | ✅ (после группировки `features/flow/*`, `features/operator112/*`) |
+| Типы | `npx tsc --noEmit` (после `npm run mocks:sync`) | ✅ 0 ошибок |
+| Юнит-тесты фронта | `npm run test` | 2612 passed / 0 failed |
+| Сборка | `npm run build` | ✅ |
+| Моки | `npm run mocks:validate` | ✅ |
+| Бэкенд | `cd backend && uv run pytest -q` | 1681 passed / 0 failed / 4 skipped / 3 xfailed (после `eb9312b`) |
+| Ruff | `uv run ruff check .` | ✅ |
+| Миграции | `uv run alembic heads` / `alembic check` / `test_alembic.py` | одна голова `0013_merge_scenario_graph`; `test_alembic.py` в составе pytest ✅; `alembic check` не запускался |
+| Контракт | `uv run python scripts/extract_ts_fields.py` + `tests/contract` | `expected_fields.json` перегенерирован (289 типов), контрактные тесты ✅ |
+| HTTP e2e | `backend/scripts/run_frontend_e2e.sh` | мок-режим `next start -p 3130`: student 40/40, teacher 94/96 (шаги 82, 86 — журнал F8), admin 141/141; `run_frontend_e2e.sh` (бэкенд-режим) не запускался |
+| Playwright | `npm run e2e` | smoke, platform, constructor, scenario-graph — 23/23; simulator-visual, demo-path, auth-security не запускались |
+| Сеть по умолчанию | запуск без переменных окружения, нет исходящих соединений | проверено по коду (журнал T006): без переменных и ключей сети нет; запуском не проверялось |
+
+Эталон до слияния (`origin/main` `ba1f7d8`, 2026-10-20): vitest 1912 passed; pytest 911 passed / 3 failed / 2 skipped (красные: `test_ready_applicant_audio_is_playable_from_recordings[wav|mp3]`, `test_release_invariants` — починены коммитом `3720f58` из `develop`).
+
+### Не проверялось и открыто
+
+- Открытые задачи фич: 006 T041; 008 T001–T014 (5 критических дефектов безопасности, устранение не начато); 009 T052, T069, T070, T072; 011 T010; 019 T041, T059–T063; 020 T019, T031, T032, T034, T035; 005-performance-report T006; 004 T007.
+- 015: штатный `run_frontend_e2e.sh --only scenario-graph` на чистой БД не дождался результата (сквозной сценарий пройден на ручном стенде); перетаскивание мышью не проверялось.
+- 013: серверные фазы не начаты; объединение конструкторов 013 и 015 — решение владельца.
+- 014: реальный прогон с ключом, звонок в гарнитуре и замер на железе из ТЗ не выполнялись.
+- Ручные проверки людьми (SC-004 и подобные, визуальный осмотр экранов в браузере) после слияния не проводились.
+- Особенность `main`: имя pptx хранится в NFD, при `core.precomposeunicode=true` файл виден как неотслеживаемый — не стейджить.
