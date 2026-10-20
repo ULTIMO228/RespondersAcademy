@@ -1,0 +1,73 @@
+/* Окно «Добавьте службы» карточки ПОВ-112 (КАРТОЧКА_image3). Только токены АРМ. */
+.window__search {
+  width: 100%;
+  height: 36px;
+  margin-bottom: var(--spacing-2xl);
+  padding: 0;
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-2xl);
+}
+
+.window__search:focus-visible {
+  outline: none;
+  border-bottom-color: var(--color-accent-blue);
+}
+
+.window__list {
+  max-height: 290px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  border: var(--border-width) solid var(--color-gray-200);
+}
+
+.window__option {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.window__option[data-selected="true"] {
+  background: var(--color-accent-blue);
+  color: var(--color-white);
+}
+
+.window__option:disabled {
+  cursor: default;
+}
+
+.window__empty {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.window__save {
+  height: 44px;
+  padding: 0 var(--spacing-xl);
+  border: var(--border-width) solid var(--color-accent-orange);
+  background: var(--color-white);
+  color: var(--color-accent-orange);
+  font: inherit;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.window__option:focus-visible,
+.window__save:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

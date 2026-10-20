@@ -1,13 +1,17 @@
-/* Оранжевая панель «Службы:» и окно «Добавьте службы» карточки ПОВ-112 (КАРТОЧКА_image1, 3). Только токены АРМ. */
+/* Панель «Службы:» карточки ПОВ-112: оранжевая при заполнении, серая у сохранённой (КАРТОЧКА_image1, ИНСТРУКЦИЯ_image94). */
 .bar {
   display: flex;
   align-items: stretch;
   gap: var(--spacing-md);
   min-height: 72px;
   padding: var(--spacing-md);
-  background: var(--color-accent-orange);
+  background: var(--color-services-fill);
   color: var(--color-white);
   font-family: var(--font-ui);
+}
+
+.bar[data-saved="true"] {
+  background: var(--color-services-saved);
 }
 
 .bar__label {
@@ -55,9 +59,19 @@
   color: var(--color-white);
 }
 
-.tile__remove:disabled {
+.tile__remove[aria-disabled="true"] {
   cursor: default;
   opacity: 0.7;
+}
+
+.tile__status {
+  font-size: var(--font-size-sm);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.bar[data-saved="true"] .tile {
+  border-right-color: var(--color-graphite-600);
 }
 
 .tile__name {
@@ -101,7 +115,8 @@
   cursor: pointer;
 }
 
-.bar__square:disabled {
+.bar__square:disabled,
+.bar__square[aria-disabled="true"] {
   cursor: default;
 }
 
@@ -125,7 +140,7 @@
 }
 
 .bar__save:hover:not(:disabled),
-.bar__square:hover:not(:disabled) {
+.bar__square:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--color-accent-orange-hover);
 }
 
@@ -137,75 +152,11 @@
 .bar__save:focus-visible,
 .bar__square:focus-visible,
 .bar__retry:focus-visible,
-.window__option:focus-visible,
-.window__save:focus-visible {
+.tile__remove:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
 
-.window__search {
-  width: 100%;
-  height: 36px;
-  margin-bottom: var(--spacing-2xl);
-  padding: 0;
-  border: 0;
-  border-bottom: var(--border-width) solid var(--color-gray-200);
-  color: var(--color-ink);
-  font: inherit;
-  font-size: var(--font-size-2xl);
-}
-
-.window__search:focus-visible {
-  outline: none;
-  border-bottom-color: var(--color-accent-blue);
-}
-
-.window__list {
-  max-height: 290px;
-  margin: 0;
-  padding: 0;
-  overflow: auto;
-  list-style: none;
-  border: var(--border-width) solid var(--color-gray-200);
-}
-
-.window__option {
-  display: block;
-  width: 100%;
-  min-height: 44px;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border: 0;
-  border-bottom: var(--border-width) solid var(--color-gray-200);
-  background: var(--color-white);
-  color: var(--color-ink);
-  font: inherit;
-  font-size: var(--font-size-base);
-  text-align: left;
-  cursor: pointer;
-}
-
-.window__option[data-selected="true"] {
-  background: var(--color-accent-blue);
-  color: var(--color-white);
-}
-
-.window__option:disabled {
-  cursor: default;
-}
-
-.window__empty {
-  margin: 0;
-  color: var(--color-ink-muted);
-}
-
-.window__save {
-  height: 44px;
-  padding: 0 var(--spacing-xl);
-  border: var(--border-width) solid var(--color-accent-orange);
-  background: var(--color-white);
-  color: var(--color-accent-orange);
-  font: inherit;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
+.bar[data-saved="true"] .bar__square:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-graphite-600);
 }

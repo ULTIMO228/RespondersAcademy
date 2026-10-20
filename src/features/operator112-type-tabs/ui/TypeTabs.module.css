@@ -1,4 +1,4 @@
-/* «что случилось?» и опросная карта карточки ПОВ-112 (КАРТОЧКА_image1–2). Только токены АРМ. */
+/* «что случилось?», вкладки типов и опросная карта карточки ПОВ-112 (КАРТОЧКА_image1–2). Только токены АРМ. */
 .search {
   display: flex;
   flex-direction: column;
@@ -150,6 +150,17 @@
   border: var(--border-width) solid var(--color-graphite-300);
   background: var(--color-white);
   font-size: var(--font-size-md);
+  cursor: pointer;
+}
+
+.type__tab[data-active="false"] {
+  background: var(--color-gray-100);
+  color: var(--color-ink-muted);
+}
+
+.type__tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .type__close {

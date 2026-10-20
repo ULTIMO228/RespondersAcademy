@@ -1,0 +1,61 @@
+/* Таблица карточек окон связей (ИНСТРУКЦИЯ_image62, 64–68). Только токены АРМ. */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 var(--spacing-xs);
+  color: var(--color-light-text);
+  font-size: var(--font-size-base);
+}
+
+.table th {
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-light-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  text-align: left;
+}
+
+.row td {
+  height: 38px;
+  padding: 0 var(--spacing-md);
+  background: var(--color-graphite-900);
+  border-right: var(--border-width) solid var(--color-graphite-700);
+  white-space: nowrap;
+}
+
+.row[data-primary="true"] td {
+  background: var(--color-accent-blue);
+  border-right-color: var(--color-accent-blue-hover);
+  color: var(--color-white);
+}
+
+.row td.operator {
+  background: var(--color-operator-cell);
+  color: var(--color-white);
+}
+
+.row td.time,
+.row td.what,
+.row td.address {
+  color: var(--color-white);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.row td.what {
+  width: 100%;
+}
+
+.row td.actions {
+  padding: 0 var(--spacing-sm);
+  background: transparent;
+  border-right: 0;
+}
+
+.desc td {
+  height: 30px;
+  padding: 0 var(--spacing-md);
+  background: var(--color-graphite-700);
+  color: var(--color-light-text);
+  font-size: var(--font-size-base);
+}

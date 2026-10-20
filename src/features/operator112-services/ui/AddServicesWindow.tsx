@@ -7,7 +7,7 @@ import { Modal } from "@/shared/ui";
 
 import { serviceOptions } from "../model/services";
 
-import styles from "./Operator112ServicesBar.module.css";
+import styles from "./AddServicesWindow.module.css";
 
 type AddServicesWindowProps = {
   services: readonly NotificationListItem[];

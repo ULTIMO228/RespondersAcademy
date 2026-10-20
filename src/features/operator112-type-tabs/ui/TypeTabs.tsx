@@ -9,38 +9,36 @@ import { Chip, Glyph } from "@/shared/ui";
 import { matchGroups, QUICK_TYPES, SUGGEST_LIMIT } from "../model/quickTypes";
 import type { QuickType } from "../model/quickTypes";
 import { resolveEntry, visibleLevels } from "../model/tree";
-import type { QuestionnaireState } from "../model/useQuestionnaire";
+import type { TypeTabsState } from "../model/useTypeTabs";
 
-import styles from "./Operator112WhatHappened.module.css";
+import styles from "./TypeTabs.module.css";
 
-type Operator112WhatHappenedProps = {
-  questionnaire: QuestionnaireState;
+type TypeTabsProps = {
+  state: TypeTabsState;
   entries: readonly ClassifierEntry[];
   /** Пока вызов не принят или карточка сохраняется, выбор недоступен. */
   disabled?: boolean;
 };
 
 /**
- * Тип происшествия карточки ПОВ-112: «Введите тип происшествия — что случилось?» с подсказками групп ЕКП, быстрые типы,
- * затем вкладка типа с опросной картой чипами по признакам (КАРТОЧКА_image1–2; спека 009, FR-016, FR-017).
+ * Тип происшествия карточки ПОВ-112: «Введите тип происшествия — что случилось?» с подсказками групп ЕКП, быстрые типы;
+ * после выбора поле становится «добавить тип происшествия», появляются вкладки «Происшествие …» с опросной картой
+ * чипами (КАРТОЧКА_image1–2; спека 009, FR-016, FR-017). Один тип — одна вкладка, «×» удаляет вкладку.
  */
-export function Operator112WhatHappened({
-  questionnaire: q,
-  entries,
-  disabled = false,
-}: Operator112WhatHappenedProps) {
+export function TypeTabs({ state, entries, disabled = false }: TypeTabsProps) {
   const inputId = useId();
   const listId = useId();
   const [query, setQuery] = useState("");
   const [isOpen, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const hasTabs = state.tabs.length > 0;
   const groups = isOpen ? matchGroups(entries, query).slice(0, SUGGEST_LIMIT) : [];
-  const group = q.selection.group;
-  const levels = visibleLevels(entries, q.selection);
-  const entry = resolveEntry(entries, q.selection);
+  const tab = state.tabs[state.activeIndex];
+  const levels = tab ? visibleLevels(entries, tab) : [];
+  const entry = tab ? resolveEntry(entries, tab) : undefined;
 
-  const choose = (next: string) => {
-    q.chooseGroup(next);
+  const choose = (group: string) => {
+    state.addType(group);
     setQuery("");
     setOpen(false);
     setActive(-1);
@@ -74,8 +72,8 @@ export function Operator112WhatHappened({
 
   return (
     <>
-      <section className={styles.search} aria-label="Тип происшествия" data-has-type={Boolean(group)}>
-        {group ? null : (
+      <section className={styles.search} aria-label="Тип происшествия" data-has-type={hasTabs}>
+        {hasTabs ? null : (
           <label className={styles.search__label} htmlFor={inputId}>
             Введите тип происшествия
           </label>
@@ -85,8 +83,8 @@ export function Operator112WhatHappened({
             id={inputId}
             className={styles.search__input}
             value={query}
-            placeholder={group ? "добавить тип происшествия" : "что случилось?"}
-            aria-label={group ? "добавить тип происшествия" : undefined}
+            placeholder={hasTabs ? "добавить тип происшествия" : "что случилось?"}
+            aria-label={hasTabs ? "добавить тип происшествия" : undefined}
             role="combobox"
             aria-expanded={groups.length > 0}
             aria-autocomplete="list"
@@ -126,7 +124,7 @@ export function Operator112WhatHappened({
             <p className={styles.search__empty}>Тип не найден в классификаторе</p>
           ) : null}
         </div>
-        {group ? null : (
+        {hasTabs ? null : (
           <>
             <div className={styles.search__quick} role="group" aria-label="Быстрые типы">
               {QUICK_TYPES.map((type) => {
@@ -147,28 +145,47 @@ export function Operator112WhatHappened({
             <p className={styles.search__significant}>Значимые типы происшествий:</p>
           </>
         )}
-        {q.notice ? (
+        {state.notice ? (
           <p className={styles.search__notice} role="alert">
-            {q.notice}
+            {state.notice}
           </p>
         ) : null}
       </section>
 
-      {group ? (
+      {tab ? (
         <section className={styles.type} aria-label="Опросная карта">
-          <div className={styles.type__tabs} role="tablist">
-            <span className={styles.type__tab} role="tab" aria-selected="true">
-              {group}
-              <button
-                type="button"
-                className={styles.type__close}
-                aria-label={`Удалить тип «${group}»`}
-                disabled={disabled}
-                onClick={() => choose("")}
+          <div className={styles.type__tabs} role="tablist" aria-label="Происшествия">
+            {state.tabs.map((item, index) => (
+              <span
+                key={item.id}
+                className={styles.type__tab}
+                role="tab"
+                aria-selected={index === state.activeIndex}
+                data-active={index === state.activeIndex}
+                tabIndex={0}
+                onClick={() => state.setActive(index)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    state.setActive(index);
+                  }
+                }}
               >
-                <Glyph name="close" size={14} />
-              </button>
-            </span>
+                {item.group}
+                <button
+                  type="button"
+                  className={styles.type__close}
+                  aria-label={`Удалить тип «${item.group}»`}
+                  disabled={disabled}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    state.removeType(index);
+                  }}
+                >
+                  <Glyph name="close" size={14} />
+                </button>
+              </span>
+            ))}
           </div>
           <div className={styles.type__panel} role="tabpanel">
             <div className={styles.type__head} data-testid="final-type">
@@ -183,7 +200,7 @@ export function Operator112WhatHappened({
                       key={option}
                       selected={level.selected === option}
                       disabled={disabled}
-                      onClick={() => q.chooseSign(level.level, option)}
+                      onClick={() => state.chooseSign(level.level, option)}
                     >
                       {option}
                     </Chip>
