@@ -47,10 +47,13 @@ describe("TypeTabs: тип происшествия и вкладки", () => {
       "что случилось?",
     );
     expect(screen.getByText("Значимые типы происшествий:")).toBeInTheDocument();
-    for (const label of ["ДТП", "Ошибочно набран номер", "104", "Справка-101", "Тестовый вызов"]) {
+    for (const label of ["ДТП", "104", "Человек в опасности", "Консультация"]) {
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
     }
-    expect(screen.getByRole("button", { name: "Тестовый вызов" })).toBeDisabled();
+    // Служебные типы без группы в классификаторе не показываются (нет серых неактивных кнопок).
+    for (const label of ["Ошибочно набран номер", "Тестовый вызов", "Справка-101"]) {
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
+    }
   });
 
   it("выбор типа: вкладка, поле «добавить тип происшествия», событие typeAdded; быстрые типы исчезают", async () => {
@@ -76,7 +79,7 @@ describe("TypeTabs: тип происшествия и вкладки", () => {
     await waitFor(() =>
       expect(api.sendEvent).toHaveBeenCalledWith("att-1", {
         type: "signSelected",
-        payload: { signs: ["жилой дом"] },
+        payload: { signs: ["жилой дом"], tabs: [{ group: "пожар в жилом доме", signs: ["жилой дом"] }] },
       }),
     );
     await waitFor(() =>
@@ -87,12 +90,12 @@ describe("TypeTabs: тип происшествия и вкладки", () => {
     await waitFor(() =>
       expect(api.sendEvent).toHaveBeenLastCalledWith("att-1", {
         type: "signSelected",
-        payload: { signs: [] },
+        payload: { signs: [], tabs: [{ group: "пожар в жилом доме", signs: [] }] },
       }),
     );
   });
 
-  it("вторая вкладка имеет свой выбор и не шлёт signSelected; incidents — по порядку вкладок", async () => {
+  it("вторая вкладка имеет свой выбор и шлёт signSelected со всеми вкладками; incidents — по порядку вкладок", async () => {
     const api = makeApi();
     const onIncidents = vi.fn();
     render(<Harness api={api} onIncidents={onIncidents} />);
@@ -103,7 +106,18 @@ describe("TypeTabs: тип происшествия и вкладки", () => {
     expect(screen.queryByRole("button", { name: "жилой дом", pressed: true })).toBeNull();
     api.sendEvent.mockClear();
     fireEvent.click(await screen.findByRole("button", { name: "на улице" }));
-    expect(api.sendEvent).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(api.sendEvent).toHaveBeenCalledWith("att-1", {
+        type: "signSelected",
+        payload: {
+          signs: ["жилой дом"],
+          tabs: [
+            { group: "пожар в жилом доме", signs: ["жилой дом"] },
+            { group: "пожар на улице", signs: ["на улице"] },
+          ],
+        },
+      }),
+    );
     const incidents = onIncidents.mock.lastCall![0];
     expect(incidents).toHaveLength(2);
     expect(incidents[0].signs).toEqual(["жилой дом"]);

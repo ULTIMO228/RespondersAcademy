@@ -54,6 +54,8 @@ export function resolveEntry(
 ): ClassifierEntry | undefined {
   const pool = entriesFor(entries, selection);
   if (pool.length === 0) return undefined;
+  // Единственная строка группы определена самим типом — признаки выбирать не обязательно.
+  if (pool.length === 1) return pool[0];
   const remainingLevel = SIGN_FIELDS.findIndex(
     (field, index) => index >= selection.signs.length && pool.some((entry) => entry[field].trim()),
   );

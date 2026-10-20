@@ -7,7 +7,9 @@ import {
   getAssignment,
   getClassifier,
   getNotificationList,
+  getPracticeNotificationList,
   getOperatorEvaluation,
+  getReference,
   journal,
   matches,
   sendAttemptEvent,
@@ -22,10 +24,12 @@ import type {
   Journal112Response,
   NotificationListPreview,
   NotificationListResponse,
+  PracticeNotificationQuery,
   OperatorAttempt,
   OperatorEvaluation,
   OperatorEvent,
   OperatorEventRequest,
+  ServiceRef,
   StartAssignmentResult,
   SubmitAttemptResult,
 } from "@/shared/api";
@@ -47,6 +51,10 @@ export type Operator112Api = {
     attemptId: string,
     preview?: NotificationListPreview,
   ) => Promise<NotificationListResponse>;
+  /** Карточка-тренировка без попытки (FR-008): тот же расчёт ЕКП на сервере, состояние — из запроса. */
+  getPracticeNotificationList?: (query: PracticeNotificationQuery) => Promise<NotificationListResponse>;
+  /** Все службы справочника: окно «Добавьте службы» показывает их целиком, как в АРМ (КАРТОЧКА_3). */
+  getServices?: () => Promise<ServiceRef[]>;
 };
 
 export const operator112Api: Operator112Api = {
@@ -60,4 +68,6 @@ export const operator112Api: Operator112Api = {
   journal: (assignmentId) => journal(assignmentId),
   matches: (attemptId) => matches(attemptId),
   getNotificationList: (attemptId, preview) => getNotificationList(attemptId, preview),
+  getPracticeNotificationList: (query) => getPracticeNotificationList(query),
+  getServices: async () => (await getReference()).services,
 };

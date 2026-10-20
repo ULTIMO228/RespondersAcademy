@@ -28,6 +28,8 @@ type Options = {
   attempt: OperatorAttempt;
   format: AssignmentFormat | null;
   loader?: CallerAudioLoader;
+  /** false — запись не запрашивается (например, пока работает живой заявитель). По умолчанию true. */
+  enabled?: boolean;
 };
 
 /**
@@ -38,11 +40,12 @@ export function useCallerAudio({
   attempt,
   format,
   loader = fetchTicketAudioFile,
+  enabled = true,
 }: Options): CallerAudioState {
   const [state, setState] = useState<ResolvedAudio>({ status: "idle" });
   const [url, setUrl] = useState<string | null>(null);
   const requested = useRef<{ attemptId: string; promise: Promise<ResolvedAudio> } | null>(null);
-  const answered = attempt.state === "answered";
+  const answered = attempt.state === "answered" && enabled;
 
   useEffect(() => {
     if (!answered) return undefined;

@@ -72,6 +72,7 @@ export {
 } from "./operator112";
 export {
   getNotificationList,
+  getPracticeNotificationList,
   getOperatorEvaluation,
   getTicketAudio,
   journal,

@@ -81,7 +81,12 @@ export { acceptRecommendation, getAnalytics, getHistory, getKbArticle, getMe } f
 export { getReferenceAccess, listKbArticles, listRecommendations } from "./endpoints";
 export type { ReferenceAccess } from "./types";
 export { EXAM_REPLAY_DENIED_MESSAGE, STREET_QUERY_MIN_LENGTH, answerAttempt } from "./endpoints";
-export { fetchTicketAudioFile, getNotificationList, getOperatorEvaluation } from "./endpoints";
+export {
+  fetchTicketAudioFile,
+  getNotificationList,
+  getOperatorEvaluation,
+  getPracticeNotificationList,
+} from "./endpoints";
 export {
   getTicketAudio,
   journal,
@@ -293,6 +298,7 @@ export type {
   NotificationAdder,
   NotificationListItem,
   NotificationListPreview,
+  PracticeNotificationQuery,
   NotificationListResponse,
   OperatorAttempt,
   OperatorAttemptState,

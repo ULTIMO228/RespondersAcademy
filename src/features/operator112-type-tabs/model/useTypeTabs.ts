@@ -24,7 +24,17 @@ const defaultApi: TypeTabsApi = { sendEvent: sendAttemptEvent };
 export type TypeTab = Selection & { id: string };
 
 /** Выбор первой вкладки: по нему сервер считает список оповещения (событие signSelected). */
-export type FirstTabValue = { group: string; signs: string[]; finalType: string; classifierCode: string };
+export type FirstTabValue = {
+  group: string;
+  signs: string[];
+  finalType: string;
+  classifierCode: string;
+  /** Все вкладки: служб списка оповещения — объединение по всем типам. */
+  tabs: { group: string; signs: string[] }[];
+};
+
+const toTabsPayload = (list: readonly Selection[]) =>
+  list.map((tab) => ({ group: tab.group, signs: [...tab.signs] }));
 
 type Options = {
   attemptId: string;
@@ -106,16 +116,19 @@ export function useTypeTabs({
     [api, attemptId],
   );
 
-  const syncFirst = useCallback(
-    async (first: Selection | undefined) => {
-      const selection = first ?? { group: "", signs: [] };
-      if (!(await report("signSelected", { signs: selection.signs }))) return;
+  /** signSelected: signs первой вкладки (совместимость) и tabs — все вкладки; зовётся при любом изменении вкладок. */
+  const syncTabs = useCallback(
+    async (list: readonly Selection[]) => {
+      const selection = list[0] ?? { group: "", signs: [] };
+      const allTabs = toTabsPayload(list);
+      if (!(await report("signSelected", { signs: selection.signs, tabs: allTabs }))) return;
       const entry = resolveEntry(entries, selection);
       onFirstRef.current?.({
         group: selection.group,
         signs: selection.signs,
         finalType: entry?.finalType ?? "",
         classifierCode: entry?.code ?? "",
+        tabs: allTabs,
       });
     },
     [entries, report],
@@ -130,9 +143,15 @@ export function useTypeTabs({
       setActiveIndex(next.length - 1);
       setNotice(null);
       const entry = resolveEntry(entries, tab);
-      void report("typeAdded", { finalType: entry?.finalType ?? group, classifierCode: entry?.code ?? "" });
+      void (async () => {
+        await report("typeAdded", {
+          finalType: entry?.finalType ?? group,
+          classifierCode: entry?.code ?? "",
+        });
+        await syncTabs(next);
+      })();
     },
-    [disabled, entries, report],
+    [disabled, entries, report, syncTabs],
   );
 
   const removeType = useCallback(
@@ -146,11 +165,11 @@ export function useTypeTabs({
       setNotice(null);
       void (async () => {
         if (!(await report("typeRemoved", { index }))) return;
-        // Первая вкладка сменилась (или исчезла): сервер считает список по новой первой.
-        if (index === 0) await syncFirst(next[0]);
+        // Набор вкладок изменился: сервер пересчитывает список по всем оставшимся.
+        await syncTabs(next);
       })();
     },
-    [disabled, report, syncFirst],
+    [disabled, report, syncTabs],
   );
 
   /** Выбор/снятие признака на активной вкладке; повторный клик по выбранному снимает его и последующие. */
@@ -161,11 +180,12 @@ export function useTypeTabs({
       const tab = tabsRef.current[index];
       if (!tab) return;
       const changed: TypeTab = { ...tab, ...selectSign(tab, level, value) };
-      setTabs(tabsRef.current.map((item, position) => (position === index ? changed : item)));
+      const next = tabsRef.current.map((item, position) => (position === index ? changed : item));
+      setTabs(next);
       setNotice(null);
-      if (index === 0) void syncFirst(changed);
+      void syncTabs(next);
     },
-    [activeIndex, disabled, syncFirst],
+    [activeIndex, disabled, syncTabs],
   );
 
   useEffect(() => {
@@ -178,6 +198,7 @@ export function useTypeTabs({
       signs: first.signs,
       finalType: entry?.finalType ?? "",
       classifierCode: entry?.code ?? "",
+      tabs: toTabsPayload(tabsRef.current),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- только при монтировании
   }, []);

@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
@@ -55,6 +56,29 @@ async def notification_list(attempt_id: str, request: Request, db: AsyncSession 
     signs = [s.strip() for s in request.query_params.getlist("signs") if s.strip()] or None
     code = (request.query_params.get("classifierCode") or "").strip() or None
     return await service.notification_list(db, attempt_id, viewer, signs=signs, classifier_code=code)
+
+
+@router.get("/operator112/notification-list")
+async def preview_notification_list(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
+    """Карточка-тренировка «создать новую карточку» (спека 009, FR-008) без попытки: список по `signs`, `classifierCode`,
+    флагам карточки `flags` и ручным службам `manual` из запроса; ничего не сохраняется и не оценивается."""
+    params = request.query_params
+
+    def values(name: str) -> list[str]:
+        return [v.strip() for v in params.getlist(name) if v.strip()]
+
+    code = (params.get("classifierCode") or "").strip() or None
+    tabs: list[dict[str, Any]] | None = None
+    raw_tabs = (params.get("tabs") or "").strip()
+    if raw_tabs:
+        try:
+            parsed = json.loads(raw_tabs)
+        except ValueError:
+            raise validation_failed("tabs: ожидается JSON-массив вкладок [{group, signs}]") from None
+        if not isinstance(parsed, list):
+            raise validation_failed("tabs: ожидается JSON-массив вкладок [{group, signs}]")
+        tabs = [t for t in parsed if isinstance(t, dict)]
+    return await service.preview_notification_list(db, signs=values("signs"), classifier_code=code, flags=values("flags"), manual=values("manual"), tabs=tabs)
 
 
 @router.post("/operator112/attempts/{attempt_id}/submit")

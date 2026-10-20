@@ -400,3 +400,16 @@ async def test_curated_elevenlabs_recording_takes_priority(v1: AsyncClient, tmp_
                 await db.delete(row)
                 await db.commit()
         get_settings.cache_clear()
+
+
+async def test_practice_card_notification_list_without_attempt(v1: AsyncClient):
+    """«создать новую карточку» (спека 009, FR-008): список оповещения без попытки по признакам, флагам и ручным службам."""
+    assert (await v1.get("/operator112/notification-list", params={"signs": ["ДТП пострадавшие"]})).status_code == 401
+    await login_as(v1, "student")
+    listed = await v1.get("/operator112/notification-list", params={"signs": ["ДТП пострадавшие"], "manual": ["svc-mgts"]})
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    ids = {s["serviceId"]: s["addedBy"] for s in body["services"]}
+    assert body["finalType"] == "ДТП с пострадавшими" and ids.get("svc-103") == "auto" and ids.get("svc-mgts") == "manual"
+    empty = (await v1.get("/operator112/notification-list")).json()
+    assert empty["services"] == [] and empty["finalType"] == ""

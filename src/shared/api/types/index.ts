@@ -138,6 +138,7 @@ export type {
   NotificationAdder,
   NotificationListItem,
   NotificationListPreview,
+  PracticeNotificationQuery,
 } from "./operator112";
 export type {
   NotificationListResponse,
