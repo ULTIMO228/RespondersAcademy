@@ -183,3 +183,7 @@
     order: -1;
   }
 }
+
+.login__key {
+  margin-top: var(--pf-space-3);
+}

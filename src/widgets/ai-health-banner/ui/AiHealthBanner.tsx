@@ -59,6 +59,7 @@ function AdminMessage({ health }: { health: AiHealth }) {
 export function AiHealthBanner({ api = aiHealthApi, pollMs = AI_HEALTH_POLL_MS }: AiHealthBannerProps) {
   const role = useSessionUser()?.role;
   const [health, setHealth] = useState<AiHealth | null>(null);
+  const [keyMissing, setKeyMissing] = useState(false);
   const watched = role === "admin" || role === "teacher";
 
   useEffect(() => {
@@ -75,13 +76,37 @@ export function AiHealthBanner({ api = aiHealthApi, pollMs = AI_HEALTH_POLL_MS }
       );
     };
     load();
+    if (role === "admin" && api.settings) {
+      api.settings(controller.signal).then(
+        (settings) => {
+          if (!controller.signal.aborted) setKeyMissing(!settings.cloud.keyConfigured);
+        },
+        () => {
+          if (!controller.signal.aborted) setKeyMissing(false);
+        },
+      );
+    }
     const timer = setInterval(load, pollMs);
     return () => {
       controller.abort();
       clearInterval(timer);
     };
-  }, [watched, api, pollMs]);
+  }, [watched, role, api, pollMs]);
 
+  if (role === "admin" && keyMissing) {
+    return (
+      <div className={styles.banner}>
+        <Alert tone="warning">
+          <div className={styles.banner__text}>
+            <strong>ИИ не подключён: вставьте ключ Polza.</strong>{" "}
+            <Link href={ROUTES.accountAi} className={styles.banner__link}>
+              Настройки ИИ
+            </Link>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
   if (!watched || !health || health.state === "ok") return null;
   return (
     <div className={styles.banner}>

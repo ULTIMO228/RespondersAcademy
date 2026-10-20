@@ -30,7 +30,8 @@ class Settings(BaseSettings):
     llama_model: str = Field(default="semantic-review", alias="LLAMA_MODEL")
     ollama_timeout_sec: float = Field(default=120.0, alias="OLLAMA_TIMEOUT_SEC")
     # Внешний провайдер моделей (спека 004): по умолчанию выключен; ключ нигде не логируется и не отдаётся в API.
-    ai_provider: Literal["local", "polza"] = Field(default="local", alias="AI_PROVIDER")
+    # Не задан явно → «polza», если есть ключ и модель (решение владельца 2026-10-20), иначе «local»; итог — после валидации.
+    ai_provider: Literal["local", "polza"] | None = Field(default=None, alias="AI_PROVIDER")
     polza_api_key: SecretStr | None = Field(default=None, alias="POLZA_API_KEY")
     polza_base_url: str = Field(default="https://polza.ai/api/v1", alias="POLZA_BASE_URL")
     # Без значения по умолчанию: только модель с открытыми весами, выбранная явно (решение организаторов 19.10).
@@ -50,7 +51,8 @@ class Settings(BaseSettings):
     ml_warmup: bool = Field(default=True, alias="ML_WARMUP")  # прогрев моделей при старте (в тестах выключен)
     tts_enabled: bool = Field(default=True, alias="TTS_ENABLED")  # синтез аудио билетов (Silero); 0 — только расшифровка
     app_env: str = Field(default="dev", alias="APP_ENV")
-    live_calls_enabled: bool = Field(default=False, alias="LIVE_CALLS_ENABLED")
+    # Не задан явно → True при ключе Polza и модели чата живого заявителя (решение владельца 2026-10-20); false выключает.
+    live_calls_enabled: bool | None = Field(default=None, alias="LIVE_CALLS_ENABLED")
     live_call_realtime_transport: Literal["polza", "omni", "cascade", "speechkit"] = Field(default="polza", alias="LIVE_CALL_REALTIME_TRANSPORT")
     # Живой заявитель через Polza.ai: ключ и адрес — POLZA_API_KEY/POLZA_BASE_URL, модели только из окружения
     # (условие организаторов: модели с открытыми весами, разворачиваемые позже локально; без хардкода).
@@ -124,10 +126,18 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _polza_needs_key(self) -> Settings:
-        if self.ai_provider == "polza" and not (self.polza_api_key and self.polza_api_key.get_secret_value().strip()):
-            raise ValueError("AI_PROVIDER=polza требует POLZA_API_KEY")
-        if self.ai_provider == "polza" and not (self.polza_model or "").strip():
-            raise ValueError("AI_PROVIDER=polza требует POLZA_MODEL (модель с открытыми весами)")
+        has_key = bool(self.polza_api_key and self.polza_api_key.get_secret_value().strip())
+        has_model = bool((self.polza_model or "").strip())
+        if self.ai_provider is None:
+            # Автовключение: ключ есть → облако без ручных флагов; без модели из .env остаёмся локально, без ошибки.
+            self.ai_provider = "polza" if has_key and has_model else "local"
+        elif self.ai_provider == "polza":
+            if not has_key:
+                raise ValueError("AI_PROVIDER=polza требует POLZA_API_KEY")
+            if not has_model:
+                raise ValueError("AI_PROVIDER=polza требует POLZA_MODEL (модель с открытыми весами)")
+        if self.live_calls_enabled is None:
+            self.live_calls_enabled = bool(has_key and (self.live_call_polza_chat_model or "").strip())
         return self
 
     @property

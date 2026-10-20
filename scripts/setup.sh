@@ -2,14 +2,18 @@
 # Первичная установка «всё сразу»: зависимости фронта и бэкенда, база с сидами, модель ИИ и движок llama.cpp.
 #   ./scripts/setup.sh              # полная установка (модель ~540 МБ качается один раз, с докачкой)
 #   ./scripts/setup.sh --no-model   # без ИИ-модели: генерация карточек останется на статичных шаблонах
+#   ./scripts/setup.sh --key        # только backend/.env: спросить (или принять из stdin) ключ Polza.ai и выйти
 # Повторный запуск безопасен: готовое не скачивается и не пересобирается (модель сверяется по sha256).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WITH_MODEL=1
+ONLY_KEY=0
+source "$ROOT/scripts/lib/ensure-env.sh"
 for arg in "$@"; do
   case "$arg" in
     --no-model) WITH_MODEL=0 ;;
-    -h|--help) sed -n 2,6p "${BASH_SOURCE[0]}"; exit 0 ;;
+    --key) ONLY_KEY=1 ;;
+    -h|--help) sed -n 2,7p "${BASH_SOURCE[0]}"; exit 0 ;;
     *) echo "Неизвестный аргумент: $arg" >&2; exit 2 ;;
   esac
 done
@@ -21,6 +25,15 @@ need uv "Установите uv: curl -LsSf https://astral.sh/uv/install.sh | s
 need python3 "Нужен Python 3.9+ (лаунчер модели использует только стандартную библиотеку)."
 
 cd "$ROOT"
+if [ "$ONLY_KEY" = 1 ]; then
+  ensure_env "$ROOT/backend" --key
+  has_polza_key "$ROOT/backend/.env" && echo "ИИ: облако Polza (ключ задан)" || echo "ИИ: локальный режим (ключ не задан)"
+  exit 0
+fi
+
+echo "==> [0/4] Настройка backend/.env"
+ensure_env "$ROOT/backend"
+
 echo "==> [1/4] Фронтенд: npm ci"
 npm ci
 
@@ -39,4 +52,5 @@ else
 fi
 
 echo
-echo "Готово. Запуск всего стенда:  ./scripts/ai-up.sh"
+if has_polza_key "$ROOT/backend/.env"; then echo "ИИ: облако Polza (ключ задан)"; else echo "ИИ: локальный режим — ключ: ./scripts/setup.sh --key"; fi
+echo "Готово. Запуск всего стенда:  ./scripts/ai-up.sh  или  ./scripts/demo-up.sh"

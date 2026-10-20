@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { AuthForm, resolvePostLoginRoute } from "@/features/auth-form";
+import { resolvePostLoginRoute } from "@/features/auth-form";
 import { ROLE_TITLES } from "@/entities/user";
 import { getSessionUser } from "@/entities/user/index.server";
 import { APP_ENV } from "@/shared/config";
@@ -18,7 +18,7 @@ import { pickDemoAccounts, pickDemoCredentials } from "../model/authAccounts";
 import { readLoginParams } from "../model/loginParams";
 import type { LoginParams, LoginSearchParams } from "../model/loginParams";
 import { CityIllustration } from "./CityIllustration";
-import { DemoAccessPanel } from "./DemoAccessPanel";
+import { LoginFormArea } from "./LoginFormArea";
 import styles from "./LoginPage.module.css";
 
 type LoginScreenProps = LoginParams & {
@@ -51,14 +51,14 @@ export function LoginScreen({ isDemoMode, returnUrl, isSessionExpired, demoRole 
       <div className={styles.login__panel}>
         <div className={styles.login__card}>
           {isSessionExpired ? <Alert tone="warning">{SESSION_EXPIRED_MESSAGE}</Alert> : null}
-          <AuthForm
+          <LoginFormArea
             key={demoRole}
+            isDemoMode={isDemoMode}
             initialCredentials={isDemoMode ? pickDemoCredentials(demoRole) : undefined}
+            accounts={isDemoMode ? pickDemoAccounts() : []}
+            roleTitles={ROLE_TITLES}
             returnUrl={returnUrl}
           />
-          {isDemoMode ? (
-            <DemoAccessPanel accounts={pickDemoAccounts()} roleTitles={ROLE_TITLES} returnUrl={returnUrl} />
-          ) : null}
           <address className={styles.login__support}>
             {SUPPORT_CONTACTS.title}: {SUPPORT_CONTACTS.phone} ·{" "}
             <a href={`mailto:${SUPPORT_CONTACTS.email}`} className={styles["login__support-link"]}>

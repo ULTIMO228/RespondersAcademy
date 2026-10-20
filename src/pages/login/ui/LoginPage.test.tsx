@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type * as SharedApi from "@/shared/api";
+import { login, putAiSettings } from "@/shared/api";
 import type { AuthSession } from "@/shared/api";
 
 import { readLoginParams } from "../model/loginParams";
@@ -22,6 +23,7 @@ const STUDENT_SESSION: AuthSession = {
 vi.mock("@/shared/api", async (importOriginal) => ({
   ...(await importOriginal<typeof SharedApi>()),
   login: vi.fn(async () => STUDENT_SESSION),
+  putAiSettings: vi.fn(async () => ({})),
 }));
 
 const DEFAULT_PROPS = {
@@ -98,6 +100,72 @@ describe("LoginScreen (/login)", () => {
       fireEvent.click(screen.getByRole("button", { name: "Войти" }));
     });
     expect(screen.queryByLabelText(/код из сообщения/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("Ключ Polza.ai на входе", () => {
+  const ADMIN_SESSION: AuthSession = { ...STUDENT_SESSION, userId: "u-001", role: "admin" };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.sessionStorage.clear();
+  });
+
+  function typeKey() {
+    fireEvent.click(screen.getByText("Демо-доступ"));
+    fireEvent.change(screen.getByLabelText("Ключ Polza.ai"), { target: { value: "test-key" } });
+  }
+
+  async function submit() {
+    vi.useFakeTimers();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Войти" }));
+      await vi.advanceTimersByTimeAsync(2000);
+    });
+    vi.useRealTimers();
+  }
+
+  it("поле видно в демо-режиме и скрыто без него", () => {
+    const { unmount } = render(<LoginScreen {...DEFAULT_PROPS} />);
+    expect(screen.getByLabelText("Ключ Polza.ai")).toHaveAttribute("type", "password");
+    expect(screen.getByLabelText("Ключ Polza.ai")).toHaveAttribute("autocomplete", "off");
+    unmount();
+    render(<LoginScreen {...DEFAULT_PROPS} isDemoMode={false} />);
+    expect(screen.queryByLabelText("Ключ Polza.ai")).not.toBeInTheDocument();
+  });
+
+  it("до входа ключ не отправляется, лежит только в sessionStorage", () => {
+    render(<LoginScreen {...DEFAULT_PROPS} />);
+    typeKey();
+    expect(putAiSettings).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem("arm112_polza_key")).toBe("test-key");
+  });
+
+  it("вход admin: ключ уходит в настройки ИИ, storage очищен, показано «Ключ сохранён»", async () => {
+    vi.mocked(login).mockResolvedValueOnce(ADMIN_SESSION);
+    render(<LoginScreen {...DEFAULT_PROPS} demoRole="admin" />);
+    typeKey();
+    await submit();
+    expect(putAiSettings).toHaveBeenCalledWith({ source: "cloud", apiKey: "test-key" });
+    expect(window.sessionStorage.getItem("arm112_polza_key")).toBeNull();
+    expect(screen.getByText("Ключ сохранён")).toBeInTheDocument();
+  });
+
+  it("вход student: ключ не отправляется, подсказка про admin", async () => {
+    render(<LoginScreen {...DEFAULT_PROPS} />);
+    typeKey();
+    await submit();
+    expect(putAiSettings).not.toHaveBeenCalled();
+    expect(screen.getByText("Ключ сохраняет администратор (admin)")).toBeInTheDocument();
+  });
+
+  it("ошибка сохранения показывается", async () => {
+    vi.mocked(login).mockResolvedValueOnce(ADMIN_SESSION);
+    vi.mocked(putAiSettings).mockRejectedValueOnce(new Error("fail"));
+    render(<LoginScreen {...DEFAULT_PROPS} demoRole="admin" />);
+    typeKey();
+    await submit();
+    expect(screen.getByText(/Не удалось сохранить ключ/)).toBeInTheDocument();
   });
 });
 

@@ -253,3 +253,29 @@ def test_explain_stage_bad_answer_is_none(monkeypatch, answer):
     monkeypatch.setattr(llm, "complete_json", _FakeComplete(answer))
     with llm.bind_context(_cloud_context()):
         assert LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT) is None
+
+
+def _auto(**env: Any) -> Settings:
+    return Settings(_env_file=None, JWT_SECRET="x" * 40, **env)
+
+
+def test_key_and_model_enable_cloud_and_live_calls_automatically():
+    settings = _auto(POLZA_API_KEY="k", POLZA_MODEL="m/open", LIVE_CALL_POLZA_CHAT_MODEL="c/open")
+    assert settings.ai_provider == "polza" and settings.live_calls_enabled is True
+
+
+def test_explicit_flags_turn_auto_off():
+    settings = _auto(POLZA_API_KEY="k", POLZA_MODEL="m/open", LIVE_CALL_POLZA_CHAT_MODEL="c/open",
+                     AI_PROVIDER="local", LIVE_CALLS_ENABLED="false")
+    assert settings.ai_provider == "local" and settings.live_calls_enabled is False
+
+
+def test_no_key_stays_local_without_network():
+    settings = _auto(POLZA_MODEL="m/open", LIVE_CALL_POLZA_CHAT_MODEL="c/open")
+    assert settings.ai_provider == "local" and settings.live_calls_enabled is False
+
+
+def test_key_without_models_does_not_break_startup():
+    settings = _auto(POLZA_API_KEY="k")
+    assert settings.ai_provider == "local" and settings.live_calls_enabled is False
+    assert _auto(POLZA_API_KEY="k", POLZA_MODEL="m/open").live_calls_enabled is False

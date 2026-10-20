@@ -10,7 +10,7 @@ import type { LoginRequestFn } from "./useLoginRequest";
 
 type UseAuthFormOptions = {
   initialCredentials: AuthCredentials;
-  onSuccess: (result: LoginResult) => void;
+  onSuccess: (result: LoginResult) => Promise<void> | void;
   loginRequest?: LoginRequestFn;
 };
 
@@ -39,7 +39,7 @@ export function useAuthForm({ initialCredentials, onSuccess, loginRequest }: Use
     if (!credentials.login.trim() || !credentials.password)
       return request.setError(AUTH_MESSAGES.credentialsRequired);
     const result = await request.submit(toLoginRequest(credentials));
-    if (result) onSuccess(result);
+    if (result) await onSuccess(result);
   }
 
   /*

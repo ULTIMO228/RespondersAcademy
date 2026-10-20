@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
+import type { LoginResult } from "@/shared/api";
 import { Alert, Field, PlatformButton } from "@/shared/ui/platform";
 
 import { resolvePostLoginRoute } from "../lib/redirect";
@@ -17,17 +18,31 @@ type AuthFormProps = {
   returnUrl?: string | null;
   /** Подмена вызова POST /api/mock/auth/login (тесты); по умолчанию — login() из shared/api. */
   loginRequest?: LoginRequestFn;
+  /** Хук после успешного входа: редирект ждёт его завершения (например, отправку ключа ИИ-провайдера). */
+  onLoggedIn?: (result: LoginResult) => Promise<void> | void;
 };
 
 const EMPTY_CREDENTIALS: AuthCredentials = { login: "", password: "" };
 
 /** Форма входа платформы: логин · пароль → «Войти». Отказы нейтральны (не раскрывают, что именно неверно). */
-export function AuthForm({ initialCredentials = EMPTY_CREDENTIALS, returnUrl, loginRequest }: AuthFormProps) {
+export function AuthForm({
+  initialCredentials = EMPTY_CREDENTIALS,
+  returnUrl,
+  loginRequest,
+  onLoggedIn,
+}: AuthFormProps) {
   const router = useRouter();
   const form = useAuthForm({
     initialCredentials,
     loginRequest,
-    onSuccess: (result) => router.replace(resolvePostLoginRoute(result.role, returnUrl)),
+    onSuccess: async (result) => {
+      try {
+        await onLoggedIn?.(result);
+      } catch {
+        // Сбой побочного хука не должен мешать входу.
+      }
+      router.replace(resolvePostLoginRoute(result.role, returnUrl));
+    },
   });
 
   return (

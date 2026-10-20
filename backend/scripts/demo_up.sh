@@ -2,7 +2,8 @@
 # T060 — стенд для демо одной командой (конституция IV: «без ручной подготовки», SC-015).
 # Запуск из корня репозитория или из backend/:
 #   ./scripts/demo-up.sh [--skip-build] [--live] [--backend-port PORT] [--front-port PORT]
-#   --live — живой ИИ-заявитель в софтфоне (фича 014): настройки в backend/.env, см. docs/LIVE-CALLER-POLZA.md
+#   Живой ИИ-заявитель включается сам, если в backend/.env задан POLZA_API_KEY (docs/LIVE-CALLER-POLZA.md);
+#   --live оставлен для совместимости (форсирует проверку настроек и остановку при их неполноте).
 # или:
 #   backend/scripts/demo_up.sh [--skip-build] [--backend-port PORT] [--front-port PORT]
 #
@@ -27,11 +28,13 @@ FRONT_PORT="${FRONT_PORT:-3130}"
 DEMO_DB="${DEMO_DB:-$BACKEND_DIR/var/demo.db}"
 SKIP_BUILD="${SKIP_BUILD:-0}"
 LIVE="${LIVE:-0}"
+LIVE_FORCED=0
+source "$ROOT/scripts/lib/ensure-env.sh"
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --skip-build) SKIP_BUILD=1 ;;
-    --live) LIVE=1 ;;
+    --live) LIVE=1; LIVE_FORCED=1 ;;
     --backend-port) shift; BACKEND_PORT="${1:-8130}" ;;
     --front-port) shift; FRONT_PORT="${1:-3130}" ;;
     -h|--help)
@@ -174,14 +177,29 @@ if [ -z "${LLAMA_URL:-}" ] && curl -sf -m 2 "http://127.0.0.1:8081/health" >/dev
 fi
 echo "   ИИ-модель: ${LLAMA_URL:-не подключена (генерация карточек — только шаблоны)}"
 
+# backend/.env: создать из примера, проставить модели, спросить ключ (в интерактиве)
+ensure_env "$BACKEND_DIR"
+if has_polza_key "$BACKEND_DIR/.env"; then
+  LIVE=1
+  AI_STATUS="ИИ: облако Polza (ключ задан)"
+else
+  AI_STATUS="ИИ: локальный режим — чтобы включить облако и живого заявителя, запустите ./scripts/setup.sh --key или вставьте ключ в /account/ai"
+fi
+
 if [ "$LIVE" -eq 1 ]; then
   # Переменные окружения перекрывают backend/.env: включаем звонок и WS на порт этого стенда.
   export LIVE_CALLS_ENABLED=true
   export LIVE_CALL_PUBLIC_WS_URL="ws://127.0.0.1:$BACKEND_PORT/api/v1/operator112/realtime"
-  echo "▸ Живой ИИ-заявитель (--live): проверка настроек"
+  echo "▸ Живой ИИ-заявитель: проверка настроек"
   (cd "$BACKEND_DIR" && uv run python -m scripts.live_caller_check) || {
-    echo "❌ Живой заявитель не готов — допишите недостающее в backend/.env (docs/LIVE-CALLER-POLZA.md)" >&2
-    exit 1
+    if [ "$LIVE_FORCED" -eq 1 ]; then
+      echo "❌ Живой заявитель не готов — допишите недостающее в backend/.env (docs/LIVE-CALLER-POLZA.md)" >&2
+      exit 1
+    fi
+    echo "⚠ Живой заявитель не готов (см. docs/LIVE-CALLER-POLZA.md) — стенд запускается без него" >&2
+    unset LIVE_CALLS_ENABLED LIVE_CALL_PUBLIC_WS_URL
+    LIVE=0
+    AI_STATUS="ИИ: облако Polza (ключ задан), живой заявитель не готов — см. docs/LIVE-CALLER-POLZA.md"
   }
   SKIP_BUILD=0   # NEXT_PUBLIC_LIVE_CALLS_ENABLED запекается в сборку фронта
 fi
@@ -265,6 +283,7 @@ if [ "$LIVE" -eq 1 ]; then
   echo "   4. «Завершить разговор» → транскрипт сохранён в попытке."
   echo ""
 fi
+echo "🤖 $AI_STATUS"
 echo "📝 Логи доступны в: $LOG_DIR"
 echo "🛑 Для завершения работы нажмите Ctrl+C"
 echo "================================================================="

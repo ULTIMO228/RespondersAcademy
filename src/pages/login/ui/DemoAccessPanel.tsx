@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import Link from "next/link";
 
 import { LOGIN_QUERY, SPECIALIZATION_TITLES } from "@/entities/user";
@@ -13,10 +15,12 @@ type DemoAccessPanelProps = {
   roleTitles: Record<UserRole, string>;
   /** returnUrl гварда сохраняется при переключении демо-учётки. */
   returnUrl?: string | null;
+  /** Блок под учётками (поле ключа Polza.ai). */
+  children?: ReactNode;
 };
 
 /** Подсказки тестовых учёток (только демо-режим) и ссылки «Войти как …» (предзаполнение формы). */
-export function DemoAccessPanel({ accounts, roleTitles, returnUrl }: DemoAccessPanelProps) {
+export function DemoAccessPanel({ accounts, roleTitles, returnUrl, children }: DemoAccessPanelProps) {
   const returnQuery = returnUrl ? { [LOGIN_QUERY.returnUrl]: returnUrl } : {};
   return (
     <details className={styles["login__demo"]}>
@@ -45,6 +49,7 @@ export function DemoAccessPanel({ accounts, roleTitles, returnUrl }: DemoAccessP
           </Link>
         ))}
       </p>
+      {children}
     </details>
   );
 }

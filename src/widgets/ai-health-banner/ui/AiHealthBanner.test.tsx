@@ -24,10 +24,19 @@ const DEGRADED: AiHealth = {
 };
 const OK: AiHealth = { ...DEGRADED, state: "ok", servedBy: "cloud", reason: null, errorsToday: 3 };
 
-function renderBanner(role: PublicUser["role"], health: ReturnType<typeof vi.fn>) {
+function renderBanner(
+  role: PublicUser["role"],
+  health: ReturnType<typeof vi.fn>,
+  settings?: ReturnType<typeof vi.fn>,
+) {
   return render(
     <SessionProvider user={user(role)}>
-      <AiHealthBanner api={{ health: health as unknown as AiHealthApi["health"] }} />
+      <AiHealthBanner
+        api={{
+          health: health as unknown as AiHealthApi["health"],
+          settings: settings as unknown as AiHealthApi["settings"],
+        }}
+      />
     </SessionProvider>,
   );
 }
@@ -102,5 +111,24 @@ describe("AiHealthBanner", () => {
     await act(async () => {});
     expect(screen.getByText(/Локальная модель недоступна/)).toBeInTheDocument();
     expect(screen.getByText(/шаблон/i)).toBeInTheDocument();
+  });
+
+  it("администратор без ключа видит подсказку вставить ключ Polza со ссылкой на настройки", async () => {
+    const settings = vi.fn().mockResolvedValue({ cloud: { keyConfigured: false } });
+    renderBanner("admin", vi.fn().mockResolvedValue(OK), settings);
+    await act(async () => {});
+    expect(screen.getByText(/ИИ не подключён: вставьте ключ Polza/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /настройки ИИ/i })).toHaveAttribute("href", "/account/ai");
+  });
+
+  it("с ключом подсказки нет, а преподавателю она не показывается никогда", async () => {
+    const withKey = vi.fn().mockResolvedValue({ cloud: { keyConfigured: true } });
+    renderBanner("admin", vi.fn().mockResolvedValue(OK), withKey);
+    await act(async () => {});
+    expect(screen.queryByText(/ИИ не подключён/)).not.toBeInTheDocument();
+    const noKey = vi.fn().mockResolvedValue({ cloud: { keyConfigured: false } });
+    renderBanner("teacher", vi.fn().mockResolvedValue(OK), noKey);
+    await act(async () => {});
+    expect(noKey).not.toHaveBeenCalled();
   });
 });
