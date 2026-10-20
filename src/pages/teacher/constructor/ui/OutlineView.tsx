@@ -12,6 +12,7 @@ type OutlineViewProps = {
   dict: FlowDictionaries;
   selection: FlowSelection;
   issues: FlowIssue[];
+  hideAnswers?: boolean;
   onSelect: (nodeId: string) => void;
 };
 
@@ -19,7 +20,14 @@ type OutlineViewProps = {
  * Вид «Список шагов» (design-concept.md §3, §12): та же схема текстом — ветки с отступом, сход веток ссылкой
  * «→ к шагу N». Альтернатива схеме для клавиатуры и экранного диктора; правка — в панели свойств.
  */
-export function OutlineView({ graph, dict, selection, issues, onSelect }: OutlineViewProps) {
+export function OutlineView({
+  graph,
+  dict,
+  selection,
+  issues,
+  hideAnswers = false,
+  onSelect,
+}: OutlineViewProps) {
   const numbers = stepNumbers(graph);
   const visited = new Set<string>();
   const items: ReactNode[] = [];
@@ -54,7 +62,9 @@ export function OutlineView({ graph, dict, selection, issues, onSelect }: Outlin
         >
           <span className={styles.outline__num}>Шаг {numbers.get(id)}</span>{" "}
           <b>{node.title?.trim() || FLOW_BLOCKS[node.type].title}</b>{" "}
-          <span className={styles.outline__summary}>· {summarizeNode(node, dict)}</span>{" "}
+          <span className={styles.outline__summary}>
+            · {summarizeNode(node, dict, new Map(), { hideAnswers })}
+          </span>{" "}
           {own.length ? (
             <span className={errors ? styles["count--error"] : styles["count--warning"]}>
               {errors ? `ошибок: ${errors}` : `предупреждений: ${own.length}`}

@@ -76,6 +76,7 @@ export function ConstructorScreen({
   const { state, dispatch, save, status, restored } = useFlowEditor({ storage, now });
   const { graph, selection } = state;
   const [view, setView] = useState<EditorView>("schema");
+  const [hideAnswers, setHideAnswers] = useState(false);
   const [panelTab, setPanelTab] = useState<"issues" | "history">("issues");
   const [checkedAt, setCheckedAt] = useState<Date | null>(null);
   const [announce, setAnnounce] = useState("");
@@ -252,6 +253,7 @@ export function ConstructorScreen({
     issues,
     marks,
     readOnly: previewing,
+    hideAnswers,
     focusRequest,
     onSelect: (next: typeof selection) => dispatch({ type: "select", selection: next }),
     onMoveStart: (id: string) =>
@@ -286,7 +288,12 @@ export function ConstructorScreen({
         canRedo={state.future.length > 0}
         view={view}
         errors={report.errors.length}
+        hideAnswers={hideAnswers}
         onView={setView}
+        onToggleAnswers={() => {
+          setHideAnswers((value) => !value);
+          setAnnounce(hideAnswers ? "Ответы показаны" : "Ответы скрыты");
+        }}
         onUndo={() => dispatch({ type: "undo" })}
         onRedo={() => dispatch({ type: "redo" })}
         onSave={() =>
@@ -348,6 +355,7 @@ export function ConstructorScreen({
               dict={dict}
               selection={selection}
               issues={issues}
+              hideAnswers={hideAnswers}
               onSelect={(id) => dispatch({ type: "select", selection: { kind: "node", id } })}
             />
           )}

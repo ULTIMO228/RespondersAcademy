@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 
 import { FLOW_BLOCKS, isPill, nodeSize, outputsOf } from "@/entities/scenario-flow";
@@ -52,6 +53,18 @@ export function FlowNodeCard({
 }: FlowNodeCardProps) {
   const block = FLOW_BLOCKS[node.type];
   const { width, height } = nodeSize(node);
+  const title = node.title?.trim() || block.title;
+  const titleRef = useRef<HTMLSpanElement>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
+  // Текст, не влезший в блок, показывается целиком под выделенным блоком (отзыв владельца 2026-10-20).
+  const [clipped, setClipped] = useState(false);
+  useLayoutEffect(() => {
+    const cut = (element: HTMLElement | null) =>
+      Boolean(element) &&
+      (element!.scrollHeight > element!.clientHeight + 1 || element!.scrollWidth > element!.clientWidth + 1);
+    setClipped(cut(titleRef.current) || cut(summaryRef.current));
+  }, [title, summary, simplified, width]);
+  const showFull = selected && !isPill(node) && (clipped || simplified);
   const outputs = outputsOf(node);
   const style = {
     left: node.position.x,
@@ -123,7 +136,7 @@ export function FlowNodeCard({
           <span className={styles.pill__tile} aria-hidden="true">
             <PfIcon name={block.icon} />
           </span>
-          <span className={styles.pill__title}>{node.title?.trim() || block.title}</span>
+          <span className={styles.pill__title}>{title}</span>
           <span className={styles.pill__outs}>{ports}</span>
         </>
       ) : (
@@ -132,13 +145,26 @@ export function FlowNodeCard({
             <span className={styles.tile} aria-hidden="true">
               <PfIcon name={block.icon} />
             </span>
-            <span className={styles.node__type}>{node.title?.trim() || block.title}</span>
+            <span ref={titleRef} className={styles.node__type} title={title}>
+              {title}
+            </span>
             <span className={styles.node__step} title={`Шаг ${step}`}>
               {step}
             </span>
           </div>
-          {simplified ? null : <div className={styles.node__summary}>{summary}</div>}
+          {simplified ? null : (
+            <div ref={summaryRef} className={styles.node__summary} title={summary}>
+              {summary}
+            </div>
+          )}
           <div className={styles.node__outs}>{ports}</div>
+          {showFull ? (
+            // Подпись для диктора уже содержит полный текст — выноска только для глаз.
+            <div className={styles.fulltext} data-flow-fulltext="" aria-hidden="true">
+              <b>{title}</b>
+              <span>{summary}</span>
+            </div>
+          ) : null}
         </>
       )}
     </div>

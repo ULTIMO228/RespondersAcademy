@@ -87,6 +87,18 @@ export function FlowPreviewPanel({
   const [status, setStatus] = useState("");
   const [sign, setSign] = useState("");
   const [comment, setComment] = useState("");
+  // Подтверждение у той формы, где действие отмечено: поле очищается, но видно, что записано (отзыв 2026-10-20).
+  const [recorded, setRecorded] = useState<{ form: string; text: string } | null>(null);
+  const record = (form: string, event: Omit<PreviewEvent, "at">) => {
+    onEvent(event);
+    setRecorded({ form, text: eventText({ ...event, at: state.clock }, dict) });
+  };
+  const confirmation = (form: string) =>
+    recorded?.form === form ? (
+      <p className={styles.recorded} role="status">
+        ✓ Записано: {recorded.text}
+      </p>
+    ) : null;
   const numbers = stepNumbers(graph);
   const active = state.activeNodeId;
   const dds = graph.mode === "dds";
@@ -127,6 +139,21 @@ export function FlowPreviewPanel({
               </li>
             ))}
           </ol>
+        </section>
+
+        <section aria-label="Мои действия">
+          <h3 className={styles.section}>Мои действия</h3>
+          {state.events.length ? (
+            <ol className={styles.log}>
+              {state.events.map((event, index) => (
+                <li key={index}>
+                  <span className={styles.feed__time}>{clock(event.at)}</span> {eventText(event, dict)}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className={styles.empty}>Пока ничего не отмечено. Действия студента отмечаются ниже.</p>
+          )}
         </section>
 
         {result ? (
@@ -195,13 +222,14 @@ export function FlowPreviewPanel({
                   className={styles.button}
                   disabled={!value.trim()}
                   onClick={() => {
-                    onEvent({ kind: "field", field, value: value.trim() });
+                    record("field", { kind: "field", field, value: value.trim() });
                     setValue("");
                   }}
                 >
                   Записать
                 </PlatformButton>
               </div>
+              {confirmation("field")}
             </div>
 
             <div className={styles.form}>
@@ -223,11 +251,12 @@ export function FlowPreviewPanel({
                 <PlatformButton
                   className={styles.button}
                   disabled={!service}
-                  onClick={() => onEvent({ kind: dds ? "call" : "service", value: service })}
+                  onClick={() => record("service", { kind: dds ? "call" : "service", value: service })}
                 >
                   {dds ? "Позвонить" : "Оповестить"}
                 </PlatformButton>
               </div>
+              {confirmation("service")}
             </div>
 
             {dds ? (
@@ -250,11 +279,12 @@ export function FlowPreviewPanel({
                   <PlatformButton
                     className={styles.button}
                     disabled={!status}
-                    onClick={() => onEvent({ kind: "status", value: status })}
+                    onClick={() => record("status", { kind: "status", value: status })}
                   >
                     Поставить
                   </PlatformButton>
                 </div>
+                {confirmation("status")}
               </div>
             ) : (
               <div className={styles.form}>
@@ -276,11 +306,12 @@ export function FlowPreviewPanel({
                   <PlatformButton
                     className={styles.button}
                     disabled={!sign.trim()}
-                    onClick={() => onEvent({ kind: "sign", value: sign.trim() })}
+                    onClick={() => record("sign", { kind: "sign", value: sign.trim() })}
                   >
                     Отметить
                   </PlatformButton>
                 </div>
+                {confirmation("sign")}
               </div>
             )}
 
@@ -297,21 +328,23 @@ export function FlowPreviewPanel({
                   className={styles.button}
                   disabled={!comment.trim()}
                   onClick={() => {
-                    onEvent({ kind: "text", field: "dispatcherAction", value: comment.trim() });
+                    record("comment", { kind: "text", field: "dispatcherAction", value: comment.trim() });
                     setComment("");
                   }}
                 >
                   Записать
                 </PlatformButton>
               </div>
+              {confirmation("comment")}
             </div>
 
             <PlatformButton
               className={styles.button}
-              onClick={() => onEvent({ kind: "transfer", value: "region" })}
+              onClick={() => record("transfer", { kind: "transfer", value: "region" })}
             >
               Перевести в ЦУС другого региона
             </PlatformButton>
+            {confirmation("transfer")}
 
             <div className={styles.wait} role="group" aria-label="Подождать">
               <span>Подождать:</span>
@@ -321,19 +354,6 @@ export function FlowPreviewPanel({
                 </PlatformButton>
               ))}
             </div>
-
-            {state.events.length ? (
-              <section aria-label="Мои действия">
-                <h3 className={styles.section}>Мои действия</h3>
-                <ol className={styles.log}>
-                  {state.events.map((event, index) => (
-                    <li key={index}>
-                      <span className={styles.feed__time}>{clock(event.at)}</span> {eventText(event, dict)}
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            ) : null}
 
             <div className={styles.actions}>
               <PlatformButton className={styles.button} onClick={onFinish}>

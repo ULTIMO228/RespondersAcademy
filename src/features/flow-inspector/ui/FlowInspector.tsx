@@ -16,6 +16,7 @@ import {
   wouldCreateCycle,
 } from "@/entities/scenario-flow";
 import type {
+  FlowCardOption,
   FlowDictionaries,
   FlowFieldDef,
   FlowGraph,
@@ -72,6 +73,33 @@ export const FlowInspector = forwardRef<HTMLElement, FlowInspectorProps>(functio
   );
 });
 
+function shorten(text: string, limit: number): string {
+  return text.length > limit ? `${text.slice(0, limit - 1).trimEnd()}…` : text;
+}
+
+/** Что за ситуация в выбранном билете: суть, адрес, заявитель — целиком, без сокращений. */
+function TicketDetails({ card }: { card: FlowCardOption }) {
+  return (
+    <div className={styles.ticket} aria-label={`О билете: ${card.label}`} role="group">
+      <b>{card.label}</b>
+      <p className={styles.ticket__text}>{card.summary}</p>
+      <dl className={styles.ticket__facts}>
+        <dt>Адрес</dt>
+        <dd>{card.address || "не указан"}</dd>
+        {card.callerName ? (
+          <>
+            <dt>Заявитель</dt>
+            <dd>
+              {card.callerName}
+              {card.callerPhone ? `, ${card.callerPhone}` : ""}
+            </dd>
+          </>
+        ) : null}
+      </dl>
+    </div>
+  );
+}
+
 function optionsFor(field: FlowFieldDef, node: FlowNode, graph: FlowGraph, dict: FlowDictionaries) {
   const source = field.options;
   if (!source) return [];
@@ -79,7 +107,15 @@ function optionsFor(field: FlowFieldDef, node: FlowNode, graph: FlowGraph, dict:
     if (field.key === "what") return FLOW_ACTION_KINDS.filter((kind) => kind.modes.includes(graph.mode));
     return source.options;
   }
-  if (source.kind === "dictionary") return dict[source.name];
+  if (source.kind === "dictionary") {
+    // Номер билета ничего не говорит преподавателю — в списке рядом с ним суть ситуации (отзыв 2026-10-20).
+    if (source.name === "cards")
+      return dict.cards.map((card) => ({
+        value: card.value,
+        label: `${card.label} — ${shorten(card.summary, 70)}`,
+      }));
+    return dict[source.name];
+  }
   const numbers = stepNumbers(graph);
   return graph.nodes
     .filter((item) => item.type === "requiredQuestion" && item.id !== node.id)
@@ -128,6 +164,22 @@ function NodeProperties({
           onChange={(checked) => setProp(field.key, checked)}
         />
       );
+    if (field.control === "select" && field.key === "cardId") {
+      const card = dict.cards.find((option) => option.value === value);
+      return (
+        <div key={field.key} className={styles.ticketField}>
+          <Select
+            label={field.label}
+            value={value === undefined ? "" : String(value)}
+            options={optionsFor(field, node, graph, dict)}
+            tone={tone}
+            hint={hint}
+            onChange={(next) => setProp(field.key, next)}
+          />
+          {card ? <TicketDetails card={card} /> : null}
+        </div>
+      );
+    }
     if (field.control === "select")
       return (
         <Select

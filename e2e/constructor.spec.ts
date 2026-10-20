@@ -145,6 +145,30 @@ test.describe("конструктор сценариев", () => {
     await shot(page, "06-minimap");
   });
 
+  test("мини-карта: рамка, протянутая за левый край, останавливается, а не улетает", async ({ page }) => {
+    const map = page.getByRole("img", { name: /Мини-карта/ });
+    const box = (await map.boundingBox())!;
+    const start = step(page, /^Шаг 1, Начало/);
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x - 200, box.y + box.height / 2, { steps: 10 });
+    const first = (await start.boundingBox())!;
+    for (let i = 0; i < 5; i += 1) await page.mouse.move(box.x - 200, box.y + box.height / 2 + (i % 2));
+    const later = (await start.boundingBox())!;
+    await page.mouse.up();
+    expect(Math.abs(later.x - first.x)).toBeLessThan(5);
+  });
+
+  test("«Скрыть ответы» убирает правильные ответы с блоков", async ({ page }) => {
+    const question = step(page, /Уточнение адреса/);
+    await expect(question).toContainText("ул. Грина, 11");
+    await page.getByRole("button", { name: "Скрыть ответы" }).click();
+    await expect(question).not.toContainText("ул. Грина, 11");
+    await expect(question).toContainText("ответ скрыт");
+    await page.getByRole("button", { name: "Показать ответы" }).click();
+    await expect(question).toContainText("ул. Грина, 11");
+  });
+
   test("проверка и пробный прогон до итога", async ({ page }) => {
     await page.getByRole("button", { name: /Запустить тест/ }).click();
     const run = page.getByRole("complementary", { name: "Пробный прогон" });
@@ -155,6 +179,7 @@ test.describe("конструктор сценариев", () => {
       await run.getByRole("button", { name: "Записать" }).first().click();
     };
     await record("addressRefined", "ул. Грина, 11");
+    await expect(run.getByText(/✓ Записано: .*«ул\. Грина, 11»/)).toBeVisible();
     await record("floors", "14");
     await record("gas", "нет");
     await run.getByRole("button", { name: "+60 с" }).click();
@@ -196,6 +221,10 @@ test.describe("конструктор сценариев на узком экр�
     expect(overflow).toBeLessThanOrEqual(0);
     await expect(page.getByRole("button", { name: /^Входящий вызов/ })).toBeInViewport();
     await expect(page.getByRole("button", { name: /Опубликовать/ })).toBeInViewport();
+    // Панель действий — в одну строку: «Опубликовать» не уезжает под «Сохранить».
+    const publishY = (await page.getByRole("button", { name: /Опубликовать/ }).boundingBox())!.y;
+    const saveY = (await page.getByRole("button", { name: /Сохранить/ }).boundingBox())!.y;
+    expect(Math.abs(publishY - saveY)).toBeLessThan(4);
     await expect(page.getByRole("complementary", { name: "Свойства" })).toBeInViewport();
     await shot(page, "09-narrow-1280");
   });

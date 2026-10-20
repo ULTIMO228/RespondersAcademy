@@ -214,3 +214,19 @@
   background: var(--pf-warning-bg);
   color: var(--pf-warning);
 }
+
+/* «✓ Записано: …» у формы, где отмечено действие (отзыв владельца 2026-10-20). */
+.recorded {
+  margin: 0;
+  padding: var(--pf-space-1) var(--pf-space-2);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+  font-weight: var(--pf-fw-bold);
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  margin: 0;
+  color: var(--pf-text-muted);
+}

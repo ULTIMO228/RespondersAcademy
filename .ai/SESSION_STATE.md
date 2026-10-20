@@ -3,9 +3,11 @@ Proj:RespondersAcademy | Branch:claude/gracious-darwin-x0znyd | Mode:normal | ba
 Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 ✅ (T061 owner) | 003 error-map ✅ | 004 polza ✅ (T007 open) | 005 visual scenario builder: spec+plan+design ✅ approved, clickable FRONT prototype ✅, server phases Ф1-Ф7 not started}
 005 prototype:/teacher/constructor | no server, no DB change (owner) | draft in localStorage key ra.flow-constructor.draft.v1 | publish disabled
 005 code:entities/scenario-flow{catalog,editor(history 50),validate,preview engine,layout,demo c-010} | features/flow-{canvas(+minimap),inspector,library,preview} | pages/teacher/constructor | shell workspace mode (PlatformShell workspace, SideNav compact) | tokens --pf-flow-*
+Owner feedback 2026-10-20 ✅:{explicit question text «Выяснить: X. Ответ: Y» | «Скрыть ответы» toggle (canvas+outline+aria, inspector keeps answer) | minimap drag freeze (was runaway 1.28M px) | ticket select «Билет N — summary» + details box | full-text callout under selected clipped node, library desc wraps | preview «✓ Записано» + «Мои действия» moved up | ≤1599px toolbar labels → icons}
+Tests@2026-10-20:{vitest full 2015 passed/1 failed (same teacher-v1 pre-existing) | lint ✅ steiger ✅ tsc ✅ build ✅ | prettier only 2 foreign | e2e constructor 10/10 + platform + smoke = 23/23 (npx playwright test -c temp config) | minimap e2e verified red on old code}
 Tests@2026-10-19:{vitest full: 2001 passed/1 failed (teacher-v1 downloadReportExport Blob instanceof — also red on clean HEAD via git archive, env Node22/jsdom) | flaky: Operator112Softphone «Прослушать ещё раз» failed once in full run, passes alone & on clean HEAD | lint ✅ | steiger ✅ | tsc ✅ | build ✅ | prettier: only 2 foreign files (record.mjs, GenerateDialog.tsx)}
 E2E@2026-10-19:{constructor.spec 8/8 + platform.spec 6/6 + smoke.spec 7/7 = 21/21 on next start :3150, system chromium via temp config (executablePath /opt/pw-browsers/chromium, not committed)} | not run:{simulator-visual (darwin snapshots), demo-path, sh e2e scripts, backend pytest (backend untouched)}
-Updated:2026-10-19
+Updated:2026-10-20
 
 ## Story
 1 005 spec pkg: spec/data-model/research/plan/contracts/quickstart/design-concept (+sketches docs/platform-design/teacher-constructor*.html/png)

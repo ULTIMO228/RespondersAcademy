@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
 import { FLOW_BLOCKS, graphBounds, nodeSize } from "@/entities/scenario-flow";
@@ -27,20 +27,24 @@ type FlowMinimapProps = {
  */
 export function FlowMinimap({ graph, viewport, size, selectedId, onNavigate }: FlowMinimapProps) {
   const ref = useRef<SVGSVGElement>(null);
-  const dragging = useRef(false);
   const visible = visibleWorld(viewport, size);
-  const frame = minimapFrame(graphBounds(graph), visible, MINIMAP_SIZE);
+  const live = minimapFrame(graphBounds(graph), visible, MINIMAP_SIZE);
+  // Пока рамку тянут, масштаб мини-карты заморожен: иначе вид, ушедший за край схемы, расширяет карту,
+  // та же точка мыши указывает всё дальше — и вид «улетает» (отзыв владельца 2026-10-20).
+  const [dragFrame, setDragFrame] = useState<typeof live | null>(null);
+  const frame = dragFrame ?? live;
   const project = (x: number, y: number) => ({
     x: (x - frame.x) * frame.scale,
     y: (y - frame.y) * frame.scale,
   });
 
-  const navigate = (event: PointerEvent<SVGSVGElement>) => {
+  const navigate = (event: PointerEvent<SVGSVGElement>, at: typeof live) => {
     const box = ref.current?.getBoundingClientRect();
     if (!box) return;
+    const clamp = (value: number, max: number) => Math.min(max, Math.max(0, value));
     onNavigate({
-      x: (event.clientX - box.left) / frame.scale + frame.x,
-      y: (event.clientY - box.top) / frame.scale + frame.y,
+      x: clamp(event.clientX - box.left, MINIMAP_SIZE.width) / at.scale + at.x,
+      y: clamp(event.clientY - box.top, MINIMAP_SIZE.height) / at.scale + at.y,
     });
   };
 
@@ -55,16 +59,15 @@ export function FlowMinimap({ graph, viewport, size, selectedId, onNavigate }: F
         aria-label={`Мини-карта: ${graph.nodes.length} блоков. Щелчок переносит вид.`}
         onPointerDown={(event) => {
           event.stopPropagation();
-          dragging.current = true;
+          setDragFrame(live);
           event.currentTarget.setPointerCapture?.(event.pointerId);
-          navigate(event);
+          navigate(event, live);
         }}
         onPointerMove={(event) => {
-          if (dragging.current) navigate(event);
+          if (dragFrame) navigate(event, dragFrame);
         }}
-        onPointerUp={() => {
-          dragging.current = false;
-        }}
+        onPointerUp={() => setDragFrame(null)}
+        onPointerCancel={() => setDragFrame(null)}
       >
         {graph.nodes.map((node) => {
           const { width, height } = nodeSize(node);

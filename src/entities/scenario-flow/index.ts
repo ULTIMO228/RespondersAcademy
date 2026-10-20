@@ -87,5 +87,6 @@ export type {
   PreviewState,
   PreviewStep,
 } from "./lib/preview";
-export { describeAction, summarizeNode } from "./lib/summary";
+export { describeAction, HIDDEN_ANSWER, summarizeNode } from "./lib/summary";
+export type { SummaryOptions } from "./lib/summary";
 export { FLOW_LIMITS, isFieldVisible, validateFlow } from "./lib/validate";

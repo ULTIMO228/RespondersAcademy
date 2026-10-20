@@ -536,4 +536,14 @@
   .panel__meta {
     display: none;
   }
+
+  /* На узком экране у «Схема», «Список», «Скрыть ответы» остаётся значок; подпись — для диктора и в подсказке. */
+  .toolbar__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }

@@ -184,10 +184,8 @@
 }
 
 .item__desc {
+  /* описание переносится, а не обрезается многоточием (отзыв владельца 2026-10-20) */
   color: var(--pf-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .empty {

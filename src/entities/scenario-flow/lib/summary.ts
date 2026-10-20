@@ -58,12 +58,21 @@ export function describeAction(node: FlowNode, dict: FlowDictionaries): string {
   }
 }
 
+export interface SummaryOptions {
+  /** Скрыть правильные ответы (показ схемы на экране при студентах, отзыв владельца 2026-10-20). */
+  hideAnswers?: boolean;
+}
+
+export const HIDDEN_ANSWER = "ответ скрыт";
+
 export function summarizeNode(
   node: FlowNode,
   dict: FlowDictionaries,
   questionTitles: Map<string, string> = new Map(),
+  options: SummaryOptions = {},
 ): string {
   const props = node.props;
+  const answer = (text: string) => (options.hideAnswers ? HIDDEN_ANSWER : quote(text));
   switch (node.type) {
     case "start":
       return "Начало сценария";
@@ -77,11 +86,18 @@ export function summarizeNode(
     case "callerReply":
       return quote(str(props.text)) || "Текст реплики не задан";
     case "requiredQuestion": {
-      const field = labelOf(FLOW_CARD_FIELDS, props.field) || "Поле не выбрано";
+      const field = labelOf(FLOW_CARD_FIELDS, props.field);
       const match = str(props.match);
       const expected =
-        match === "any" ? "любое значение" : quote(str(props.expected)) || labelOf(FLOW_MATCH_MODES, match);
-      return [`${field}: ${expected}`, ...scoreTail(node)].join(" · ");
+        match === "any"
+          ? "любое значение"
+          : str(props.expected)
+            ? answer(str(props.expected))
+            : labelOf(FLOW_MATCH_MODES, match) || "не задан";
+      return [
+        field ? `Выяснить: ${field}. Ответ: ${expected}` : "Не выбрано, что выяснить",
+        ...scoreTail(node),
+      ].join(" · ");
     }
     case "action": {
       const deadline = Number(props.deadlineSec ?? 0);
@@ -99,7 +115,7 @@ export function summarizeNode(
       if (check === "status") text = `Поставлен статус ${quote(labelOf(dict.ddsStatuses, props.status))}?`;
       if (check === "service") text = `Оповещена служба ${quote(labelOf(dict.services, props.service))}?`;
       if (check === "field")
-        text = `${labelOf(FLOW_CARD_FIELDS, props.field) || "Поле"} = ${quote(str(props.expected))}?`;
+        text = `${labelOf(FLOW_CARD_FIELDS, props.field) || "Поле"} = ${answer(str(props.expected))}?`;
       if (check === "questionCorrect")
         text = `Верный ответ: ${quote(questionTitles.get(str(props.question)) ?? "вопрос не выбран")}?`;
       return [text, wait > 0 ? `ждать ${wait} с` : ""].filter(Boolean).join(" · ");

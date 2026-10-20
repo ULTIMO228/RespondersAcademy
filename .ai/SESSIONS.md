@@ -59,3 +59,14 @@ Next:
 Caution:
   ⚠️ Desktop Chrome device overrides viewport in playwright.config
   ⚠️ temp playwright config w/ system chromium must not be committed
+
+## 2026-10-20 | claude/gracious-darwin-x0znyd | 005 prototype owner feedback
+Done: ✅
+  - helped owner run locally (clone in ~/Projects; SSL_ERROR_SYSCALL = network/VPN; npm audit warnings ignorable)
+  - 5 feedback items: explicit summaries + hide answers, minimap runaway fix, ticket descriptions, full-text callout + library wrap, preview record confirmation
+  - tests: summary.test, FlowMinimap.test, FlowPreviewPanel.test, canvas/inspector cases, e2e +2 (minimap, hide answers) + one-row toolbar at 1280
+Decisions: 🧠
+  - inspector keeps correct answer visible when hidden on canvas (editing needs it)
+  - narrow toolbar → icon-only view/answers buttons (labels kept for screen reader)
+Next:
+  !1: owner re-check locally (git pull)

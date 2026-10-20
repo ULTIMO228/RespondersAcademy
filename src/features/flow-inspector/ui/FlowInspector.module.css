@@ -218,3 +218,38 @@ textarea.control {
 .facts dd {
   margin: 0;
 }
+
+/* Выбранный билет целиком: суть, адрес, заявитель (отзыв владельца 2026-10-20). */
+.ticketField {
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.ticket {
+  display: grid;
+  gap: var(--pf-space-1);
+  padding: var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-subtle);
+  line-height: 1.5;
+}
+
+.ticket__text {
+  margin: 0;
+}
+
+.ticket__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--pf-space-1) var(--pf-space-3);
+  margin: 0;
+}
+
+.ticket__facts dt {
+  font-weight: var(--pf-fw-bold);
+}
+
+.ticket__facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

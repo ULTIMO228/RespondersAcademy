@@ -23,7 +23,12 @@ const dict: FlowDictionaries = {
   signs: [],
 };
 
-function setup(graph: FlowGraph = createDemoGraph(), selection: FlowSelection = null, readOnly = false) {
+function setup(
+  graph: FlowGraph = createDemoGraph(),
+  selection: FlowSelection = null,
+  readOnly = false,
+  hideAnswers = false,
+) {
   const handlers = {
     onSelect: vi.fn(),
     onMoveStart: vi.fn(),
@@ -42,6 +47,7 @@ function setup(graph: FlowGraph = createDemoGraph(), selection: FlowSelection = 
       selection={selection}
       issues={[]}
       readOnly={readOnly}
+      hideAnswers={hideAnswers}
       {...handlers}
     />,
   );
@@ -134,5 +140,34 @@ describe("FlowCanvas", () => {
     const handlers = setup();
     fireEvent.keyDown(screen.getByLabelText(/^Поле схемы/), { key: "Delete" });
     expect(handlers.onDelete).not.toHaveBeenCalled();
+  });
+
+  it("«Скрыть ответы»: правильный ответ не виден ни на блоке, ни в подписи для диктора", () => {
+    setup(createDemoGraph(), null, false, true);
+    const question = screen.getByRole("button", { name: /Уточнение адреса/ });
+    expect(question).toHaveAccessibleName(/ответ скрыт/);
+    expect(question).not.toHaveTextContent("Грина, 11");
+  });
+
+  it("без скрытия ответ на блоке виден (парный случай)", () => {
+    setup();
+    expect(screen.getByRole("button", { name: /Уточнение адреса/ })).toHaveTextContent("ул. Грина, 11");
+  });
+
+  it("не влезший текст выделенного блока показывается целиком под блоком", () => {
+    const height = vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(200);
+    try {
+      setup(createDemoGraph(), { kind: "node", id: "n3" });
+      expect(document.querySelector('[data-flow-node="n3"] [data-flow-fulltext]')).not.toBeNull();
+      // у невыделенного блока выноски нет
+      expect(document.querySelector('[data-flow-node="n4"] [data-flow-fulltext]')).toBeNull();
+    } finally {
+      height.mockRestore();
+    }
+  });
+
+  it("текст, который влез, выноской не дублируется", () => {
+    setup(createDemoGraph(), { kind: "node", id: "n3" });
+    expect(document.querySelector("[data-flow-fulltext]")).toBeNull();
   });
 });

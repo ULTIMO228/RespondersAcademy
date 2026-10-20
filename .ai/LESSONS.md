@@ -79,3 +79,8 @@
 ## L017 | container browsers
 ❌ npx playwright install / download browsers
 ✅ temp config in repo root importing playwright.config + launchOptions.executablePath=/opt/pw-browsers/chromium; delete after run, never commit
+
+## L018 | feedback loops in drag-to-navigate
+❌ recompute minimap projection (union of content+visible) on every render while dragging the view frame
+✅ freeze projection at pointerdown, clamp pointer to map box, release on pointerup/cancel
+! view moved → map rescaled → same pointer = farther world point → view flew 1.28M px (owner report)

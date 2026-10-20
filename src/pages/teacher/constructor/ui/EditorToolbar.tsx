@@ -18,7 +18,10 @@ type EditorToolbarProps = {
   canRedo: boolean;
   view: EditorView;
   errors: number;
+  /** Правильные ответы скрыты в подписях блоков (показ схемы при студентах). */
+  hideAnswers: boolean;
   onView: (view: EditorView) => void;
+  onToggleAnswers: () => void;
   onUndo: () => void;
   onRedo: () => void;
   onSave: () => void;
@@ -56,7 +59,9 @@ export const EditorToolbar = forwardRef<HTMLDivElement, EditorToolbarProps>(func
     canRedo,
     view,
     errors,
+    hideAnswers,
     onView,
+    onToggleAnswers,
     onUndo,
     onRedo,
     onSave,
@@ -103,13 +108,35 @@ export const EditorToolbar = forwardRef<HTMLDivElement, EditorToolbarProps>(func
         </PlatformButton>
         <span className={styles.separator} aria-hidden="true" />
         <div className={styles.segmented} role="group" aria-label="Вид">
-          <button type="button" aria-pressed={view === "schema"} onClick={() => onView("schema")}>
-            <PfIcon name="flow" /> Схема
+          <button
+            type="button"
+            aria-pressed={view === "schema"}
+            onClick={() => onView("schema")}
+            title="Схема"
+          >
+            <PfIcon name="flow" /> <span className={styles.toolbar__label}>Схема</span>
           </button>
-          <button type="button" aria-pressed={view === "outline"} onClick={() => onView("outline")}>
-            <PfIcon name="list" /> Список
+          <button
+            type="button"
+            aria-pressed={view === "outline"}
+            onClick={() => onView("outline")}
+            title="Список шагов"
+          >
+            <PfIcon name="list" /> <span className={styles.toolbar__label}>Список</span>
           </button>
         </div>
+        <PlatformButton
+          className={styles.button}
+          onClick={onToggleAnswers}
+          title={
+            hideAnswers
+              ? "Показать правильные ответы в блоках"
+              : "Скрыть правильные ответы в блоках, например перед показом схемы студентам"
+          }
+        >
+          <PfIcon name={hideAnswers ? "eye" : "eyeOff"} />{" "}
+          <span className={styles.toolbar__label}>{hideAnswers ? "Показать ответы" : "Скрыть ответы"}</span>
+        </PlatformButton>
         <details className={styles.more}>
           <summary className={styles.more__summary}>Ещё</summary>
           <div className={styles.more__menu}>

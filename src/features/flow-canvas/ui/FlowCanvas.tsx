@@ -57,6 +57,8 @@ type FlowCanvasProps = {
   /** Отметки пробного прогона: активный, пройденный, проваленный шаг. */
   marks?: Map<string, NodeMark>;
   readOnly?: boolean;
+  /** Скрыть правильные ответы в подписях блоков (показ схемы при студентах). */
+  hideAnswers?: boolean;
   /** Запрос показать блок (из списка ошибок): поле переносится к нему, фокус — на блок. */
   focusRequest?: { id: string; nonce: number } | null;
   onSelect: (selection: FlowSelection) => void;
@@ -89,6 +91,7 @@ export function FlowCanvas({
   issues,
   marks,
   readOnly = false,
+  hideAnswers = false,
   focusRequest,
   onSelect,
   onMoveStart,
@@ -611,7 +614,7 @@ export function FlowCanvas({
 
           {graph.nodes.map((node) => {
             const counts = issueCount.get(node.id);
-            const summary = summarizeNode(node, dict, questionTitles);
+            const summary = summarizeNode(node, dict, questionTitles, { hideAnswers });
             const block = FLOW_BLOCKS[node.type];
             const outputs = outputsOf(node).map((output) => {
               const edge = graph.edges.find(

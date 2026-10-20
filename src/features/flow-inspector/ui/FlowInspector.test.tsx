@@ -84,4 +84,17 @@ describe("FlowInspector", () => {
     fireEvent.click(screen.getByRole("button", { name: /Удалить связь/ }));
     expect(handlers.onDeleteEdge).toHaveBeenCalledWith("e8");
   });
+
+  it("билет в списке подписан сутью ситуации, а под списком — что это за билет", () => {
+    setup({ kind: "node", id: "n2" });
+    expect(screen.getByRole("option", { name: "Билет 4.1 — Горит балкон" })).toBeInTheDocument();
+    const about = screen.getByRole("group", { name: "О билете: Билет 4.1" });
+    expect(about).toHaveTextContent("Горит балкон");
+    expect(about).toHaveTextContent("ул. Грина");
+  });
+
+  it("у блока без билета описания билета нет (парный случай)", () => {
+    setup({ kind: "node", id: "n3" });
+    expect(screen.queryByRole("group", { name: /О билете/ })).not.toBeInTheDocument();
+  });
 });
