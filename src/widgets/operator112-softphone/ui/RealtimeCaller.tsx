@@ -2,8 +2,7 @@
 
 import { AiBadge, Button, TimerBadge } from "@/shared/ui";
 import { HandsetIcon } from "@/features/call-control";
-import { answerWait, formatClock, talkSeconds } from "@/entities/operator112-attempt";
-import { useRealtimeCaller } from "../model/useRealtimeCaller";
+import { answerWait, formatClock, talkSeconds, useRealtimeCaller } from "@/entities/operator112-attempt";
 import type { Operator112SoftphoneProps } from "./Operator112Softphone";
 import styles from "./Operator112Softphone.module.css";
 

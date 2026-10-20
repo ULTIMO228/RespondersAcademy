@@ -121,7 +121,8 @@ async def test_requires_answered_attempt(live, state):
     assert (await client.post(base)).status_code == 409
 
 
-async def test_exam_and_disabled(live, monkeypatch):
+async def test_exam_allowed_finished_and_disabled_refused(live, monkeypatch):
+    """Решение владельца 2026-10-20 (спека 009, R6): живой заявитель и в тренировке, и в экзамене; завершённое задание — 409."""
     client, base, _, _, asg = live
     await login_as(client, "student")
     monkeypatch.setattr(get_settings(), "live_calls_enabled", False)
@@ -129,9 +130,14 @@ async def test_exam_and_disabled(live, monkeypatch):
     monkeypatch.setattr(get_settings(), "live_calls_enabled", True)
     async with get_sessionmaker()() as db:
         assignment = await db.get(Assignment, asg)
-        assignment.format = "exam"
+        assignment.state = "finished"
         await db.commit()
     assert (await client.post(base)).status_code == 409
+    async with get_sessionmaker()() as db:
+        assignment = await db.get(Assignment, asg)
+        assignment.format, assignment.state = "exam", "active"
+        await db.commit()
+    assert (await client.post(base)).status_code == 200
 
 
 async def test_failed_tts_is_retryable_without_partial_transcript(live):

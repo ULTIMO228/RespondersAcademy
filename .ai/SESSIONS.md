@@ -147,3 +147,11 @@ Decisions: 🧠 journal bg = ArmCardFixture (global) + own 112 IncidentCards; ot
 Lesson: ❌ first took handoff from stale local SESSION_STATE (004 T007) → ✅ git fetch branch before reading handoff
 Next: !1 T008 mock validator | owner: T009 ticket texts + DB reset/0007
 ---
+
+---
+## 2026-10-20 (5) | @claude | branch:SASHA | mode:normal
+Focus: merge develop (live caller) + plug it into 009 voice point (T020)
+Done: ✅ merge d08ce53 (doc conflicts only) | owner: live caller in training AND exam | useApplicantVoice (21 tests) | hooks moved softphone→entity | backend exam allowed (test pair 409 finished / 200 exam)
+Decisions: 🧠 build-flag selects impl at module level (no conditional hooks) | no recording fallback when live server unconfigured (develop rule kept) | trainerText only for trainer strip (FR-027)
+Next: !1 T008 | owner: renumber 005 dup, T009 texts, Polza key + polza.ai allowed for real call
+---

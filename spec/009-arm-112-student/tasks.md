@@ -71,7 +71,7 @@
 
 ### Голос: точка подключения (R6)
 
-- [ ] T020 [P] Тест и хук `useApplicantVoice(attempt)` в `src/entities/operator112-attempt/model/useApplicantVoice.ts` (+ `.test.ts`): `start()` после «Принять» автоматически проигрывает `attempt.audio` (существующий TTS-файл), `replay()` отправляет событие `replay`, `stop()`; состояние `playing | idle | unavailable`; при `audio.emergency` → `unavailable` и транскрипт отдаётся наружу только для полосы тренажёра; аудио — за интерфейсом в `src/shared/lib` (подменяется в тестах); комментарий-указатель «Сюда подключается голосовой диалог (007 FR-031…FR-034), реализация — отдельно»
+- [X] T020 [P] Тест и хук `useApplicantVoice(attempt)` в `src/entities/operator112-attempt/model/useApplicantVoice.ts` (+ `.test.ts`): `start()` после «Принять» автоматически проигрывает `attempt.audio` (существующий TTS-файл), `replay()` отправляет событие `replay`, `stop()`; состояние `playing | idle | unavailable`; при `audio.emergency` → `unavailable` и транскрипт отдаётся наружу только для полосы тренажёра; аудио — за интерфейсом в `src/shared/lib` (подменяется в тестах); комментарий-указатель «Сюда подключается голосовой диалог (007 FR-031…FR-034), реализация — отдельно» **Поправка и сделано 2026-10-20** (решение владельца, research R6): вместо записи — живой ИИ-заявитель из 005-live-caller в тренировке и экзамене, запись — только при выключенном флаге; `useApplicantVoice({attempt, format, loader?})`, тесты `useApplicantVoice.{live,recording}.test.tsx` (21); `useRealtimeCaller`/`useCallerAudio` перенесены в сущность; бэкенд `test_live_calls.py` (экзамен 200, завершённое задание 409).
 
 **Checkpoint**: контракт, данные, журнал, виды, таймер и голосовая точка готовы — истории можно делать параллельно.
 

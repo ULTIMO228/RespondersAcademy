@@ -1,4 +1,7 @@
 ## Handoff 2026-10-20 → next window (009 implement)
+LiveCaller@2026-10-20: develop merged into SASHA (d08ce53) | owner: live AI caller everywhere (training+exam), now | useApplicantVoice in entities/operator112-attempt (live if NEXT_PUBLIC_LIVE_CALLS_ENABLED else recording; no silent fallback) | useRealtimeCaller+useCallerAudio moved softphone→entity | backend writable: any active assignment | T020 ✅
+Checks@2026-10-20(after merge): pytest 1122 passed/4 skipped/0 red | ruff clean | vitest 2008/2011 (teacher-v1 Blob = env; IncidentScreen+PresentScreen flaky under load, pass alone) | tsc+eslint(changed)+steiger pass | next build NOT run
+⚠️ spec number 005 duplicated: 005-arm-reference-panel (SASHA) + 005-live-caller (develop) → owner to renumber
 Where: spec/009-arm-112-student/tasks.md | Phase 2 Foundational | done T001-T007 | NEXT: T008 (mock validator: channel/smsText/repeatOf/lockedBy) → T009 needs owner texts
   - T007 ✅ 2026-10-20: 7 new event types + payload checks (schemas/v1/operator112.py); linkAdded cardId ∈ journal via operator112_service.in_student_journal (ArmCardFixture bg | own IncidentCard mode_origin=operator112) → reuse in T011; tests/integration/test_operator112_events_v2.py 17 passed; pytest 1000 passed/3 known red; ruff clean
   - 🧠 assumption: journal background = all ArmCardFixture rows (no per-assignment bg exists yet) — recheck in T011
