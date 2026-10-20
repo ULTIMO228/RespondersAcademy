@@ -273,7 +273,7 @@ describe("block / unblock / reset-password (T4.1-03, T4.1-09)", () => {
   });
 });
 
-describe("специализации обучающегося (спека 007, T017/T018)", () => {
+describe("специализации обучающегося (спека 019, T017/T018)", () => {
   it("список отдаёт specializations обучающимся из спек-моков, преподавателям — нет", async () => {
     const users = await list();
     const byId = (id: string) => users.find((user) => user.id === id);

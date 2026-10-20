@@ -88,7 +88,7 @@ def _attempt_mode(session: TrainingSession) -> str:
 
 
 async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any], viewer: Viewer | None = None) -> tuple[dict[str, Any], bool]:
-    """Открывает или возвращает попытку. Зона (фича 007) — по режиму попытки/сессии до любой записи; аноним не проверяется."""
+    """Открывает или возвращает попытку. Зона (фича 019) — по режиму попытки/сессии до любой записи; аноним не проверяется."""
     student_id = body.get("studentId")
     if not isinstance(student_id, str) or not student_id.strip():
         raise validation_failed("Укажите курсанта (studentId)")
@@ -152,7 +152,7 @@ def _parse_mark(value: Any) -> dict[str, Any]:
 
 
 async def record_progress(db: AsyncSession, attempt_id: str, body: dict[str, Any], viewer: Viewer | None = None) -> tuple[Attempt, bool]:
-    """Возвращает попытку и флаг «только что завершена» (для запуска оценки). Зона — по режиму попытки (фича 007)."""
+    """Возвращает попытку и флаг «только что завершена» (для запуска оценки). Зона — по режиму попытки (фича 019)."""
     status = _parse_mark(body["status"]) if body.get("status") is not None else None
     entered = body.get("enteredText")
     if entered is not None and not (isinstance(entered, dict) and all(isinstance(v, str) for v in entered.values())):

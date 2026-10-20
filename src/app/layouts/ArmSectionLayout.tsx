@@ -10,7 +10,7 @@ import { AuthSessionProvider } from "../session";
 import styles from "./ArmSectionLayout.module.css";
 
 type ArmSectionLayoutProps = {
-  /** Рабочая зона раздела: нужна специализация обучающегося (спека 007). */
+  /** Рабочая зона раздела: нужна специализация обучающегося (спека 019). */
   zone: Specialization;
   children: ReactNode;
 };

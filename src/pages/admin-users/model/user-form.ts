@@ -26,7 +26,7 @@ export type UserFormValues = {
   group: string;
   service: string;
   assignedGroups: string[];
-  /** Специализации обучающегося (спека 007): «Специалист 112», «Оператор ДДС». */
+  /** Специализации обучающегося (спека 019): «Специалист 112», «Оператор ДДС». */
   specializations: Specialization[];
 };
 

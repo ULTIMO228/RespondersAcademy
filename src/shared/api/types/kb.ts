@@ -29,7 +29,7 @@ export interface KbArticlePatch {
   sections: KbSections;
 }
 
-/** GET /me/reference-access (спека 005): можно ли открыть справочник сейчас. Обучающемуся запрещает задание с открытой попыткой. */
+/** GET /me/reference-access (спека 016): можно ли открыть справочник сейчас. Обучающемуся запрещает задание с открытой попыткой. */
 export interface ReferenceAccess {
   allowed: boolean;
   assignmentId?: string;

@@ -45,7 +45,7 @@ type WeakStage = { mode: LobbyMode; title: string; share: number; level: "often"
 type Loaded = { profile: StudentProfile; name: string; stats: StudentStats | null; weak: WeakStage[] | null };
 type TeacherStudentScreenProps = {
   studentId: string;
-  /** Адрес рейтинга, откуда пришёл преподаватель (спека 006): кнопка «Назад к рейтингу» ведёт туда. */
+  /** Адрес рейтинга, откуда пришёл преподаватель (спека 017): кнопка «Назад к рейтингу» ведёт туда. */
   from?: string;
   api?: TeacherStudentsApi;
 };

@@ -25,7 +25,7 @@ TEACHER_PASSWORD="${E2E_TEACHER_PASSWORD:-teacher112}"
 TEACHER_ARM="${E2E_TEACHER_ARM:-21}"
 TEACHER_ID="${E2E_TEACHER_ID:-u-002}"
 
-# spec/008: ivanov — специалист-112, занятия ДДС в сценарии — у petrova.
+# spec/018: ivanov — специалист-112, занятия ДДС в сценарии — у petrova.
 STUDENT_LOGIN="${E2E_STUDENT_LOGIN:-petrova}"
 STUDENT_PASSWORD="${E2E_STUDENT_PASSWORD:-student112}"
 STUDENT_ARM="${E2E_STUDENT_ARM:-2}"

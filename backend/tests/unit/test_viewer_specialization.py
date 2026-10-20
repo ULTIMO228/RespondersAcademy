@@ -1,4 +1,4 @@
-"""T007 (фича 007): `Viewer.has_specialization(mode)` — учитель и администратор проходят, обучающийся — по списку."""
+"""T007 (фича 019): `Viewer.has_specialization(mode)` — учитель и администратор проходят, обучающийся — по списку."""
 
 from __future__ import annotations
 

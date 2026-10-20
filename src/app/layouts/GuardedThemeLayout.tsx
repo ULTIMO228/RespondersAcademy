@@ -9,7 +9,7 @@ import { AuthSessionProvider } from "../session";
 import { ThemeRoot } from "./ThemeRoot";
 
 type GuardedThemeLayoutProps = {
-  /** Рабочая зона симулятора: нужна специализация обучающегося (спека 007). */
+  /** Рабочая зона симулятора: нужна специализация обучающегося (спека 019). */
   zone: Specialization;
   theme: "light" | "dark";
   children: ReactNode;

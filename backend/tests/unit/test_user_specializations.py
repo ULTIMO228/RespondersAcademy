@@ -1,4 +1,4 @@
-"""T005 (фича 007): поле `User.specializations` — правила по роли и публичный вид `to_public()`."""
+"""T005 (фича 019): поле `User.specializations` — правила по роли и публичный вид `to_public()`."""
 
 from __future__ import annotations
 

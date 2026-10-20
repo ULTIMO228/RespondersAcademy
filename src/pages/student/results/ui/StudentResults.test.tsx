@@ -229,7 +229,7 @@ describe("«Результаты»: разбор попытки", () => {
   });
 });
 
-describe("чат-ассистент разбора (спека 010, T013)", () => {
+describe("чат-ассистент разбора (спека 020, T013)", () => {
   it("при загруженной оценке есть кнопка «Обсудить результат с ИИ», она открывает шторку", async () => {
     render(<StudentResultDetailScreen attemptId="att-2" mode="operator112" api={makeApi()} />);
     fireEvent.click(await screen.findByRole("button", { name: /Обсудить результат с ИИ/ }));

@@ -63,7 +63,7 @@ const isTyping = (target: EventTarget | null) =>
   (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
 
 /**
- * `/teacher/constructor` — кликабельный прототип визуального конструктора (фича 005, design-concept.md): библиотека
+ * `/teacher/constructor` — кликабельный прототип визуального конструктора (фича 013, design-concept.md): библиотека
  * слева, поле со схемой и мини-картой в центре, свойства справа, действия сверху, проверка и история снизу.
  * Сервер не используется: черновик хранится в браузере, публикация недоступна до серверной фазы.
  */

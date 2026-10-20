@@ -1,5 +1,5 @@
 /*
- * Граф сценария 112 `scenario-graph/1` (spec/005-scenario-graph-builder/spec.md §3) и контракты /api/v1/ai/scenarios*.
+ * Граф сценария 112 `scenario-graph/1` (spec/015-scenario-graph-builder/spec.md §3) и контракты /api/v1/ai/scenarios*.
  * Повторяет схему бэкенда 1:1: все поля сверх базовых необязательны.
  */
 import type { AIWorkflowApproval, AIWorkflowMode, AIWorkflowSourceKind } from "./scenario";
@@ -164,7 +164,7 @@ export interface ScenarioDeriveRequest {
   requestId: string;
 }
 
-/* Прохождение графа обучающимся (спека 005 §4, этап S6): /ai/scenario-assignments, /ai/scenario-runs*. */
+/* Прохождение графа обучающимся (спека 015 §4, этап S6): /ai/scenario-assignments, /ai/scenario-runs*. */
 export type ScenarioRunStatus = "waiting" | "completed" | "aborted" | "faulted";
 
 export interface ScenarioRunResult {

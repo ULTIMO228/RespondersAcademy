@@ -53,7 +53,7 @@ const SPECIALIZATION_TITLE: Record<Specialization, string> = {
   operator112: "Специалист 112",
   dds: "Оператор ДДС",
 };
-/** Специализация обучающегося по умолчанию — как у ранее заведённых учёток (миграция бэкенда, спека 007). */
+/** Специализация обучающегося по умолчанию — как у ранее заведённых учёток (миграция бэкенда, спека 019). */
 const DEFAULT_SPECIALIZATIONS: Specialization[] = ["dds"];
 const STATES: readonly AdminUserState[] = ["active", "blocked"];
 export const ROLE_TITLE: Record<Role, string> = {
@@ -136,7 +136,7 @@ function readGroupList(value: unknown): string[] | undefined {
 }
 
 /**
- * Специализации из тела запроса (спека 007): у обучающегося — непустой список без дублей из допустимых значений, у
+ * Специализации из тела запроса (спека 019): у обучающегося — непустой список без дублей из допустимых значений, у
  * преподавателя и администратора поле не принимается (400). Не передано → undefined.
  */
 function readSpecializations(value: unknown, role: Role): Specialization[] | undefined {

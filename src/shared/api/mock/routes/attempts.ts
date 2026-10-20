@@ -4,7 +4,7 @@ import type { RouteContext } from "../request";
 import { jsonCreated, jsonOk, withErrorHandling } from "../respond";
 import type { ViewerResolver } from "../viewer";
 
-/** POST /cards/[id]/attempt: пользователь запроса — из мок-сессии (зона ДДС по специализации, спека 007). */
+/** POST /cards/[id]/attempt: пользователь запроса — из мок-сессии (зона ДДС по специализации, спека 019). */
 export function createPostCardAttemptHandler(resolveViewer: ViewerResolver) {
   return withErrorHandling(async (request: Request, { params }: RouteContext) => {
     const result = await openCardAttempt((await params).id, request, resolveViewer(request));

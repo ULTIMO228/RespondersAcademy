@@ -25,7 +25,7 @@ async def open_card_attempt(card_id: str, request: Request, db: AsyncSession = D
     student_id = body["studentId"].strip() if isinstance(body.get("studentId"), str) else None
     if student_id is not None:
         assert_own_attempt(viewer, student_id)
-    response, created = await attempts_service.open_attempt(db, card_id, body, viewer)  # зона — по режиму попытки (фича 007)
+    response, created = await attempts_service.open_attempt(db, card_id, body, viewer)  # зона — по режиму попытки (фича 019)
     await db.commit()
     return JSONResponse(status_code=201 if created else 200, content=response)
 

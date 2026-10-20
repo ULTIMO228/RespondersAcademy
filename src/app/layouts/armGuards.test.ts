@@ -1,5 +1,5 @@
 /*
- * Гварды зон симулятора (спека 007): какой лэйаут какую специализацию требует. Сам гвард
+ * Гварды зон симулятора (спека 019): какой лэйаут какую специализацию требует. Сам гвард
  * (`requireSpecialization`) проверен в src/entities/user/model/server-session.test.ts.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";

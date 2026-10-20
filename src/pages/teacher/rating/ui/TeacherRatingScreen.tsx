@@ -87,7 +87,7 @@ const COLUMNS: Column[] = [
 
 type TeacherRatingScreenProps = { api?: RatingApi };
 
-/** `/teacher/rating` — рейтинг обучающихся закреплённых групп (спека 006). Фильтры и сортировка — в query. */
+/** `/teacher/rating` — рейтинг обучающихся закреплённых групп (спека 017). Фильтры и сортировка — в query. */
 export function TeacherRatingScreen(props: TeacherRatingScreenProps) {
   return (
     <Suspense fallback={<Skeleton />}>

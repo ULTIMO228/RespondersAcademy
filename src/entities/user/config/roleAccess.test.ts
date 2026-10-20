@@ -4,7 +4,7 @@ import { ROLE_ACCESS_ROWS } from "./roleAccess";
 
 const noteOf = (route: string) => ROLE_ACCESS_ROWS.find((row) => row.route === route)?.access.student.note;
 
-describe("матрица доступа: специализации обучающегося (спека 007)", () => {
+describe("матрица доступа: специализации обучающегося (спека 019)", () => {
   it("зоны ДДС помечены специализацией ДДС", () => {
     for (const route of ["/arm", "/arm/card/[id]", "/arm/phone"]) {
       expect(noteOf(route), route).toMatch(/специализаци[ией]+ ДДС/);

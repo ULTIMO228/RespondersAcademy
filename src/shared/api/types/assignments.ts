@@ -38,7 +38,7 @@ export interface AssignmentParams {
   workMessagesEnabled?: boolean;
   workMessageIntervalsSec?: number[];
   adaptive?: boolean;
-  /** «Справочник доступен» (спека 005); сервер всегда записывает итог: тренировка — true, экзамен — false по умолчанию. */
+  /** «Справочник доступен» (спека 016); сервер всегда записывает итог: тренировка — true, экзамен — false по умолчанию. */
   referenceAllowed?: boolean;
   /** Эталоны карточек обучающихся-112, подтверждённые преподавателем (спека 011). */
   studentCards?: StudentCardEtalon[];

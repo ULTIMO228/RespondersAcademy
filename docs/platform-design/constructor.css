@@ -1,5 +1,5 @@
 /*
- * Эскизы конструктора сценариев (фича 005, spec/005-visual-scenario-builder/design-concept.md).
+ * Эскизы конструктора сценариев (фича 013, spec/013-visual-scenario-builder/design-concept.md).
  * Подключается после sketch.css. Только токены --pf-* и токены АРМ из vars.css — hex здесь нет.
  * Предлагаемые токены --pf-flow-* — кандидаты в tokens-platform.css после утверждения концепции.
  */

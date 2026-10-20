@@ -16,7 +16,7 @@ export function updateKbArticle(articleId: string, sections: KbSections): Promis
   return v1ApiClient.patch<KbArticle>(`/kb/articles/${encodeURIComponent(articleId)}`, body);
 }
 
-/** GET /me/reference-access: доступ к справочнику на время попытки (спека 005); статьи при запрете отвечают 403. */
+/** GET /me/reference-access: доступ к справочнику на время попытки (спека 016); статьи при запрете отвечают 403. */
 export function getReferenceAccess(signal?: AbortSignal): Promise<ReferenceAccess> {
   return v1ApiClient.get<ReferenceAccess>("/me/reference-access", undefined, signal);
 }

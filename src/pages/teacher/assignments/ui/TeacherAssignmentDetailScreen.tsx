@@ -202,7 +202,7 @@ export function TeacherAssignmentDetailScreen({
                     </div>
                     <div>
                       <dt>Справочник</dt>
-                      {/* Старые задания без ключа: тренировка — доступен, экзамен — нет (спека 005). */}
+                      {/* Старые задания без ключа: тренировка — доступен, экзамен — нет (спека 016). */}
                       <dd>
                         {(params.referenceAllowed ?? detail.format === "training")
                           ? "доступен"

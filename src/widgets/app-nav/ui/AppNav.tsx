@@ -17,7 +17,7 @@ type AppNavProps = {
   roleTitle: string;
   userName: string;
   armNumber: number;
-  /** Зоны обучающегося: вкладки чужой зоны скрываются (спека 007). */
+  /** Зоны обучающегося: вкладки чужой зоны скрываются (спека 019). */
   zones?: Specialization[];
 };
 

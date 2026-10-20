@@ -120,7 +120,7 @@ function renderHome(api: StudentHomeApi) {
   );
 }
 
-describe("главная обучающегося: специализация (спека 007)", () => {
+describe("главная обучающегося: специализация (спека 019)", () => {
   function renderAs(specializations: PublicUser["specializations"], api: StudentHomeApi) {
     return render(
       <SessionProvider user={{ ...USER, specializations }}>

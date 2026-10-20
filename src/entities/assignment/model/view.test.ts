@@ -165,7 +165,7 @@ describe("pickNextAssignment — «Ближайшее задание» глав�
   });
 });
 
-describe("isModeAvailable: режим задания и специализация (спека 007)", () => {
+describe("isModeAvailable: режим задания и специализация (спека 019)", () => {
   it("режим 112 — только со специализацией 112, ДДС — только с ДДС", () => {
     expect(isModeAvailable("operator112", ["operator112"])).toBe(true);
     expect(isModeAvailable("operator112", ["dds"])).toBe(false);

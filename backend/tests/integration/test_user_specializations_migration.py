@@ -1,4 +1,4 @@
-"""T006 / T016 (фича 007): миграция `0007_user_specializations` и перенос специализаций сидом.
+"""T006 / T016 (фича 019): миграция `0007_user_specializations` и перенос специализаций сидом.
 
 Миграция и сид идут в подпроцессах на временной SQLite-базе (как test_alembic.py); dev.db и demo.db не трогаются.
 """
@@ -52,7 +52,7 @@ def test_upgrade_backfills_existing_students_with_dds_and_keeps_staff_empty(data
     with sqlite3.connect(database) as connection:
         _insert_user(connection, "u-old-student", "student")
         _insert_user(connection, "u-old-teacher", "teacher")
-    # Именно ревизия фичи 007, а не «head»: поверх неё добавляются следующие миграции других фич.
+    # Именно ревизия фичи 019, а не «head»: поверх неё добавляются следующие миграции других фич.
     _run("-m", "alembic", "upgrade", HEAD, environment=environment)
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == HEAD

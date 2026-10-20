@@ -73,7 +73,7 @@ async def test_call_reply_prefers_ai_gateway(client: AsyncClient):
 
 
 async def test_card_call_recorded_and_report_checked(client: AsyncClient):
-    session = await login_as(client, "student2")  # spec/008: карточка ДДС — petrova, ivanov — специалист-112
+    session = await login_as(client, "student2")  # spec/018: карточка ДДС — petrova, ivanov — специалист-112
     student_id = session["userId"]
 
     # До открытия карточки попытки нет — вызов не записывается.

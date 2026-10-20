@@ -250,7 +250,7 @@
   box-shadow: var(--pf-focus-ring);
 }
 
-/* ——— Рабочее место во весь экран (конструктор сценариев, фича 005) ——— */
+/* ——— Рабочее место во весь экран (конструктор сценариев, фича 013) ——— */
 .shell--workspace {
   grid-template-columns: var(--pf-sidebar-width-collapsed) minmax(0, 1fr);
   height: 100dvh;

@@ -61,7 +61,7 @@ function snippetOf(article: KbArticle, stems: string[]): string | null {
   return null;
 }
 
-/** Поиск и чтение статей справочника тезисами (спека 005, FR-003/FR-004). Общий для окошка в АРМ и отдельного окна. */
+/** Поиск и чтение статей справочника тезисами (спека 016, FR-003/FR-004). Общий для окошка в АРМ и отдельного окна. */
 export function ReferenceBrowser({
   api,
   query,

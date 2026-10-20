@@ -51,7 +51,7 @@ function postAs(cookie: string, body: unknown): Request {
   });
 }
 
-describe("POST /api/mock/cards/[id]/attempt: зона ДДС по специализации (спека 007, T031)", () => {
+describe("POST /api/mock/cards/[id]/attempt: зона ДДС по специализации (спека 019, T031)", () => {
   it("обучающийся только со специализацией 112 → 403; парный: с ДДС → попытка создана", async () => {
     const only112 = await sessionCookie("alekseeva");
     const denied = await postAttempt(postAs(only112, { studentId: "u-016" }), context("c-094"));

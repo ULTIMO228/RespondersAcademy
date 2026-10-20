@@ -95,7 +95,7 @@ describe("validateUserForm — создание", () => {
   });
 });
 
-describe("validateUserForm — специализация обучающегося (спека 007)", () => {
+describe("validateUserForm — специализация обучающегося (спека 019)", () => {
   it("обучающемуся нужна хотя бы одна специализация; парный случай с одной — без ошибки", () => {
     expect(validateUserForm({ ...STUDENT, specializations: [] }, { mode: "create" }).specializations).toBe(
       USER_FORM_MESSAGES.specializations,

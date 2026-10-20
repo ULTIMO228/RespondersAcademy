@@ -1,6 +1,6 @@
-"""Схемы рейтинга обучающихся 1:1 с `src/shared/api/types/student-rating.ts` (спека 006).
+"""Схемы рейтинга обучающихся 1:1 с `src/shared/api/types/student-rating.ts` (спека 017).
 
-Контракт — `spec/006-student-rating/contracts/student-rating-endpoints.md`. Показатели без попыток — `null`
+Контракт — `spec/017-student-rating/contracts/student-rating-endpoints.md`. Показатели без попыток — `null`
 (обязательные nullable-поля), поэтому ответы сериализуются без `exclude_none`.
 """
 

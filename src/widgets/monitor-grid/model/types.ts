@@ -13,7 +13,7 @@ export type MonitorStudent = {
   fullName: string;
   armNumber: number;
   group?: string;
-  /** Специализации обучающегося (спека 007); без поля — только ДДС. */
+  /** Специализации обучающегося (спека 019); без поля — только ДДС. */
   specializations?: Specialization[];
 };
 

@@ -4,7 +4,7 @@
 **Объект аудита**: Модули заданий `src/widgets/incident-list/` (`AssignedModules.tsx`, `modules.ts`), сервисы бэкенда `backend/app/services/assignment_service.py`, `backend/app/services/ai_scenario_service.py`, `backend/app/services/ai_scenario_review.py`, фикстура `backend/scripts/seed_chain_demo.py`.  
 **Нормативная база**:
 - `spec/002-full-system-integration/spec.md` (сквозная цепочка 112 → ДДС);
-- `spec/007-learner-role-split/spec.md` (разграничение заданий);
+- `spec/019-learner-role-split/spec.md` (разграничение заданий);
 - `hack/Фронт/ФРОНТ-АРМ-112-ЕДИНЫЙ-ДОКУМЕНТ.md` (ТЗ §8).
 
 ---

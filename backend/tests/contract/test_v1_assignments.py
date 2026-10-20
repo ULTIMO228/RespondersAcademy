@@ -153,7 +153,7 @@ async def test_create_checks_the_specialization_of_every_student(v1: AsyncClient
 
 
 async def test_operator112_attempt_refuses_a_dds_assignment(v1: AsyncClient):
-    """T021 (фича 007): режим попытки = режим задания. Обучающийся с обеими специализациями: 112-задание открывается, ДДС-задание — 403."""
+    """T021 (фича 019): режим попытки = режим задания. Обучающийся с обеими специализациями: 112-задание открывается, ДДС-задание — 403."""
     await login_as(v1, "teacher")
     dds = await v1.post("/assignments", json={"studentIds": ["u-006"], "trainingMode": "dds", "format": "training", "randomRule": {"count": 1}, "params": {}, "title": "T093 режим ДДС"})
     assert dds.status_code == 201, dds.text

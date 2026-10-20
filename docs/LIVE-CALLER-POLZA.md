@@ -94,7 +94,7 @@
 
 Разговорная модель — `LIVE_CALL_POLZA_CHAT_MODEL=qwen/qwen3-30b-a3b-instruct-2507` (без `LIVE_CALL_POLZA_REASONING_*`).
 Прежний `z-ai/glm-5.3-flash` (MIT; 320B/18B активных) на сервер из ТЗ без GPU не помещается,
-см. риски в `spec/005-live-caller/README.md`.
+см. риски в `spec/014-live-caller/README.md`.
 
 ## Настройка
 

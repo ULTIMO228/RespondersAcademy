@@ -1,4 +1,4 @@
-"""Фича 010, T004: границы схем чата разбора попытки (`ChatRequest` / `ChatResponse`, camelCase на проводе)."""
+"""Фича 020, T004: границы схем чата разбора попытки (`ChatRequest` / `ChatResponse`, camelCase на проводе)."""
 
 from __future__ import annotations
 

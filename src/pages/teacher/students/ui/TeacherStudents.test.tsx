@@ -167,7 +167,7 @@ describe("профиль обучающегося", () => {
   });
 });
 
-describe("полная статистика (спека 006)", () => {
+describe("полная статистика (спека 017)", () => {
   const summary = (attempts: number) => ({
     attempts,
     averageScore: attempts ? 75 : null,

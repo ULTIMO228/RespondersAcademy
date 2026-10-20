@@ -18,7 +18,7 @@ import type {
 export type TeacherStudentsApi = {
   listStudents: () => Promise<PublicUser[]>;
   profile: (studentId: string) => Promise<StudentProfile>;
-  /** Полная статистика за всё время (спека 006); необязательна — в старых тестах не подменяется. */
+  /** Полная статистика за всё время (спека 017); необязательна — в старых тестах не подменяется. */
   stats?: (studentId: string) => Promise<StudentStats>;
   /** Карта ошибок обучающегося по режиму — источник «слабых этапов» (спека 003). */
   errorMap?: (studentId: string, mode: ErrorMapMode) => Promise<ErrorMapResponse>;

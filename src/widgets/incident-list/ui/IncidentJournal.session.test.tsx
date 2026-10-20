@@ -24,7 +24,7 @@ vi.mock("next/link", () => ({
 
 /** Курсант без профильной привязки службы — лента занятия без профильного фильтра. */
 const STUDENT_NO_PROFILE: PublicUser = { ...STUDENT, service: undefined };
-/** spec/008: ivanov — специалист-112 («ЦОВ системы-112»); курсант ДДС Чертаново Южное — petrova. */
+/** spec/018: ivanov — специалист-112 («ЦОВ системы-112»); курсант ДДС Чертаново Южное — petrova. */
 const DDS_STUDENT = findStudent("u-006");
 /** Напоминание — действие специалиста 112: обучающемуся ДДС недоступно (спека 007), проверяется от преподавателя. */
 const TEACHER: PublicUser = { ...STUDENT, id: "u-002", role: "teacher" };

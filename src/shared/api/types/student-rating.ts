@@ -1,4 +1,4 @@
-/* Рейтинг обучающихся для преподавателя — /api/v1/teacher/rating и /teacher/students/{id}/stats (спека 006; backend/app/schemas/student_rating.py). */
+/* Рейтинг обучающихся для преподавателя — /api/v1/teacher/rating и /teacher/students/{id}/stats (спека 017; backend/app/schemas/student_rating.py). */
 
 export type RatingMode = "operator112" | "dds" | "all";
 export type RatingPeriod = "2w" | "1m" | "all";

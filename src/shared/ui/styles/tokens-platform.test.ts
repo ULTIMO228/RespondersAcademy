@@ -120,7 +120,7 @@ describe("tokens-platform.css — контраст (WCAG 2.2 AA)", () => {
   });
 });
 
-/** Пары шторки чата разбора (спека 010, T028): каждая встречается в CSS-модулях src/widgets/attempt-chat. */
+/** Пары шторки чата разбора (спека 020, T028): каждая встречается в CSS-модулях src/widgets/attempt-chat. */
 const CHAT_TEXT_PAIRS: [string, string, string][] = [
   ["--pf-text", "--pf-bg-selected", "баббл пользователя"],
   ["--pf-text", "--pf-bg-subtle", "баббл ассистента"],

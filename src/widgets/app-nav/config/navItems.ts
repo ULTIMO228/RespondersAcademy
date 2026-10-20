@@ -4,7 +4,7 @@ import type { Specialization, UserRole } from "@/shared/api";
 export type NavItem = {
   href: string;
   title: string;
-  /** Вкладка зоны: показывается только обучающемуся с этой специализацией (спека 007); без поля — всем. */
+  /** Вкладка зоны: показывается только обучающемуся с этой специализацией (спека 019); без поля — всем. */
   zone?: Specialization;
 };
 

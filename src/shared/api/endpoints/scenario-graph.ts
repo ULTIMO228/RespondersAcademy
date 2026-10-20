@@ -1,4 +1,4 @@
-/** Граф сценария 112 (спека 005): /api/v1/ai/scenarios* — только с бэкендом (requiresServer). */
+/** Граф сценария 112 (спека 015): /api/v1/ai/scenarios* — только с бэкендом (requiresServer). */
 
 import { v1ApiClient } from "../v1-client";
 import type {

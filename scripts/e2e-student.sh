@@ -19,7 +19,7 @@ cd "$(dirname "$0")/.." || exit 1
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:3130}"
 API="$BASE_URL/api/mock"
-# spec/008: ivanov — специалист-112, занятие ДДС проходит petrova; «чужой» курсант — ivanov (у него есть попытки в сидах).
+# spec/018: ivanov — специалист-112, занятие ДДС проходит petrova; «чужой» курсант — ivanov (у него есть попытки в сидах).
 LOGIN="${E2E_LOGIN:-petrova}"
 PASSWORD="${E2E_PASSWORD:-student112}"
 ARM_NUMBER="${E2E_ARM:-2}"

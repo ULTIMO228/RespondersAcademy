@@ -1,5 +1,5 @@
 /*
- * Чат разбора попытки (спека 010): POST /api/v1/ai/chat — contracts/api.md; клиентская реплика — data-model.md.
+ * Чат разбора попытки (спека 020): POST /api/v1/ai/chat — contracts/api.md; клиентская реплика — data-model.md.
  * Ответ строит сервер (облако → локальная модель → шаблон); `source` честно показывает, кто ответил.
  */
 import type { AiServedBy } from "./ai-settings";

@@ -99,7 +99,7 @@ export function UserFormFields({ values, errors, groups, roleOptions, mode, onCh
       ) : null}
       {values.role === "student" ? (
         <fieldset className={[styles.form__groups, styles.form__wide].join(" ")}>
-          {/* [расширение, спека 007] специализация определяет рабочие зоны симулятора обучающегося. */}
+          {/* [расширение, спека 019] специализация определяет рабочие зоны симулятора обучающегося. */}
           <legend className={styles.form__legend}>Специализация</legend>
           {SPECIALIZATION_ORDER.map((item) => (
             <label key={item} className={styles.form__check}>

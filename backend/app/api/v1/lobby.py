@@ -25,7 +25,7 @@ teacher_or_admin = require_role("teacher", "admin")
 
 
 async def _own_rows(db: AsyncSession, viewer: Viewer) -> list[dict[str, Any]]:
-    """История курсанта; при профиле режима (spec/008) — только строки разрешённого режима."""
+    """История курсанта; при профиле режима (spec/018) — только строки разрешённого режима."""
     rows = await analytics.rows(db, viewer.user_id)
     user = await db.get(User, viewer.user_id)
     return rows if user is None else [row for row in rows if training_profile.allows(user, row["mode"])]
@@ -63,7 +63,7 @@ async def my_analytics(request: Request, db: AsyncSession = Depends(get_db), vie
 
 @router.get("/me/reference-access")
 async def my_reference_access(db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
-    """Можно ли сейчас открыть справочник (спека 005): обучающемуся запрещает задание с открытой попыткой."""
+    """Можно ли сейчас открыть справочник (спека 016): обучающемуся запрещает задание с открытой попыткой."""
     result = (await reference_access.access_for(db, viewer)).to_contract()
     await db.commit()  # _expire мог закрыть попытку экзамена по лимиту времени
     return result

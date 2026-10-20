@@ -1,4 +1,4 @@
-"""Профиль режима обучаемого (фича 008).
+"""Профиль режима обучаемого (фича 018).
 
 Revision ID: 0006_user_training_profile
 Revises: 0005_error_map_verdicts

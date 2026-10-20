@@ -139,7 +139,7 @@ export interface AIScenarioVersion {
   };
   fieldDecisions: AIFieldDecision[];
   approvedBy?: string;
-  /** Граф сценария `scenario-graph/1` (визуальный конструктор, спека 005). */
+  /** Граф сценария `scenario-graph/1` (визуальный конструктор, спека 015). */
   graph?: ScenarioGraph;
   /** Эксперт, принявший или отклонивший версию, и его комментарий. */
   reviewedBy?: string;

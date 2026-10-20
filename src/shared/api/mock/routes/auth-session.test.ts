@@ -88,7 +88,7 @@ describe("POST /auth/login — cookie сессии выдаёт сервер", (
 });
 
 describe("проверка токена: подделка, срок, отзыв, блокировка", () => {
-  it("GET /auth/session отдаёт специализации обучающегося; у преподавателя поля нет (спека 007)", async () => {
+  it("GET /auth/session отдаёт специализации обучающегося; у преподавателя поля нет (спека 019)", async () => {
     const student = await signIn();
     const profile: PublicUser = await (await sessionRoute(get("/session", student.cookie))).json();
     expect(profile.specializations).toEqual(["operator112"]); // ivanov — чистый специалист-112 (spec/008)

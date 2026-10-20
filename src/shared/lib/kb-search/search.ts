@@ -1,6 +1,6 @@
 import type { KbArticle, KbSections } from "@/shared/api";
 
-/** Минимальная длина слова запроса: короче — поиск не запускается (спека 005, «Введите хотя бы 3 буквы»). */
+/** Минимальная длина слова запроса: короче — поиск не запускается (спека 016, «Введите хотя бы 3 буквы»). */
 export const KB_QUERY_MIN_LENGTH = 3;
 const MIN_STEM = 3;
 const WEIGHT = { title: 3, group: 2, thesis: 1 } as const;

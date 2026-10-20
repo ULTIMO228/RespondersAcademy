@@ -27,7 +27,7 @@ export const LINK_STATE_TITLES: Record<AssignmentLinkState, string> = {
 };
 
 /**
- * Доступен ли режим задания обучающемуся с такими зонами (спека 007): 112 и ДДС — по своей специализации, цепочка
+ * Доступен ли режим задания обучающемуся с такими зонами (спека 019): 112 и ДДС — по своей специализации, цепочка
  * 112 → ДДС требует обе (сервер проверяет то же самое и отвечает 403).
  */
 export function isModeAvailable(mode: TrainingMode, zones: readonly Specialization[]): boolean {

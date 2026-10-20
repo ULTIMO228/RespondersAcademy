@@ -263,7 +263,7 @@ describe("Редактирование и смена роли (T4.1-08)", () => 
   });
 });
 
-describe("Специализация обучающегося в форме (спека 007, T019)", () => {
+describe("Специализация обучающегося в форме (спека 019, T019)", () => {
   async function openEdit(userId: string) {
     renderRegistry();
     await waitRows(USER_COUNT);

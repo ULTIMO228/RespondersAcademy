@@ -1,4 +1,4 @@
-"""Рейтинг обучающихся (спека 006): `/api/v1/teacher/rating`, `/api/v1/teacher/students/{id}/stats`.
+"""Рейтинг обучающихся (спека 017): `/api/v1/teacher/rating`, `/api/v1/teacher/students/{id}/stats`.
 
 Права проверяет сервис (`error_map_access`): обучающемуся — 403, преподавателю — только закреплённые группы.
 """

@@ -12,7 +12,7 @@ export type PlatformNavEntry = {
   exact?: boolean;
   outlined?: boolean;
   separatorBefore?: boolean;
-  /** Пункт входа в зону симулятора: показывается обучающемуся с этой специализацией (спека 007). */
+  /** Пункт входа в зону симулятора: показывается обучающемуся с этой специализацией (спека 019). */
   zone?: Specialization;
 };
 

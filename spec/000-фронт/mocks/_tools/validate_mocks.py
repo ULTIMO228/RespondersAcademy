@@ -45,7 +45,7 @@ for u in us:
     if not isinstance(u.get('isActive'), bool): err(F, f'{uid}: isActive не boolean')
     if u.get('role') != 'student' and ('group' in u or 'service' in u):
         err(F, f'{uid}: group/service у не-student')
-    # Специализация обучающегося (фича 007): student — непустой список без дублей из режимов, прочие — без поля.
+    # Специализация обучающегося (фича 019): student — непустой список без дублей из режимов, прочие — без поля.
     sp = u.get('specializations')
     if u.get('role') == 'student':
         if not isinstance(sp, list) or not sp or len(sp) != len(set(sp)) or any(x not in ('operator112', 'dds') for x in sp):

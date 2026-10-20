@@ -6,9 +6,9 @@ Browser@2026-10-20 demo-up fresh db: egorov c-009 Принята(наряд+comm
 ⚠️ out of scope: DDS feed only cards where own service in notification list
 ## Facts
 Proj:RespondersAcademy | Branch:claude/gracious-darwin-x0znyd | Mode:normal | base:e1ab838(main)
-Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 ✅ (T061 owner) | 003 error-map ✅ | 004 polza ✅ (T007 open) | 005 visual scenario builder: spec+plan+design ✅ approved, clickable FRONT prototype ✅, server phases Ф1-Ф7 not started}
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 ✅ (T061 owner) | 003 error-map ✅ | 004 polza ✅ (T007 open) | 013 visual scenario builder: spec+plan+design ✅ approved, clickable FRONT prototype ✅, server phases Ф1-Ф7 not started}
 005 prototype:/teacher/constructor | no server, no DB change (owner) | draft in localStorage key ra.flow-constructor.draft.v1 | publish disabled
-005 code:entities/scenario-flow{catalog,editor(history 50),validate,preview engine,layout,demo c-010} | features/flow-{canvas(+minimap),inspector,library,preview} | pages/teacher/constructor | shell workspace mode (PlatformShell workspace, SideNav compact) | tokens --pf-flow-*
+013 code:entities/scenario-flow{catalog,editor(history 50),validate,preview engine,layout,demo c-010} | features/flow-{canvas(+minimap),inspector,library,preview} | pages/teacher/constructor | shell workspace mode (PlatformShell workspace, SideNav compact) | tokens --pf-flow-*
 Owner feedback 2026-10-20 ✅:{explicit question text «Выяснить: X. Ответ: Y» | «Скрыть ответы» toggle (canvas+outline+aria, inspector keeps answer) | minimap drag freeze (was runaway 1.28M px) | ticket select «Билет N — summary» + details box | full-text callout under selected clipped node, library desc wraps | preview «✓ Записано» + «Мои действия» moved up | ≤1599px toolbar labels → icons}
 Tests@2026-10-20:{vitest full 2015 passed/1 failed (same teacher-v1 pre-existing) | lint ✅ steiger ✅ tsc ✅ build ✅ | prettier only 2 foreign | e2e constructor 10/10 + platform + smoke = 23/23 (npx playwright test -c temp config) | minimap e2e verified red on old code}
 Tests@2026-10-19:{vitest full: 2001 passed/1 failed (teacher-v1 downloadReportExport Blob instanceof — also red on clean HEAD via git archive, env Node22/jsdom) | flaky: Operator112Softphone «Прослушать ещё раз» failed once in full run, passes alone & on clean HEAD | lint ✅ | steiger ✅ | tsc ✅ | build ✅ | prettier: only 2 foreign files (record.mjs, GenerateDialog.tsx)}
@@ -31,13 +31,13 @@ fix:assignment wizard step 0 validated with mode filter → dds-profile student 
 Checks@2026-10-20:{uv run pytest -q 1133 passed/4 skipped | ruff clean | npx vitest run 2017/2018 (teacher-v1 Blob env) before wizard fix; assignment-create 46/46 after | tsc, steiger, eslint/prettier (changed) pass | mocks:validate pass}
 Browser@2026-10-20 (cloud chromium, fresh db, next start :3130 BACKEND_URL):{ivanov no «Открыть АРМ» | egorov has it | 112 card → teacher bank → DDS assignment → egorov «Начать» → /arm/card/c-097 | /arm journal} | not run: statuses+eval in browser, npm run check, e2e
 ⚠️ DDS card «my service» = first notification-list service by kind, not user's (src/pages/incident/lib/cardView.ts)
-⚠️ codex/feature-007-learner-role-split = parallel role model, based on old main (no develop/voice) → not merged; SASHA 008 trainingProfile used
+⚠️ codex/feature-007-learner-role-split = parallel role model, based on old main (no develop/voice) → not merged; SASHA 018 trainingProfile used
 
 ## Handoff 2026-10-20 (evening) → next window
 Branch:SASHA (pushed, HEAD 7edccf6 + this handoff) | develop merged in (d08ce53) | spec:009-arm-112-student
 Where: tasks.md Phase 2 Foundational | done T001-T007 + T020 | NEXT: T008 mock validator (channel∈{call,sms}, smsText if sms, repeatOf→existing card|null, lockedBy only bg) → T009 (owner texts!) → T010-T012 journal (reuse operator112_service.in_student_journal) → T013-T019
 Owner decisions 2026-10-20:
-  - live AI caller (005-live-caller) replaces recording in 112 ARM, BOTH training+exam; recording only if NEXT_PUBLIC_LIVE_CALLS_ENABLED=false; no silent fallback when live server unconfigured (state unavailable)
+  - live AI caller (014-live-caller) replaces recording in 112 ARM, BOTH training+exam; recording only if NEXT_PUBLIC_LIVE_CALLS_ENABLED=false; no silent fallback when live server unconfigured (state unavailable)
   - only student-112 workplace now; DDS code untouched (R14)
   - design = ARM 1:1; compare vs СРАВНЕНИЕ-ИНТЕРФЕЙСА-АРМ.md (до/после) + окна-АРМ-112.html; proposal (not yet accepted): add до/после items to checklists/visual-112.md + T070, screenshot pairs 1920×1080
 Voice point (T020 ✅): entities/operator112-attempt/model/useApplicantVoice.ts → {kind live|recording, state checking|idle|connecting|playing|unavailable|ended, start, stop, mute, level, recordingUrl, trainerText(only trainer strip, FR-027)}; useRealtimeCaller+useCallerAudio moved softphone→entity; backend live_call_service.writable: any active assignment (exam ok)
@@ -45,7 +45,7 @@ T007 ✅: 7 new event types + payload checks; linkAdded cardId ∈ journal (ArmC
 🧠 assumption: journal bg = all ArmCardFixture (no per-assignment bg) — recheck in T011
 Checks@2026-10-20 after merge: pytest 1122 passed/4 skipped/0 red | ruff clean | vitest 2008/2011 (teacher-v1 Blob = env; IncidentScreen+PresentScreen flaky under load, pass alone) | tsc+eslint(changed)+steiger pass | next build NOT run
 Blocked/owner:
-  !1 renumber duplicate spec 005 (005-arm-reference-panel vs 005-live-caller)
+  !1 renumber duplicate spec 005 (016-arm-reference-panel vs 014-live-caller)
   !2 T009 synthetic ticket texts (1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + ok for migration 0007/DB reset
   !3 real live call: POLZA_API_KEY+models in backend/.env, polza.ai allowed in cloud env (now 403) → ./scripts/demo-up.sh --live
   !4 004 T007 real-key check: spec/004-polza-provider/quickstart.md
@@ -102,7 +102,7 @@ Owner decisions (open):
   !6 migration 0007 not applied to working DB (per task statement); no backend/var/*.db in this container, so not verified here; DB reset only by owner
   !7 «Краткая инструкция»: no content in spec (spec/009-arm-112-student/plan.md:115) — owner text needed
   !8 hotkeys Shift+F1 / Shift+F2 / Alt+E: executor assumption (memo names «Просмотр»/«Дополнить», tasks.md T068) — confirm
-  !9 carry-over: duplicate spec number 005 (005-arm-reference-panel vs 005-live-caller, both in spec/README.md) — not fixed
+  !9 carry-over: duplicate spec number 005 (016-arm-reference-panel vs 014-live-caller, both in spec/README.md) — not fixed
   !10 carry-over: 004 T007 real Polza key check (spec/004-polza-provider/quickstart.md) — open per spec/README.md
   ⚠️ Silero TTS license CC BY-NC (risk outside hackathon)
 Checks@2026-10-20 (docs window, no code run): read-only verification only | git show --stat 009 commits | ls/grep slices, routes, v1 endpoints, migration 0007 | backend/.venv python: Base.metadata.tables = 46 (import only, no DB)
@@ -113,7 +113,7 @@ Env notes: cloud container: npm ci in fresh containers + npm run mocks:sync befo
 
 ## Facts (develop: live-caller, merged into SASHA 2026-10-20)
 Proj:RespondersAcademy | Branch:claude/awesome-curie-i39fyz (= pensive-feynman-smkr22 + latency work; not merged to main) | Mode:normal
-Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 005 live-caller: polza transport implemented, not checked live}
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza-provider ✅ + amendment: POLZA_MODEL required | 014 live-caller: polza transport implemented, not checked live}
 Finals:2026-10-23 online pitch | rule(moderator 17–19.10): API only for open-weight models deployable on TZ server (CPU≥6c,32GB,no GPU), no hardcode
 Tests@2026-10-20 (cloud, uv run pytest -q):{pytest:1034 passed/3 skipped/0 red, ruff:clean}
 Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanceOf red on clean main too (env), 1 more flaky in first run} | not run:{npm run check, e2e, simulator-visual}
@@ -127,11 +127,11 @@ Not_checked:{postgres,npm_run_check_single_cmd,cloud_report_in_browser,new_key_e
 
 ## Facts
 Proj:RespondersAcademy | Branch:SASHA | Mode:normal | HEAD:SASHA pushed | tree:clean after commit
-Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza ✅ T001-T006, T007 open | 005 arm-reference ✅ | 006 student-rating ✅ | 007 arm-one-to-one spec only | 008 operator112-student ✅ T001-T041 | 009 arm-112-student IN PROGRESS: T001-T006 ✅, next T007 | 010 lesson-call-session spec, owner answers in}
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza ✅ T001-T006, T007 open | 016 arm-reference ✅ | 017 student-rating ✅ | 007 arm-one-to-one spec only | 018 operator112-student ✅ T001-T041 | 009 arm-112-student IN PROGRESS: T001-T006 ✅, next T007 | 010 lesson-call-session spec, owner answers in}
 Scope@2026-10-20(owner): only student-112 workplace now; DDS profile+ARM = other teammate → never edit DDS code (widgets/{incident-card,incident-list,service-panel}, pages/{incident,journal,phone}); 112 in own slices (009 R14); voice dialog (007 FR-031..034) = friend, later; plug point useApplicantVoice (009 R6)
 Stand:./scripts/demo-up.sh (front :3130, back :8130, db backend/var/demo.db) | stop: ps aux|grep -E "next-server|next start|uvicorn" → kill PIDs (no lsof in cloud container)
 Tests@2026-10-20:{vitest:1951 passed/1 red teacher-v1.test.ts downloadReportExport "Blob not instance of Blob" — red on clean HEAD too (Node22+jsdom env), not ours | tsc:pass | steiger:pass | eslint(changed):pass | pytest:not rerun this session}
-SC-004(008)@2026-10-20: 5 identical 112 runs c-010 before(5f4988e)/after(HEAD) = 96/81/81/89/86 both, all components equal ✅
+SC-004(018)@2026-10-20: 5 identical 112 runs c-010 before(5f4988e)/after(HEAD) = 96/81/81/89/86 both, all components equal ✅
 Updated:2026-10-20
 ## Story
 0000000000000 2026-10-20 owner: emotion «чуть уменьшить» → STYLE: restrained, fillers rarely, [паника] only on threat to life, calmer examples | targeted tests 75 passed
@@ -139,7 +139,7 @@ Updated:2026-10-20
 00000000000 2026-10-20 local STT option: extra stt-local (gigaam git@7447938, torchaudio 2.11 OK with torch 2.14 — import+features checked), ml/speech/gigaam_stt.py (in-memory, no ffmpeg), LIVE_CALL_STT_ENGINE=gigaam + LIVE_CALL_GIGAAM_MODEL, warm_stt, scripts/gigaam_check.py (local vs Polza ms) | ⚠️ real weights NOT run: CDN cdn.chatwm.opensmodel.sberdevices.ru blocked in cloud
 0000000000 2026-10-20 liveliness: LIVE_CALL_YIELD_MS=600 (operator sound over caller < 600ms voiced → ignored, no STT; after caller stopped → normal answer) | LIVE_CALL_NUDGE_SEC=5 (silence → «[оператор молчит]» → caller speaks; calm ×2; max 2 in a row) | pytest 1028 | not checked live | next: local GigaAM STT option + owner probe script
 000000000 2026-10-20 barge never fired in owner calls (prep at 5s + STT/LLM 4–5s → operator done first) → prepare at LIVE_CALL_BARGE_PREPARE_SEC=1.5 voiced, hold events server-side, release at LIVE_CALL_BARGE_IN_SEC=4 voiced; drop (no browser, no history) if operator ends first; INFO log reasons | not checked live
-00000000 2026-10-20 caller LLM → qwen/qwen3-30b-a3b-instruct-2507 (team decision: Qwen; GLM 328GB ≠ TZ server) in .env.example/docs/spec 005; owner must edit own backend/.env (remove REASONING_*) | not re-listened after prompt fixes
+00000000 2026-10-20 caller LLM → qwen/qwen3-30b-a3b-instruct-2507 (team decision: Qwen; GLM 328GB ≠ TZ server) in .env.example/docs/spec 014; owner must edit own backend/.env (remove REASONING_*) | not re-listened after prompt fixes
 0000000 2026-10-20 barge-in (owner choice: by meaning via LLM, 5s, anxious moods only): operator speech ≥ LIVE_CALL_BARGE_IN_SEC & mood∈{тревожно,паника,плачет} → STT partial → respond(barge) w/ «[оператор ещё говорит]» → response.created.interrupting → front playback plays over operator; cancelled if operator ends first | vitest realtime-audio+softphone 40/40, tsc ok | not checked live
 000000 2026-10-20 bug «Как вас зовут?» → «Алло, здравствуйте, пожар на улице Грина»: browser truncate on barge-in deleted caller reply from LLM history (realtime_cascade send) → model restarted call | fix: PolzaSession.send keeps heard part (audio_end_ms/sent audio) + [перебили]; prompt: operator asked first → answer, no re-greeting | not checked live
 00000 2026-10-20 prompt fix (owner: «плохо отвечает»): facts → plain RU first-person text (facts_text, abbreviations expanded, no JSON keys) | STT-noise rule | answer-first, ≤1 filler | interrupted mark → tag [перебили] (stripped/not voiced) | ⚠️ NOT compared on live GLM (auto-mode denied using pasted key)
@@ -148,7 +148,7 @@ Updated:2026-10-20
 00 2026-10-20 voice → local Silero v5.6 (LIVE_CALL_TTS_ENGINE=silero, models/silero-live/v5_6_ru.pt via prepare_models --only tts-live, speaker xenia); filler «Да-да» removed (owner); warm_voice at startup + before ready (cold 12s+5s); real call: greeting 2.5s, operator end→voice ~5s (STT Polza ~2.4s, GLM ~1.5s, Silero 0.1–1s); pytest 1002 passed
 0 2026-10-20 live caller verified on REAL Polza (cloud, polza.ai allowed): WS call → VAD → gigaam-v3 → glm-5.3-flash(reasoning.max_tokens=64) → gpt-4o-mini-tts coral; filler «Да-да…»; parallel TTS; interrupted reply kept in history; stream retry; tests ignore backend/.env
 1 3 red backend tests fixed: manifest CRLF hashes → LF + pack.py text_sha256 | applicant-audio test now creates own attempt
-2 AMIR (live caller: cascade/speechkit/omni + softphone realtime UI) merged into own branch; spec renamed 005-live-caller
+2 AMIR (live caller: cascade/speechkit/omni + softphone realtime UI) merged into own branch; spec renamed 014-live-caller
 3 v1 router duplicates removed (test_v1_router_unique)
 4 polza transport: app/services/realtime_polza.py (VAD segmentation → /audio/transcriptions; /chat/completions stream; /audio/speech + instructions) | persona: app/services/caller_persona.py
 5 POLZA_MODEL default removed; AGENTS §2 + spec 004 amended
@@ -218,11 +218,11 @@ approve on graph version → 409 (app/services/ai_scenario_review.py:220-250); g
 !1: Owner: enter new key via /account/ai, finish quickstart 2-6 (T041); rotate key pasted in chat.
  2: Local dev.db/demo.db lack ai_scenario_requests.started_at → app.seed.load --reset or ALTER TABLE.
  3: Verify PostgreSQL (alembic upgrade head to 0010; SAVEPOINT/JSONB marker behaviour).
- 4: Recheck teacher e2e after feature 007 settles.
+ 4: Recheck teacher e2e after feature 019 settles.
 
 ## Caution
 ⚠️ Shared dirty tree; stage only own files. Sandbox blocks loopback bind: e2e needs `JWT_SECRET=... bash backend/scripts/run_frontend_e2e.sh` outside sandbox.
-1 005 spec pkg: spec/data-model/research/plan/contracts/quickstart/design-concept (+sketches docs/platform-design/teacher-constructor*.html/png)
+1 013 spec pkg: spec/data-model/research/plan/contracts/quickstart/design-concept (+sketches docs/platform-design/teacher-constructor*.html/png)
 2 owner: hybrid «Схема-инструкция» approved + minimap required; roles: expert & group lead = teachers
 3 prototype: add/move/connect/delete/undo/validate/preview all working in real browser (e2e)
 

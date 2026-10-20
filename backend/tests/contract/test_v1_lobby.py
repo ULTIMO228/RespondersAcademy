@@ -23,7 +23,7 @@ async def test_own_lobby_history_and_analytics(v1: AsyncClient):
     assert (await v1.get("/me")).status_code == 401
     assert (await v1.get("/me/history")).status_code == 401
     assert (await v1.get("/kb/articles")).status_code == 401
-    # spec/008: у ivanov в сидах только попытки ДДС, а он специалист-112 — историю проверяем на petrova.
+    # spec/018: у ivanov в сидах только попытки ДДС, а он специалист-112 — историю проверяем на petrova.
     session = await login_as(v1, "student2")
     me = (await v1.get("/me")).json()
     assert me["id"] == session["userId"] and me["armNumber"] == 2

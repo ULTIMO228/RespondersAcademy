@@ -57,7 +57,7 @@ export const ROUTES = {
   studentResult: (attemptId: string, mode: string) =>
     `/student/results/${encodeURIComponent(attemptId)}?mode=${encodeURIComponent(mode)}`,
   studentAnalytics: "/student/analytics",
-  /** Сценарии с графом (спека 005): список назначенных и прохождение версии. */
+  /** Сценарии с графом (спека 015): список назначенных и прохождение версии. */
   studentScenarios: "/student/scenarios",
   studentScenarioRun: (scenarioId: string, version: number) =>
     `/student/scenarios/${encodeURIComponent(scenarioId)}/${version}`,
@@ -65,7 +65,7 @@ export const ROUTES = {
   reference: "/reference",
   referenceSearch: (query: string) => `/reference?q=${encodeURIComponent(query)}`,
   referenceArticle: (articleId: string) => `/reference?article=${encodeURIComponent(articleId)}`,
-  /** Справочник в отдельном окне для второго монитора (спека 005): без меню кабинета, под гвардом /arm. */
+  /** Справочник в отдельном окне для второго монитора (спека 016): без меню кабинета, под гвардом /arm. */
   referenceWindow: (query = "", articleId: string | null = null): string => {
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
@@ -82,7 +82,7 @@ export const ROUTES = {
   teacherMonitor: (studentId: string) => `/teacher/monitor/${studentId}`,
   teacherScenarios: "/teacher/scenarios",
   teacherScenario: (scenarioId: string) => `/teacher/scenarios/${scenarioId}`,
-  /** Визуальный конструктор сценариев (фича 005, прототип без сервера): рабочее место во весь экран. */
+  /** Визуальный конструктор сценариев (фича 013, прототип без сервера): рабочее место во весь экран. */
   teacherConstructor: "/teacher/constructor",
   teacherSession: "/teacher/session",
   /** Мастер занятия с предвыбранным сценарием — кнопка «в занятие» списка сценариев (T3.1-03). */
@@ -92,10 +92,10 @@ export const ROUTES = {
   teacherAssignmentNew: "/teacher/assignments/new",
   teacherAssignment: (assignmentId: string) => `/teacher/assignments/${encodeURIComponent(assignmentId)}`,
   teacherStudents: "/teacher/students",
-  /** Профиль обучающегося; `from` — адрес рейтинга для кнопки «Назад к рейтингу» (спека 006). */
+  /** Профиль обучающегося; `from` — адрес рейтинга для кнопки «Назад к рейтингу» (спека 017). */
   teacherStudent: (studentId: string, from?: string) =>
     `/teacher/students/${encodeURIComponent(studentId)}${from ? `?from=${encodeURIComponent(from)}` : ""}`,
-  /** Рейтинг обучающихся (спека 006); query — группа, режим, период, сортировка. */
+  /** Рейтинг обучающихся (спека 017); query — группа, режим, период, сортировка. */
   teacherRating: "/teacher/rating",
   teacherGroup: (groupId: string) => `/teacher/groups/${encodeURIComponent(groupId)}`,
   teacherReports: "/teacher/reports",

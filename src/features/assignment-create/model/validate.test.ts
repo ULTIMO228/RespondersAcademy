@@ -129,7 +129,7 @@ describe("buildRequest", () => {
   });
 });
 
-describe("«Справочник доступен» (спека 005)", () => {
+describe("«Справочник доступен» (спека 016)", () => {
   const draft = (patch: Partial<WizardDraft>): WizardDraft => ({
     ...createDraft(),
     cardIds: ["c-1"],

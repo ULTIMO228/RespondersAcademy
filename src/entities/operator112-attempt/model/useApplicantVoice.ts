@@ -15,7 +15,7 @@ import { useRealtimeCaller } from "./useRealtimeCaller";
 export type ApplicantVoiceState = "checking" | "idle" | "connecting" | "playing" | "unavailable" | "ended";
 
 export type ApplicantVoice = {
-  /** live — живой ИИ-заявитель (005-live-caller); recording — TTS-запись билета. Выбирается флагом сборки, не на лету. */
+  /** live — живой ИИ-заявитель (014-live-caller); recording — TTS-запись билета. Выбирается флагом сборки, не на лету. */
   kind: "live" | "recording";
   state: ApplicantVoiceState;
   error: string;
@@ -92,7 +92,7 @@ function useRecordedVoice(options: Options): ApplicantVoice {
 /**
  * Голос заявителя в АРМ-112 (спека 009, R6/T020). Решение владельца 2026-10-20: живой ИИ-заявитель и в тренировке, и в
  * экзамене; запись — только при выключенном NEXT_PUBLIC_LIVE_CALLS_ENABLED. Живой режим не подменяется записью, если голосовой
- * сервер не настроен (состояние unavailable), — как в софтфоне 005-live-caller.
+ * сервер не настроен (состояние unavailable), — как в софтфоне 014-live-caller.
  */
 export const useApplicantVoice: (options: Options) => ApplicantVoice = APP_ENV.liveCallsEnabled
   ? useLiveVoice

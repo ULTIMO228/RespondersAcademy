@@ -1,4 +1,4 @@
-"""T020 / T017 (фича 007): матрица «специализация × зона» и парный 200 к каждому 403.
+"""T020 / T017 (фича 019): матрица «специализация × зона» и парный 200 к каждому 403.
 
 Зона 112 — весь роутер `/api/v1/operator112/*` (включая `/streets`). Зона ДДС — компат-маршруты попыток и звонков по карточке
 (`/cards/{id}/attempt`, `/attempts/{id}/progress`, `/cards/{id}/calls`). Задание — `POST /api/v1/assignments/{id}/start`
@@ -174,7 +174,7 @@ async def test_dds_progress_and_calls_require_dds_specialization(http: AsyncClie
     call = {"studentId": "u-007", "toNumber": "301", "startedAt": _now(-40), "endedAt": _now(-20), "transcript": [{"speaker": "ai", "text": "Слушаю вас", "at": _now(-30)}]}
     assert (await http.post("/api/mock/cards/c-010/calls", json=call)).status_code == 201
 
-    # Старые данные: ДДС-попытка обучающегося, у которого осталась только специализация 112 (открыта сервисом до фичи 007).
+    # Старые данные: ДДС-попытка обучающегося, у которого осталась только специализация 112 (открыта сервисом до фичи 019).
     async with get_sessionmaker()() as db:
         old, _ = await attempts_service.open_attempt(db, "c-010", {"studentId": "u-016"})
         await db.commit()

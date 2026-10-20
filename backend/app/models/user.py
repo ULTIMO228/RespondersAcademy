@@ -8,17 +8,17 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, JSONVariant
 
-# Специализация обучающегося (фича 007): словарь совпадает с режимами заданий (`training_mode`), новый не вводится.
+# Специализация обучающегося (фича 019): словарь совпадает с режимами заданий (`training_mode`), новый не вводится.
 SPECIALIZATIONS: tuple[str, ...] = ("operator112", "dds")
 SPECIALIZATION_TITLES: dict[str, str] = {"operator112": "Специалист 112", "dds": "Оператор ДДС"}
-# Какие специализации нужны режиму: «цепочка» требует обе (допущение 3 спеки 007).
+# Какие специализации нужны режиму: «цепочка» требует обе (допущение 3 спеки 019).
 MODE_SPECIALIZATIONS: dict[str, tuple[str, ...]] = {
     "operator112": ("operator112",),
     "dds": ("dds",),
     "chain": ("operator112", "dds"),
 }
 MODE_TITLES: dict[str, str] = {"operator112": "специалист 112", "dds": "оператор ДДС", "chain": "цепочка 112 → ДДС"}
-# Старые учётные записи обучающихся без поля — «оператор ДДС» (фактическое поведение до фичи 007, допущение 10).
+# Старые учётные записи обучающихся без поля — «оператор ДДС» (фактическое поведение до фичи 019, допущение 10).
 DEFAULT_STUDENT_SPECIALIZATIONS: tuple[str, ...] = ("dds",)
 
 

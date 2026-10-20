@@ -1,5 +1,5 @@
 // @vitest-environment node
-/* Автономный чат разбора попытки POST /api/v1/ai/chat (спека 010, T018): права, проверка тела, шаблонный ответ. */
+/* Автономный чат разбора попытки POST /api/v1/ai/chat (спека 020, T018): права, проверка тела, шаблонный ответ. */
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { POST as chatRoute } from "../../../../../app/api/v1/ai/chat/route";

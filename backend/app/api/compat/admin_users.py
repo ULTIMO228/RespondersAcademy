@@ -83,7 +83,7 @@ def _apply_role_fields(user: User, role: str, group: str | None, service: str | 
 
 
 def _apply_specializations(user: User, role: str, requested: list[str] | None) -> None:
-    """Специализация по роли (фича 007): переданное значение проверяется; без значения у обучающегося сохраняется
+    """Специализация по роли (фича 019): переданное значение проверяется; без значения у обучающегося сохраняется
     действующее или ставится «оператор ДДС»; у учителя и администратора поле снимается."""
     try:
         if requested is not None:

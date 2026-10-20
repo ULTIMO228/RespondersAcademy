@@ -264,7 +264,7 @@ async def test_admin_sets_single_specialization_profile(client: AsyncClient, app
 
 
 async def test_admin_edits_student_specializations(client: AsyncClient):
-    """T018 (фича 007): специализация обучающегося — только администратором; правила по роли; аудит `user.specialization_changed`."""
+    """T018 (фича 019): специализация обучающегося — только администратором; правила по роли; аудит `user.specialization_changed`."""
     await login_as(client, "admin")
     body = {"adminId": ADMIN_ID, "fullName": "Специализация Тестовая", "login": "spec.tester", "password": "Temp-1234", "role": "student", "armNumber": 34}
     created = await client.post("/admin/users", json=body)

@@ -1,4 +1,4 @@
-"""Спека 006: схемы рейтинга обучающихся ⊇ TS-типы `src/shared/api/types/student-rating.ts` (как `test_error_map_shapes.py`)."""
+"""Спека 017: схемы рейтинга обучающихся ⊇ TS-типы `src/shared/api/types/student-rating.ts` (как `test_error_map_shapes.py`)."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""T050 (фича 007, US4): отчёт занятия включает попытки 112, связанные с заданием по assignment_id.
+"""T050 (фича 019, US4): отчёт занятия включает попытки 112, связанные с заданием по assignment_id.
 
 Попытка 112 создаётся с пустым `session_id`; связь с занятием — `AssignmentAttempt(assignment_id)` и
 `TrainingSession.mode == "assignment:<id>"` (`report_builder._score_student_attempts`). Строки с нормативами

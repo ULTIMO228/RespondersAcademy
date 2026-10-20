@@ -16,7 +16,7 @@ def _now(offset_seconds: int = 0) -> str:
 
 
 async def test_student_journey(client):
-    session = await login_as(client, "student2")  # spec/008: занятие ДДС — petrova, ivanov — специалист-112
+    session = await login_as(client, "student2")  # spec/018: занятие ДДС — petrova, ivanov — специалист-112
     student_id = session["userId"]
 
     created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": [student_id], "scenarioIds": [SCENARIO_ID], "mode": "practice", "cardSource": "generated"})

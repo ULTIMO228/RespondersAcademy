@@ -5,7 +5,7 @@
 **Нормативная база**:
 - `AGENTS.md` (§2 «Инварианты безопасности», §3 «Сессия и гварды»);
 - `spec/002-full-system-integration/spec.md` (HttpOnly авторизация, RBAC);
-- `spec/007-learner-role-split/spec.md`.
+- `spec/019-learner-role-split/spec.md`.
 
 ---
 

@@ -39,7 +39,7 @@ async def accept(rec_id: str, db: AsyncSession = Depends(get_db),
 @router.get("/teacher/students/{student_id}/profile")
 async def student_profile(student_id: str, db: AsyncSession = Depends(get_db),
                           viewer: Viewer = Depends(teacher_or_admin)) -> dict[str, Any]:
-    # Только обучающиеся закреплённых групп; администратор — любой (спека 006, FR-009; ТЗ §8).
+    # Только обучающиеся закреплённых групп; администратор — любой (спека 017, FR-009; ТЗ §8).
     await error_map_access.require_student_access(db, viewer, student_id)
     result = await service.profile(db, student_id, viewer)
     await db.commit()

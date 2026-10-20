@@ -14,7 +14,7 @@ from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSes
 
 
 async def rows(db: AsyncSession, student_id: str | None = None, *, student_ids: set[str] | None = None) -> list[dict[str, Any]]:
-    """Оценённые попытки; `student_ids` — группа обучающихся одним запросом (рейтинг, фича 006)."""
+    """Оценённые попытки; `student_ids` — группа обучающихся одним запросом (рейтинг, фича 017)."""
     query = select(Attempt, Evaluation).join(Evaluation, Evaluation.attempt_id == Attempt.id)
     if student_id:
         query = query.where(Attempt.student_id == student_id)

@@ -80,7 +80,7 @@ class AssignmentCreateRequest(ApiModel):
         reference = self.params.get("referenceAllowed")
         if reference is not None and not isinstance(reference, bool):
             raise ValueError("Параметр «Справочник доступен» — да или нет")
-        # Спека 005: по умолчанию справочник доступен в тренировке и закрыт на экзамене; значение пишется явно.
+        # Спека 016: по умолчанию справочник доступен в тренировке и закрыт на экзамене; значение пишется явно.
         self.params = {**self.params, "referenceAllowed": self.format == "training" if reference is None else reference}
         if self.format == "exam":
             self.params = {**self.params, "hints": {**(self.params.get("hints") or {}), "enabled": False}}

@@ -158,7 +158,7 @@ def read_group_list(value: Any) -> list[str] | None:
 
 
 def read_specialization_list(value: Any) -> list[str] | None:
-    """Только тип поля; допустимость значений и повторы проверяет `normalize_specializations` по роли (фича 007)."""
+    """Только тип поля; допустимость значений и повторы проверяет `normalize_specializations` по роли (фича 019)."""
     if value is None:
         return None
     if not isinstance(value, list) or any(not isinstance(entry, str) for entry in value):

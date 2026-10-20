@@ -71,7 +71,7 @@ async def test_student_cannot_touch_another_students_operator_attempt(v1: AsyncC
 
 
 async def test_student_cannot_read_messages_or_send_report_for_another_dds_attempt(v1: AsyncClient):
-    assignment_id = await _assign(v1, "dds", "c-010", "ДДС", "u-006")  # spec/008: ДДС — petrova
+    assignment_id = await _assign(v1, "dds", "c-010", "ДДС", "u-006")  # spec/018: ДДС — petrova
     await login_as(v1, "student2")
     started = await v1.post(f"/assignments/{assignment_id}/start")
     assert started.status_code == 200, started.text

@@ -1,4 +1,4 @@
-/* Рейтинг обучающихся — /api/v1/teacher/rating, /api/v1/teacher/students/{id}/stats (спека 006). Только с бэкендом. */
+/* Рейтинг обучающихся — /api/v1/teacher/rating, /api/v1/teacher/students/{id}/stats (спека 017). Только с бэкендом. */
 import { v1ApiClient } from "../v1-client";
 import type { RatingMode, RatingPeriod, StudentRatingResponse, StudentStats } from "../types";
 

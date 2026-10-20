@@ -5,7 +5,7 @@ import { PlatformShell, SideNav } from "./shell";
 
 const items = [{ href: "/teacher/constructor", title: "Конструктор", icon: "flow" as const, active: true }];
 
-describe("PlatformShell — рабочее место во весь экран (конструктор, фича 005)", () => {
+describe("PlatformShell — рабочее место во весь экран (конструктор, фича 013)", () => {
   it("свёрнутая панель: пункты — значки с подписью для диктора, плашка «Учебная система» остаётся", () => {
     const { container } = render(
       <PlatformShell brandHref="/teacher" workspace nav={<SideNav items={items} compact />} topbar={<div />}>

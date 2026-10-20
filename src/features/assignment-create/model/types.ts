@@ -37,7 +37,7 @@ export type WizardDraft = {
   submitSec: string;
   hintsEnabled: boolean;
   /**
-   * «Справочник доступен» (спека 005). null — не менялось вручную: действует значение формата
+   * «Справочник доступен» (спека 016). null — не менялось вручную: действует значение формата
    * (тренировка — да, экзамен — нет), см. `referenceAllowedOf`.
    */
   referenceAllowed: boolean | null;

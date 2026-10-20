@@ -134,7 +134,7 @@ const studentWith = (specializations: PublicUser["specializations"]): PublicUser
   specializations,
 });
 
-describe("StudentAssignmentsScreen: специализация обучающегося (спека 007)", () => {
+describe("StudentAssignmentsScreen: специализация обучающегося (спека 019)", () => {
   const DDS: Assignment = { ...TRAINING, id: "asg-010", trainingMode: "dds", title: "ДДС-тренировка" };
   const CHAIN: Assignment = { ...TRAINING, id: "asg-011", trainingMode: "chain", title: "Цепочка" };
 
@@ -259,7 +259,7 @@ describe("StudentAssignmentsScreen: запуск", () => {
     await vi.waitFor(() => expect(push).toHaveBeenCalledWith("/arm/card/c-028"));
   });
 
-  it("отказ профиля режима (spec/008, 403) показывается дословно, перехода нет", async () => {
+  it("отказ профиля режима (spec/018, 403) показывается дословно, перехода нет", async () => {
     const dds: Assignment = { ...TRAINING, id: "asg-011", trainingMode: "dds", title: "ДДС" };
     const api = makeApi([dds]);
     api.start.mockRejectedValue(
