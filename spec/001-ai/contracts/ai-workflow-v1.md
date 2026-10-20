@@ -24,6 +24,9 @@
 | `POST /api/v1/ai/scenarios/{id}/submit` | teacher-автор/admin | `version`, `requestId` | Черновик с `validation=passed` → `pending_review`; иначе — `409`. |
 | `POST /api/v1/ai/scenarios/{id}/review` | право `scenario.review` или admin | `version`, `decision` (`accept\|reject`), `comment` (обязателен для `reject`), `requestId` | Только последняя версия (иначе `409`) и только в `pending_review`; автор не проверяет свою версию (`403`, кроме admin). `accept` проставляет `reviewedBy` и оставляет `pending_review`; `reject` → `rejected` + `reviewComment`. Повторная проверка — `409`. |
 | `POST /api/v1/ai/scenarios/{id}/publish` | право `scenario.publish` или admin | `version`, `requestId` | Только `pending_review` с `reviewedBy` и `validation=passed` → `approved`; иначе — `409`; автор не публикует свою версию (`403`, кроме admin). |
+| `POST /api/v1/ai/scenarios/graph/validate` | teacher/admin | `graph` | Проверка графа без сохранения: `{ valid, errors: [{ message, nodeId? }] }` (200 даже для некорректного графа; не-объект — `400`). |
+| `GET /api/v1/ai/scenarios/sources` | teacher/admin | — | Утверждённые очищенные ситуации для создания сценария: `[{ sourceTicketId, situationNo, preview }]`. |
+| `GET /api/v1/ai/scenarios/permissions` | teacher/admin | — | `{ permissions: [...] }` текущего пользователя (admin — оба права); для кнопок проверки и публикации. |
 | `GET /api/v1/ai/scenarios?approval=` | эксперт (любое из прав `scenario.review`, `scenario.publish`) | — | Очередь экспертов; значения `draft`, `validation_failed`, `pending_review`, `approved`, `rejected`; иное — `400`. Эксперт читает любые сценарии. |
 | `PUT /api/v1/admin/users/{id}/permissions` | admin | `permissions[]` — подмножество `scenario.review`, `scenario.publish` | Выдаёт права эксперта; только пользователю с ролью `teacher` (иначе `400`); роль в JWT не меняется. |
 | `GET /api/v1/admin/users/{id}/permissions` | admin | — | Текущие права эксперта: `userId`, `permissions`. |

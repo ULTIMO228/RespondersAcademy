@@ -95,6 +95,10 @@ class ScenarioApproveRequest(StrictAIContractModel):
     request_id: RequestId
 
 
+class GraphValidateRequest(StrictAIContractModel):
+    graph: dict[str, object]
+
+
 class ScenarioReviewRequest(StrictAIContractModel):
     version: PositiveVersion
     decision: Literal["accept", "reject"]

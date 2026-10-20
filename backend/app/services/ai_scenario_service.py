@@ -56,6 +56,36 @@ def checked_graph(raw: Any) -> Graph:
         raise validation_failed("Граф сценария некорректен: " + "; ".join(error.errors)) from None
 
 
+NODE_IN_MESSAGE = re.compile(r"узел «([^»]+)»")
+
+
+def graph_validation(raw: dict[str, Any]) -> dict[str, Any]:
+    """Проверка графа без сохранения: структурные ошибки с привязкой к узлу (если сообщение его называет)."""
+    try:
+        Graph.parse(thaw(raw))
+    except InvalidGraphError as error:
+        items = []
+        for message in error.errors:
+            found = NODE_IN_MESSAGE.search(message)
+            items.append({"message": message, "nodeId": found.group(1) if found else None})
+        return {"valid": False, "errors": items}
+    return {"valid": True, "errors": []}
+
+
+async def list_sources(db: AsyncSession, viewer: Viewer) -> list[dict[str, Any]]:
+    """Утверждённые очищенные ситуации, из которых преподаватель строит сценарий."""
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Источники доступны преподавателю или администратору")
+    rows = (
+        await db.execute(select(SanitizedTicket).order_by(SanitizedTicket.source_ticket_id, SanitizedTicket.situation_no))
+    ).scalars().all()
+    return [
+        {"sourceTicketId": row.source_ticket_id, "situationNo": row.situation_no, "preview": row.sanitized_text[:200]}
+        for row in rows
+        if row.approved and row.pii_check == "passed"
+    ]
+
+
 def _request_hash(payload: dict[str, Any]) -> str:
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()

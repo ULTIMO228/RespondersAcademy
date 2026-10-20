@@ -747,3 +747,93 @@ async def test_принятая_проверка_не_превращается_�
     assert late.status_code == 409, late.text
     row = (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()
     assert row["approval"] == "pending_review" and row["reviewedBy"] == accepted.json()["reviewedBy"] and "reviewComment" not in row
+
+
+RICH: dict[str, Any] = {
+    "schemaVersion": "scenario-graph/1",
+    "start": "n1",
+    "nodes": [
+        {"id": "n1", "type": "action", "title": "Приём вызова", "prompt": "Заявитель сообщает о дереве.", "action": "captureCaller",
+         "label": "Записать заявителя", "sets": {"callerKnown": True}, "next": "n2"},
+        {"id": "n2", "type": "action", "action": "classify", "label": "Определить тип", "next": "n3",
+         "input": {"fact": "category", "options": [{"value": "tree", "label": "Падение дерева"}, {"value": "fire", "label": "Пожар", "penalty": 20}]}},
+        {"id": "n3", "type": "condition", "title": "Тип",
+         "branches": [{"name": "Дерево", "when": {"fact": "category", "op": "eq", "value": "tree"}, "next": "n4"}],
+         "else": {"name": "Иначе", "next": "n5"}},
+        {"id": "n4", "type": "end", "outcome": "completed", "score": 100, "passed": True},
+        {"id": "n5", "type": "end", "outcome": "wrongCategory", "score": 40, "passed": False},
+    ],
+    "decoys": [{"action": "callPolice", "label": "Вызвать полицию"}],
+    "scoring": {"wrongActionPenalty": 5, "passScore": 60},
+    "layout": {"n1": {"x": 80, "y": 60}, "n2": {"x": 80.5, "y": 200}},
+}
+
+
+async def test_проверка_графа_без_сохранения_возвращает_ошибки_с_узлом_и_доступна_только_преподавателю(v1: AsyncClient) -> None:
+    url = "/ai/scenarios/graph/validate"
+    assert (await v1.post(url, json={"graph": RICH})).status_code == 401
+    await login_as(v1, "student")
+    assert (await v1.post(url, json={"graph": RICH})).status_code == 403
+    await login_as(v1, "teacher")
+    ok = await v1.post(url, json={"graph": RICH})
+    assert ok.status_code == 200 and ok.json() == {"valid": True, "errors": []}
+    broken = {**RICH, "nodes": [{**n, "next": "ghost"} if n["id"] == "n1" else n for n in RICH["nodes"]]}
+    bad = await v1.post(url, json={"graph": broken})
+    assert bad.status_code == 200 and bad.json()["valid"] is False
+    assert any(e["nodeId"] == "n1" and "ghost" in e["message"] for e in bad.json()["errors"])
+    no_else = {**RICH, "nodes": [{k: v for k, v in n.items() if k != "else"} if n["id"] == "n3" else n for n in RICH["nodes"]]}
+    errors = (await v1.post(url, json={"graph": no_else})).json()["errors"]
+    assert any(e["nodeId"] == "n3" and "else" in e["message"] for e in errors)
+    global_error = (await v1.post(url, json={"graph": {**RICH, "extra": 1}})).json()["errors"]
+    assert global_error and global_error[0]["nodeId"] is None
+    assert (await v1.post(url, json={})).status_code == 400  # graph обязателен
+    assert (await v1.post(url, json={"graph": []})).status_code == 400  # объект, а не список
+    async with get_sessionmaker()() as db:  # проверка ничего не сохраняет
+        assert (await db.execute(select(ScenarioVersion).where(ScenarioVersion.source_ticket_id.like("t009-%")))).first() is None
+
+
+async def test_источники_для_создания_видны_преподавателю(v1: AsyncClient) -> None:
+    await seed_source("t009-builder-sources")
+    assert (await v1.get("/ai/scenarios/sources")).status_code == 401
+    await login_as(v1, "student")
+    assert (await v1.get("/ai/scenarios/sources")).status_code == 403
+    await login_as(v1, "teacher")
+    listed = await v1.get("/ai/scenarios/sources")
+    assert listed.status_code == 200
+    row = next(item for item in listed.json() if item["sourceTicketId"] == "t009-builder-sources")
+    assert row["situationNo"] == 1 and row["preview"].startswith("Сильный ветер")
+    assert "categories" not in row and len(row["preview"]) <= 200
+
+
+async def test_граф_сохраняется_и_открывается_без_искажений_а_правка_раскладки_даёт_новую_версию(v1: AsyncClient) -> None:
+    source_id = "t009-builder-roundtrip"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-rt-create", graph=RICH))
+    assert created.status_code == 201, created.text
+    scenario_id = created.json()["scenarioId"]
+    reopened = await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")
+    assert reopened.json()["graph"] == RICH  # ничего не потеряно: тексты, input, decoys, scoring, layout
+
+    moved = {**RICH, "layout": {"n1": {"x": 10, "y": 20}}}
+    saved = await v1.post(f"/ai/scenarios/{scenario_id}/revise", json={"baseVersion": 1, "graph": moved, "comment": "Раскладка", "requestId": "t009-rt-move"})
+    assert saved.status_code == 201 and saved.json()["version"] == 2
+    assert (await v1.get(f"/ai/scenarios/{scenario_id}/versions/2")).json()["graph"] == moved
+    assert (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()["graph"] == RICH  # старая версия не изменилась
+    listing = await v1.get("/ai/scenarios")
+    row = next(item for item in listing.json() if item["scenarioId"] == scenario_id)
+    assert row["latestVersion"] == 2 and row["hasGraph"] is True
+
+
+async def test_права_текущего_пользователя_для_кнопок_проверки_и_публикации(v1: AsyncClient) -> None:
+    url = "/ai/scenarios/permissions"
+    assert (await v1.get(url)).status_code == 401
+    await login_as(v1, "student")
+    assert (await v1.get(url)).status_code == 403
+    await login_as(v1, "teacher")
+    assert (await v1.get(url)).json() == {"permissions": []}
+    await grant(v1, "morozova", ["scenario.review"])
+    await login_as(v1, "teacher")
+    assert (await v1.get(url)).json() == {"permissions": ["scenario.review"]}
+    await login_as(v1, "admin")
+    assert sorted((await v1.get(url)).json()["permissions"]) == ["scenario.publish", "scenario.review"]

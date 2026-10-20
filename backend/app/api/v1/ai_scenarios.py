@@ -9,8 +9,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Viewer, require_viewer
+from app.api.errors import forbidden
 from app.db.session import get_db
 from app.schemas.v1.ai import (
+    GraphValidateRequest,
     ScenarioApproveRequest,
     ScenarioDraftRequest,
     ScenarioManualCreateRequest,
@@ -18,7 +20,14 @@ from app.schemas.v1.ai import (
     ScenarioReviseRequest,
 )
 from app.services.ai_scenario_review import approve_scenario, revise_scenario, versions_for_teacher
-from app.services.ai_scenario_service import create_manual_draft, list_scenarios, read_version
+from app.services.ai_scenario_service import (
+    create_manual_draft,
+    graph_validation,
+    list_scenarios,
+    list_sources,
+    read_version,
+)
+from app.services.scenario_access import user_permissions
 from app.services.scenario_service import create_ai_drafts
 from app.services.scenario_workflow import publish_version, review_version, submit_for_review
 
@@ -33,6 +42,31 @@ async def list_(
     viewer: Viewer = Depends(require_viewer),
 ) -> list[dict[str, Any]]:
     return await list_scenarios(db, viewer, mode, approval)
+
+
+@router.get("/permissions")
+async def my_permissions(
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> dict[str, Any]:
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Права эксперта показываются преподавателю или администратору")
+    return {"permissions": sorted(await user_permissions(db, viewer))}
+
+
+@router.get("/sources")
+async def sources(
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> list[dict[str, Any]]:
+    return await list_sources(db, viewer)
+
+
+@router.post("/graph/validate")
+async def validate_graph(body: GraphValidateRequest, viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Проверка графа доступна преподавателю или администратору")
+    return graph_validation(body.graph)
 
 
 @router.post("", status_code=201)
