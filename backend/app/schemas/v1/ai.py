@@ -114,6 +114,7 @@ FactValue = StrictBool | Annotated[int, Field(strict=True)] | Annotated[float, F
 class ScenarioRunActionRequest(StrictAIContractModel):
     action: Annotated[str, Field(min_length=1, max_length=128)]
     facts: dict[Annotated[str, Field(min_length=1, max_length=128)], FactValue] | None = None
+    expected_steps: PositiveVersion | None = None
 
 
 class ScenarioPermissionsRequest(StrictAIContractModel):

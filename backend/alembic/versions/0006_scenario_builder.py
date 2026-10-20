@@ -50,9 +50,8 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_ai_scenario_runs_student_id"), table_name="ai_scenario_runs")
     op.drop_index(op.f("ix_ai_scenario_runs_scenario_id"), table_name="ai_scenario_runs")
     op.drop_table("ai_scenario_runs")
-    with op.batch_alter_table("ai_scenario_versions") as batch:
-        batch.drop_column("review_comment")
-        batch.drop_column("reviewed_by")
-        batch.drop_column("graph")
-    with op.batch_alter_table("users") as batch:
-        batch.drop_column("permissions")
+    # Прямой DROP COLUMN: batch-пересоздание таблицы ломает триггеры неизменяемости, ссылающиеся на ai_scenario_versions.
+    op.drop_column("ai_scenario_versions", "review_comment")
+    op.drop_column("ai_scenario_versions", "reviewed_by")
+    op.drop_column("ai_scenario_versions", "graph")
+    op.drop_column("users", "permissions")

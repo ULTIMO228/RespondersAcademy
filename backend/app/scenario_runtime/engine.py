@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -93,8 +94,8 @@ def _checked_facts(facts: dict[Any, Any] | None) -> dict[str, Any]:
     for key, value in result.items():
         if not isinstance(key, str) or not key:
             raise ValueError("Имя факта должно быть непустой строкой")
-        if not isinstance(value, Scalar):
-            raise ValueError(f"Факт «{key}» должен быть строкой, числом, булевым значением или null")
+        if not isinstance(value, Scalar) or (isinstance(value, float) and not math.isfinite(value)):
+            raise ValueError(f"Факт «{key}» должен быть строкой, конечным числом, булевым значением или null")
     return result
 
 

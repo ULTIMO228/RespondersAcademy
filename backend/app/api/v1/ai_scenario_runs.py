@@ -23,9 +23,9 @@ async def start(
     db: AsyncSession = Depends(get_db),
     viewer: Viewer = Depends(require_viewer),
 ) -> JSONResponse:
-    result = await scenario_runs.start_run(db, scenario_id, version, viewer)
+    result, created = await scenario_runs.start_run(db, scenario_id, version, viewer)
     await db.commit()
-    return JSONResponse(result, status_code=201)
+    return JSONResponse(result, status_code=201 if created else 200)
 
 
 @router.get("/scenario-runs/{run_id}")

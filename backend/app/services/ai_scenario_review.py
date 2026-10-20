@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -127,6 +128,10 @@ async def revise_scenario(
         created_at=now_iso(),
     )
     db.add(new_etalon)
+    try:
+        await db.flush()
+    except IntegrityError:
+        raise conflict("Версия сценария изменена параллельным запросом; обновите данные и повторите") from None
     classifier_rows = (await db.execute(select(ai_scenario_service.ClassifierEntry).order_by(ai_scenario_service.ClassifierEntry.code))).scalars().all()
     classifier_entries = [row.to_contract() for row in classifier_rows]
     profiles = await ai_scenario_service._profile_groups(db)
@@ -189,7 +194,11 @@ async def revise_scenario(
         scenario.updated_by, scenario.updated_at = viewer.user_id, now
         scenario.sync_columns()
         flag_modified(scenario, "doc")
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        # Параллельный запрос уже создал эту версию: ничего не сохраняем, клиент перечитает актуальную.
+        raise conflict("Версия сценария изменена параллельным запросом; обновите данные и повторите") from None
     response = scenario_version_contract(version, new_etalon, [])
     await record(
         db,

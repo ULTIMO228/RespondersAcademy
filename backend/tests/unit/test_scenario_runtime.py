@@ -262,3 +262,46 @@ def test_переходы_не_зависят_от_ии_и_ui() -> None:
             for name in names:
                 parts = name.split(".")
                 assert not set(parts) & set(forbidden), f"{path.name} импортирует {name}"
+
+
+@pytest.mark.parametrize(
+    ("change", "fragment"),
+    [
+        (lambda d: d.update(extra=1), "extra"),
+        (lambda d: node(d, "capture").update(branches=[]), "branches"),
+        (lambda d: node(d, "route").update(next="done"), "next"),
+        (lambda d: node(d, "done").update(action="x"), "action"),
+        (lambda d: node(d, "route").update(els={"name": "x", "next": "done"}), "els"),
+        (lambda d: node(d, "route")["branches"][0].update(nxt="done"), "nxt"),
+        (lambda d: node(d, "route")["else"].update(extra=1), "extra"),
+        (lambda d: node(d, "route")["branches"][0].update(when={"fact": "x", "op": "eq", "value": {"a": 1}}), "скаляр"),
+        (lambda d: node(d, "route")["branches"][0].update(when={"fact": "x", "op": "in", "value": [[1]]}), "скаляр"),
+        (lambda d: node(d, "route")["branches"][0].update(when={"fact": "x", "op": "gt", "value": [1]}), "скаляр"),
+    ],
+)
+def test_неизвестные_ключи_и_нескалярные_значения_отклоняются(change, fragment) -> None:
+    with pytest.raises(InvalidGraphError) as caught:
+        Graph.parse(mutate(change))
+    assert any(fragment in error for error in caught.value.errors), caught.value.errors
+
+
+def test_ветки_условия_ограничены_по_числу_и_сработавшая_первой_побеждает() -> None:
+    many = [{"name": f"b{i}", "when": {"fact": "x", "op": "exists"}, "next": "notify" if i == 0 else "done"} for i in range(60)]
+    with pytest.raises(InvalidGraphError) as caught:
+        Graph.parse(mutate(lambda d: node(d, "route").update(branches=many)))
+    assert all("веток" in error for error in caught.value.errors), caught.value.errors
+    engine = ScenarioEngine(Graph.parse(diamond()))
+    run = engine.start({"urgency": "high", "victims": 0})
+    assert [e.data["branch"] for e in run.events if e.kind == "branch"] == []  # старт ждёт captureCaller
+    engine.perform(run, "captureCaller")
+    assert [e.data["branch"] for e in run.events if e.kind == "branch"] == ["urgent"]
+
+
+def test_старт_сразу_в_end_завершает_прогон_и_факты_нескалярного_типа_не_принимаются() -> None:
+    graph = Graph.parse({"schemaVersion": "scenario-graph/1", "start": "done", "nodes": [{"id": "done", "type": "end", "outcome": "completed"}]})
+    run = ScenarioEngine(graph).start({})
+    assert run.status == "completed" and [e.kind for e in run.events] == ["started", "ended"]
+    with pytest.raises(ValueError):
+        ScenarioEngine(graph).start({"x": [1]})
+    with pytest.raises(ValueError):
+        ScenarioEngine(graph).start({"x": float("nan")})

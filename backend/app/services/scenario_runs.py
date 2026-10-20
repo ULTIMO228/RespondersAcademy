@@ -5,13 +5,14 @@ from __future__ import annotations
 import secrets
 from typing import Any
 
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import Viewer
 from app.api.errors import conflict, forbidden, not_found, validation_failed
 from app.api.v1.ai_access import require_scenario_access
 from app.models.ai_scenario import ScenarioRunRecord, ScenarioVersion
+from app.models.assignment import Assignment, AssignmentScenarioVersion, AssignmentStudent
 from app.scenario_runtime import (
     EngineError,
     Graph,
@@ -47,9 +48,13 @@ def _view(record_: ScenarioRunRecord, run: ScenarioRun, *, staff: bool) -> dict[
     return view
 
 
-async def _published(db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer) -> tuple[ScenarioVersion, Graph]:
+async def _published(
+    db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer, *, active_only: bool = True
+) -> tuple[ScenarioVersion, Graph]:
     # Обучающийся получает только утверждённую версию своего задания (существующее правило доступа).
     await require_scenario_access(db, scenario_id, viewer, version=version_number)
+    if active_only and not await _has_active_assignment(db, scenario_id, version_number, viewer.user_id):
+        raise forbidden("Задание с этой версией сценария завершено")
     version = await db.get(ScenarioVersion, (scenario_id, version_number))
     if version is None or not version.available_for_training:
         raise not_found("Опубликованная версия не найдена")
@@ -58,10 +63,44 @@ async def _published(db: AsyncSession, scenario_id: str, version_number: int, vi
     return version, checked_graph(version.graph)
 
 
-async def start_run(db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer) -> dict[str, Any]:
+async def _has_active_assignment(db: AsyncSession, scenario_id: str, version_number: int, student_id: str) -> bool:
+    found = await db.scalar(
+        select(Assignment.id)
+        .join(AssignmentScenarioVersion, AssignmentScenarioVersion.assignment_id == Assignment.id)
+        .join(AssignmentStudent, AssignmentStudent.assignment_id == Assignment.id)
+        .where(
+            Assignment.state == "active",
+            AssignmentScenarioVersion.scenario_id == scenario_id,
+            AssignmentScenarioVersion.version == version_number,
+            AssignmentStudent.student_id == student_id,
+        )
+        .limit(1)
+    )
+    return found is not None
+
+
+async def start_run(
+    db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer
+) -> tuple[dict[str, Any], bool]:
+    """Старт прогона; незавершённый прогон той же версии возвращается повторно (двойной клик, повтор запроса)."""
     if viewer.role != "student":
         raise forbidden("Сценарии проходит обучающийся")
     version, graph = await _published(db, scenario_id, version_number, viewer)
+    existing = (
+        await db.execute(
+            select(ScenarioRunRecord)
+            .where(
+                ScenarioRunRecord.scenario_id == scenario_id,
+                ScenarioRunRecord.version == version_number,
+                ScenarioRunRecord.student_id == viewer.user_id,
+                ScenarioRunRecord.status == "waiting",
+            )
+            .order_by(ScenarioRunRecord.created_at.desc(), ScenarioRunRecord.id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        return _view(existing, ScenarioRun.from_dict(graph, existing.snapshot), staff=False), False
     engine = ScenarioEngine(graph)
     try:
         run = engine.start(_scalars(dict(version.card_snapshot.get("fields") or {})))
@@ -76,7 +115,7 @@ async def start_run(db: AsyncSession, scenario_id: str, version_number: int, vie
     await db.flush()
     await record(db, action="ai.scenario.run.start", user_id=viewer.user_id, role=viewer.role,
                  details=f"Старт прогона {row.id}: {scenario_id} v{version_number}")
-    return _view(row, run, staff=False)
+    return _view(row, run, staff=False), True
 
 
 async def _load(db: AsyncSession, run_id: str, viewer: Viewer) -> tuple[ScenarioRunRecord, bool]:
@@ -98,9 +137,17 @@ def _restore(row: ScenarioRunRecord, graph: Graph) -> tuple[ScenarioEngine, Scen
     return ScenarioEngine(graph), ScenarioRun.from_dict(graph, row.snapshot)
 
 
-def _save(row: ScenarioRunRecord, run: ScenarioRun) -> None:
-    row.snapshot, row.status, row.updated_at = run.to_dict(), run.status, now_iso()
-    flag_modified(row, "snapshot")
+async def _save(db: AsyncSession, row: ScenarioRunRecord, run: ScenarioRun) -> None:
+    """Запись с условием по ревизии: параллельное изменение не перезаписывается молча, а даёт 409."""
+    snapshot, revision = run.to_dict(), row.revision
+    result = await db.execute(
+        update(ScenarioRunRecord)
+        .where(ScenarioRunRecord.id == row.id, ScenarioRunRecord.revision == revision)
+        .values(snapshot=snapshot, status=run.status, updated_at=now_iso(), revision=revision + 1)
+        .execution_options(synchronize_session=False)
+    )
+    if result.rowcount != 1:
+        raise conflict("Прогон изменён параллельным запросом; обновите состояние и повторите")
 
 
 async def read_run(db: AsyncSession, run_id: str, viewer: Viewer) -> dict[str, Any]:
@@ -118,6 +165,8 @@ async def perform_action(db: AsyncSession, run_id: str, body: ScenarioRunActionR
         raise forbidden("Действия выполняет обучающийся")
     _, graph = await _published(db, row.scenario_id, row.version, viewer)
     engine, run = _restore(row, graph)
+    if body.expected_steps is not None and body.expected_steps != run.steps:
+        raise conflict("Состояние прогона изменилось; обновите его и повторите действие")
     try:
         engine.perform(run, body.action, set_facts=body.facts)
     except InvalidActionError:
@@ -131,8 +180,7 @@ async def perform_action(db: AsyncSession, run_id: str, body: ScenarioRunActionR
         pass  # прогон помечен faulted и сохраняется ниже
     except EngineError as error:  # pragma: no cover - защитная ветка
         raise conflict(str(error)) from None
-    _save(row, run)
-    await db.flush()
+    await _save(db, row, run)
     return _view(row, run, staff=False)
 
 
@@ -140,14 +188,13 @@ async def finish_run(db: AsyncSession, run_id: str, viewer: Viewer) -> dict[str,
     row, staff = await _load(db, run_id, viewer)
     if staff or viewer.role != "student":
         raise forbidden("Прогон завершает обучающийся")
-    _, graph = await _published(db, row.scenario_id, row.version, viewer)
+    _, graph = await _published(db, row.scenario_id, row.version, viewer, active_only=False)
     engine, run = _restore(row, graph)
     try:
         engine.finish(run, outcome="abandoned")
     except RunFinishedError as error:
         raise conflict(str(error)) from None
-    _save(row, run)
-    await db.flush()
+    await _save(db, row, run)
     await record(db, action="ai.scenario.run.finish", user_id=viewer.user_id, role=viewer.role,
                  details=f"Прогон {row.id} завершён обучающимся")
     return _view(row, run, staff=False)

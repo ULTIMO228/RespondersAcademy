@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -26,6 +27,7 @@ from typing import Any
 SCHEMA_VERSION = "scenario-graph/1"
 MAX_NODES = 500
 MAX_PREDICATE_DEPTH = 8
+MAX_BRANCHES = 50
 DEFAULT_MAX_VISITS = 10
 OPS = ("eq", "ne", "in", "gt", "ge", "lt", "le", "exists")
 NODE_TYPES = ("action", "condition", "end")
@@ -72,6 +74,17 @@ def _is_name(value: Any) -> bool:
     return isinstance(value, str) and 0 < len(value) <= 128
 
 
+def _is_scalar(value: Any) -> bool:
+    if isinstance(value, float):
+        return math.isfinite(value)
+    return value is None or isinstance(value, (str, int, bool))
+
+
+def _extra_keys(raw: dict[str, Any], allowed: set[str], where: str, errors: list[str]) -> None:
+    for key in sorted(set(raw) - allowed, key=str):
+        errors.append(f"{where}: лишний ключ «{key}»")
+
+
 def _check_predicate(pred: Any, where: str, errors: list[str], depth: int = 1) -> None:
     if depth > MAX_PREDICATE_DEPTH:
         errors.append(f"{where}: условие глубже {MAX_PREDICATE_DEPTH} уровней")
@@ -103,8 +116,12 @@ def _check_predicate(pred: Any, where: str, errors: list[str], depth: int = 1) -
                 errors.append(f"{where}: для exists value не нужен")
         elif "value" not in pred:
             errors.append(f"{where}: для {op} обязателен value")
-        elif op == "in" and not isinstance(pred["value"], list):
-            errors.append(f"{where}: для in value должен быть списком")
+        elif op == "in":
+            items = pred["value"]
+            if not isinstance(items, list) or len(items) > MAX_BRANCHES or not all(_is_scalar(i) for i in items):
+                errors.append(f"{where}: для in value — список скаляров до {MAX_BRANCHES} элементов")
+        elif not _is_scalar(pred["value"]):
+            errors.append(f"{where}: value должен быть скаляром (строка, число, булево, null)")
         if set(pred) - {"fact", "op", "value"}:
             errors.append(f"{where}: лишние ключи условия")
 
@@ -145,6 +162,7 @@ def _parse_branch(raw: Any, where: str, errors: list[str], *, needs_when: bool) 
     if not isinstance(raw, dict) or not _is_name(raw.get("name")) or not _is_name(raw.get("next")):
         errors.append(f"{where}: ветка требует name и next")
         return None
+    _extra_keys(raw, {"name", "next", "when"} if needs_when else {"name", "next"}, where, errors)
     when = raw.get("when")
     if needs_when:
         _check_predicate(when, f"{where} «{raw['name']}»", errors)
@@ -162,6 +180,16 @@ def _parse_node(raw: Any, index: int, errors: list[str]) -> Node | None:
     if kind not in NODE_TYPES:
         errors.append(f"{where}: неизвестный тип {kind!r}")
         return None
+    _extra_keys(
+        raw,
+        {
+            "action": {"id", "type", "action", "next", "maxVisits"},
+            "condition": {"id", "type", "branches", "else", "maxVisits"},
+            "end": {"id", "type", "outcome"},
+        }[kind],
+        where,
+        errors,
+    )
     visits = raw.get("maxVisits", DEFAULT_MAX_VISITS)
     if not isinstance(visits, int) or isinstance(visits, bool) or not 1 <= visits <= 1000:
         errors.append(f"{where}: maxVisits должен быть целым 1–1000")
@@ -179,6 +207,9 @@ def _parse_node(raw: Any, index: int, errors: list[str]) -> Node | None:
     branches_raw = raw.get("branches")
     if not isinstance(branches_raw, list) or not branches_raw:
         errors.append(f"{where}: условие требует непустой список branches")
+        branches_raw = []
+    elif len(branches_raw) > MAX_BRANCHES:
+        errors.append(f"{where}: веток больше {MAX_BRANCHES}")
         branches_raw = []
     branches = [_parse_branch(item, where, errors, needs_when=True) for item in branches_raw]
     if "else" not in raw:
@@ -203,6 +234,7 @@ class Graph:
         errors: list[str] = []
         if not isinstance(data, dict):
             raise InvalidGraphError(["граф должен быть объектом"])
+        _extra_keys(data, {"schemaVersion", "start", "nodes"}, "граф", errors)
         if data.get("schemaVersion") != SCHEMA_VERSION:
             errors.append(f"schemaVersion должен быть {SCHEMA_VERSION}")
         raw_nodes = data.get("nodes")

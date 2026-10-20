@@ -343,3 +343,149 @@ async def test_право_review_и_publish_проверяется_отдель�
     await login_as(v1, "teacher")
     published = await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={**publish, "requestId": "t009-split-p3"})
     assert published.status_code == 200 and published.json()["approval"] == "approved"
+
+
+async def test_двойной_старт_возвращает_тот_же_прогон_а_не_создаёт_второй(v1: AsyncClient) -> None:
+    scenario_id = await prepare_published(v1, "dbl", assign=True)
+    await login_as(v1, "student")
+    first = await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")
+    second = await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")
+    assert first.status_code == 201 and second.status_code == 200
+    assert first.json()["runId"] == second.json()["runId"]
+    async with get_sessionmaker()() as db:
+        assert len((await db.execute(select(ScenarioRunRecord))).scalars().all()) == 1
+    # после завершения можно начать заново
+    assert (await v1.post(f"/ai/scenario-runs/{first.json()['runId']}/finish")).status_code == 200
+    third = await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")
+    assert third.status_code == 201 and third.json()["runId"] != first.json()["runId"]
+
+
+async def test_устаревшее_ожидание_шагов_даёт_409_без_изменения_прогона(v1: AsyncClient) -> None:
+    scenario_id = await prepare_published(v1, "stale", assign=True)
+    await login_as(v1, "student")
+    run = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
+    url = f"/ai/scenario-runs/{run['runId']}/actions"
+    stale = await v1.post(url, json={"action": "captureCaller", "expectedSteps": run["steps"] + 5})
+    assert stale.status_code == 409
+    assert (await v1.get(f"/ai/scenario-runs/{run['runId']}")).json()["steps"] == run["steps"]
+    ok = await v1.post(url, json={"action": "captureCaller", "expectedSteps": run["steps"]})
+    assert ok.status_code == 200 and ok.json()["steps"] > run["steps"]
+    assert (await v1.post(url, json={"action": "notify:103", "expectedSteps": 0})).status_code == 400
+
+
+async def test_параллельные_действия_не_теряют_события(v1: AsyncClient, monkeypatch) -> None:
+    import asyncio
+
+    from app.services import scenario_runs
+
+    scenario_id = await prepare_published(v1, "race", assign=True)
+    await login_as(v1, "student")
+    run_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
+    real = scenario_runs._published
+
+    async def slow(*args, **kwargs):
+        result = await real(*args, **kwargs)
+        await asyncio.sleep(0.05)  # оба запроса успевают прочитать одну и ту же ревизию
+        return result
+
+    monkeypatch.setattr(scenario_runs, "_published", slow)
+    url = f"/ai/scenario-runs/{run_id}/actions"
+    responses = await asyncio.gather(
+        v1.post(url, json={"action": "captureCaller", "facts": {"urgency": "low"}}),
+        v1.post(url, json={"action": "captureCaller", "facts": {"urgency": "high"}}),
+    )
+    monkeypatch.undo()
+    assert sorted(response.status_code for response in responses) == [200, 409], [r.text for r in responses]
+    await login_as(v1, "admin")
+    events = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()["events"]
+    assert [event["kind"] for event in events].count("action") == 1  # ровно одно действие, без потерь и дублей
+
+
+async def test_завершённое_задание_закрывает_запуск_но_не_завершение(v1: AsyncClient) -> None:
+    scenario_id = await prepare_published(v1, "closed", assign=True)
+    await login_as(v1, "student")
+    run_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
+    async with get_sessionmaker()() as db:
+        for row in (await db.execute(select(Assignment).where(Assignment.title == "t009-closed"))).scalars().all():
+            row.state = "finished"
+        await db.commit()
+    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller"})).status_code == 403
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).status_code == 403
+    assert (await v1.post(f"/ai/scenario-runs/{run_id}/finish")).status_code == 200
+
+
+async def test_параллельная_правка_версии_даёт_409_а_не_500(v1: AsyncClient, monkeypatch) -> None:
+    from app.services import ai_scenario_review
+
+    scenario_id = await create_draft(v1, "t009-builder-revrace", "revrace")
+    first = await v1.post(f"/ai/scenarios/{scenario_id}/revise", json={"baseVersion": 1, "graph": GRAPH, "requestId": "t009-revrace-1"})
+    assert first.status_code == 201
+
+    async def stale_latest(*args, **kwargs):
+        return 1  # конкурент уже создал версию 2, а этот запрос видит старое состояние
+
+    monkeypatch.setattr(ai_scenario_review, "_latest_version", stale_latest)
+    raced = await v1.post(f"/ai/scenarios/{scenario_id}/revise", json={"baseVersion": 1, "graph": GRAPH, "requestId": "t009-revrace-2"})
+    assert raced.status_code == 409, raced.text
+    monkeypatch.undo()
+    versions = await v1.get(f"/ai/scenarios/{scenario_id}/versions")
+    assert [item["version"] for item in versions.json()] == [1, 2]
+
+
+async def test_повтор_запроса_с_тем_же_requestId_возвращает_тот_же_ответ(v1: AsyncClient) -> None:
+    scenario_id = await create_draft(v1, "t009-builder-replay", "replay")
+    submit = {"version": 1, "requestId": "t009-replay-submit"}
+    first = await v1.post(f"/ai/scenarios/{scenario_id}/submit", json=submit)
+    again = await v1.post(f"/ai/scenarios/{scenario_id}/submit", json=submit)
+    assert first.status_code == again.status_code == 200 and first.json() == again.json()
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={**submit, "version": 2})).status_code == 409  # тот же id, иное тело
+
+    await login_as(v1, "admin")
+    review = {"version": 1, "decision": "accept", "requestId": "t009-replay-review"}
+    r1 = await v1.post(f"/ai/scenarios/{scenario_id}/review", json=review)
+    r2 = await v1.post(f"/ai/scenarios/{scenario_id}/review", json=review)
+    assert r1.status_code == r2.status_code == 200 and r1.json() == r2.json()
+    publish = {"version": 1, "requestId": "t009-replay-publish"}
+    p1 = await v1.post(f"/ai/scenarios/{scenario_id}/publish", json=publish)
+    p2 = await v1.post(f"/ai/scenarios/{scenario_id}/publish", json=publish)
+    assert p1.status_code == p2.status_code == 200 and p1.json() == p2.json()
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={**publish, "requestId": "t009-replay-new"})).status_code == 409
+    async with get_sessionmaker()() as db:
+        actions = (await db.execute(select(AuditLog.action).where(AuditLog.details.like(f"%{scenario_id}%")))).scalars().all()
+    assert actions.count("ai.scenario.publish") == 1 and actions.count("ai.scenario.submit") == 1
+
+
+async def test_старая_версия_не_публикуется_и_не_запускается_после_новой(v1: AsyncClient) -> None:
+    scenario_id = await create_draft(v1, "t009-builder-old", "old")
+    second = await v1.post(f"/ai/scenarios/{scenario_id}/revise", json={"baseVersion": 1, "graph": GRAPH, "comment": "v2", "requestId": "t009-old-rev"})
+    assert second.status_code == 201
+    old = {"version": 1, "requestId": "t009-old-submit"}
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/submit", json=old)).status_code == 409  # версия 1 устарела
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 2, "requestId": "t009-old-submit2"})).status_code == 200
+    await login_as(v1, "admin")
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": "t009-old-r1"})).status_code == 409
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 2, "decision": "accept", "requestId": "t009-old-r2"})).status_code == 200
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 1, "requestId": "t009-old-p1"})).status_code == 409
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 2, "requestId": "t009-old-p2"})).status_code == 200
+    card_id = (await v1.get(f"/ai/scenarios/{scenario_id}/versions/2")).json()["cardSnapshot"]["id"]
+    await login_as(v1, "teacher")
+    created = await v1.post("/assignments", json={"trainingMode": "operator112", "format": "training", "studentIds": [await user_id("ivanov")], "cardIds": [card_id], "scenarioVersions": [{"scenarioId": scenario_id, "version": 2, "cardId": card_id}], "title": "t009-old"})
+    assert created.status_code == 201, created.text
+    bad = await v1.post("/assignments", json={"trainingMode": "operator112", "format": "training", "studentIds": [await user_id("ivanov")], "cardIds": [card_id], "scenarioVersions": [{"scenarioId": scenario_id, "version": 1, "cardId": card_id}], "title": "t009-old-bad"})
+    assert bad.status_code == 400  # неутверждённую версию 1 назначить нельзя
+    await login_as(v1, "student")
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).status_code == 403
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/versions/2/runs")).status_code == 201
+
+
+async def test_результат_прогона_зависит_от_фактов_и_ветки_else(v1: AsyncClient) -> None:
+    scenario_id = await prepare_published(v1, "else", assign=True)
+    await login_as(v1, "student")
+    run_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
+    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "facts": {"urgency": "low"}})
+    assert done.json()["status"] == "completed" and done.json()["outcome"] == "completed" and done.json()["steps"] == 3
+    await login_as(v1, "admin")
+    events = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()["events"]
+    assert [e["data"].get("branch") for e in events if e["kind"] == "branch"] == ["routine"]
+    assert [e["kind"] for e in events] == ["started", "action", "branch", "ended"]
+    assert events[1]["data"] == {"action": "captureCaller", "set": {"urgency": "low"}}
