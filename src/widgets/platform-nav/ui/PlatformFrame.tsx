@@ -16,7 +16,7 @@ import {
 } from "@/shared/ui/platform";
 import type { SideNavItem } from "@/shared/ui/platform";
 
-import { isNavEntryActive, PLATFORM_NAV, resolvePlatformNav } from "../config/navItems";
+import { isNavEntryActive, isWorkspaceRoute, PLATFORM_NAV, resolvePlatformNav } from "../config/navItems";
 import { resolveCrumbs } from "../lib/breadcrumbs";
 import { toInitials, toShortName } from "../lib/initials";
 
@@ -39,10 +39,12 @@ export function PlatformFrame({ user, children }: PlatformFrameProps) {
     outlined: entry.outlined,
     separatorBefore: entry.separatorBefore,
   }));
+  const workspace = isWorkspaceRoute(pathname);
   return (
     <PlatformShell
       brandHref={PLATFORM_NAV[user.role][0].href}
-      nav={<SideNav items={items} />}
+      workspace={workspace}
+      nav={<SideNav items={items} compact={workspace} />}
       topbar={
         <Topbar
           crumbs={resolveCrumbs(user.role, pathname)}

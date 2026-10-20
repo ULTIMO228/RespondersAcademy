@@ -111,6 +111,19 @@
   --pf-topbar-height: 56px;
   --pf-content-max: 1440px;
 
+  /* ——— Конструктор сценариев (фича 005, design-concept.md §12): цвет группы блока — полоса и плитка значка.
+     Красный, жёлтый и зелёный не используются: это цвета состояний. Цвет всегда продублирован значком и словом. ——— */
+  --pf-flow-cat-edge: var(--color-graphite-900); /* «Начало и конец» */
+  --pf-flow-cat-call: var(--pf-link); /* «Вызов и заявитель» */
+  --pf-flow-cat-action: var(--pf-action); /* «Действия диспетчера» — затемнённый оранжевый АРМ */
+  --pf-flow-cat-logic: var(--color-service-at); /* «Логика» */
+  --pf-flow-cat-learn: var(--color-graphite-600); /* «Обучение» */
+  --pf-flow-wire: var(--color-graphite-700); /* линия связи на поле */
+  --pf-flow-wire-selected: var(--pf-link);
+  --pf-flow-grid: var(--pf-border); /* точки сетки поля — декоративны */
+  --pf-flow-node-width: 300px;
+  --pf-flow-node-height: 156px;
+
   /* ——— Движение: отклик ≤ 180 мс, только transform/opacity; выключается prefers-reduced-motion ——— */
   --pf-dur-fast: 120ms;
   --pf-dur-base: 180ms;

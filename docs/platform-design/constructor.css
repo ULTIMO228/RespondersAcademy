@@ -1,0 +1,1060 @@
+/*
+ * Эскизы конструктора сценариев (фича 005, spec/005-visual-scenario-builder/design-concept.md).
+ * Подключается после sketch.css. Только токены --pf-* и токены АРМ из vars.css — hex здесь нет.
+ * Предлагаемые токены --pf-flow-* — кандидаты в tokens-platform.css после утверждения концепции.
+ */
+
+:root {
+  /* Цвет группы блоков: полоса и плитка значка. Все ≥ 3:1 к белому; красный/жёлтый/зелёный не берём — это состояния. */
+  --pf-flow-cat-edge: var(--color-graphite-900); /* «Начало и конец», 12,4:1 */
+  --pf-flow-cat-call: var(--pf-link); /* «Вызов и заявитель», 5,8:1 */
+  --pf-flow-cat-action: var(--pf-action); /* «Действия диспетчера», 4,8:1 — оранжевый АРМ, затемнённый */
+  --pf-flow-cat-logic: var(--color-service-at); /* «Логика», 6,9:1 */
+  --pf-flow-cat-learn: var(--color-graphite-600); /* «Обучение», 4,8:1 */
+  --pf-flow-wire: var(--color-graphite-700); /* линия связи, 7,0:1 к фону поля */
+  --pf-flow-wire-selected: var(--pf-link);
+  --pf-flow-grid: var(--pf-border); /* точки сетки — декоративны, контраст не нормируется */
+  --pf-flow-node-width: 300px;
+  --pf-flow-library-width: 320px;
+  --pf-flow-inspector-width: 380px;
+  --pf-flow-panel-height: 160px;
+  --pf-flow-toolbar-height: 64px;
+}
+
+/* ——— Рабочее место: оболочка со свёрнутой боковой панелью ——— */
+.ws {
+  display: grid;
+  grid-template-columns: var(--pf-sidebar-width-collapsed) minmax(0, 1fr);
+  height: 1080px; /* эскиз снимается в кадре 1920×1080; в приложении — 100dvh */
+  overflow: hidden;
+  font-size: var(--pf-fs-lead); /* базовый текст конструктора — 16 px (FR-003, урок L007) */
+}
+.ws .crumbs {
+  font-size: var(--pf-fs-lead);
+}
+.ws .user__role {
+  font-size: var(--pf-fs-body);
+}
+.rail {
+  background: var(--pf-shell-bg);
+  color: var(--pf-shell-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--pf-space-2);
+  padding: var(--pf-space-3) 0;
+}
+.rail__mark {
+  font-size: 22px;
+  font-weight: 300;
+  margin-bottom: var(--pf-space-3);
+}
+.rail a {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--pf-radius-control);
+  color: var(--pf-shell-text);
+  position: relative;
+}
+.rail a[aria-current="page"] {
+  background: var(--pf-shell-bg-active);
+}
+.rail a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--pf-shell-accent);
+}
+.rail__expand {
+  margin-top: auto;
+}
+.ws__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--pf-topbar-height) var(--pf-flow-toolbar-height) 1fr var(--pf-flow-panel-height);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ——— Верхняя панель действий ——— */
+.etb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-3);
+  padding: 0 var(--pf-space-5);
+  background: var(--pf-bg-card);
+  border-bottom: 1px solid var(--pf-border);
+}
+.etb__left,
+.etb__right {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-width: 0;
+}
+.etb__title {
+  font-size: var(--pf-fs-h2);
+  font-weight: var(--pf-fw-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 360px;
+}
+.etb__sep {
+  width: 1px;
+  height: 32px;
+  background: var(--pf-border);
+}
+.save-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  color: var(--pf-text-muted);
+  white-space: nowrap;
+}
+.save-state--ok {
+  color: var(--pf-success);
+}
+.save-state--dirty {
+  color: var(--pf-warning);
+}
+.save-state--bad {
+  color: var(--pf-danger);
+}
+.ws .btn {
+  min-height: var(--pf-target-touch);
+  font-size: var(--pf-fs-lead);
+  white-space: nowrap;
+}
+.btn--square {
+  width: var(--pf-target-touch);
+  padding: 0;
+}
+.btn[aria-disabled="true"] {
+  background: var(--pf-bg-subtle);
+  color: var(--pf-text-muted);
+  border-color: var(--pf-border);
+  cursor: not-allowed;
+}
+.btn--danger {
+  background: transparent;
+  color: var(--pf-danger);
+  border-color: var(--pf-danger);
+}
+.btn--icon {
+  padding: 0 var(--pf-space-3);
+}
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  overflow: hidden;
+}
+.seg span {
+  min-height: 42px;
+  padding: 0 var(--pf-space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  color: var(--pf-link);
+  background: var(--pf-bg-card);
+}
+.seg span + span {
+  border-left: 1px solid var(--pf-border-control);
+}
+.seg span[aria-current] {
+  background: var(--pf-bg-selected);
+  color: var(--pf-text);
+  font-weight: var(--pf-fw-medium);
+}
+.ws .chip {
+  white-space: nowrap;
+  font-size: var(--pf-fs-body);
+  padding: 2px var(--pf-space-2);
+}
+.chip--neutral {
+  background: var(--pf-bg-subtle);
+  color: var(--pf-text);
+}
+
+/* ——— Тело редактора: библиотека | поле | свойства ——— */
+.ebody {
+  display: grid;
+  grid-template-columns: var(--pf-flow-library-width) minmax(0, 1fr) var(--pf-flow-inspector-width);
+  min-height: 0;
+}
+.lib,
+.insp {
+  background: var(--pf-bg-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.lib {
+  border-right: 1px solid var(--pf-border);
+}
+.insp {
+  border-left: 1px solid var(--pf-border);
+}
+.pane-head {
+  padding: var(--pf-space-4) var(--pf-space-4) var(--pf-space-3);
+  display: grid;
+  gap: var(--pf-space-3);
+}
+.pane-head h2 {
+  font-size: var(--pf-fs-h2);
+}
+.lsearch {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-3);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  color: var(--pf-text-muted);
+}
+.lgroups {
+  overflow: hidden;
+  padding: 0 var(--pf-space-3) var(--pf-space-3);
+}
+.lgroup__head {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  min-height: 36px;
+  padding: 0 var(--pf-space-1);
+  font-weight: var(--pf-fw-bold);
+  color: var(--pf-text);
+}
+.lgroup__head .chev {
+  margin-left: auto;
+  color: var(--pf-text-muted);
+}
+.lgroup__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.litem {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-height: 48px;
+  padding: var(--pf-space-1) var(--pf-space-2);
+  border-radius: var(--pf-radius-control);
+  border: 1px solid transparent;
+}
+.litem:hover,
+.litem--hover {
+  background: var(--pf-bg-hover);
+}
+.litem--focus {
+  box-shadow: var(--pf-focus-ring);
+}
+.litem__text {
+  min-width: 0;
+  display: grid;
+}
+.litem__name {
+  font-weight: var(--pf-fw-medium);
+}
+.litem__desc {
+  color: var(--pf-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.litem__grip {
+  margin-left: auto;
+  color: var(--pf-text-muted);
+}
+
+/* Плитка значка группы — общая для библиотеки, блока и свойств */
+.tile {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--pf-radius-control);
+  color: var(--pf-text-on-action);
+}
+.tile svg.icon {
+  width: 20px;
+  height: 20px;
+}
+.cat-edge {
+  --cat: var(--pf-flow-cat-edge);
+}
+.cat-call {
+  --cat: var(--pf-flow-cat-call);
+}
+.cat-action {
+  --cat: var(--pf-flow-cat-action);
+}
+.cat-logic {
+  --cat: var(--pf-flow-cat-logic);
+}
+.cat-learn {
+  --cat: var(--pf-flow-cat-learn);
+}
+.tile,
+.lgroup__swatch {
+  background: var(--cat);
+}
+
+/* ——— Рабочее поле ——— */
+.canvas {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--pf-bg-page);
+  background-image: radial-gradient(var(--pf-flow-grid) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  min-width: 0;
+}
+.wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.wires path {
+  fill: none;
+  stroke: var(--pf-flow-wire);
+  stroke-width: 2.5;
+}
+.wires path.sel {
+  stroke: var(--pf-flow-wire-selected);
+  stroke-width: 3.5;
+}
+.wires path.stub {
+  stroke-dasharray: 6 6;
+  stroke: var(--pf-danger);
+}
+.wires path.ghost {
+  stroke-dasharray: 6 6;
+  stroke: var(--pf-border-control);
+}
+
+.node {
+  position: absolute;
+  width: var(--pf-flow-node-width);
+  height: 156px;
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-raised);
+  overflow: visible;
+}
+.node::before {
+  /* цветная полоса группы — сверху: в потоке «сверху вниз» она читается как шапка */
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 6px;
+  border-radius: var(--pf-radius-card) var(--pf-radius-card) 0 0;
+  background: var(--cat);
+}
+.node__head {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  padding: 14px var(--pf-space-3) 0;
+  height: 46px;
+}
+.node__type {
+  font-weight: var(--pf-fw-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.node__step {
+  margin-left: auto;
+  flex: none;
+  min-width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pf-bg-subtle);
+  color: var(--pf-text);
+  font-variant-numeric: tabular-nums;
+}
+.node__sum {
+  height: 52px;
+  padding: var(--pf-space-1) var(--pf-space-3) 0;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.node__outs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  display: flex;
+  border-top: 1px solid var(--pf-border);
+}
+.node__out {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pf-space-1);
+  font-weight: var(--pf-fw-medium);
+  color: var(--pf-text);
+  position: relative;
+}
+.node__out + .node__out {
+  border-left: 1px solid var(--pf-border);
+}
+.node__out--opt {
+  color: var(--pf-text-muted);
+  font-weight: var(--pf-fw-regular);
+}
+/* точки подключения: вход — сверху по центру, выходы — снизу под подписью; зона захвата 44 px задаётся в приложении */
+.port {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--pf-bg-card);
+  border: 2.5px solid var(--pf-flow-wire);
+}
+.port--in {
+  top: -8px;
+  left: calc(50% - 7px);
+}
+.node__out .port {
+  bottom: -8px;
+  left: calc(50% - 7px);
+}
+.port--open {
+  border-color: var(--pf-danger);
+  background: var(--pf-danger-bg);
+}
+
+.node--selected {
+  border: 2px solid var(--pf-link);
+  box-shadow: var(--pf-focus-ring), var(--pf-shadow-overlay);
+}
+.node--error {
+  border: 2px solid var(--pf-danger);
+}
+.node--warning {
+  border: 2px solid var(--pf-warning);
+}
+.node--done {
+  border: 2px solid var(--pf-success);
+}
+.node--active {
+  border: 3px solid var(--pf-link);
+  box-shadow:
+    0 0 0 6px var(--pf-info-bg),
+    var(--pf-shadow-overlay);
+}
+.node__badge {
+  position: absolute;
+  top: -14px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-1);
+  padding: 2px var(--pf-space-2);
+  border-radius: var(--pf-radius-chip);
+  font-size: var(--pf-fs-body);
+  font-weight: var(--pf-fw-bold);
+  border: 1px solid currentColor;
+}
+.node__badge--error {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+.node__badge--warning {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+.node__badge--done {
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+}
+
+/* «Начало» и «Завершение» — овальные, как события в схемах процессов */
+.pill {
+  position: absolute;
+  height: 52px;
+  min-width: 200px;
+  padding: 0 var(--pf-space-5) 0 var(--pf-space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  border-radius: 26px;
+  background: var(--pf-flow-cat-edge);
+  color: var(--pf-shell-text);
+  font-weight: var(--pf-fw-bold);
+  box-shadow: var(--pf-shadow-raised);
+}
+.pill .tile {
+  border-radius: 50%;
+  background: var(--pf-shell-bg-active);
+}
+.pill .port {
+  border-color: var(--pf-shell-text);
+  background: var(--pf-flow-cat-edge);
+}
+.pill .port--out {
+  bottom: -8px;
+  left: calc(50% - 7px);
+}
+
+/* Кнопка «+ Вставить шаг» на связи и «+ Добавить шаг» на свободном выходе */
+.plus {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pf-bg-card);
+  border: 2px solid var(--pf-link);
+  color: var(--pf-link);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: var(--pf-fw-bold);
+}
+.plus--hint::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 40px;
+  white-space: nowrap;
+  font-size: var(--pf-fs-lead);
+  font-weight: var(--pf-fw-medium);
+  background: var(--pf-shell-bg);
+  color: var(--pf-shell-text);
+  padding: var(--pf-space-1) var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+}
+.addstep {
+  position: absolute;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-4);
+  border: 2px dashed var(--pf-danger);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+  color: var(--pf-danger);
+  font-weight: var(--pf-fw-bold);
+  white-space: nowrap;
+}
+.addstep--neutral {
+  border-color: var(--pf-link);
+  color: var(--pf-link);
+}
+
+/* Плавающие элементы поля */
+.zoombar {
+  position: absolute;
+  left: var(--pf-space-4);
+  bottom: var(--pf-space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-1);
+  padding: var(--pf-space-1);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-raised);
+}
+.zoombar .btn {
+  min-height: 40px;
+  padding: 0 var(--pf-space-3);
+}
+.zoombar__val {
+  min-width: 64px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--pf-fw-medium);
+}
+.canvas-hint {
+  position: absolute;
+  right: var(--pf-space-4);
+  top: var(--pf-space-4);
+  padding: var(--pf-space-2) var(--pf-space-3);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-control);
+  color: var(--pf-text-muted);
+}
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--pf-text-muted);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-chip);
+  padding: 0 var(--pf-space-2);
+}
+
+/* ——— Панель свойств ——— */
+.insp__body {
+  overflow: hidden;
+  padding: 0 var(--pf-space-4) var(--pf-space-4);
+  display: grid;
+  gap: var(--pf-space-4);
+  align-content: start;
+}
+.insp__title {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+}
+.insp__title b {
+  font-size: var(--pf-fs-h2);
+}
+.insp__about {
+  color: var(--pf-text-muted);
+}
+.pfield {
+  display: grid;
+  gap: var(--pf-space-1);
+}
+.pfield > label,
+.pfield > .lbl {
+  font-weight: var(--pf-fw-medium);
+}
+.pinput {
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pf-space-2);
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-3);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+}
+.pinput--warn {
+  border: 2px solid var(--pf-warning);
+}
+.pinput--focus {
+  box-shadow: var(--pf-focus-ring);
+}
+.pnote {
+  color: var(--pf-text-muted);
+}
+.pnote--warn {
+  color: var(--pf-warning);
+  font-weight: var(--pf-fw-medium);
+}
+.prow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pf-space-3);
+}
+.psection {
+  border-top: 1px solid var(--pf-border);
+  padding-top: var(--pf-space-4);
+  display: grid;
+  gap: var(--pf-space-3);
+}
+.psection h3 {
+  font-size: var(--pf-fs-lead);
+  font-weight: var(--pf-fw-bold);
+}
+.stepper {
+  display: inline-flex;
+}
+.ws .checkline {
+  display: flex;
+  gap: var(--pf-space-3);
+  align-items: flex-start;
+}
+.box {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 2px solid var(--pf-border-control);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  margin-top: 2px;
+}
+.box--on {
+  background: var(--pf-link);
+  border-color: var(--pf-link);
+  color: var(--pf-text-on-action);
+}
+.nextrow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--pf-space-2);
+}
+
+/* ——— Нижняя панель: проверка, история, комментарии ——— */
+.bpanel {
+  background: var(--pf-bg-card);
+  border-top: 1px solid var(--pf-border);
+  display: grid;
+  grid-template-rows: 48px 1fr;
+  min-height: 0;
+}
+.btabs {
+  display: flex;
+  align-items: stretch;
+  gap: var(--pf-space-1);
+  padding: 0 var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-border);
+}
+.btabs span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  padding: 0 var(--pf-space-4);
+  color: var(--pf-text-muted);
+  border-bottom: 3px solid transparent;
+}
+.btabs span[aria-current] {
+  color: var(--pf-text);
+  font-weight: var(--pf-fw-medium);
+  border-bottom-color: var(--pf-brand-orange);
+}
+.btabs__tail {
+  margin-left: auto;
+}
+.issues {
+  margin: 0;
+  padding: 0 var(--pf-space-4);
+  list-style: none;
+  overflow: hidden;
+}
+.issues li {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-height: 52px;
+  border-bottom: 1px solid var(--pf-border);
+}
+.issues li .grow {
+  flex: 1;
+}
+.issue-ico {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: var(--pf-fw-bold);
+}
+.issue-ico--error {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+.issue-ico--warning {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+.issue-ico--ok {
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+}
+
+/* ——— Баннеры, всплывающие сообщения, окна ——— */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  padding: var(--pf-space-3) var(--pf-space-4);
+  border-radius: var(--pf-radius-card);
+  border: 1px solid currentColor;
+}
+.banner .grow {
+  flex: 1;
+  color: var(--pf-text);
+}
+.banner--danger {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+.banner--warning {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+.banner--success {
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+}
+.banner--info {
+  background: var(--pf-info-bg);
+  color: var(--pf-info);
+}
+.snackbar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pf-space-4);
+  padding: var(--pf-space-2) var(--pf-space-2) var(--pf-space-2) var(--pf-space-4);
+  background: var(--pf-shell-bg);
+  color: var(--pf-shell-text);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-overlay);
+}
+.snackbar .btn {
+  color: var(--pf-shell-text);
+  border-color: var(--pf-shell-muted);
+  background: transparent;
+}
+.dialog {
+  background: var(--pf-bg-card);
+  border-radius: var(--pf-radius-modal);
+  box-shadow: var(--pf-shadow-overlay);
+  padding: var(--pf-space-5);
+  display: grid;
+  gap: var(--pf-space-4);
+  max-width: 560px;
+}
+.dialog h3 {
+  font-size: var(--pf-fs-h2);
+}
+.dialog .actions {
+  justify-content: flex-end;
+}
+.kbd {
+  font-size: var(--pf-fs-body);
+}
+
+/* ——— Страницы-доски для состояний и сравнения ——— */
+.board {
+  padding: var(--pf-space-6);
+  display: grid;
+  gap: var(--pf-space-6);
+  font-size: var(--pf-fs-lead);
+}
+.board > header h1 {
+  margin-bottom: var(--pf-space-2);
+}
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pf-space-5);
+}
+.board-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.frame {
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.frame__cap {
+  padding: var(--pf-space-3) var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-border);
+  background: var(--pf-bg-subtle);
+  display: flex;
+  align-items: baseline;
+  gap: var(--pf-space-3);
+}
+.frame__cap b {
+  font-size: var(--pf-fs-lead);
+}
+.frame__body {
+  position: relative;
+  padding: var(--pf-space-5);
+  display: grid;
+  gap: var(--pf-space-4);
+  align-content: start;
+  flex: 1;
+}
+.frame__body--canvas {
+  background-color: var(--pf-bg-page);
+  background-image: radial-gradient(var(--pf-flow-grid) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  min-height: 420px;
+}
+.frame__body--dim {
+  background: var(--color-overlay);
+  place-items: center;
+}
+.skel-cols {
+  display: grid;
+  grid-template-columns: 1fr 2.4fr 1.2fr;
+  gap: var(--pf-space-4);
+}
+.skel-col {
+  display: grid;
+  gap: var(--pf-space-3);
+  align-content: start;
+  padding: var(--pf-space-4);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  min-height: 300px;
+}
+.skeleton--tall {
+  height: 64px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 4px solid var(--pf-bg-hover);
+  border-top-color: var(--pf-link);
+}
+.coach {
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-raised);
+  padding: var(--pf-space-5);
+  display: grid;
+  gap: var(--pf-space-3);
+  max-width: 360px;
+}
+.coach ol {
+  margin: 0;
+  padding-left: var(--pf-space-5);
+  display: grid;
+  gap: var(--pf-space-2);
+}
+.outline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--pf-space-2);
+}
+.outline li {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+  min-height: 48px;
+  padding: 0 var(--pf-space-3);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+}
+.outline li.branch {
+  border: none;
+  background: transparent;
+  min-height: 32px;
+  color: var(--pf-text-muted);
+  font-weight: var(--pf-fw-bold);
+}
+.outline .ind1 {
+  margin-left: 40px;
+}
+.outline .ind2 {
+  margin-left: 80px;
+}
+.outline li[aria-current] {
+  box-shadow: var(--pf-focus-ring);
+}
+.outline .num {
+  min-width: 56px;
+  color: var(--pf-text-muted);
+}
+.keys {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--pf-space-2) var(--pf-space-4);
+  margin: 0;
+}
+.keys dt {
+  white-space: nowrap;
+}
+.keys dd {
+  margin: 0;
+}
+.pros {
+  margin: 0;
+  padding-left: var(--pf-space-5);
+  display: grid;
+  gap: var(--pf-space-1);
+}
+.score {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+.score b {
+  font-size: var(--pf-fs-h2);
+}
+.frame--pick {
+  border: 2px solid var(--pf-action);
+}
+
+/* Вертикальная панель вида у левого края поля (как в картографических системах) */
+.vbar {
+  position: absolute;
+  left: var(--pf-space-4);
+  top: var(--pf-space-4);
+  display: grid;
+  gap: var(--pf-space-1);
+  padding: var(--pf-space-1);
+  background: var(--pf-bg-card);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-card);
+  box-shadow: var(--pf-shadow-raised);
+  justify-items: center;
+}
+.vbar .btn {
+  width: var(--pf-target-touch);
+  min-height: var(--pf-target-touch);
+  padding: 0;
+  font-size: var(--pf-fs-h2);
+}
+.vbar__val {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--pf-fw-medium);
+  font-size: var(--pf-fs-body);
+}
+.vbar__sep {
+  width: 28px;
+  height: 1px;
+  background: var(--pf-border);
+}
+.libtabs {
+  display: flex;
+  border-bottom: 1px solid var(--pf-border);
+  margin: 0 calc(-1 * var(--pf-space-4));
+  padding: 0 var(--pf-space-4);
+}
+.libtabs span {
+  padding: var(--pf-space-2) var(--pf-space-3);
+  color: var(--pf-text-muted);
+  border-bottom: 3px solid transparent;
+  display: inline-flex;
+  gap: var(--pf-space-2);
+  align-items: center;
+}
+.libtabs span[aria-current] {
+  color: var(--pf-text);
+  font-weight: var(--pf-fw-medium);
+  border-bottom-color: var(--pf-brand-orange);
+}

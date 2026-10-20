@@ -138,3 +138,27 @@
 ## L031 | e2e script launch
 ❌ run run_frontend_e2e.sh directly / without env → permission denied, JWT_SECRET missing
 ✅ `JWT_SECRET=<32+ bytes> bash backend/scripts/run_frontend_e2e.sh [--only ai]`; verify failures belong to own change by reverting own files temporarily
+
+## L032 | e2e vs jsdom (feature 005)
+❌ trust jsdom-green UI with pointer/drag/scroll/hit-testing
+✅ run real Chromium e2e for canvas-like UI before claiming done; screenshot + eyeball
+! found only in browser: overflow:hidden canvas scrolled on focus, invisible «+» covering short wires, toolbar wrap, simplified nodes unreadable
+
+## L033 | Playwright viewport
+❌ assume use.viewport 1920 from playwright.config
+✅ project devices["Desktop Chrome"] overrides it → 1280×720; set test.use({ viewport }) explicitly; also test narrow width
+! layout overflow at 1280 hid the library and broke all drag tests
+
+## L034 | React status state vs effects
+❌ store derived UI status (dirty/saved) in state and also set it from an effect
+✅ derive status from source of truth (revision vs savedRevision) during render
+! effect overwrote «saved» → first save after edit showed «есть несохранённые» (e2e)
+
+## L035 | container browsers
+❌ npx playwright install / download browsers
+✅ temp config in repo root importing playwright.config + launchOptions.executablePath=/opt/pw-browsers/chromium; delete after run, never commit
+
+## L036 | feedback loops in drag-to-navigate
+❌ recompute minimap projection (union of content+visible) on every render while dragging the view frame
+✅ freeze projection at pointerdown, clamp pointer to map box, release on pointerup/cancel
+! view moved → map rescaled → same pointer = farther world point → view flew 1.28M px (owner report)

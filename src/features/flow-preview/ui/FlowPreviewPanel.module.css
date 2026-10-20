@@ -1,0 +1,232 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--pf-bg-card);
+  border-left: 1px solid var(--pf-border);
+  font-size: var(--pf-fs-lead);
+  color: var(--pf-text);
+}
+
+.head {
+  display: grid;
+  gap: var(--pf-space-2);
+  padding: var(--pf-space-4);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-2);
+  margin: 0;
+  font-size: var(--pf-fs-h2);
+}
+
+.note {
+  margin: 0;
+  color: var(--pf-text-muted);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-3);
+  align-items: center;
+}
+
+.clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.chip {
+  padding: 0 var(--pf-space-2);
+  border-radius: var(--pf-radius-chip);
+  background: var(--pf-info-bg);
+  color: var(--pf-info);
+}
+
+.waiting {
+  margin: 0;
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-info-bg);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--pf-space-4);
+  display: grid;
+  gap: var(--pf-space-4);
+  align-content: start;
+}
+
+.section {
+  margin: 0 0 var(--pf-space-2);
+  font-size: var(--pf-fs-lead);
+  font-weight: var(--pf-fw-bold);
+}
+
+.feed,
+.log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.feed li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--pf-space-2);
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-subtle);
+}
+
+.feed--callerReply,
+.feed--call {
+  border-left: 4px solid var(--pf-flow-cat-call);
+}
+
+.feed--briefing,
+.feed--variant {
+  border-left: 4px solid var(--pf-flow-cat-logic);
+}
+
+.feed--hint {
+  border-left: 4px solid var(--pf-flow-cat-learn);
+}
+
+.feed__time {
+  color: var(--pf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.controls {
+  display: grid;
+  gap: var(--pf-space-3);
+}
+
+.form {
+  display: grid;
+  gap: var(--pf-space-1);
+}
+
+.form > label {
+  font-weight: var(--pf-fw-medium);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--pf-space-2);
+}
+
+.control {
+  width: 100%;
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-3);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+  color: var(--pf-text);
+  font: inherit;
+}
+
+.control:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.button {
+  min-height: var(--pf-target-touch);
+}
+
+.wait {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pf-space-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+  padding-top: var(--pf-space-3);
+  border-top: 1px solid var(--pf-border);
+}
+
+.result {
+  display: grid;
+  gap: var(--pf-space-3);
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-4);
+}
+
+.score__value {
+  font-size: var(--pf-fs-kpi);
+  font-weight: var(--pf-fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.passed {
+  color: var(--pf-success);
+}
+
+.failed {
+  color: var(--pf-danger);
+}
+
+.errors {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.errors li {
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+}
+
+.error--critical {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+  font-weight: var(--pf-fw-medium);
+}
+
+.error--major {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+
+.error--minor {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+
+/* «✓ Записано: …» у формы, где отмечено действие (отзыв владельца 2026-10-20). */
+.recorded {
+  margin: 0;
+  padding: var(--pf-space-1) var(--pf-space-2);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+  font-weight: var(--pf-fw-bold);
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  margin: 0;
+  color: var(--pf-text-muted);
+}

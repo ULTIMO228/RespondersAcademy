@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: конструктор сценариев — состояния и сообщения</title>
+    <link rel="stylesheet" href="sketch.css" />
+    <link rel="stylesheet" href="constructor.css" />
+  </head>
+  <body>
+    <!-- Эскиз фичи 005: состояния экрана, сообщения сохранения и проверки, отмена, клавиатура, тест. 1920 px. -->
+    <main class="board">
+      <header>
+        <h1>Конструктор сценариев: состояния и сообщения</h1>
+        <p class="muted">
+          Эскиз к spec/005-visual-scenario-builder/design-concept.md · токены платформы --pf-* · данные
+          иллюстративные
+        </p>
+      </header>
+
+      <div class="board-grid">
+        <!-- 1. Загрузка -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>1. Загрузка</b><span class="muted">первые 300 мс — ничего, дальше каркас</span>
+          </div>
+          <div class="frame__body">
+            <div class="skel-cols" aria-busy="true">
+              <div class="skel-col">
+                <div class="skeleton" style="width: 60%"></div>
+                <div class="skeleton skeleton--tall"></div>
+                <div class="skeleton skeleton--tall"></div>
+                <div class="skeleton skeleton--tall"></div>
+              </div>
+              <div class="skel-col" style="place-items: center; align-content: center">
+                <span class="spinner" aria-hidden="true"></span>
+                <b>Загружаем сценарий…</b>
+                <span class="muted">Обычно это занимает пару секунд</span>
+              </div>
+              <div class="skel-col">
+                <div class="skeleton" style="width: 50%"></div>
+                <div class="skeleton skeleton--tall"></div>
+                <div class="skeleton skeleton--tall"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Пустой сценарий -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>2. Новый пустой сценарий</b><span class="muted">«Начало» и «Завершение» уже стоят</span>
+          </div>
+          <div class="frame__body frame__body--canvas" style="min-height: 460px">
+            <svg class="wires" aria-hidden="true">
+              <path d="M184,92 L184,196" class="ghost" />
+              <path d="M184,260 L184,368" class="ghost" />
+            </svg>
+            <div class="pill" style="left: 84px; top: 40px">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5l11 7-11 7z" /></svg></span
+              >Начало<span class="port port--out"></span>
+            </div>
+            <span class="addstep addstep--neutral" style="left: 184px; top: 206px"
+              >+ Добавить первый шаг</span
+            >
+            <div class="pill" style="left: 84px; top: 368px">
+              <span class="tile"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 21V4M5 4h11l-2 4 2 4H5" /></svg></span
+              >Завершение
+            </div>
+            <div class="coach" style="position: absolute; right: 24px; top: 40px">
+              <h3>С чего начать</h3>
+              <ol>
+                <li>Нажмите «+ Добавить первый шаг» и выберите «Входящий вызов».</li>
+                <li>Добавьте «Обязательный вопрос» и «Действие» — то, что должен сделать студент.</li>
+                <li>Нажмите «Проверить», затем «Запустить тест».</li>
+              </ol>
+              <div class="actions">
+                <span class="btn btn--secondary">Открыть пример: билет 4.1</span>
+                <span class="btn btn--ghost">Скрыть</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Ошибка загрузки -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>3. Ошибка загрузки</b><span class="muted">и «нужен сервер» в автономном режиме</span>
+          </div>
+          <div class="frame__body" style="place-items: center">
+            <div class="state">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--pf-danger)">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v6M12 17h.01" />
+              </svg>
+              <h2>Не удалось открыть сценарий</h2>
+              <p>Сервер не ответил. Изменения, сохранённые до 10:42, не потеряны.</p>
+              <div class="actions">
+                <span class="btn btn--primary">Повторить</span
+                ><span class="btn btn--secondary">К списку сценариев</span>
+              </div>
+              <p class="caption">Код ошибки: 503 · для администратора</p>
+            </div>
+            <div class="banner banner--info" style="width: 100%">
+              <span aria-hidden="true">ℹ</span
+              ><span class="grow"
+                >Конструктор работает только с сервером тренажёра. Запустите стенд или обратитесь к
+                администратору.</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Сохранение и проверка -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>4. Сообщения сохранения и проверки</b
+            ><span class="muted">статус — в верхней панели, действия — баннером</span>
+          </div>
+          <div class="frame__body">
+            <div class="toolbar" style="margin: 0; gap: var(--pf-space-5)">
+              <span class="save-state" role="status"
+                ><span class="spinner" style="width: 18px; height: 18px; border-width: 3px"></span
+                >Сохраняем…</span
+              >
+              <span class="save-state save-state--ok">✓ Сохранено 10:42</span>
+              <span class="save-state save-state--dirty">● Есть несохранённые изменения</span>
+              <span class="save-state save-state--bad">⚠ Нет связи — сохранено на этом компьютере</span>
+            </div>
+            <div class="banner banner--warning">
+              <span aria-hidden="true">⚠</span
+              ><span class="grow"
+                ><b>Сценарий изменил Иванов И. И. в 10:40.</b> Ваши правки не потеряны. Выберите, что
+                сделать.</span
+              ><span class="btn btn--secondary">Показать его версию</span
+              ><span class="btn btn--secondary">Сохранить мою как копию</span>
+            </div>
+            <div class="banner banner--danger">
+              <span aria-hidden="true">⛔</span
+              ><span class="grow"><b>Опубликовать пока нельзя:</b> 1 ошибка в схеме.</span
+              ><span class="btn btn--secondary">Показать ошибки</span>
+            </div>
+            <div class="banner banner--success">
+              <span aria-hidden="true">✓</span
+              ><span class="grow"
+                ><b>Опубликована версия 3.</b> Задания, выданные раньше, остаются на версии 2.</span
+              ><span class="btn btn--primary">Назначить группе</span>
+            </div>
+            <div class="banner banner--success" style="background: var(--pf-bg-card)">
+              <span class="issue-ico issue-ico--ok">✓</span
+              ><span class="grow"><b>Ошибок нет.</b> Путей прохождения: 2 · максимум баллов: 10.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Отмена и подтверждения -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>5. Отмена и подтверждения</b
+            ><span class="muted">удаление отменяется, а не подтверждается</span>
+          </div>
+          <div class="frame__body">
+            <div>
+              <span class="snackbar" role="status"
+                >Шаг 7 «Подсказка» удалён<span class="btn btn--secondary">Вернуть</span></span
+              >
+              <p class="muted" style="margin-top: var(--pf-space-2)">
+                Висит 10 секунд, не исчезает, пока на нём фокус или курсор. Ctrl + Z работает и позже.
+              </p>
+            </div>
+            <div class="dialog" role="dialog" aria-labelledby="leave-title">
+              <h3 id="leave-title">Уйти со страницы?</h3>
+              <p>В сценарии есть несохранённые изменения. Если уйти без сохранения, они пропадут.</p>
+              <div class="actions">
+                <span class="btn btn--ghost">Остаться</span
+                ><span class="btn btn--secondary">Уйти без сохранения</span
+                ><span class="btn btn--primary">Сохранить и уйти</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Список шагов -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>6. Вид «Список шагов»</b
+            ><span class="muted">та же схема текстом — для клавиатуры и экранного диктора</span>
+          </div>
+          <div class="frame__body">
+            <ol class="outline">
+              <li>
+                <span class="num">Шаг 1</span><b>Начало</b
+                ><span class="muted">· Специалист 112 · нормативы 30 / 180 с</span>
+              </li>
+              <li>
+                <span class="num">Шаг 2</span><b>Входящий вызов</b
+                ><span class="muted">· билет 4.1, горит балкон</span>
+              </li>
+              <li aria-current="true">
+                <span class="num">Шаг 3</span><b>Обязательный вопрос</b
+                ><span class="muted">· адрес «ул. Грина, 11»</span>
+              </li>
+              <li class="branch ind1">Если «Неверно»:</li>
+              <li class="ind1">
+                <span class="num">Шаг 4</span><b>Реплика заявителя</b
+                ><span class="muted">· «Это дом, где библиотека…» → шаг 5</span>
+              </li>
+              <li>
+                <span class="num">Шаг 5</span><b>Условие</b><span class="muted">· дом газифицирован?</span>
+              </li>
+              <li class="branch ind1">Если «Да»:</li>
+              <li class="ind1">
+                <span class="num">Шаг 6</span><b>Действие</b
+                ><span class="muted">· оповестить службу 104</span>
+              </li>
+              <li class="branch ind1">Если «Нет»:</li>
+              <li class="ind1" style="border-color: var(--pf-danger)">
+                <span class="num">Шаг 7</span><b>Подсказка</b
+                ><span class="muted">· следующий шаг не указан</span
+                ><span class="chip chip--danger" style="margin-left: auto">ошибка</span>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- 7. Клавиши -->
+        <section class="frame">
+          <div class="frame__cap"><b>7. Окно «Клавиши» (кнопка ? или клавиша ?)</b></div>
+          <div class="frame__body">
+            <dl class="keys">
+              <dt><span class="kbd">F6</span></dt>
+              <dd>Перейти между областями: панель действий → блоки → схема → свойства → проверка</dd>
+              <dt>
+                <span class="kbd">Tab</span> / <span class="kbd">Shift</span> + <span class="kbd">Tab</span>
+              </dt>
+              <dd>Следующий / предыдущий элемент внутри области</dd>
+              <dt>
+                <span class="kbd">↑</span> <span class="kbd">↓</span> <span class="kbd">←</span>
+                <span class="kbd">→</span>
+              </dt>
+              <dd>На схеме — перейти к соседнему шагу по стрелкам</dd>
+              <dt><span class="kbd">Ctrl</span> + стрелки</dt>
+              <dd>Передвинуть выбранный блок (с Shift — крупным шагом)</dd>
+              <dt><span class="kbd">Enter</span></dt>
+              <dd>В библиотеке — добавить блок после выбранного; на схеме — открыть свойства</dd>
+              <dt><span class="kbd">Delete</span></dt>
+              <dd>Удалить выбранный блок или стрелку (можно вернуть)</dd>
+              <dt>
+                <span class="kbd">Ctrl</span> + <span class="kbd">Z</span> / <span class="kbd">Ctrl</span> +
+                <span class="kbd">Shift</span> + <span class="kbd">Z</span>
+              </dt>
+              <dd>Отменить / повторить (до 50 шагов)</dd>
+              <dt><span class="kbd">Ctrl</span> + <span class="kbd">S</span></dt>
+              <dd>Сохранить</dd>
+              <dt>
+                <span class="kbd">Ctrl</span> + <span class="kbd">=</span> / <span class="kbd">−</span> /
+                <span class="kbd">0</span>
+              </dt>
+              <dd>Увеличить / уменьшить / показать всю схему</dd>
+            </dl>
+          </div>
+        </section>
+
+        <!-- 8. Пробный прогон -->
+        <section class="frame">
+          <div class="frame__cap">
+            <b>8. «Запустить тест»: пробный прогон</b
+            ><span class="muted">путь подсвечивается, в статистику не попадает</span>
+          </div>
+          <div class="frame__body" style="grid-template-columns: 1fr 360px; padding: 0; gap: 0">
+            <div class="frame__body--canvas" style="position: relative; min-height: 480px">
+              <svg class="wires" aria-hidden="true">
+                <path d="M115,176 C115,206 190,206 190,236" class="sel" />
+              </svg>
+              <div class="node cat-call node--done" style="left: 40px; top: 20px">
+                <span class="node__badge node__badge--done">✓ 3 из 3</span>
+                <div class="node__head">
+                  <span class="tile"
+                    ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01" /></svg></span
+                  ><span class="node__type">Обязательный вопрос</span><span class="node__step">3</span>
+                </div>
+                <div class="node__sum">Уточнить адрес: «ул. Грина, 11»</div>
+                <div class="node__outs">
+                  <span class="node__out">Верно<span class="port"></span></span
+                  ><span class="node__out node__out--opt">Неверно</span>
+                </div>
+              </div>
+              <div class="node cat-logic node--active" style="left: 40px; top: 236px">
+                <div class="node__head">
+                  <span class="tile"
+                    ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 3l9 9-9 9-9-9z" /></svg></span
+                  ><span class="node__type">Условие</span><span class="node__step">5</span>
+                </div>
+                <div class="node__sum">Ждём 42 с из 60: дом газифицирован?</div>
+                <div class="node__outs">
+                  <span class="node__out">Да</span><span class="node__out">Нет</span>
+                </div>
+              </div>
+            </div>
+            <aside
+              style="
+                border-left: 1px solid var(--pf-border);
+                padding: var(--pf-space-4);
+                display: grid;
+                gap: var(--pf-space-3);
+                align-content: start;
+              "
+            >
+              <h3>Пробный прогон</h3>
+              <div class="banner banner--info">
+                <span class="grow">Заявитель: «Горит балкон на тринадцатом этаже…»</span>
+              </div>
+              <b>Отметьте действие студента</b>
+              <span class="btn btn--secondary">Указать значение поля…</span>
+              <span class="btn btn--secondary">Отметить признак…</span>
+              <span class="btn btn--secondary">Оповестить службу…</span>
+              <span class="btn btn--secondary">Подождать 60 с</span>
+              <div class="score"><span>Набрано сейчас</span><b>4 из 4</b></div>
+              <span class="btn btn--ghost">Остановить тест</span>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

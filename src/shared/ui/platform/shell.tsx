@@ -12,6 +12,11 @@ type PlatformShellProps = {
   nav: ReactNode;
   topbar: ReactNode;
   children: ReactNode;
+  /**
+   * Рабочее место во весь экран (конструктор сценариев, design-concept.md §4): боковая панель свёрнута до значков,
+   * содержимое без полей и ограничения ширины, высота — до низа окна. Плашка «Учебная система…» остаётся видимой.
+   */
+  workspace?: boolean;
 };
 
 /**
@@ -19,25 +24,42 @@ type PlatformShellProps = {
  * (граница ТЗ §4) стоит внизу боковой панели на каждой странице. `data-theme="light"` даёт токены АРМ существующим
  * страницам преподавателя и администратора, которые переезжают в оболочку без переписывания (T039).
  */
-export function PlatformShell({ brandHref, nav, topbar, children }: PlatformShellProps) {
+export function PlatformShell({ brandHref, nav, topbar, children, workspace = false }: PlatformShellProps) {
   return (
-    <div className={styles.shell} data-theme="light" data-zone="platform">
+    <div
+      className={[styles.shell, workspace ? styles["shell--workspace"] : ""].filter(Boolean).join(" ")}
+      data-theme="light"
+      data-zone="platform"
+      data-layout={workspace ? "workspace" : undefined}
+    >
       <a className={styles.skipLink} href="#platform-main">
         К содержимому
       </a>
       <aside className={styles.sidebar} aria-label="Разделы кабинета">
-        <Link className={styles.brand} href={brandHref}>
+        <Link
+          className={styles.brand}
+          href={brandHref}
+          aria-label={workspace ? "Учебный тренажёр оператора ДДС" : undefined}
+        >
           <span className={styles.brand__mark}>112</span>
-          <span className={styles.brand__name}>
-            Учебный тренажёр
-            <br />
-            оператора ДДС
-          </span>
+          {workspace ? null : (
+            <span className={styles.brand__name}>
+              Учебный тренажёр
+              <br />
+              оператора ДДС
+            </span>
+          )}
         </Link>
         {nav}
-        <p className={styles.sidebar__note}>{DISCLAIMER}</p>
+        <p
+          className={[styles.sidebar__note, workspace ? styles["sidebar__note--vertical"] : ""]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {DISCLAIMER}
+        </p>
       </aside>
-      <div>
+      <div className={workspace ? styles.workspace : undefined}>
         {topbar}
         <main id="platform-main" className={styles.main}>
           {children}
@@ -58,10 +80,11 @@ export type SideNavItem = {
   separatorBefore?: boolean;
 };
 
-export function SideNav({ items }: { items: SideNavItem[] }) {
+/** Пункты разделов; `compact` — только значки (подпись — для экранного диктора и во всплывающей подсказке). */
+export function SideNav({ items, compact = false }: { items: SideNavItem[]; compact?: boolean }) {
   return (
     <nav aria-label="Разделы">
-      <ul className={styles.nav}>
+      <ul className={[styles.nav, compact ? styles["nav--compact"] : ""].filter(Boolean).join(" ")}>
         {items.map((item) => (
           <li key={item.href} role="none">
             {item.separatorBefore ? <div className={styles.nav__separator} role="separator" /> : null}
@@ -71,9 +94,10 @@ export function SideNav({ items }: { items: SideNavItem[] }) {
                 .filter(Boolean)
                 .join(" ")}
               aria-current={item.active ? "page" : undefined}
+              title={compact ? item.title : undefined}
             >
               <PfIcon name={item.icon} />
-              {item.title}
+              {compact ? <span className="visually-hidden">{item.title}</span> : item.title}
             </Link>
           </li>
         ))}

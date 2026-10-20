@@ -1,0 +1,255 @@
+/* Правая панель свойств (design-concept.md §7): текст 16 px, поля 44 px, только токены. */
+.inspector {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--pf-bg-card);
+  border-left: 1px solid var(--pf-border);
+  font-size: var(--pf-fs-lead);
+  color: var(--pf-text);
+}
+
+.inspector:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--pf-focus);
+}
+
+.head {
+  padding: var(--pf-space-4) var(--pf-space-4) var(--pf-space-3);
+  display: grid;
+  gap: var(--pf-space-2);
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--pf-space-3);
+}
+
+.title__text {
+  margin: 0;
+  font-size: var(--pf-fs-h2);
+  line-height: var(--pf-lh-heading);
+}
+
+.tile {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--pf-radius-control);
+  background: var(--cat);
+  color: var(--pf-text-on-action);
+}
+
+.tile--edge {
+  background: var(--pf-flow-cat-edge);
+}
+
+.step {
+  margin-left: auto;
+  color: var(--pf-text-muted);
+  white-space: nowrap;
+}
+
+.about {
+  margin: 0;
+  color: var(--pf-text-muted);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--pf-space-4);
+  display: grid;
+  gap: var(--pf-space-4);
+  align-content: start;
+}
+
+.field {
+  display: grid;
+  gap: var(--pf-space-1);
+  min-width: 0;
+}
+
+.nextRow {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--pf-space-2);
+}
+
+.nextRow .hint {
+  grid-column: 2;
+}
+
+.label {
+  font-weight: var(--pf-fw-medium);
+}
+
+.control {
+  width: 100%;
+  min-height: var(--pf-target-touch);
+  padding: 0 var(--pf-space-3);
+  border: 1px solid var(--pf-border-control);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-card);
+  color: var(--pf-text);
+  font: inherit;
+}
+
+textarea.control {
+  padding: var(--pf-space-2) var(--pf-space-3);
+  resize: vertical;
+  line-height: var(--pf-lh-body);
+}
+
+.control:focus-visible,
+.check__box:focus-visible {
+  outline: none;
+  box-shadow: var(--pf-focus-ring);
+}
+
+.control--warning {
+  border: 2px solid var(--pf-warning);
+}
+
+.control--error {
+  border: 2px solid var(--pf-danger);
+}
+
+.hint {
+  display: block;
+  color: var(--pf-text-muted);
+}
+
+.hint--warning {
+  color: var(--pf-warning);
+  font-weight: var(--pf-fw-medium);
+}
+
+.hint--error {
+  color: var(--pf-danger);
+  font-weight: var(--pf-fw-medium);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--pf-space-3);
+}
+
+.check__box {
+  width: 24px;
+  height: 24px;
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: var(--pf-link);
+}
+
+.section {
+  display: grid;
+  gap: var(--pf-space-3);
+  padding-top: var(--pf-space-4);
+  border-top: 1px solid var(--pf-border);
+}
+
+.section__title {
+  margin: 0;
+  font-size: var(--pf-fs-lead);
+  font-weight: var(--pf-fw-bold);
+}
+
+.issues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.issue--error,
+.issue--warning {
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+}
+
+.issue--error {
+  background: var(--pf-danger-bg);
+  color: var(--pf-danger);
+}
+
+.issue--warning {
+  background: var(--pf-warning-bg);
+  color: var(--pf-warning);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+  padding-top: var(--pf-space-4);
+  border-top: 1px solid var(--pf-border);
+}
+
+.button {
+  min-height: var(--pf-target-touch);
+}
+
+.button--danger {
+  color: var(--pf-danger);
+  border-color: var(--pf-danger);
+}
+
+.facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--pf-space-2) var(--pf-space-4);
+}
+
+.facts dt {
+  color: var(--pf-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+/* Выбранный билет целиком: суть, адрес, заявитель (отзыв владельца 2026-10-20). */
+.ticketField {
+  display: grid;
+  gap: var(--pf-space-2);
+}
+
+.ticket {
+  display: grid;
+  gap: var(--pf-space-1);
+  padding: var(--pf-space-3);
+  border-radius: var(--pf-radius-control);
+  background: var(--pf-bg-subtle);
+  line-height: 1.5;
+}
+
+.ticket__text {
+  margin: 0;
+}
+
+.ticket__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--pf-space-1) var(--pf-space-3);
+  margin: 0;
+}
+
+.ticket__facts dt {
+  font-weight: var(--pf-fw-bold);
+}
+
+.ticket__facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

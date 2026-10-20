@@ -154,3 +154,10 @@
 - Адаптированы под новую семантику: `test_operator112_lifecycle.py` (доставка карточки — в банк, не в занятие ДДС, спека 011 D4; +исход noContact без подтверждения), `test_operator112_events.py` (очистка аудита в фикстуре); `IncidentCard{View,Live}.test.tsx` — без элементов, убранных спекой 012
 - Короткий гейт (решение владельца ускорить): lint ✅ · steiger ✅ · typecheck ✅ · vitest затронутых каталогов 330/331 → флейк `Operator112Screen.hotkeys` «Esc прячет окно…» (отдельно 3/3 ✅) · pytest затронутых 51 passed / 3 xfailed ✅
 - Итог: влит
+
+## F6 — K10 claude/gracious-darwin-x0znyd @ 8c992c6
+
+- Дата: 2026-10-20 · Вершина сверена ✅ · Разбор: субагент Sonnet (заготовка), применение — интегратор
+- Конфликты: 8. `navItems.ts` — обе стороны (`resolvePlatformNav` зон + `WORKSPACE_ROUTES`/`isWorkspaceRoute`), `index.ts` и `PlatformFrame.tsx` — объединённые импорты/экспорты (workspace-режим + зоны); `AGENTS.md` — ours + 3 вставки gracious (flow-*, scenario-flow, роут `/teacher/constructor`, номер 013); `.ai/LESSONS.md` — ours + уроки gracious L014–L018 → L032–L036; `.ai/SESSIONS.md`, `.ai/SESSION_STATE.md`, `spec/README.md` — обе стороны
+- Короткий гейт: lint ✅ · typecheck ✅ · vitest platform-nav/scenario-flow/flow-canvas/constructor/shared-ui 201/201 ✅
+- Итог: влит

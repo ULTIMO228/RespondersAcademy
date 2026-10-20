@@ -270,3 +270,33 @@ focus: verify+close 006; T018 ✅ browser, T043/T045 ✅ conn release (release_c
 checks: backend pytest 1181 pass/3 known fail (audio wav/mp3, release_invariants); vitest 2079 pass; ruff ok; route cerebras/fp16 probe 1327ms via UI
 open: T040 (npm run check red on 007 files; e2e blocked by sandbox bind), T041 (new-key entry + quickstart 2-6), T046 (AIRequest marker policy; SAVEPOINT on aiosqlite not rolled back at ai_scenario_service.py:87; PG unverified)
 lesson: SAVEPOINT via begin_nested() on aiosqlite does not roll back; e2e script needs JWT_SECRET env + bash invocation
+---
+## 2026-10-19T23:55:00+03:00 | @claude | branch:claude/gracious-darwin-x0znyd | mode:normal
+Focus: feature 005 visual scenario builder — audit → spec/plan → design concept → clickable frontend prototype
+Done: ✅
+  - spec/005-visual-scenario-builder: spec, data-model (11 blocks, ports, rules E/W, engine, scoring, roles, versions), research R1-R12, plan, contracts, quickstart, design-concept + 3 sketches
+  - prototype /teacher/constructor: library (search, ready actions), canvas (drag, connect, «+», zoom, minimap, keyboard), inspector, validation panel + history, outline view, preview run w/ scoring, localStorage draft
+  - shell workspace mode (64px rail), nav «Конструктор», tokens --pf-flow-* w/ contrast tests
+  - e2e/constructor.spec.ts 8 tests (real Chromium); unit tests entities/features/pages
+Decisions: 🧠
+  - hybrid «Схема-инструкция» (Unreal cards + Scratch phrases/+ + BPMN light flow) > pure concepts: owner approved
+  - own SVG/HTML canvas > React Flow: no new deps (AGENTS §7)
+  - roles unchanged: expert/group lead = teachers (owner)
+  - prototype logic in TS, server later (owner: no server/DB now)
+Next:
+  !1: owner review + В1-В5
+  !2: speckit-tasks for Ф1-Ф7
+Caution:
+  ⚠️ Desktop Chrome device overrides viewport in playwright.config
+  ⚠️ temp playwright config w/ system chromium must not be committed
+
+## 2026-10-20 | claude/gracious-darwin-x0znyd | 005 prototype owner feedback
+Done: ✅
+  - helped owner run locally (clone in ~/Projects; SSL_ERROR_SYSCALL = network/VPN; npm audit warnings ignorable)
+  - 5 feedback items: explicit summaries + hide answers, minimap runaway fix, ticket descriptions, full-text callout + library wrap, preview record confirmation
+  - tests: summary.test, FlowMinimap.test, FlowPreviewPanel.test, canvas/inspector cases, e2e +2 (minimap, hide answers) + one-row toolbar at 1280
+Decisions: 🧠
+  - inspector keeps correct answer visible when hidden on canvas (editing needs it)
+  - narrow toolbar → icon-only view/answers buttons (labels kept for screen reader)
+Next:
+  !1: owner re-check locally (git pull)

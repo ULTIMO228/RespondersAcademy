@@ -65,6 +65,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
     { href: ROUTES.teacherErrorMap, title: "Карта ошибок", icon: "analytics" },
     { href: ROUTES.teacherRating, title: "Рейтинг", icon: "results" },
     { href: ROUTES.teacherScenarios, title: "Сценарии", icon: "doc" },
+    { href: ROUTES.teacherConstructor, title: "Конструктор", icon: "flow" },
     { href: ROUTES.teacherReports, title: "Отчёты", icon: "results" },
     REFERENCE,
     PROFILE,
@@ -115,4 +116,11 @@ export function resolvePlatformNav(role: UserRole, zones?: readonly Specializati
       separatorBefore: isFirst,
     };
   });
+}
+
+/** Разделы-рабочие места во весь экран: боковая панель свёрнута до значков (design-concept.md §4). */
+export const WORKSPACE_ROUTES: string[] = [ROUTES.teacherConstructor];
+
+export function isWorkspaceRoute(pathname: string): boolean {
+  return WORKSPACE_ROUTES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }

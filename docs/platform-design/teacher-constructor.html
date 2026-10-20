@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Эскиз: конструктор сценариев — редактор</title>
+    <link rel="stylesheet" href="sketch.css" />
+    <link rel="stylesheet" href="constructor.css" />
+  </head>
+  <body>
+    <!--
+      Эскиз фичи 005 (spec/005-visual-scenario-builder/design-concept.md), 1920×1080.
+      Сценарий: билет 4.1 «Горит балкон на 13-м этаже, дом газифицирован». Поле прокручено: шаги 1–2 выше, 8–11 ниже.
+      Показано: выбран шаг 6 (предупреждение у срока), у шага 7 не подключён выход (ошибка), поэтому
+      «Запустить тест» и «Опубликовать» недоступны. Данные иллюстративные.
+    -->
+    <div class="ws">
+      <nav class="rail" aria-label="Разделы">
+        <span class="rail__mark">112</span>
+        <a href="#" title="Главная"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 11l9-8 9 8" />
+            <path d="M5 10v10h14V10" /></svg
+        ></a>
+        <a href="#" title="Назначения"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M3 10h18M8 3v4M16 3v4" /></svg
+        ></a>
+        <a href="#" title="Сценарии"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 3h9l4 4v14H6z" />
+            <path d="M14 3v5h5M9 13h7M9 17h7" /></svg
+        ></a>
+        <a href="#" title="Конструктор" aria-current="page"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="6" rx="1.5" />
+            <rect x="14" y="15" width="7" height="6" rx="1.5" />
+            <path d="M6.5 9v3a3 3 0 003 3h8" /></svg
+        ></a>
+        <a href="#" title="Обучающиеся"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="9" cy="8" r="3.5" />
+            <path d="M2 20a7 7 0 0114 0" /></svg
+        ></a>
+        <a href="#" title="Отчёты"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+        ></a>
+        <a href="#" class="rail__expand" title="Развернуть меню"
+          ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg
+        ></a>
+      </nav>
+
+      <div class="ws__main">
+        <header class="topbar">
+          <nav class="crumbs" aria-label="Хлебные крошки">
+            <span>Кабинет преподавателя</span><span aria-hidden="true">/</span><span>Конструктор</span
+            ><span aria-hidden="true">/</span><span aria-current="page">Пожар в жилом доме: газ</span>
+          </nav>
+          <div class="topbar__right">
+            <div class="user">
+              <span class="user__avatar">МЕ</span>
+              <div>
+                <div>Морозова Е. С.</div>
+                <div class="user__role">Преподаватель · автор</div>
+              </div>
+            </div>
+            <a href="#">Выйти</a>
+          </div>
+        </header>
+
+        <!-- Верхняя панель действий -->
+        <div class="etb">
+          <div class="etb__left">
+            <span class="etb__title">Пожар в жилом доме: газ (билет 4.1)</span>
+            <span class="chip chip--neutral">Черновик · из версии 2</span>
+            <span class="save-state save-state--ok" role="status"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg
+              >Сохранено 10:42</span
+            >
+          </div>
+          <div class="etb__right">
+            <span class="btn btn--secondary btn--square" title="Отменить (Ctrl + Z)" aria-label="Отменить"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 14L4 9l5-5" />
+                <path d="M4 9h10a6 6 0 010 12h-3" /></svg
+            ></span>
+            <span
+              class="btn btn--secondary btn--square"
+              title="Повторить (Ctrl + Shift + Z)"
+              aria-label="Повторить"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 14l5-5-5-5" />
+                <path d="M20 9H10a6 6 0 000 12h3" /></svg
+            ></span>
+            <span class="etb__sep" aria-hidden="true"></span>
+            <div class="seg" role="group" aria-label="Вид">
+              <span aria-current="true"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="6" rx="1.5" />
+                  <rect x="14" y="15" width="7" height="6" rx="1.5" />
+                  <path d="M6.5 9v3a3 3 0 003 3h8" /></svg
+                >Схема</span
+              ><span
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" /></svg
+                >Список</span
+              >
+            </div>
+            <span class="etb__sep" aria-hidden="true"></span>
+            <span class="btn btn--secondary"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 3h11l3 3v15H5z" />
+                <path d="M8 3v5h7V3M8 21v-7h8v7" /></svg
+              >Сохранить</span
+            >
+            <span class="btn btn--secondary"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M8.5 12l2.5 2.5 4.5-5" /></svg
+              >Проверить</span
+            >
+            <span class="btn" aria-disabled="true" title="Сначала исправьте ошибки проверки (1)"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg
+              >Запустить тест</span
+            >
+            <span class="btn" aria-disabled="true" title="Сначала исправьте ошибки проверки (1)"
+              ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg
+              >Опубликовать</span
+            >
+          </div>
+        </div>
+
+        <div class="ebody">
+          <!-- Левая библиотека блоков -->
+          <aside class="lib" aria-label="Библиотека блоков">
+            <div class="pane-head">
+              <div class="libtabs">
+                <span aria-current="true">Блоки</span
+                ><span>Готовые действия <span class="chip chip--neutral">24</span></span>
+              </div>
+              <div class="lsearch">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-4-4" /></svg
+                >Найти блок или действие
+              </div>
+            </div>
+            <div class="lgroups">
+              <div class="lgroup__head cat-call">
+                <span class="lgroup__swatch"></span>Вызов и заявитель<svg
+                  class="icon chev"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+              <div class="litem cat-call">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"
+                    /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Входящий вызов</span
+                  ><span class="litem__desc">Новая карточка из билета</span></span
+                >
+              </div>
+              <div class="litem cat-call">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v11H9l-5 4z" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Реплика заявителя</span
+                  ><span class="litem__desc">Что говорит заявитель</span></span
+                >
+              </div>
+              <div class="litem cat-call">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Обязательный вопрос</span
+                  ><span class="litem__desc">Что нужно выяснить</span></span
+                >
+              </div>
+
+              <div class="lgroup__head cat-action">
+                <span class="lgroup__swatch"></span>Действия диспетчера<svg
+                  class="icon chev"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+              <div class="litem litem--hover cat-action">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l5 5L20 6" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Действие</span
+                  ><span class="litem__desc">Статус, служба, перевод</span></span
+                >
+                <svg class="icon litem__grip" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3" />
+                </svg>
+              </div>
+              <div class="litem cat-action">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M6 6l12 12" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Запрещённое действие</span
+                  ><span class="litem__desc">Чего делать нельзя</span></span
+                >
+              </div>
+
+              <div class="lgroup__head cat-logic">
+                <span class="lgroup__swatch"></span>Логика<svg
+                  class="icon chev"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+              <div class="litem cat-logic">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3l9 9-9 9-9-9z" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Условие</span
+                  ><span class="litem__desc">Развилка «Да / Нет»</span></span
+                >
+              </div>
+              <div class="litem cat-logic">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 7h4l10 10h4M3 17h4l3-3M14 10l3-3h4" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Случайный вариант</span
+                  ><span class="litem__desc">Разные попытки</span></span
+                >
+              </div>
+              <div class="litem cat-logic">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v4h3l6 4V6L7 10z" />
+                    <path d="M17 9a4 4 0 010 6" /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Вводная</span
+                  ><span class="litem__desc">Событие по ходу работы</span></span
+                >
+              </div>
+
+              <div class="lgroup__head cat-learn">
+                <span class="lgroup__swatch"></span>Обучение<svg
+                  class="icon chev"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+              <div class="litem cat-learn">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"
+                    /></svg
+                ></span>
+                <span class="litem__text"
+                  ><span class="litem__name">Подсказка</span
+                  ><span class="litem__desc">Только в тренировке</span></span
+                >
+              </div>
+
+              <div class="lgroup__head cat-edge">
+                <span class="lgroup__swatch"></span>Начало и конец<svg
+                  class="icon chev"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Центральное рабочее поле -->
+          <section class="canvas" aria-label="Схема сценария">
+            <svg class="wires" aria-hidden="true">
+              <path d="M590,-10 L590,20" />
+              <path d="M515,176 C515,290 590,266 590,380" />
+              <path d="M665,176 C665,236 960,140 960,200" />
+              <path d="M960,356 C960,420 590,316 590,380" />
+              <path d="M515,536 C515,566 340,546 340,576" class="sel" />
+              <path d="M665,536 C665,566 830,546 830,576" />
+              <path d="M265,732 L265,820" />
+              <path d="M830,732 L830,754" class="stub" />
+            </svg>
+
+            <div class="vbar" role="toolbar" aria-label="Вид схемы">
+              <span class="btn btn--ghost" title="Увеличить (Ctrl + =)" aria-label="Увеличить">+</span>
+              <span class="vbar__val">100%</span>
+              <span class="btn btn--ghost" title="Уменьшить (Ctrl + −)" aria-label="Уменьшить">−</span>
+              <span class="vbar__sep"></span>
+              <span
+                class="btn btn--ghost"
+                title="Показать всю схему (Ctrl + 0)"
+                aria-label="Показать всю схему"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg
+              ></span>
+              <span class="btn btn--ghost" title="Выровнять схему" aria-label="Выровнять схему"
+                ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 6h16M8 12h8M6 18h12" /></svg
+              ></span>
+              <span class="vbar__sep"></span>
+              <span class="btn btn--ghost" title="Клавиши (?)" aria-label="Клавиши">?</span>
+            </div>
+
+            <!-- Шаг 3 -->
+            <div class="node cat-call" style="left: 440px; top: 20px">
+              <span class="port port--in"></span>
+              <div class="node__head">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01" /></svg></span
+                ><span class="node__type">Обязательный вопрос</span
+                ><span class="node__step" title="Шаг 3">3</span>
+              </div>
+              <div class="node__sum">Уточнить адрес: «ул. Грина, 11» · 3 балла · критично</div>
+              <div class="node__outs">
+                <span class="node__out">Верно<span class="port"></span></span
+                ><span class="node__out">Неверно<span class="port"></span></span>
+              </div>
+            </div>
+
+            <!-- Шаг 4 -->
+            <div class="node cat-call" style="left: 810px; top: 200px">
+              <span class="port port--in"></span>
+              <div class="node__head">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16v11H9l-5 4z" /></svg></span
+                ><span class="node__type">Реплика заявителя</span
+                ><span class="node__step" title="Шаг 4">4</span>
+              </div>
+              <div class="node__sum">«Это дом, где библиотека сто девяносто три»</div>
+              <div class="node__outs">
+                <span class="node__out">Следующий шаг<span class="port"></span></span>
+              </div>
+            </div>
+
+            <span class="plus plus--hint" style="left: 552px; top: 278px" data-label="Вставить шаг сюда"
+              >+</span
+            >
+
+            <!-- Шаг 5 -->
+            <div class="node cat-logic" style="left: 440px; top: 380px">
+              <span class="port port--in"></span>
+              <div class="node__head">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3l9 9-9 9-9-9z" /></svg></span
+                ><span class="node__type">Условие</span><span class="node__step" title="Шаг 5">5</span>
+              </div>
+              <div class="node__sum">Студент указал, что дом газифицирован? · ждать 60 с</div>
+              <div class="node__outs">
+                <span class="node__out">Да<span class="port"></span></span
+                ><span class="node__out">Нет<span class="port"></span></span>
+              </div>
+            </div>
+
+            <!-- Шаг 6: выбран, предупреждение -->
+            <div class="node cat-action node--selected" style="left: 190px; top: 576px">
+              <span class="node__badge node__badge--warning">⚠ 1</span>
+              <span class="port port--in"></span>
+              <div class="node__head">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 12l5 5L20 6" /></svg></span
+                ><span class="node__type">Действие</span><span class="node__step" title="Шаг 6">6</span>
+              </div>
+              <div class="node__sum">Оповестить службу 104 · срок 240 с · 2 балла</div>
+              <div class="node__outs">
+                <span class="node__out">Выполнено<span class="port"></span></span
+                ><span class="node__out node__out--opt">Не выполнено<span class="port"></span></span>
+              </div>
+            </div>
+
+            <!-- Шаг 7: ошибка — не подключён выход -->
+            <div class="node cat-learn node--error" style="left: 680px; top: 576px">
+              <span class="node__badge node__badge--error">⛔ 1</span>
+              <span class="port port--in"></span>
+              <div class="node__head">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"
+                    /></svg></span
+                ><span class="node__type">Подсказка</span><span class="node__step" title="Шаг 7">7</span>
+              </div>
+              <div class="node__sum">«Уточните, газифицирован ли дом» · −1 балл</div>
+              <div class="node__outs">
+                <span class="node__out">Следующий шаг<span class="port port--open"></span></span>
+              </div>
+            </div>
+            <span class="addstep" style="left: 830px; top: 756px">+ Добавить шаг</span>
+
+            <span class="scroll-cue" style="left: 300px; bottom: 10px; transform: none"
+              >↓ Ещё 4 шага ниже</span
+            >
+          </section>
+
+          <!-- Правая панель свойств -->
+          <aside class="insp" aria-label="Свойства блока">
+            <div class="pane-head">
+              <div class="insp__title cat-action">
+                <span class="tile"
+                  ><svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 12l5 5L20 6" /></svg></span
+                ><b>Действие</b><span class="muted" style="margin-left: auto">Шаг № 6</span>
+              </div>
+              <p class="insp__about">Ждёт, пока студент сделает нужное действие в АРМ.</p>
+            </div>
+            <div class="insp__body">
+              <div class="pfield">
+                <span class="lbl">Название шага</span>
+                <span class="pinput">Оповестить службу 104</span>
+              </div>
+              <div class="pfield">
+                <span class="lbl">Что должен сделать студент</span>
+                <span class="pinput"
+                  >Оповестить службу<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" /></svg
+                ></span>
+              </div>
+              <div class="pfield">
+                <span class="lbl">Служба</span>
+                <span class="pinput"
+                  >Служба 104 (МОСГАЗ)<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 9l6 6 6-6" /></svg
+                ></span>
+              </div>
+              <div class="pfield">
+                <span class="lbl">Срок выполнения, секунд</span>
+                <span class="pinput pinput--warn pinput--focus">240</span>
+                <span class="pnote pnote--warn">⚠ Больше норматива отработки — 180 с</span>
+              </div>
+              <div class="psection">
+                <h3>Оценка</h3>
+                <div class="prow">
+                  <div class="pfield">
+                    <span class="lbl">Баллы</span>
+                    <span class="pinput"><b>−</b><span>2</span><b>+</b></span>
+                  </div>
+                  <div class="pfield">
+                    <span class="lbl">Этап</span>
+                    <span class="pinput"
+                      >Службы<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6" /></svg
+                    ></span>
+                  </div>
+                </div>
+                <div class="checkline">
+                  <span class="box" aria-hidden="true"></span>
+                  <span
+                    >Критическая ошибка<br /><span class="muted">Не выполнил — задание не сдано</span></span
+                  >
+                </div>
+              </div>
+              <div class="psection">
+                <h3>Следующий шаг</h3>
+                <div class="nextrow">
+                  <span>Выполнено</span>
+                  <span class="pinput"
+                    >№ 8 · Оповестить 101<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" /></svg
+                  ></span>
+                </div>
+                <div class="nextrow">
+                  <span class="muted">Не выполнено</span>
+                  <span class="pinput muted"
+                    >Как «Выполнено»<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" /></svg
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Нижняя панель: ошибки проверки и история -->
+        <section class="bpanel" aria-label="Проверка и история">
+          <div class="btabs">
+            <span aria-current="true"
+              >Проверка<span class="chip chip--danger">1 ошибка</span
+              ><span class="chip chip--warning">1 предупреждение</span></span
+            >
+            <span>История изменений</span>
+            <span>Комментарии</span>
+            <span class="btabs__tail muted">Проверено в 10:41 · путей: 2</span>
+            <span class="btn btn--ghost">Свернуть</span>
+          </div>
+          <ul class="issues">
+            <li>
+              <span class="issue-ico issue-ico--error" aria-label="Ошибка">!</span>
+              <span class="grow"
+                ><b>Шаг 7 · Подсказка:</b> не указан следующий шаг. Соедините выход «Следующий шаг» с блоком
+                или нажмите «+ Добавить шаг».</span
+              ><span class="btn btn--secondary">Показать на схеме</span>
+            </li>
+            <li>
+              <span class="issue-ico issue-ico--warning" aria-label="Предупреждение">!</span>
+              <span class="grow"
+                ><b>Шаг 6 · Оповестить службу 104:</b> срок 240 с больше норматива отработки 180 с.
+                Опубликовать можно.</span
+              ><span class="btn btn--secondary">Показать на схеме</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

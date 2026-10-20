@@ -78,6 +78,8 @@ export const ROUTES = {
   teacherMonitor: (studentId: string) => `/teacher/monitor/${studentId}`,
   teacherScenarios: "/teacher/scenarios",
   teacherScenario: (scenarioId: string) => `/teacher/scenarios/${scenarioId}`,
+  /** Визуальный конструктор сценариев (фича 005, прототип без сервера): рабочее место во весь экран. */
+  teacherConstructor: "/teacher/constructor",
   teacherSession: "/teacher/session",
   /** Мастер занятия с предвыбранным сценарием — кнопка «в занятие» списка сценариев (T3.1-03). */
   teacherSessionForScenario: (scenarioId: string) =>
