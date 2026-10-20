@@ -23,6 +23,8 @@ import styles from "./Editor.module.css";
 
 export type ScenarioGraphEditorProps = {
   scenarioId: string;
+  /** Сценарий создан из формы: страница может перейти на его адрес. */
+  onScenarioCreated?: (scenarioId: string) => void;
   /** Категории (группы ЕКП) для формы создания графа. */
   categories?: string[];
   api?: ScenarioGraphEditorApi;
@@ -37,10 +39,11 @@ const PALETTE: { kind: GraphNodeType; label: string }[] = [
 /** Визуальный редактор графа сценария 112: холст, палитра, свойства, проверка и процесс версий. */
 export function ScenarioGraphEditor({
   scenarioId,
+  onScenarioCreated,
   categories = [],
   api = defaultScenarioGraphEditorApi,
 }: ScenarioGraphEditorProps) {
-  const ed = useGraphEditor({ scenarioId, api });
+  const ed = useGraphEditor({ scenarioId, api, onScenarioCreated });
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const { graph, editor } = ed;
 

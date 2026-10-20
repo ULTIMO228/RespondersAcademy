@@ -422,7 +422,15 @@ describe("ScenarioGraphEditor: загрузка и создание", () => {
   it("у сценария без версий показывается форма создания; создание отправляет шаблонный граф", async () => {
     const created = makeVersion({ scenarioId: "s-ai-009" });
     const api = makeApi(null, [], { createGraphScenario: vi.fn(async () => created) });
-    render(<ScenarioGraphEditor scenarioId="s-1" categories={["Дерево", "Пожар"]} api={api} />);
+    const onScenarioCreated = vi.fn();
+    render(
+      <ScenarioGraphEditor
+        scenarioId="s-1"
+        categories={["Дерево", "Пожар"]}
+        api={api}
+        onScenarioCreated={onScenarioCreated}
+      />,
+    );
     expect(await screen.findByText("У сценария ещё нет графа")).toBeInTheDocument();
     await screen.findByRole("form", { name: "Создание графа сценария" });
 
@@ -439,6 +447,8 @@ describe("ScenarioGraphEditor: загрузка и создание", () => {
     fireEvent.click(screen.getByRole("button", { name: "Создать граф" }));
 
     await screen.findByRole("group", { name: /Холст графа сценария/ });
+    expect(onScenarioCreated).toHaveBeenCalledTimes(1);
+    expect(onScenarioCreated).toHaveBeenCalledWith("s-ai-009");
     const body = vi.mocked(api.createGraphScenario).mock.calls[0][0];
     expect(body).toMatchObject({
       mode: "dds",

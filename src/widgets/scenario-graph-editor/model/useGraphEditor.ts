@@ -59,10 +59,15 @@ export function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-type Options = { scenarioId: string; api: ScenarioGraphEditorApi };
+type Options = {
+  scenarioId: string;
+  api: ScenarioGraphEditorApi;
+  /** Вызывается после создания нового сценария: граф принадлежит сценарию с другим id. */
+  onScenarioCreated?: (scenarioId: string) => void;
+};
 
 /** Состояние редактора графа: версии, права, рабочий граф, проверка на сервере и процесс версий. */
-export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) {
+export function useGraphEditor({ scenarioId: initialScenarioId, api, onScenarioCreated }: Options) {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [reloadKey, setReloadKey] = useState(0);
   const [versions, setVersions] = useState<AIScenarioVersion[]>([]);
@@ -219,9 +224,10 @@ export function useGraphEditor({ scenarioId: initialScenarioId, api }: Options) 
           const list = [version];
           if (!version.graph) version = { ...version, graph: templateGraph() };
           adopt(version, list);
+          onScenarioCreated?.(version.scenarioId);
         },
       ),
-    [adopt, api, perform],
+    [adopt, api, onScenarioCreated, perform],
   );
 
   /** Добавляет шаблонный граф к существующей версии без графа (revise с graph). */

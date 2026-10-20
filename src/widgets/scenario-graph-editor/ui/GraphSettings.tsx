@@ -48,6 +48,7 @@ export function GraphSettings({ graph, readOnly, onChange }: GraphSettingsProps)
             type="number"
             min={0}
             max={50}
+            placeholder="5 (по умолчанию)"
             value={graph.scoring.wrongActionPenalty ?? ""}
             onChange={(event) =>
               onChange({
@@ -63,6 +64,7 @@ export function GraphSettings({ graph, readOnly, onChange }: GraphSettingsProps)
             type="number"
             min={0}
             max={100}
+            placeholder="60 (по умолчанию)"
             value={graph.scoring.passScore ?? ""}
             onChange={(event) =>
               onChange({

@@ -11,6 +11,11 @@ vi.mock("@/entities/user/index.server", () => ({
   getSessionUser: async () => ({ user: TEACHER, session: {} as AuthSession }),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock("@/shared/api", async (importOriginal) => {
   const actual = await importOriginal<typeof SharedApi>();
   return { ...actual, getScenario: async () => actual.scenarios[0] };

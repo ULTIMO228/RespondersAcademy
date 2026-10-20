@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   AI_ETALON_ASSESSMENT,
@@ -54,8 +55,11 @@ export function ScenarioEditorScreen({
 }: ScenarioEditorScreenProps) {
   const editorApi = api ?? defaultScenarioEditorApi;
   const editor = useScenarioEditor({ scenarioId, teacherId, api: editorApi });
-  const [tab, setTab] = useState("scenario");
-  const [graphOpened, setGraphOpened] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const openGraphFirst = searchParams?.get("tab") === "graph";
+  const [tab, setTab] = useState(openGraphFirst ? "graph" : "scenario");
+  const [graphOpened, setGraphOpened] = useState(openGraphFirst);
   const backLink = (
     <Link href={ROUTES.teacherScenarios} className={styles.editor__back}>
       К списку сценариев
@@ -155,7 +159,15 @@ export function ScenarioEditorScreen({
           hidden={tab !== "graph"}
           className={styles.editor__panel}
         >
-          <ScenarioGraphEditor scenarioId={scenarioId} categories={graphCategories} api={editorApi} />
+          <ScenarioGraphEditor
+            scenarioId={scenarioId}
+            categories={graphCategories}
+            api={editorApi}
+            onScenarioCreated={(createdId) => {
+              // Граф принадлежит новому сценарию: открываем его страницу, чтобы шапка, адрес и перезагрузка совпадали.
+              if (createdId !== scenarioId) router.push(`${ROUTES.teacherScenario(createdId)}?tab=graph`);
+            }}
+          />
         </div>
       ) : null}
       {editor.notice?.kind === "error" ? (
