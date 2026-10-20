@@ -8,7 +8,7 @@
 
 ## Модели данных
 
-Миграция `0006_scenario_builder` (после `0005_error_map_verdicts`): `users.permissions`, `ai_scenario_versions.graph`, `ai_scenario_versions.reviewed_by`, `ai_scenario_versions.review_comment`, таблица `ai_scenario_runs`.
+Миграции `0007_scenario_run_revision` (`ai_scenario_runs.revision`, оптимистичная блокировка) и `0008_scenario_run_active_unique` (один активный прогон версии на обучающегося). Миграция `0006_scenario_builder` (после `0005_error_map_verdicts`): `users.permissions`, `ai_scenario_versions.graph`, `ai_scenario_versions.reviewed_by`, `ai_scenario_versions.review_comment`, таблица `ai_scenario_runs`.
 
 ## Сценарий и эталон
 
@@ -16,7 +16,7 @@
 |---|---|---|---|
 | `POST /api/v1/ai/scenarios/drafts` | teacher/admin | `mode`, `sourceTicketId`, `category`, `count` (1–5), `requestId` | Массив ID версий `draft`; повтор `requestId` возвращает тот же набор. |
 | `POST /api/v1/ai/scenarios/{id}/revise` | teacher/admin | `baseVersion`, `comment`, `acceptedFields[]` (может быть пустым, если указан `graph`), `graph?` (`scenario-graph/1`), `requestId` | Новая версия `draft`, связь с комментарием; старая не меняется. Граф переходит в следующую версию; ошибки структуры — `400`. |
-| `POST /api/v1/ai/scenarios/{id}/approve` | teacher/admin | `version`, `requestId` | `approved` только после полной валидации и авторства преподавателя; `409` при устаревшей версии. Для версии с графом — `409`: такие версии проходят `/submit` → `/review` → `/publish`. |
+| `POST /api/v1/ai/scenarios/{id}/approve` | teacher/admin | `version`, `requestId` | `approved` только после полной валидации и авторства преподавателя; `409` при устаревшей версии. Для версии с графом, отклонённой или находящейся на проверке экспертом (кроме черновиков цепочки `student_card`) — `409`: такие версии проходят `/submit` → `/review` → `/publish`. |
 | `GET /api/v1/ai/scenarios/{id}/versions` | teacher/admin | — | История с источником, проверками и решениями, без сырого неочищенного билета. |
 | `POST /api/v1/ai/scenarios` | teacher/admin | `mode`, `sourceTicketId`, `category`, `title?`, `summary`, `address?`, `graph?`, `requestId` | Ручной черновик: версия 1, `sourceKind: ticket`, `approval: draft`; карточка и эталон строятся на очищенном билете и справочнике ЕКП, адрес сверяется с локальным справочником. Повтор `requestId` — тот же ответ, иная нагрузка — `409`. Необязательный `graph` (`scenario-graph/1`): ошибки структуры — `400`. |
 | `GET /api/v1/ai/scenarios?mode=` | teacher/admin | — | Сводка по последней версии каждого сценария (`latestVersion`, `approval`, `validation`); преподаватель видит свои, администратор — все. |
@@ -27,9 +27,9 @@
 | `GET /api/v1/ai/scenarios?approval=` | эксперт (любое из прав `scenario.review`, `scenario.publish`) | — | Очередь экспертов; значения `draft`, `validation_failed`, `pending_review`, `approved`, `rejected`; иное — `400`. Эксперт читает любые сценарии. |
 | `PUT /api/v1/admin/users/{id}/permissions` | admin | `permissions[]` — подмножество `scenario.review`, `scenario.publish` | Выдаёт права эксперта; только пользователю с ролью `teacher` (иначе `400`); роль в JWT не меняется. |
 | `GET /api/v1/admin/users/{id}/permissions` | admin | — | Текущие права эксперта: `userId`, `permissions`. |
-| `POST /api/v1/ai/scenarios/{id}/versions/{n}/runs` | обучающийся; назначенная утверждённая версия с графом | — | Создаёт прогон (`201`). Другая роль, версия не назначена или не утверждена — `403`; версия без графа — `409`. |
+| `POST /api/v1/ai/scenarios/{id}/versions/{n}/runs` | обучающийся; назначенная утверждённая версия с графом | — | Создаёт прогон (`201`); повторный старт при незавершённом прогоне возвращает его (`200`). Условия графа видят скалярные поля карточки, вложенные — как `caller.status`. Другая роль, версия не назначена или не утверждена — `403`; версия без графа — `409`. |
 | `GET /api/v1/ai/scenario-runs/{id}` | владелец прогона (обучающийся); автор версии и admin | — | Обучающемуся — `runId`, `status`, `outcome`, `steps` (дрейф: текущий `_view` отдаёт также `scenarioId`, `version`, `studentId`). Автору версии и admin дополнительно — `facts` и журнал `events`. Чужой — `403`. |
-| `POST /api/v1/ai/scenario-runs/{id}/actions` | владелец прогона (обучающийся) | `action`, `facts?` | Переход по графу. Неверное действие — `409` без раскрытия ожидаемого шага; некорректные значения — `400`. Остальные роли — `403`. ИИ переходами не управляет. |
+| `POST /api/v1/ai/scenario-runs/{id}/actions` | владелец прогона (обучающийся) | `action`, `expectedSteps`, `facts?` | Переход по графу. `expectedSteps` обязателен и должен равняться текущему `steps`: повтор уже применённого запроса и параллельная запись дают `409`. Факты, заданные карточкой, действием не меняются (`400`). Неверное действие — `409` без раскрытия ожидаемого шага; некорректные значения — `400`. Остальные роли — `403`. ИИ переходами не управляет. |
 | `POST /api/v1/ai/scenario-runs/{id}/finish` | владелец прогона (обучающийся) | — | Досрочное завершение: `outcome=abandoned`; уже завершённый прогон — `409`. Остальные роли — `403`. |
 
 Совместимые `/api/mock/scenarios/generate`, `/scenarios/{id}/validate` и выдача сценариев остаются; новый workflow поверх них не даёт студенту черновики. `sourceTicketId` принимается только из общего реестра утверждённых `SanitizedTicket`, до вызова генератора; исходный скан не поступает ни модели, ни шаблонному пути. Любой адрес сверяется с локальным справочником, тип/служба — с ЕКП, обязательные действия — с эталоном. Если валидатор отклоняет предложение LLM, допустим шаблонный `draft` с явным `sourceKind: template`.

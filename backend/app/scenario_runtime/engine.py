@@ -15,7 +15,7 @@ from typing import Any
 from app.scenario_runtime.graph import Graph, Node, evaluate
 
 DEFAULT_MAX_STEPS = 200
-MAX_FACTS = 64
+MAX_FACTS = 256
 Scalar = (str, int, float, bool, type(None))
 
 
@@ -53,6 +53,7 @@ class ScenarioRun:
     outcome: str | None = None
     steps: int = 0
     visits: dict[str, int] = field(default_factory=dict)
+    locked: list[str] = field(default_factory=list)  # факты, заданные при старте (эталон): действия их не меняют
     events: list[Event] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -64,6 +65,7 @@ class ScenarioRun:
                 "outcome": self.outcome,
                 "steps": self.steps,
                 "visits": self.visits,
+                "locked": self.locked,
                 "events": [
                     {"seq": item.seq, "kind": item.kind, "node": item.node, "data": item.data}
                     for item in self.events
@@ -83,6 +85,7 @@ class ScenarioRun:
             outcome=snapshot["outcome"],
             steps=snapshot["steps"],
             visits=snapshot["visits"],
+            locked=list(snapshot.get("locked", [])),
             events=[Event(**item) for item in snapshot["events"]],
         )
 
@@ -106,6 +109,7 @@ class ScenarioEngine:
 
     def start(self, facts: dict[str, Any] | None = None) -> ScenarioRun:
         run = ScenarioRun(current=self.graph.start, facts=_checked_facts(facts))
+        run.locked = sorted(run.facts)
         self._record(run, "started", self.graph.start, {"facts": dict(run.facts)})
         self._enter(run, self.graph.start)
         self._advance(run)
@@ -121,6 +125,9 @@ class ScenarioEngine:
         if action not in expected:
             raise InvalidActionError(action, expected)
         updates = _checked_facts(set_facts)
+        overwritten = sorted(set(updates) & set(run.locked))
+        if overwritten:
+            raise ValueError(f"Факт «{overwritten[0]}» задан сценарием и не может быть изменён действием")
         if len(run.facts.keys() | updates.keys()) > MAX_FACTS:
             raise ValueError(f"Фактов больше {MAX_FACTS}")
         node = self.graph.nodes[run.current]

@@ -70,3 +70,12 @@
 ❌ negative test where another rule gives the same 403 (author-cannot-review hid a removed permission check)
 ✅ mutate the guard (remove it) and see the test go red; make actor differ from author
 ! also: negative test whose graph fails for another reason (unreachable nodes) proves nothing
+
+## L016 | tightening a legacy guard
+❌ block legacy approve for pending_review without checking who else enters that state
+✅ run the full suite after every guard change; chain drafts (student_card) are created pending_review and use approve
+! caught only by tests/integration/test_ai_chain.py + test_seed_chain_demo.py, not by new tests
+
+## L017 | parallel tests on shared SQLite connection
+❌ asyncio.gather race test where savepoint rollback of one request erases the other's insert (single shared connection)
+✅ simulate the stale read (monkeypatch the read to return None once) and assert the DB constraint path; mutate the constraint to prove the test bites

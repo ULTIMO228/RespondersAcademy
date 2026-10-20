@@ -29,6 +29,7 @@ MAX_NODES = 500
 MAX_PREDICATE_DEPTH = 8
 MAX_BRANCHES = 50
 DEFAULT_MAX_VISITS = 10
+ORDER_OPS = ("gt", "ge", "lt", "le")
 OPS = ("eq", "ne", "in", "gt", "ge", "lt", "le", "exists")
 NODE_TYPES = ("action", "condition", "end")
 
@@ -80,6 +81,10 @@ def _is_scalar(value: Any) -> bool:
     return value is None or isinstance(value, (str, int, bool))
 
 
+def _is_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and _is_scalar(value)
+
+
 def _extra_keys(raw: dict[str, Any], allowed: set[str], where: str, errors: list[str]) -> None:
     for key in sorted(set(raw) - allowed, key=str):
         errors.append(f"{where}: лишний ключ «{key}»")
@@ -122,6 +127,8 @@ def _check_predicate(pred: Any, where: str, errors: list[str], depth: int = 1) -
                 errors.append(f"{where}: для in value — список скаляров до {MAX_BRANCHES} элементов")
         elif not _is_scalar(pred["value"]):
             errors.append(f"{where}: value должен быть скаляром (строка, число, булево, null)")
+        elif op in ORDER_OPS and not _is_number(pred["value"]):
+            errors.append(f"{where}: для {op} value должен быть числом")
         if set(pred) - {"fact", "op", "value"}:
             errors.append(f"{where}: лишние ключи условия")
 
@@ -140,6 +147,8 @@ def evaluate(pred: Mapping[str, Any], facts: Mapping[str, Any]) -> bool:
     if fact not in facts:
         return False
     actual, expected = facts[fact], pred["value"]
+    if op in ORDER_OPS and not (_is_number(actual) and _is_number(expected)):
+        return False  # порядок определён только для чисел: bool и строки не сравниваются
     try:
         if op == "eq":
             return bool(actual == expected and type(actual) is type(expected))
@@ -251,7 +260,7 @@ class Graph:
                 errors.append(f"дублирующийся id узла «{node.id}»")
             nodes[node.id] = nodes.get(node.id, node)
         start = data.get("start")
-        if start not in nodes:
+        if not _is_name(start) or start not in nodes:
             errors.append(f"start «{start}» не найден среди узлов")
         for node in nodes.values():
             for target in node.targets():

@@ -6,6 +6,7 @@ import secrets
 from typing import Any
 
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Viewer
@@ -28,8 +29,18 @@ from app.services.audit import record
 from app.services.time import now_iso
 
 
-def _scalars(fields: dict[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in fields.items() if isinstance(value, (str, int, float, bool)) and key}
+def _scalars(fields: dict[str, Any], prefix: str = "", depth: int = 0) -> dict[str, Any]:
+    """Скалярные поля карточки; вложенные объекты разворачиваются в ключи `caller.status` (до 3 уровней)."""
+    found: dict[str, Any] = {}
+    for key, value in fields.items():
+        if not isinstance(key, str) or not key:
+            continue
+        name = f"{prefix}{key}"
+        if isinstance(value, dict) and depth < 2:
+            found.update(_scalars(value, f"{name}.", depth + 1))
+        elif isinstance(value, (str, int, float, bool)):
+            found[name] = value
+    return found
 
 
 def _view(record_: ScenarioRunRecord, run: ScenarioRun, *, staff: bool) -> dict[str, Any]:
@@ -79,6 +90,22 @@ async def _has_active_assignment(db: AsyncSession, scenario_id: str, version_num
     return found is not None
 
 
+async def _active_run(db: AsyncSession, scenario_id: str, version_number: int, student_id: str) -> ScenarioRunRecord | None:
+    return (
+        await db.execute(
+            select(ScenarioRunRecord)
+            .where(
+                ScenarioRunRecord.scenario_id == scenario_id,
+                ScenarioRunRecord.version == version_number,
+                ScenarioRunRecord.student_id == student_id,
+                ScenarioRunRecord.status == "waiting",
+            )
+            .order_by(ScenarioRunRecord.created_at.desc(), ScenarioRunRecord.id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+
+
 async def start_run(
     db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer
 ) -> tuple[dict[str, Any], bool]:
@@ -86,19 +113,7 @@ async def start_run(
     if viewer.role != "student":
         raise forbidden("Сценарии проходит обучающийся")
     version, graph = await _published(db, scenario_id, version_number, viewer)
-    existing = (
-        await db.execute(
-            select(ScenarioRunRecord)
-            .where(
-                ScenarioRunRecord.scenario_id == scenario_id,
-                ScenarioRunRecord.version == version_number,
-                ScenarioRunRecord.student_id == viewer.user_id,
-                ScenarioRunRecord.status == "waiting",
-            )
-            .order_by(ScenarioRunRecord.created_at.desc(), ScenarioRunRecord.id)
-            .limit(1)
-        )
-    ).scalar_one_or_none()
+    existing = await _active_run(db, scenario_id, version_number, viewer.user_id)
     if existing is not None:
         return _view(existing, ScenarioRun.from_dict(graph, existing.snapshot), staff=False), False
     engine = ScenarioEngine(graph)
@@ -106,13 +121,23 @@ async def start_run(
         run = engine.start(_scalars(dict(version.card_snapshot.get("fields") or {})))
     except LoopLimitError:
         raise conflict("Сценарий остановлен защитой от зацикливания") from None
+    except ValueError as error:
+        raise conflict(f"Карточка сценария не подходит для запуска: {error}") from None
     now = now_iso()
     row = ScenarioRunRecord(
         id=f"run-{secrets.token_hex(8)}", scenario_id=scenario_id, version=version_number,
         student_id=viewer.user_id, status=run.status, snapshot=run.to_dict(), created_at=now, updated_at=now,
     )
-    db.add(row)
-    await db.flush()
+    try:
+        async with db.begin_nested():
+            db.add(row)
+            await db.flush()
+    except IntegrityError:
+        # Параллельный старт успел раньше: отдаём его прогон (уникальный индекс на активный прогон).
+        existing = await _active_run(db, scenario_id, version_number, viewer.user_id)
+        if existing is None:
+            raise conflict("Не удалось создать прогон; повторите запрос") from None
+        return _view(existing, ScenarioRun.from_dict(graph, existing.snapshot), staff=False), False
     await record(db, action="ai.scenario.run.start", user_id=viewer.user_id, role=viewer.role,
                  details=f"Старт прогона {row.id}: {scenario_id} v{version_number}")
     return _view(row, run, staff=False), True
@@ -165,7 +190,7 @@ async def perform_action(db: AsyncSession, run_id: str, body: ScenarioRunActionR
         raise forbidden("Действия выполняет обучающийся")
     _, graph = await _published(db, row.scenario_id, row.version, viewer)
     engine, run = _restore(row, graph)
-    if body.expected_steps is not None and body.expected_steps != run.steps:
+    if body.expected_steps != run.steps:
         raise conflict("Состояние прогона изменилось; обновите его и повторите действие")
     try:
         engine.perform(run, body.action, set_facts=body.facts)

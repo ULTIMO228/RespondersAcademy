@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -127,8 +128,12 @@ async def publish_version(db: AsyncSession, scenario_id: str, body: ScenarioAppr
         raise conflict("Нельзя опубликовать версию, не прошедшую структурную проверку")
     _not_author(version, viewer, "публиковать")
     _check_graph(version)
-    await mark_approved(db, scenario, version, viewer)
-    etalon = await _load_etalon(db, version)
-    await record(db, action="ai.scenario.publish", user_id=viewer.user_id, role=viewer.role,
-                 details=f"Опубликована версия {version.version} сценария {scenario_id}; режим {version.mode}")
+    try:
+        await mark_approved(db, scenario, version, viewer)
+        etalon = await _load_etalon(db, version)
+        await record(db, action="ai.scenario.publish", user_id=viewer.user_id, role=viewer.role,
+                     details=f"Опубликована версия {version.version} сценария {scenario_id}; режим {version.mode}")
+    except DBAPIError:
+        # Параллельная публикация успела раньше: защитный триггер не даёт изменить утверждённую версию.
+        raise conflict("Версия сценария уже опубликована параллельным запросом") from None
     return _finish_request(request, scenario_version_contract(version, etalon, []))

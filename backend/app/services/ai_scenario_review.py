@@ -253,6 +253,9 @@ async def approve_scenario(
         raise conflict("Версия сценария уже утверждена")
     if version.graph is not None:
         raise conflict("Версия с графом публикуется через проверку и публикацию экспертом")
+    # Цепочка A → B (student_card) по-прежнему подтверждается преподавателем через approve из pending_review.
+    if version.approval == "rejected" or (version.approval == "pending_review" and version.source_kind != "student_card"):
+        raise conflict("Версия на проверке или отклонена экспертом: утверждение доступно только через публикацию")
     if version.validation != "passed":
         raise conflict("Нельзя утвердить сценарий до успешной структурной проверки")
     await _verify_chain_teacher(db, version, viewer)

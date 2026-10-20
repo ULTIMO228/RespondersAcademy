@@ -305,3 +305,48 @@ def test_старт_сразу_в_end_завершает_прогон_и_фак�
         ScenarioEngine(graph).start({"x": [1]})
     with pytest.raises(ValueError):
         ScenarioEngine(graph).start({"x": float("nan")})
+
+
+@pytest.mark.parametrize("start", [[], {}, ["a"], 5, None, True])
+def test_start_нестрокового_типа_отклоняется_как_граф_а_не_падает(start) -> None:
+    with pytest.raises(InvalidGraphError):
+        Graph.parse({**diamond(), "start": start})
+
+
+@pytest.mark.parametrize(
+    ("fact", "op", "value", "expected"),
+    [
+        (True, "gt", 0, False),  # bool — не число
+        ("3", "gt", 2, False),  # строка и число не сравниваются
+        (3, "gt", 2, True),
+        (2.5, "ge", 2, True),
+        (1, "lt", 1.5, True),
+        (True, "eq", 1, False),
+    ],
+)
+def test_сравнения_порядка_только_для_чисел(fact, op, value, expected) -> None:
+    graph = Graph.parse(mutate(lambda d: node(d, "route")["branches"][0].update(when={"fact": "x", "op": op, "value": value})))
+    engine = ScenarioEngine(graph)
+    run = engine.start({"x": fact})
+    engine.perform(run, "captureCaller")
+    chose = [e.data["branch"] for e in run.events if e.kind == "branch"][0]
+    assert (chose == "urgent") is expected
+
+
+def test_факты_заданные_при_старте_нельзя_перезаписать_действием() -> None:
+    engine = ScenarioEngine(Graph.parse(diamond()))
+    run = engine.start({"urgency": "high"})
+    before = copy.deepcopy(run.to_dict())
+    with pytest.raises(ValueError, match="urgency"):
+        engine.perform(run, "captureCaller", set_facts={"urgency": "low"})
+    assert run.to_dict() == before
+    engine.perform(run, "captureCaller", set_facts={"note": "ok"})
+    restored = ScenarioRun.from_dict(engine.graph, run.to_dict())
+    with pytest.raises(ValueError):
+        engine.perform(restored, "notify:103", set_facts={"urgency": "low"})  # защита переживает снимок
+
+
+@pytest.mark.parametrize("value", ["a", True, None, [1]])
+def test_порядковые_операции_требуют_числовое_значение(value) -> None:
+    with pytest.raises(InvalidGraphError):
+        Graph.parse(mutate(lambda d: node(d, "route")["branches"][0].update(when={"fact": "x", "op": "gt", "value": value})))

@@ -4,7 +4,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import DDL, Boolean, CheckConstraint, Integer, String, Text, UniqueConstraint, event, inspect
+from sqlalchemy import (
+    DDL,
+    Boolean,
+    CheckConstraint,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    event,
+    inspect,
+    text,
+)
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm.attributes import set_committed_value
@@ -299,7 +311,19 @@ class ScenarioRunRecord(Base):
     """Прогон опубликованной версии сценария обучающимся: снимок состояния детерминированного движка."""
 
     __tablename__ = "ai_scenario_runs"
-    __table_args__ = (CheckConstraint("status IN ('waiting', 'completed', 'aborted', 'faulted')", name="ck_ai_scenario_run_status"),)
+    __table_args__ = (
+        CheckConstraint("status IN ('waiting', 'completed', 'aborted', 'faulted')", name="ck_ai_scenario_run_status"),
+        # Не более одного незавершённого прогона версии на обучающегося: двойной старт не плодит дубли.
+        Index(
+            "uq_ai_scenario_run_active",
+            "student_id",
+            "scenario_id",
+            "version",
+            unique=True,
+            sqlite_where=text("status = 'waiting'"),
+            postgresql_where=text("status = 'waiting'"),
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
     scenario_id: Mapped[str] = mapped_column(String(32), index=True)

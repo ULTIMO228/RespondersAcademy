@@ -252,15 +252,15 @@ async def test_обучающийся_проходит_только_опубли
     assert "events" not in run and "facts" not in run  # маршруты и факты студенту не раскрываются
     run_id = run["runId"]
 
-    wrong = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103"})
+    wrong = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103", "expectedSteps": 1})
     assert wrong.status_code == 409 and "captureCaller" not in wrong.text  # ожидаемое действие не раскрывается
-    bad_fact = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "facts": {"x": {"a": 1}}})
+    bad_fact = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"x": {"a": 1}}})
     assert bad_fact.status_code == 400
-    step = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "facts": {"urgency": "high"}})
-    assert step.status_code == 200 and step.json()["status"] == "waiting"
-    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103"})
+    step = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "high"}})
+    assert step.status_code == 200 and step.json()["status"] == "waiting" and step.json()["steps"] == 3
+    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103", "expectedSteps": 3})
     assert done.status_code == 200 and done.json()["status"] == "completed" and done.json()["outcome"] == "completed"
-    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103"})).status_code == 409
+    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103", "expectedSteps": 4})).status_code == 409
     assert (await v1.post(f"/ai/scenario-runs/{run_id}/finish")).status_code == 409
 
     await login_as(v1, "student2")
@@ -272,7 +272,7 @@ async def test_обучающийся_проходит_только_опубли
     assert [event["kind"] for event in staff["events"]] == ["started", "action", "branch", "action", "ended"]
     assert [e["data"].get("branch") for e in staff["events"] if e["kind"] == "branch"] == ["urgent"]
     await login_as(v1, "student")
-    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "x"})).status_code == 409
+    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "x", "expectedSteps": 4})).status_code == 409
 
 
 async def test_обучающемуся_недоступны_черновики_неназначенные_и_версии_без_графа(v1: AsyncClient) -> None:
@@ -391,8 +391,8 @@ async def test_параллельные_действия_не_теряют_со�
     monkeypatch.setattr(scenario_runs, "_published", slow)
     url = f"/ai/scenario-runs/{run_id}/actions"
     responses = await asyncio.gather(
-        v1.post(url, json={"action": "captureCaller", "facts": {"urgency": "low"}}),
-        v1.post(url, json={"action": "captureCaller", "facts": {"urgency": "high"}}),
+        v1.post(url, json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "low"}}),
+        v1.post(url, json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "high"}}),
     )
     monkeypatch.undo()
     assert sorted(response.status_code for response in responses) == [200, 409], [r.text for r in responses]
@@ -409,7 +409,7 @@ async def test_завершённое_задание_закрывает_запу
         for row in (await db.execute(select(Assignment).where(Assignment.title == "t009-closed"))).scalars().all():
             row.state = "finished"
         await db.commit()
-    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller"})).status_code == 403
+    assert (await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1})).status_code == 403
     assert (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).status_code == 403
     assert (await v1.post(f"/ai/scenario-runs/{run_id}/finish")).status_code == 200
 
@@ -482,10 +482,146 @@ async def test_результат_прогона_зависит_от_факто�
     scenario_id = await prepare_published(v1, "else", assign=True)
     await login_as(v1, "student")
     run_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
-    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "facts": {"urgency": "low"}})
+    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "low"}})
     assert done.json()["status"] == "completed" and done.json()["outcome"] == "completed" and done.json()["steps"] == 3
     await login_as(v1, "admin")
     events = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()["events"]
     assert [e["data"].get("branch") for e in events if e["kind"] == "branch"] == ["routine"]
     assert [e["kind"] for e in events] == ["started", "action", "branch", "ended"]
     assert events[1]["data"] == {"action": "captureCaller", "set": {"urgency": "low"}}
+
+
+DOUBLE_ASK = {
+    "schemaVersion": "scenario-graph/1",
+    "start": "n1",
+    "nodes": [
+        {"id": "n1", "type": "action", "action": "askAddress", "next": "n2"},
+        {"id": "n2", "type": "action", "action": "askAddress", "next": "n3"},
+        {"id": "n3", "type": "end", "outcome": "completed"},
+    ],
+}
+
+
+async def prepare_with_graph(v1: AsyncClient, tag: str, graph: dict[str, Any]) -> str:
+    await seed_source(f"t009-builder-{tag}")
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=manual_body(f"t009-builder-{tag}", f"t009-{tag}-c", graph=graph))
+    assert created.status_code == 201, created.text
+    scenario_id = created.json()["scenarioId"]
+    await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": f"t009-{tag}-s"})
+    await login_as(v1, "admin")
+    await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": f"t009-{tag}-r"})
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 1, "requestId": f"t009-{tag}-p"})).status_code == 200
+    card_id = (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()["cardSnapshot"]["id"]
+    await login_as(v1, "teacher")
+    assert (await v1.post("/assignments", json={"trainingMode": "operator112", "format": "training", "studentIds": [await user_id("ivanov")], "cardIds": [card_id], "scenarioVersions": [{"scenarioId": scenario_id, "version": 1, "cardId": card_id}], "title": f"t009-{tag}"})).status_code == 201
+    await login_as(v1, "student")
+    return scenario_id
+
+
+async def test_повтор_действия_с_тем_же_ожиданием_шагов_не_продвигает_прогон_дважды(v1: AsyncClient) -> None:
+    scenario_id = await prepare_with_graph(v1, "dup", DOUBLE_ASK)
+    run = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
+    url = f"/ai/scenario-runs/{run['runId']}/actions"
+    assert (await v1.post(url, json={"action": "askAddress"})).status_code == 400  # expectedSteps обязателен
+    body = {"action": "askAddress", "expectedSteps": run["steps"]}
+    first = await v1.post(url, json=body)
+    assert first.status_code == 200 and first.json()["status"] == "waiting"
+    retry = await v1.post(url, json=body)  # повтор после таймаута клиента
+    assert retry.status_code == 409
+    second = await v1.post(url, json={"action": "askAddress", "expectedSteps": first.json()["steps"]})
+    assert second.status_code == 200 and second.json()["status"] == "completed"
+
+
+async def test_параллельный_старт_упирается_в_уникальный_индекс_и_возвращает_активный_прогон(v1: AsyncClient, monkeypatch) -> None:
+    from app.services import scenario_runs
+
+    scenario_id = await prepare_published(v1, "pstart", assign=True)
+    await login_as(v1, "student")
+    path = f"/ai/scenarios/{scenario_id}/versions/1/runs"
+    first = await v1.post(path)
+    assert first.status_code == 201
+    real = scenario_runs._active_run
+    calls = {"n": 0}
+
+    async def stale_first_read(*args, **kwargs):
+        calls["n"] += 1
+        return None if calls["n"] == 1 else await real(*args, **kwargs)  # параллельный запрос ещё не видел прогон
+
+    monkeypatch.setattr(scenario_runs, "_active_run", stale_first_read)
+    second = await v1.post(path)
+    monkeypatch.undo()
+    assert second.status_code == 200 and second.json()["runId"] == first.json()["runId"], second.text
+    async with get_sessionmaker()() as db:
+        assert len((await db.execute(select(ScenarioRunRecord))).scalars().all()) == 1
+
+
+async def test_отклонённую_или_проверяемую_версию_нельзя_утвердить_старым_approve(v1: AsyncClient) -> None:
+    source_id = "t009-builder-bypass"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-bypass-create"))
+    scenario_id = created.json()["scenarioId"]
+    approve = {"version": 1, "requestId": "t009-bypass-approve"}
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": "t009-bypass-submit"})).status_code == 200
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/approve", json=approve)).status_code == 409  # на проверке
+    await login_as(v1, "admin")
+    rejected = await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "reject", "comment": "   ", "requestId": "t009-bypass-r0"})
+    assert rejected.status_code == 400  # пробелы вместо комментария не принимаются
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "reject", "comment": "Нет", "requestId": "t009-bypass-r1"})).status_code == 200
+    await login_as(v1, "teacher")
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/approve", json={**approve, "requestId": "t009-bypass-approve2"})).status_code == 409  # отклонена
+
+
+async def test_граф_с_нехешируемым_start_даёт_400_а_не_500(v1: AsyncClient) -> None:
+    await seed_source("t009-builder-badstart")
+    await login_as(v1, "teacher")
+    for index, start in enumerate(([], {}, ["a"], 5, None)):
+        response = await v1.post("/ai/scenarios", json=manual_body("t009-builder-badstart", f"t009-badstart-{index}", graph={**GRAPH, "start": start}))
+        assert response.status_code == 400, (start, response.text)
+
+
+async def test_вложенные_поля_карточки_доступны_условиям_и_не_перезаписываются_студентом(v1: AsyncClient) -> None:
+    graph = {
+        "schemaVersion": "scenario-graph/1",
+        "start": "a",
+        "nodes": [
+            {"id": "a", "type": "action", "action": "ask", "next": "c"},
+            {"id": "c", "type": "condition", "branches": [{"name": "witness", "when": {"fact": "caller.status", "op": "eq", "value": "очевидец"}, "next": "w"}], "else": {"name": "other", "next": "o"}},
+            {"id": "w", "type": "end", "outcome": "witness"},
+            {"id": "o", "type": "end", "outcome": "other"},
+        ],
+    }
+    scenario_id = await prepare_with_graph(v1, "nested", graph)
+    run = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
+    url = f"/ai/scenario-runs/{run['runId']}/actions"
+    forged = await v1.post(url, json={"action": "ask", "expectedSteps": run["steps"], "facts": {"caller.status": "другое"}})
+    assert forged.status_code == 400  # факт карточки задан эталоном и не меняется студентом
+    done = await v1.post(url, json={"action": "ask", "expectedSteps": run["steps"], "facts": {"note": "ok"}})
+    assert done.json()["outcome"] == "witness"
+
+
+async def test_параллельная_публикация_даёт_один_успех_и_409(v1: AsyncClient, monkeypatch) -> None:
+    import asyncio
+
+    from app.services import scenario_workflow
+
+    scenario_id = await create_draft(v1, "t009-builder-ppub", "ppub")
+    await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": "t009-ppub-s"})
+    await login_as(v1, "admin")
+    await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": "t009-ppub-r"})
+    real = scenario_workflow._load_current
+
+    async def slow(*args, **kwargs):
+        result = await real(*args, **kwargs)
+        await asyncio.sleep(0.05)
+        return result
+
+    monkeypatch.setattr(scenario_workflow, "_load_current", slow)
+    url = f"/ai/scenarios/{scenario_id}/publish"
+    responses = await asyncio.gather(
+        v1.post(url, json={"version": 1, "requestId": "t009-ppub-1"}),
+        v1.post(url, json={"version": 1, "requestId": "t009-ppub-2"}),
+    )
+    monkeypatch.undo()
+    assert sorted(r.status_code for r in responses) == [200, 409], [r.text for r in responses]
