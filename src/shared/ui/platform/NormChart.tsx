@@ -21,6 +21,8 @@ const WIDTH = 640;
 const HEIGHT = 220;
 const PAD = { left: 44, right: 16, top: 16, bottom: 30 };
 const GRID_STEPS = 4;
+/** Не больше стольких подписей по оси X: остальные пропускаются, чтобы не слипались. */
+const MAX_X_LABELS = 8;
 
 function niceMax(value: number): number {
   if (value <= 0) return 10;
@@ -50,6 +52,7 @@ export function NormChart({
   const slot = values.length > 0 ? plotW / values.length : plotW;
   const x = (index: number) => PAD.left + slot * index + slot / 2;
   const gridValues = Array.from({ length: GRID_STEPS + 1 }, (_, index) => (max / GRID_STEPS) * index);
+  const labelStep = Math.max(1, Math.ceil(labels.length / MAX_X_LABELS));
   const swatch = tone === "reaction" ? styles["chart__swatch--reaction"] : "";
   return (
     <figure className={styles.chart}>
@@ -129,17 +132,19 @@ export function NormChart({
             </rect>
           ))
         )}
-        {labels.map((label, index) => (
-          <text
-            key={`${label}-${index}`}
-            className={styles.chart__text}
-            x={x(index)}
-            y={HEIGHT - 8}
-            textAnchor="middle"
-          >
-            {label}
-          </text>
-        ))}
+        {labels.map((label, index) =>
+          index % labelStep === 0 ? (
+            <text
+              key={`${label}-${index}`}
+              className={styles.chart__text}
+              x={x(index)}
+              y={HEIGHT - 8}
+              textAnchor="middle"
+            >
+              {label}
+            </text>
+          ) : null,
+        )}
       </svg>
       <details className={styles.chart__details} open={tableOpen}>
         <summary className={styles.chart__summary}>Данные графика (таблица)</summary>
