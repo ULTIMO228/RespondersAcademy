@@ -442,3 +442,154 @@ async def test_cloud_probe_while_local_active_leaves_health_alone(v1, monkeypatc
     after = (await v1.get("/ai/health")).json()
     assert after["state"] == "ok" and after["servedBy"] == "local"
     assert after["lastOkAt"] == before["lastOkAt"] and after["lastErrorAt"] == before["lastErrorAt"]
+
+
+class BrokenLocal:
+    provider = "llamacpp:qwen-local"
+
+    def healthy(self) -> bool:
+        raise RuntimeError("проверка локальной модели упала")
+
+
+class SlowLocal(FakeLocal):
+    def healthy(self) -> bool:
+        time.sleep(1.5)
+        return True
+
+
+class TimeoutSpy(CloudSpy):
+    """Облако не отвечает: httpx поднимает таймаут чтения, как при зависшем провайдере."""
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        self.requests.append(request)
+        raise httpx.ReadTimeout("облако не ответило", request=request)
+
+
+async def _seed_cloud_selected_with_good_history(v1) -> None:
+    assert (await v1.put(SETTINGS, json={"source": "cloud", "apiKey": SAVED})).status_code == 200
+    await _seed_health(active_source="cloud", served_by_last="cloud", last_ok_at=dt.datetime(2026, 10, 20, 9, 0, tzinfo=dt.UTC))
+
+
+@pytest.mark.asyncio
+async def test_cloud_failure_with_live_local_model_is_degraded(v1, monkeypatch):
+    """Сбой облака при живой локальной модели: state=degraded, servedBy=local (как у обычного вызова, complete_json).
+
+    Локальную модель только проверяем (health-check), ответа на пробу не запрашиваем.
+    """
+    spy = _cloud(monkeypatch, allowed=True, spy=CloudSpy(status=401, body={"error": "x"}))
+    local = FakeLocal()
+    monkeypatch.setattr(llm, "configured_client", lambda: local)
+    await login_as(v1, "admin")
+    await _seed_cloud_selected_with_good_history(v1)
+
+    response = await v1.post(ROUTE, json={"source": "cloud"})
+
+    assert response.status_code == 200 and response.json() == {
+        "ok": False,
+        "latencyMs": response.json()["latencyMs"],
+        "route": None,
+        "reason": "invalid_key",
+    }
+    assert len(spy.requests) == 1 and local.calls == 0
+    health = (await v1.get("/ai/health")).json()
+    assert health["state"] == "degraded" and health["servedBy"] == "local" and health["activeSource"] == "cloud"
+    assert health["reason"] == "invalid_key" and isinstance(health["lastErrorAt"], str)
+    assert health["errorsToday"] == 1 and health["callsToday"] == 1  # квота пробы учтена однократно
+    assert (SAVED in json.dumps(health)) is False and (KEY in json.dumps(health)) is False
+    audit = (await _external_audit())[-1].details
+    assert "результат invalid_key" in audit and "ответила локальная модель" in audit and (SAVED in audit) is False
+    # парный: восстановившееся облако снова даёт ok и записывает servedBy=cloud
+    spy.status, spy.body = 200, CloudSpy().body
+    assert (await v1.post(ROUTE, json={"source": "cloud"})).json()["ok"] is True
+    recovered = (await v1.get("/ai/health")).json()
+    assert recovered["state"] == "ok" and recovered["servedBy"] == "cloud"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "local",
+    [None, FakeLocal(healthy=False), BrokenLocal()],
+    ids=["not-configured", "unhealthy", "health-check-raises"],
+)
+async def test_cloud_failure_with_dead_local_model_is_down(v1, monkeypatch, local):
+    """Сбой облака и локальная модель недоступна (не настроена, нездорова или проверка упала): down, servedBy=template."""
+    spy = _cloud(monkeypatch, allowed=True, spy=CloudSpy(status=429, body={"error": "x"}))
+    monkeypatch.setattr(llm, "configured_client", lambda: local)
+    await login_as(v1, "admin")
+    await _seed_cloud_selected_with_good_history(v1)
+
+    response = await v1.post(ROUTE, json={"source": "cloud"})
+
+    assert response.status_code == 200 and response.json()["reason"] == "rate_limited"
+    assert len(spy.requests) == 1
+    health = (await v1.get("/ai/health")).json()
+    assert health["state"] == "down" and health["servedBy"] == "template" and health["reason"] == "rate_limited"
+    assert health["errorsToday"] == 1 and health["callsToday"] == 1
+
+
+@pytest.mark.asyncio
+async def test_local_check_is_bounded_by_short_timeout(v1, monkeypatch):
+    """Медленная проверка локальной модели не продлевает пробу: по таймауту проверки модель считается недоступной."""
+    _cloud(monkeypatch, allowed=True, spy=CloudSpy(status=401, body={"error": "x"}))
+    monkeypatch.setattr(llm, "configured_client", lambda: SlowLocal())
+    monkeypatch.setattr(ai_settings_api, "LOCAL_CHECK_TIMEOUT_SEC", 0.2)
+    await login_as(v1, "admin")
+    await _seed_cloud_selected_with_good_history(v1)
+
+    started = time.perf_counter()
+    response = await v1.post(ROUTE, json={"source": "cloud"})
+
+    assert time.perf_counter() - started < 1.2
+    assert response.status_code == 200 and response.json()["reason"] == "invalid_key"
+    health = (await v1.get("/ai/health")).json()
+    assert health["state"] == "down" and health["servedBy"] == "template"
+
+
+@pytest.mark.asyncio
+async def test_cloud_timeout_with_live_local_model_is_degraded(v1, monkeypatch):
+    """Зависшее облако (таймаут) при живой локальной модели — тот же исход, что и у быстрого сбоя: degraded."""
+    spy = _cloud(monkeypatch, allowed=True, spy=TimeoutSpy())
+    monkeypatch.setattr(llm, "configured_client", lambda: FakeLocal())
+    await login_as(v1, "admin")
+    await _seed_cloud_selected_with_good_history(v1)
+
+    response = await v1.post(ROUTE, json={"source": "cloud"})
+
+    assert response.status_code == 200 and response.json()["reason"] == "timeout"
+    assert len(spy.requests) == 1
+    health = (await v1.get("/ai/health")).json()
+    assert health["state"] == "degraded" and health["servedBy"] == "local" and health["reason"] == "timeout"
+
+
+@pytest.mark.asyncio
+async def test_typed_key_probe_with_live_local_model_changes_no_health(v1, monkeypatch):
+    """Проба введённым, несохранённым ключом не пишет исход даже при живой локальной модели (не degraded)."""
+    _cloud(monkeypatch, allowed=True, spy=CloudSpy(status=401, body={"error": "x"}))
+    monkeypatch.setattr(llm, "configured_client", lambda: FakeLocal())
+    await login_as(v1, "admin")
+    await _seed_cloud_selected_with_good_history(v1)
+    before = (await v1.get("/ai/health")).json()
+
+    response = await v1.post(ROUTE, json={"source": "cloud", "apiKey": KEY})
+
+    assert response.status_code == 200 and response.json()["reason"] == "invalid_key"
+    after = (await v1.get("/ai/health")).json()
+    assert after["callsToday"] == before["callsToday"] + 1  # квота пробы учтена однократно, как и раньше
+    assert {k: v for k, v in after.items() if k != "callsToday"} == {k: v for k, v in before.items() if k != "callsToday"}
+    assert after["state"] == "ok" and after["servedBy"] == "cloud" and after["errorsToday"] == 0
+    assert (KEY in json.dumps(after)) is False
+
+
+@pytest.mark.asyncio
+async def test_cloud_success_with_live_local_model_keeps_cloud_served(v1, monkeypatch):
+    """Успех облака: локальная модель не записывается как ответившая (state ok, servedBy=cloud)."""
+    _cloud(monkeypatch, allowed=True)
+    monkeypatch.setattr(llm, "configured_client", lambda: FakeLocal())
+    await login_as(v1, "admin")
+    await _seed_cloud_selected_with_good_history(v1)
+
+    response = await v1.post(ROUTE, json={"source": "cloud"})
+
+    assert response.status_code == 200 and response.json()["ok"] is True
+    health = (await v1.get("/ai/health")).json()
+    assert health["state"] == "ok" and health["servedBy"] == "cloud" and health["reason"] is None

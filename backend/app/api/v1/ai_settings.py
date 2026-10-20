@@ -38,6 +38,8 @@ admin_or_teacher = require_role("admin", "teacher")
 
 NO_STORE = "no-store"
 PROBE_TIMEOUT_SEC = 15.0  # SC-008: проба укладывается в 15 с
+# Проверка локальной модели при сбое облака: короче дедлайна пробы; сбой или таймаут самой проверки = недоступна.
+LOCAL_CHECK_TIMEOUT_SEC = 2.0
 MAX_KEY_LENGTH = 512
 # FR-014: функции, которые уходят в облако при активном облачном источнике (диалог звонящего сюда не входит).
 CLOUD_FUNCTIONS = [
@@ -173,28 +175,58 @@ def _probe_cloud(
     return result, sent, client.cloud_reserved
 
 
-async def _record_cloud_probe(db: AsyncSession, viewer: Viewer, result: str, *, sent: bool, reserved: bool) -> None:
+def _local_provider() -> str | None:
+    """Провайдер локальной модели, если она отвечает на health-check; та же проверка, что у `complete_json`."""
+    client = llm.configured_client()
+    return client.provider if client is not None and client.healthy() else None
+
+
+async def _check_local_model() -> str | None:
+    """Проверка локальной модели с коротким таймаутом; ошибка или таймаут самой проверки = модель недоступна."""
+    try:
+        return await asyncio.wait_for(asyncio.to_thread(_local_provider), timeout=LOCAL_CHECK_TIMEOUT_SEC)
+    except Exception:  # noqa: BLE001 — сбой проверки не роняет пробу; исход — локальная модель недоступна
+        return None
+
+
+async def _record_cloud_probe(
+    db: AsyncSession, viewer: Viewer, result: str, *, sent: bool, reserved: bool, local_check: asyncio.Task[str | None]
+) -> None:
     """Исход облачной пробы — в `ai_health` тем же путём, что и обычные вызовы (`ai_health_service.record_outcomes`).
 
-    Успех: облако ответило — `served_by=cloud`, `last_ok_at=now`, прошлая причина сбоя не стирается. Неудача: причина
-    из enum; запасной путь пробой не проверяется, поэтому `served_by=template` (облако не ответило, ответа нет).
+    Успех: облако ответило — `served_by=cloud`, `last_ok_at=now`, прошлая причина сбоя не стирается.
+    Неудача: причина из enum; если локальная модель отвечает на health-check, как при обычном сбое облака
+    (`complete_json`), — `served_by=local`, state `degraded`; иначе `served_by=template`, state `down`.
     Квота пробы уже зарезервирована до HTTP, поэтому `cloud_sent and not cloud_reserved` не даёт второго списания.
     Вызывается только для выбранного облака и сохранённого ключа: состояние описывает настроенный источник, а не
     пробу до сохранения или с другим ключом.
     """
-    ok = result == "ok"
-    outcome = llm.LlmOutcome(
-        data=None,
-        source="cloud" if ok else "template",
-        provider=llm.CLOUD_PROVIDER,
-        reason=None if ok else cast(llm.Reason, result),
-        purpose=PROBE_PURPOSE,
-        active_source="cloud",
-        request_chars=len(PROBE_SYSTEM) + len(PROBE_USER),
-        cloud_result=result,
-        cloud_sent=sent,
-        cloud_reserved=reserved,
-    )
+    common = {
+        "purpose": PROBE_PURPOSE,
+        "active_source": "cloud",
+        "request_chars": len(PROBE_SYSTEM) + len(PROBE_USER),
+        "cloud_result": result,
+        "cloud_sent": sent,
+        "cloud_reserved": reserved,
+    }
+    if result == "ok":
+        local_check.cancel()  # облако ответило: проверка локальной модели не нужна
+        outcome = llm.LlmOutcome(data=None, source="cloud", provider=llm.CLOUD_PROVIDER, reason=None, **common)
+    else:
+        local_provider = await local_check
+        if local_provider is not None:
+            outcome = llm.LlmOutcome(
+                data=None, source="local", provider=local_provider, reason=cast(llm.Reason, result), **common
+            )
+        else:
+            outcome = llm.LlmOutcome(
+                data=None,
+                source="template",
+                provider=None,
+                reason=cast(llm.Reason, result),
+                fallback_reason="local_down",
+                **common,
+            )
     await ai_health_service.record_outcomes(db, [outcome], viewer)
 
 
@@ -224,6 +256,11 @@ async def test_ai_connection(
     await db.rollback()
     started = time.perf_counter()
     sent = reserved = False
+    # Исход облачной пробы пишется только для выбранного облака и сохранённого ключа (см. `_record_cloud_probe`).
+    records_cloud = body.source == "cloud" and effective.source == "cloud" and not typed_key
+    # Локальную модель проверяем параллельно с облаком: при сбое облака её исход уже готов, а при зависшем облаке
+    # (таймаут на весь дедлайн) последовательная проверка не уложилась бы в дедлайн SC-008.
+    local_check = asyncio.create_task(_check_local_model()) if records_cloud else None
     if body.source == "cloud":
         if not ai_settings_service.cloud_allowed() or llm.build_cloud_payload(PROBE_SYSTEM, PROBE_USER, PROBE_SCHEMA, max_tokens=16) is None:
             result = "wrong_route"
@@ -264,8 +301,8 @@ async def test_ai_connection(
     ok = result == "ok"
     if not ok:
         logger.warning("ai_probe_failed source=%s reason=%s latency_ms=%d", body.source, result, latency)
-    if body.source == "cloud" and effective.source == "cloud" and not typed_key:
-        await _record_cloud_probe(db, viewer, result, sent=sent, reserved=reserved)
+    if local_check is not None:
+        await _record_cloud_probe(db, viewer, result, sent=sent, reserved=reserved, local_check=local_check)
     await audit.record(
         db,
         action="ai.connection_test",
