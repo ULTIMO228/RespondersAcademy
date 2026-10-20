@@ -14,11 +14,13 @@ from app.schemas.v1.ai import (
     ScenarioApproveRequest,
     ScenarioDraftRequest,
     ScenarioManualCreateRequest,
+    ScenarioReviewRequest,
     ScenarioReviseRequest,
 )
 from app.services.ai_scenario_review import approve_scenario, revise_scenario, versions_for_teacher
 from app.services.ai_scenario_service import create_manual_draft, list_scenarios, read_version
 from app.services.scenario_service import create_ai_drafts
+from app.services.scenario_workflow import publish_version, review_version, submit_for_review
 
 router = APIRouter(prefix="/ai/scenarios", tags=["AI scenarios"])
 
@@ -26,10 +28,11 @@ router = APIRouter(prefix="/ai/scenarios", tags=["AI scenarios"])
 @router.get("")
 async def list_(
     mode: str | None = None,
+    approval: str | None = None,
     db: AsyncSession = Depends(get_db),
     viewer: Viewer = Depends(require_viewer),
 ) -> list[dict[str, Any]]:
-    return await list_scenarios(db, viewer, mode)
+    return await list_scenarios(db, viewer, mode, approval)
 
 
 @router.post("", status_code=201)
@@ -95,5 +98,41 @@ async def versions(
     viewer: Viewer = Depends(require_viewer),
 ) -> list[dict[str, Any]]:
     result = await versions_for_teacher(db, scenario_id, viewer)
+    await db.commit()
+    return result
+
+
+@router.post("/{scenario_id}/submit")
+async def submit(
+    scenario_id: str,
+    body: ScenarioApproveRequest,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> dict[str, Any]:
+    result = await submit_for_review(db, scenario_id, body, viewer)
+    await db.commit()
+    return result
+
+
+@router.post("/{scenario_id}/review")
+async def review(
+    scenario_id: str,
+    body: ScenarioReviewRequest,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> dict[str, Any]:
+    result = await review_version(db, scenario_id, body, viewer)
+    await db.commit()
+    return result
+
+
+@router.post("/{scenario_id}/publish")
+async def publish(
+    scenario_id: str,
+    body: ScenarioApproveRequest,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> dict[str, Any]:
+    result = await publish_version(db, scenario_id, body, viewer)
     await db.commit()
     return result

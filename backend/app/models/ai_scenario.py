@@ -85,6 +85,9 @@ class ScenarioVersion(Base):
     etalon_version: Mapped[str] = mapped_column(String(64), index=True)
     rule_source_ids: Mapped[list[str]] = mapped_column(JSONVariant, default=list)
     approved_by: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    graph: Mapped[dict[str, Any] | None] = mapped_column(JSONVariant, nullable=True)
+    reviewed_by: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    review_comment: Mapped[str | None] = mapped_column(String(2000), nullable=True)
 
     @property
     def available_for_training(self) -> bool:
@@ -117,12 +120,19 @@ def _freeze_approved_rule_sources(target: ScenarioVersion, value: Any, old_value
     return _freeze_json(value) if target.approval == APPROVED_SCENARIO else value
 
 
+@event.listens_for(ScenarioVersion.graph, "set", retval=True)
+def _freeze_approved_graph(target: ScenarioVersion, value: Any, old_value: Any, initiator: object) -> Any:
+    del old_value, initiator
+    return _freeze_json(value) if target.approval == APPROVED_SCENARIO else value
+
+
 @event.listens_for(ScenarioVersion, "load")
 def _freeze_loaded_approved_scenario(target: ScenarioVersion, context: object) -> None:
     del context
     if target.approval == APPROVED_SCENARIO:
         set_committed_value(target, "card_snapshot", _freeze_json(target.card_snapshot))
         set_committed_value(target, "rule_source_ids", _freeze_json(target.rule_source_ids))
+        set_committed_value(target, "graph", _freeze_json(target.graph))
 
 
 @event.listens_for(ScenarioVersion.approval, "set", retval=True)
@@ -132,6 +142,7 @@ def _freeze_scenario_on_approval(target: ScenarioVersion, value: str, old_value:
         # Keep SQLAlchemy's old/new history so edits made in the same flush are persisted.
         target.card_snapshot = _freeze_json(target.card_snapshot)
         target.rule_source_ids = _freeze_json(target.rule_source_ids)
+        target.graph = _freeze_json(target.graph)
     return value
 
 
@@ -282,3 +293,19 @@ class AIRequest(Base):
     request_id: Mapped[str] = mapped_column(String(128))
     request_hash: Mapped[str] = mapped_column(String(64))
     response: Mapped[Any | None] = mapped_column(JSONVariant, nullable=True)
+
+
+class ScenarioRunRecord(Base):
+    """Прогон опубликованной версии сценария обучающимся: снимок состояния детерминированного движка."""
+
+    __tablename__ = "ai_scenario_runs"
+    __table_args__ = (CheckConstraint("status IN ('waiting', 'completed', 'aborted', 'faulted')", name="ck_ai_scenario_run_status"),)
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    scenario_id: Mapped[str] = mapped_column(String(32), index=True)
+    version: Mapped[int] = mapped_column(Integer)
+    student_id: Mapped[str] = mapped_column(String(16), index=True)
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONVariant)
+    created_at: Mapped[str] = mapped_column(String(32))
+    updated_at: Mapped[str] = mapped_column(String(32))

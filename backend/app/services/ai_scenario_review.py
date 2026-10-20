@@ -82,6 +82,10 @@ async def revise_scenario(
     if base.approval == "approved":
         raise conflict("Утверждённая версия неизменяема; создайте новую версию от актуального черновика")
 
+    if body.graph is not None:
+        ai_scenario_service.checked_graph(body.graph)
+    new_graph = body.graph if body.graph is not None else base.graph
+    new_graph = ai_scenario_service.thaw(new_graph) if new_graph is not None else None
     fields = dict(base.card_snapshot.get("fields") or {})
     seen: set[str] = set()
     decisions: list[tuple[str, str, Any | None]] = []
@@ -161,6 +165,7 @@ async def revise_scenario(
         card_snapshot={"id": base.card_snapshot["id"], "fields": fields},
         etalon_version=new_etalon_id,
         rule_source_ids=list(new_etalon.rule_source_ids or []),
+        graph=new_graph,
     )
     db.add(version)
     now = now_iso()
@@ -237,6 +242,8 @@ async def approve_scenario(
     version = await _load_version(db, scenario_id, body.version)
     if version.approval == "approved":
         raise conflict("Версия сценария уже утверждена")
+    if version.graph is not None:
+        raise conflict("Версия с графом публикуется через проверку и публикацию экспертом")
     if version.validation != "passed":
         raise conflict("Нельзя утвердить сценарий до успешной структурной проверки")
     await _verify_chain_teacher(db, version, viewer)
@@ -270,6 +277,7 @@ async def versions_for_teacher(
     scenario_id: str,
     viewer: Viewer,
 ) -> list[dict[str, Any]]:
-    _require_teacher(viewer)
-    await ai_scenario_service.require_scenario_access(db, scenario_id, viewer)
+    if viewer.role not in ("teacher", "admin"):
+        raise forbidden("Операции с версиями доступны преподавателю или администратору")
+    await ai_scenario_service.require_read_access(db, scenario_id, viewer)
     return await ai_scenario_service.list_versions(db, scenario_id)

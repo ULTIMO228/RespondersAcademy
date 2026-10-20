@@ -28,8 +28,10 @@ from app.models.card import Address, IncidentCard
 from app.models.classifier import ClassifierEntry
 from app.models.scenario import Scenario
 from app.models.teacher import ProfileMappingRow
+from app.scenario_runtime import Graph, InvalidGraphError
 from app.schemas.v1.ai import ScenarioDraftRequest, ScenarioManualCreateRequest
 from app.services import reference as reference_service
+from app.services import scenario_access
 from app.services.audit import record
 from app.services.external_ai_audit import flush_external_calls
 from app.services.time import now_iso
@@ -39,6 +41,19 @@ from ml.generate import llm, scenario_generator, validator
 SOURCE_TICKET_NUMBER = re.compile(r"(\d+)$")
 SERVICE_NUMBER = re.compile(r"\b10[1-4]\b")
 EDITABLE_PATH_SEGMENT = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+
+
+def thaw(value: Any) -> Any:
+    """Возвращает обычные dict/list из замороженных снимков утверждённых версий."""
+    return json.loads(json.dumps(value))
+
+
+def checked_graph(raw: Any) -> Graph:
+    """Разбирает граф сценария; любая ошибка структуры — 400 со списком причин."""
+    try:
+        return Graph.parse(thaw(raw))
+    except InvalidGraphError as error:
+        raise validation_failed("Граф сценария некорректен: " + "; ".join(error.errors)) from None
 
 
 def _request_hash(payload: dict[str, Any]) -> str:
@@ -151,6 +166,9 @@ def scenario_version_contract(
         ("parentVersion", version.parent_version),
         ("teacherComment", version.teacher_comment),
         ("approvedBy", version.approved_by),
+        ("reviewedBy", version.reviewed_by),
+        ("reviewComment", version.review_comment),
+        ("graph", version.graph),
     ):
         if value is not None:
             doc[key] = value
@@ -349,6 +367,7 @@ async def _save_draft(
     *,
     source_kind: str | None = None,
     scenario_source: str = "generated",
+    graph: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     scenario_doc = dict(item.get("scenario") or {})
     tickets = item.get("cards") or []
@@ -459,6 +478,7 @@ async def _save_draft(
         card_snapshot={"id": card_id, "fields": _serialize_card(card_row)},
         etalon_version=etalon_id,
         rule_source_ids=rule_source_ids,
+        graph=graph,
     )
     db.add(version)
     scenario.validation_report = {"version": "ai-workflow/1", "passed": passed, "errors": errors}
@@ -583,6 +603,8 @@ async def create_manual_draft(db: AsyncSession, body: ScenarioManualCreateReques
     if request is None:
         return replay
 
+    if body.graph is not None:
+        checked_graph(body.graph)
     source = await _load_source(db, body.source_ticket_id)
     classifier_rows = (await db.execute(select(ClassifierEntry).order_by(ClassifierEntry.code))).scalars().all()
     classifier_entries = [row.to_contract() for row in classifier_rows]
@@ -607,6 +629,7 @@ async def create_manual_draft(db: AsyncSession, body: ScenarioManualCreateReques
         _address_allowlist(addresses),
         source_kind="ticket",
         scenario_source="manual",
+        graph=thaw(body.graph) if body.graph is not None else None,
     )
     await record(
         db,
@@ -618,8 +641,18 @@ async def create_manual_draft(db: AsyncSession, body: ScenarioManualCreateReques
     return _finish_request(request, result)
 
 
+async def require_read_access(db: AsyncSession, scenario_id: str, viewer: Viewer) -> Scenario:
+    """Автор и администратор — как раньше; эксперт с правами проверки/публикации читает любые сценарии."""
+    if await scenario_access.user_permissions(db, viewer):
+        scenario = await db.get(Scenario, scenario_id)
+        if scenario is None or scenario.deleted:
+            raise not_found(f"Сценарий «{scenario_id}» не найден")
+        return scenario
+    return await require_scenario_access(db, scenario_id, viewer)
+
+
 async def read_version(db: AsyncSession, scenario_id: str, version_number: int, viewer: Viewer) -> dict[str, Any]:
-    await require_scenario_access(db, scenario_id, viewer)
+    await require_read_access(db, scenario_id, viewer)
     version = await db.get(ScenarioVersion, (scenario_id, version_number))
     if version is None:
         raise not_found(f"Версия {version_number} сценария «{scenario_id}» не найдена")
@@ -636,12 +669,17 @@ async def read_version(db: AsyncSession, scenario_id: str, version_number: int, 
     return scenario_version_contract(version, etalon, list(decisions))
 
 
-async def list_scenarios(db: AsyncSession, viewer: Viewer, mode: str | None) -> list[dict[str, Any]]:
+async def list_scenarios(
+    db: AsyncSession, viewer: Viewer, mode: str | None, approval: str | None = None
+) -> list[dict[str, Any]]:
     """Сводка по последней версии каждого AI-сценария; преподаватель видит свои, администратор — все."""
     if viewer.role not in ("teacher", "admin"):
         raise forbidden("Список сценариев доступен только преподавателю или администратору")
     if mode is not None and mode not in ("operator112", "dds"):
         raise validation_failed("mode должен быть operator112 или dds")
+    if approval is not None and approval not in ("draft", "validation_failed", "pending_review", "approved", "rejected"):
+        raise validation_failed("approval имеет недопустимое значение")
+    expert = bool(await scenario_access.user_permissions(db, viewer)) and viewer.role == "teacher"
     query = select(ScenarioVersion).order_by(ScenarioVersion.scenario_id, ScenarioVersion.version)
     if mode is not None:
         query = query.where(ScenarioVersion.mode == mode)
@@ -660,7 +698,9 @@ async def list_scenarios(db: AsyncSession, viewer: Viewer, mode: str | None) -> 
         scenario = scenarios.get(scenario_id)
         if scenario is None:
             continue
-        if viewer.role == "teacher" and viewer.user_id not in owners[scenario_id] and scenario.created_by not in (None, viewer.user_id):
+        if approval is not None and version.approval != approval:
+            continue
+        if viewer.role == "teacher" and not expert and viewer.user_id not in owners[scenario_id] and scenario.created_by not in (None, viewer.user_id):
             continue
         result.append(
             {
@@ -671,6 +711,7 @@ async def list_scenarios(db: AsyncSession, viewer: Viewer, mode: str | None) -> 
                 "approval": version.approval,
                 "validation": version.validation,
                 "sourceKind": version.source_kind,
+                "hasGraph": version.graph is not None,
                 "updatedAt": scenario.updated_at,
             }
         )

@@ -58,6 +58,7 @@ class ScenarioManualCreateRequest(StrictAIContractModel):
     title: Annotated[str, Field(min_length=1, max_length=200)] | None = None
     summary: Annotated[str, Field(min_length=1, max_length=2000)]
     address: Annotated[str, Field(min_length=1, max_length=300)] | None = None
+    graph: dict[str, object] | None = None
     request_id: RequestId
 
 
@@ -78,13 +79,51 @@ class ScenarioFieldDecisionRequest(StrictAIContractModel):
 class ScenarioReviseRequest(StrictAIContractModel):
     base_version: PositiveVersion
     comment: Annotated[str, Field(max_length=2000)] = ""
-    accepted_fields: list[ScenarioFieldDecisionRequest] = Field(min_length=1, max_length=64)
+    accepted_fields: list[ScenarioFieldDecisionRequest] = Field(default_factory=list, max_length=64)
+    graph: dict[str, object] | None = None
     request_id: RequestId
+
+    @model_validator(mode="after")
+    def _check_has_changes(self) -> Self:
+        if not self.accepted_fields and self.graph is None:
+            raise ValueError("Укажите acceptedFields или graph")
+        return self
 
 
 class ScenarioApproveRequest(StrictAIContractModel):
     version: PositiveVersion
     request_id: RequestId
+
+
+class ScenarioReviewRequest(StrictAIContractModel):
+    version: PositiveVersion
+    decision: Literal["accept", "reject"]
+    comment: Annotated[str, Field(max_length=2000)] = ""
+    request_id: RequestId
+
+    @model_validator(mode="after")
+    def _reject_needs_comment(self) -> Self:
+        if self.decision == "reject" and not self.comment.strip():
+            raise ValueError("Для отклонения укажите comment")
+        return self
+
+
+FactValue = StrictBool | Annotated[int, Field(strict=True)] | Annotated[float, Field(strict=True)] | Annotated[str, Field(strict=True, max_length=500)] | None
+
+
+class ScenarioRunActionRequest(StrictAIContractModel):
+    action: Annotated[str, Field(min_length=1, max_length=128)]
+    facts: dict[Annotated[str, Field(min_length=1, max_length=128)], FactValue] | None = None
+
+
+class ScenarioPermissionsRequest(StrictAIContractModel):
+    permissions: list[Literal["scenario.review", "scenario.publish"]] = Field(max_length=2)
+
+    @model_validator(mode="after")
+    def _unique(self) -> Self:
+        if len(set(self.permissions)) != len(self.permissions):
+            raise ValueError("permissions не должны повторяться")
+        return self
 
 
 class CardSnapshot(AIContractModel):

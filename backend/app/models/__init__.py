@@ -4,6 +4,7 @@ from app.models.ai_scenario import (
     DraftFieldDecision,
     EtalonVersion,
     SanitizedTicket,
+    ScenarioRunRecord,
     ScenarioVersion,
 )
 from app.models.assignment import Assignment, AssignmentAttempt, AssignmentScenarioVersion, AssignmentStudent
@@ -59,6 +60,7 @@ __all__ = [
     "Scenario",
     "ScenarioVersion",
     "SanitizedTicket",
+    "ScenarioRunRecord",
     "SemanticReview",
     "Street",
     "StudentRating",
