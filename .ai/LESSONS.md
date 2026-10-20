@@ -111,3 +111,7 @@
 ## L025 | "сделай ДДС" = working DDS login, not only the feature
 ❌ scoped DDS account out of 011 and mentioned it only in "вне объёма" → owner opened DDS (egorov) and hit blocked account
 ✅ when owner asks for a role/mode: check the demo account for that role actually logs in and lands in its ARM; say explicitly before finishing if it doesn't
+
+## L026 | base branch for owner-visible work
+❌ built 011 on develop while newest front + voice lived in SASHA → owner saw old UI (ARM button at 112, no voice)
+✅ before feature work: git fetch all; compare develop vs active team branches (merge-base, last commits); ask/announce base

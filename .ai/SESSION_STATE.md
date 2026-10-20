@@ -1,3 +1,11 @@
+## F011 on SASHA 2026-10-20 (branch feat/011-dds-sasha, base origin/SASHA d0c9d2f; SASHA itself NOT pushed)
+done:011 card feed (bank /student-cards, studentCards in DDS assignments, eval by teacher etalon) + no auto-push 112→live DDS (SASHA test_chain moved to D4) + egorov unblocked (lebedev blocked) + egorov trainingProfile=dds + login demo line «Диспетчер ДДС» + seed asg-003 dds for egorov
+fix:assignment wizard step 0 validated with mode filter → dds-profile student blocked at «Обучающиеся» (default mode 112) → step 0 validates raw selection
+Checks@2026-10-20:{uv run pytest -q 1133 passed/4 skipped | ruff clean | npx vitest run 2017/2018 (teacher-v1 Blob env) before wizard fix; assignment-create 46/46 after | tsc, steiger, eslint/prettier (changed) pass | mocks:validate pass}
+Browser@2026-10-20 (cloud chromium, fresh db, next start :3130 BACKEND_URL):{ivanov no «Открыть АРМ» | egorov has it | 112 card → teacher bank → DDS assignment → egorov «Начать» → /arm/card/c-097 | /arm journal} | not run: statuses+eval in browser, npm run check, e2e
+⚠️ DDS card «my service» = first notification-list service by kind, not user's (src/pages/incident/lib/cardView.ts)
+⚠️ codex/feature-007-learner-role-split = parallel role model, based on old main (no develop/voice) → not merged; SASHA 008 trainingProfile used
+
 ## Handoff 2026-10-20 (evening) → next window
 Branch:SASHA (pushed, HEAD 7edccf6 + this handoff) | develop merged in (d08ce53) | spec:009-arm-112-student
 Where: tasks.md Phase 2 Foundational | done T001-T007 + T020 | NEXT: T008 mock validator (channel∈{call,sms}, smsText if sms, repeatOf→existing card|null, lockedBy only bg) → T009 (owner texts!) → T010-T012 journal (reuse operator112_service.in_student_journal) → T013-T019

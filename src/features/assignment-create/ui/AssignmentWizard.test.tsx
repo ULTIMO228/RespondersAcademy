@@ -400,6 +400,28 @@ describe("мастер назначения: профиль режима обу�
     expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-006"], trainingMode: "dds" });
   });
 
+  it("курсант с профилем ДДС проходит шаг «Обучающиеся» при режиме 112 по умолчанию и назначается в ДДС", async () => {
+    const api = makeApi({
+      listStudents: vi
+        .fn()
+        .mockResolvedValue([
+          { ...student("u-010", "Егоров Павел Сергеевич", "Группа 1"), trainingProfile: "dds" },
+        ]),
+    });
+    await toMode(api, [/Егоров Павел/]);
+    expect(screen.getByRole("heading", { name: "Режим и формат" })).toBeInTheDocument();
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent("Нет обучающихся для режима 112");
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-010"], trainingMode: "dds" });
+  });
+
   it("только ivanov → ДДС: ошибка шага, дальше не пускает", async () => {
     await toMode(withProfile(), [/Иванов Сергей/]);
     fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));

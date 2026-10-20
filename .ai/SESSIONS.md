@@ -174,3 +174,9 @@ focus:DDS account ready w/ ARM (owner: egorov blocked)
 done:cherry-pick ce6c3dd (egorov unblocked, lebedev blocked) | seed asg-003 dds for egorov | browser check 112→bank→DDS assignment→egorov ARM card ✅
 checks:pytest 1044/4 skipped, ruff | vitest see SESSION_STATE | demo-up.sh blocked by auto-mode classifier → manual stand script (scratchpad)
 next:owner reseed own DB (demo-up fresh or app.seed.load); statuses+eval in browser; DDS «my service» by user service
+
+## 2026-10-20f feat/011-dds-sasha (from origin/SASHA d0c9d2f)
+focus:011 + DDS account on SASHA base (owner: use Sasha's new front, voice caller, ARM only for DDS)
+done:cherry-pick 011/egorov/seed onto SASHA | egorov trainingProfile=dds + login demo line | wizard step-0 fix for dds-profile students | browser path ✅
+decisions:🧠 SASHA 008 trainingProfile over codex 007 (codex lacks develop) | SASHA branch untouched
+next:owner pulls feat/011-dds-sasha + fresh demo-up; decide merge into SASHA/develop

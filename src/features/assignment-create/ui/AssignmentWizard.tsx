@@ -106,7 +106,8 @@ export function AssignmentWizard({
       setErrors({ trainingMode: modeError });
       return;
     }
-    const found = validateStep(step, effective);
+    // Шаг «Обучающиеся» идёт до выбора режима: проверяется сам выбор, отсев по профилю — со шага «Режим и формат».
+    const found = validateStep(step, step === 0 ? draft : effective);
     if (Object.keys(found).length > 0) {
       setErrors(found);
       return;
