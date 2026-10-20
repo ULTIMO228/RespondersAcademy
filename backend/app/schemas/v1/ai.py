@@ -113,7 +113,7 @@ FactValue = StrictBool | Annotated[int, Field(strict=True)] | Annotated[float, F
 
 class ScenarioRunActionRequest(StrictAIContractModel):
     action: Annotated[str, Field(min_length=1, max_length=128)]
-    facts: dict[Annotated[str, Field(min_length=1, max_length=128)], FactValue] | None = None
+    choice: FactValue = None  # значение одного из вариантов input текущего шага
     expected_steps: PositiveVersion
 
 

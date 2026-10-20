@@ -26,7 +26,10 @@ GRAPH: dict[str, Any] = {
     "schemaVersion": "scenario-graph/1",
     "start": "capture",
     "nodes": [
-        {"id": "capture", "type": "action", "action": "captureCaller", "next": "route"},
+        {
+            "id": "capture", "type": "action", "action": "captureCaller", "label": "Записать заявителя", "next": "route",
+            "input": {"fact": "urgency", "options": [{"value": "high", "label": "Срочно"}, {"value": "low", "label": "Не срочно"}]},
+        },
         {
             "id": "route",
             "type": "condition",
@@ -255,9 +258,9 @@ async def test_обучающийся_проходит_только_опубли
 
     wrong = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103", "expectedSteps": 1})
     assert wrong.status_code == 409 and "captureCaller" not in wrong.text  # ожидаемое действие не раскрывается
-    bad_fact = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"x": {"a": 1}}})
+    bad_fact = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "choice": {"a": 1}})
     assert bad_fact.status_code == 400
-    step = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "high"}})
+    step = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "choice": "high"})
     assert step.status_code == 200 and step.json()["status"] == "waiting" and step.json()["steps"] == 3
     done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "notify:103", "expectedSteps": 3})
     assert done.status_code == 200 and done.json()["status"] == "completed" and done.json()["outcome"] == "completed"
@@ -366,10 +369,10 @@ async def test_устаревшее_ожидание_шагов_даёт_409_б�
     await login_as(v1, "student")
     run = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
     url = f"/ai/scenario-runs/{run['runId']}/actions"
-    stale = await v1.post(url, json={"action": "captureCaller", "expectedSteps": run["steps"] + 5})
+    stale = await v1.post(url, json={"action": "captureCaller", "expectedSteps": run["steps"] + 5, "choice": "high"})
     assert stale.status_code == 409
     assert (await v1.get(f"/ai/scenario-runs/{run['runId']}")).json()["steps"] == run["steps"]
-    ok = await v1.post(url, json={"action": "captureCaller", "expectedSteps": run["steps"]})
+    ok = await v1.post(url, json={"action": "captureCaller", "expectedSteps": run["steps"], "choice": "high"})
     assert ok.status_code == 200 and ok.json()["steps"] > run["steps"]
     assert (await v1.post(url, json={"action": "notify:103", "expectedSteps": 0})).status_code == 400
 
@@ -392,8 +395,8 @@ async def test_параллельные_действия_не_теряют_со�
     monkeypatch.setattr(scenario_runs, "_published", slow)
     url = f"/ai/scenario-runs/{run_id}/actions"
     responses = await asyncio.gather(
-        v1.post(url, json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "low"}}),
-        v1.post(url, json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "high"}}),
+        v1.post(url, json={"action": "captureCaller", "expectedSteps": 1, "choice": "low"}),
+        v1.post(url, json={"action": "captureCaller", "expectedSteps": 1, "choice": "high"}),
     )
     monkeypatch.undo()
     assert sorted(response.status_code for response in responses) == [200, 409], [r.text for r in responses]
@@ -483,13 +486,13 @@ async def test_результат_прогона_зависит_от_факто�
     scenario_id = await prepare_published(v1, "else", assign=True)
     await login_as(v1, "student")
     run_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
-    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "low"}})
+    done = await v1.post(f"/ai/scenario-runs/{run_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "choice": "low"})
     assert done.json()["status"] == "completed" and done.json()["outcome"] == "completed" and done.json()["steps"] == 3
     await login_as(v1, "admin")
     events = (await v1.get(f"/ai/scenario-runs/{run_id}")).json()["events"]
     assert [e["data"].get("branch") for e in events if e["kind"] == "branch"] == ["routine"]
     assert [e["kind"] for e in events] == ["started", "action", "branch", "ended"]
-    assert events[1]["data"] == {"action": "captureCaller", "set": {"urgency": "low"}}
+    assert events[1]["data"] == {"action": "captureCaller", "set": {"urgency": "low"}, "choice": "low", "penalty": 0}
 
 
 DOUBLE_ASK = {
@@ -596,9 +599,9 @@ async def test_вложенные_поля_карточки_доступны_у�
     scenario_id = await prepare_with_graph(v1, "nested", graph)
     run = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()
     url = f"/ai/scenario-runs/{run['runId']}/actions"
-    forged = await v1.post(url, json={"action": "ask", "expectedSteps": run["steps"], "facts": {"caller.status": "другое"}})
-    assert forged.status_code == 400  # факт карточки задан эталоном и не меняется студентом
-    done = await v1.post(url, json={"action": "ask", "expectedSteps": run["steps"], "facts": {"note": "ok"}})
+    forged = await v1.post(url, json={"action": "ask", "expectedSteps": run["steps"], "choice": "другое"})
+    assert forged.status_code == 400  # у шага нет вариантов: подменить факт карточки выбором нельзя
+    done = await v1.post(url, json={"action": "ask", "expectedSteps": run["steps"]})
     assert done.json()["outcome"] == "witness"
 
 
@@ -718,7 +721,7 @@ async def test_повторное_завершение_прогона_обуча
     assert actions.count("ai.scenario.run.finish") == 1
     # завершённый графом прогон по-прежнему не «завершается» повторно
     done_id = (await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")).json()["runId"]
-    await v1.post(f"/ai/scenario-runs/{done_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "facts": {"urgency": "low"}})
+    await v1.post(f"/ai/scenario-runs/{done_id}/actions", json={"action": "captureCaller", "expectedSteps": 1, "choice": "low"})
     assert (await v1.post(f"/ai/scenario-runs/{done_id}/finish")).status_code == 409
 
 

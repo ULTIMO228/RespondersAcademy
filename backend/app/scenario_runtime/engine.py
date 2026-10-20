@@ -29,6 +29,10 @@ class InvalidActionError(EngineError):
         self.expected = expected
 
 
+class InvalidChoiceError(EngineError):
+    """Выбор отсутствует, не объявлен у шага или пытается изменить заблокированный факт."""
+
+
 class RunFinishedError(EngineError):
     """Прогон уже завершён, прерван или остановлен защитой."""
 
@@ -119,20 +123,30 @@ class ScenarioEngine:
         node = self.graph.nodes[run.current]
         return [node.action] if run.status == "waiting" and node.type == "action" and node.action else []
 
-    def perform(self, run: ScenarioRun, action: str, set_facts: dict[str, Any] | None = None) -> None:
+    def perform(self, run: ScenarioRun, action: str, choice: Any = None) -> None:
+        """Выполняет действие текущего шага; `choice` обязателен только у шага с `input` и только из его вариантов."""
         self._require_waiting(run)
         expected = self.expected_actions(run)
         if action not in expected:
             raise InvalidActionError(action, expected)
-        updates = _checked_facts(set_facts)
-        overwritten = sorted(set(updates) & set(run.locked))
-        if overwritten:
-            raise ValueError(f"Факт «{overwritten[0]}» задан сценарием и не может быть изменён действием")
-        if len(run.facts.keys() | updates.keys()) > MAX_FACTS:
-            raise ValueError(f"Фактов больше {MAX_FACTS}")
         node = self.graph.nodes[run.current]
+        updates: dict[str, Any] = dict(node.sets)
+        penalty = 0
+        if node.input_fact is not None:
+            picked = next((o for o in node.options if type(o.value) is type(choice) and o.value == choice), None)
+            if choice is None or picked is None:
+                raise InvalidChoiceError("Выбранный вариант не предусмотрен шагом")
+            if node.input_fact in run.locked:
+                raise InvalidChoiceError(f"Факт «{node.input_fact}» задан карточкой и не может быть изменён выбором")
+            updates[node.input_fact] = picked.value
+            penalty = picked.penalty
+        elif choice is not None:
+            raise InvalidChoiceError("У шага нет вариантов выбора")
         run.facts.update(updates)
-        self._record(run, "action", node.id, {"action": action, "set": updates})
+        data: dict[str, Any] = {"action": action, "set": updates, "penalty": penalty}
+        if node.input_fact is not None:
+            data["choice"] = choice
+        self._record(run, "action", node.id, data)
         self._enter(run, str(node.next))
         self._advance(run)
 

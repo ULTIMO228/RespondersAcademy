@@ -21,7 +21,7 @@ from __future__ import annotations
 import math
 from collections import deque
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 SCHEMA_VERSION = "scenario-graph/1"
@@ -32,6 +32,13 @@ DEFAULT_MAX_VISITS = 10
 ORDER_OPS = ("gt", "ge", "lt", "le")
 OPS = ("eq", "ne", "in", "gt", "ge", "lt", "le", "exists")
 NODE_TYPES = ("action", "condition", "end")
+MAX_TITLE = 160
+MAX_PROMPT = 1000
+MAX_SETS = 16
+MIN_OPTIONS, MAX_OPTIONS = 2, 12
+MAX_DECOYS = 20
+MAX_COORD = 10000
+DEFAULT_SCORING = {"wrongActionPenalty": 5, "passScore": 60}
 
 
 class InvalidGraphError(ValueError):
@@ -50,6 +57,13 @@ class Branch:
 
 
 @dataclass(frozen=True)
+class Option:
+    value: Any
+    label: str
+    penalty: int = 0
+
+
+@dataclass(frozen=True)
 class Node:
     id: str
     type: str
@@ -59,6 +73,14 @@ class Node:
     otherwise: Branch | None = None
     outcome: str | None = None
     max_visits: int = DEFAULT_MAX_VISITS
+    title: str | None = None
+    prompt: str | None = None
+    label: str | None = None
+    sets: Mapping[str, Any] = field(default_factory=dict)
+    input_fact: str | None = None
+    options: tuple[Option, ...] = ()
+    score: int = 100
+    passed: bool = True
 
     def targets(self) -> list[str]:
         if self.type == "action" and self.next:
@@ -83,6 +105,64 @@ def _is_scalar(value: Any) -> bool:
 
 def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and _is_scalar(value)
+
+
+def _text(raw: dict[str, Any], key: str, limit: int, where: str, errors: list[str]) -> str | None:
+    if key not in raw:
+        return None
+    value = raw[key]
+    if not isinstance(value, str) or not 0 < len(value) <= limit:
+        errors.append(f"{where}: {key} — непустая строка до {limit} символов")
+        return None
+    return value
+
+
+def _int_in(value: Any, low: int, high: int) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
+
+
+def _parse_sets(raw: dict[str, Any], where: str, errors: list[str]) -> dict[str, Any]:
+    if "sets" not in raw:
+        return {}
+    value = raw["sets"]
+    if not isinstance(value, dict) or len(value) > MAX_SETS or not all(_is_name(k) and _is_scalar(v) for k, v in value.items()):
+        errors.append(f"{where}: sets — до {MAX_SETS} скалярных фактов с непустыми именами")
+        return {}
+    return dict(value)
+
+
+def _parse_input(raw: dict[str, Any], where: str, errors: list[str]) -> tuple[str | None, tuple[Option, ...]]:
+    if "input" not in raw:
+        return None, ()
+    spec = raw["input"]
+    if not isinstance(spec, dict) or not _is_name(spec.get("fact")) or not isinstance(spec.get("options"), list):
+        errors.append(f"{where}: input требует fact и список options")
+        return None, ()
+    _extra_keys(spec, {"fact", "options"}, f"{where} input", errors)
+    options: list[Option] = []
+    for item in spec["options"]:
+        if not isinstance(item, dict):
+            errors.append(f"{where}: вариант input должен быть объектом")
+            continue
+        _extra_keys(item, {"value", "label", "penalty"}, f"{where} вариант", errors)
+        value, label = item.get("value"), item.get("label")
+        penalty = item.get("penalty", 0)
+        if value is None or not _is_scalar(value):
+            errors.append(f"{where}: value варианта — непустой скаляр")
+            continue
+        if not isinstance(label, str) or not 0 < len(label) <= MAX_TITLE:
+            errors.append(f"{where}: label варианта — непустая строка до {MAX_TITLE} символов")
+            continue
+        if not _int_in(penalty, 0, 100):
+            errors.append(f"{where}: penalty варианта — целое 0–100")
+            continue
+        options.append(Option(value, label, penalty))
+    keys = [(type(o.value), o.value) for o in options]
+    if len(set(keys)) != len(keys):
+        errors.append(f"{where}: value вариантов повторяется")
+    if not MIN_OPTIONS <= len(spec["options"]) <= MAX_OPTIONS:
+        errors.append(f"{where}: нужно от {MIN_OPTIONS} до {MAX_OPTIONS} вариантов")
+    return spec["fact"], tuple(options)
 
 
 def _extra_keys(raw: dict[str, Any], allowed: set[str], where: str, errors: list[str]) -> None:
@@ -192,9 +272,9 @@ def _parse_node(raw: Any, index: int, errors: list[str]) -> Node | None:
     _extra_keys(
         raw,
         {
-            "action": {"id", "type", "action", "next", "maxVisits"},
-            "condition": {"id", "type", "branches", "else", "maxVisits"},
-            "end": {"id", "type", "outcome"},
+            "action": {"id", "type", "title", "prompt", "action", "label", "sets", "input", "next", "maxVisits"},
+            "condition": {"id", "type", "title", "branches", "else", "maxVisits"},
+            "end": {"id", "type", "title", "prompt", "outcome", "score", "passed"},
         }[kind],
         where,
         errors,
@@ -203,16 +283,32 @@ def _parse_node(raw: Any, index: int, errors: list[str]) -> Node | None:
     if not isinstance(visits, int) or isinstance(visits, bool) or not 1 <= visits <= 1000:
         errors.append(f"{where}: maxVisits должен быть целым 1–1000")
         visits = DEFAULT_MAX_VISITS
+    title = _text(raw, "title", MAX_TITLE, where, errors)
     if kind == "action":
         if not _is_name(raw.get("action")) or not _is_name(raw.get("next")):
             errors.append(f"{where}: действие требует action и next")
             return None
-        return Node(node_id, kind, action=raw["action"], next=raw["next"], max_visits=visits)
+        input_fact, options = _parse_input(raw, where, errors)
+        return Node(
+            node_id, kind, action=raw["action"], next=raw["next"], max_visits=visits, title=title,
+            prompt=_text(raw, "prompt", MAX_PROMPT, where, errors), label=_text(raw, "label", MAX_TITLE, where, errors),
+            sets=_parse_sets(raw, where, errors), input_fact=input_fact, options=options,
+        )
     if kind == "end":
         if not _is_name(raw.get("outcome")):
             errors.append(f"{where}: для end нужен непустой outcome")
             return None
-        return Node(node_id, kind, outcome=raw["outcome"], max_visits=visits)
+        score, passed = raw.get("score", 100), raw.get("passed", True)
+        if not _int_in(score, 0, 100):
+            errors.append(f"{where}: score — целое 0–100")
+            score = 100
+        if not isinstance(passed, bool):
+            errors.append(f"{where}: passed должен быть булевым")
+            passed = True
+        return Node(
+            node_id, kind, outcome=raw["outcome"], max_visits=visits, title=title,
+            prompt=_text(raw, "prompt", MAX_PROMPT, where, errors), score=score, passed=passed,
+        )
     branches_raw = raw.get("branches")
     if not isinstance(branches_raw, list) or not branches_raw:
         errors.append(f"{where}: условие требует непустой список branches")
@@ -230,20 +326,98 @@ def _parse_node(raw: Any, index: int, errors: list[str]) -> Node | None:
     names = [branch.name for branch in parsed] + ([otherwise.name] if otherwise else [])
     if len(set(names)) != len(names):
         errors.append(f"{where}: имя ветки повторяется")
-    return Node(node_id, kind, branches=tuple(parsed), otherwise=otherwise, max_visits=visits)
+    return Node(node_id, kind, branches=tuple(parsed), otherwise=otherwise, max_visits=visits, title=title)
+
+
+def _parse_decoys(data: dict[str, Any], nodes: dict[str, Node], errors: list[str]) -> tuple[tuple[str, str], ...]:
+    raw = data.get("decoys", [])
+    if not isinstance(raw, list) or len(raw) > MAX_DECOYS:
+        errors.append(f"decoys — список до {MAX_DECOYS} элементов")
+        return ()
+    real = {n.action for n in nodes.values() if n.type == "action"}
+    seen: set[str] = set()
+    found: list[tuple[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict) or not _is_name(item.get("action")) or not isinstance(item.get("label"), str) or not 0 < len(item["label"]) <= MAX_TITLE:
+            errors.append("decoys: элемент требует action и label")
+            continue
+        _extra_keys(item, {"action", "label"}, "decoys", errors)
+        if item["action"] in real or item["action"] in seen:
+            errors.append(f"decoys: действие «{item['action']}» совпадает с действием графа или повторяется")
+            continue
+        seen.add(item["action"])
+        found.append((item["action"], item["label"]))
+    return tuple(found)
+
+
+def _parse_scoring(data: dict[str, Any], errors: list[str]) -> dict[str, int]:
+    scoring = dict(DEFAULT_SCORING)
+    raw = data.get("scoring")
+    if raw is None:
+        return scoring
+    if not isinstance(raw, dict):
+        errors.append("scoring должен быть объектом")
+        return scoring
+    _extra_keys(raw, set(DEFAULT_SCORING), "scoring", errors)
+    for key, high in (("wrongActionPenalty", 50), ("passScore", 100)):
+        if key in raw:
+            if _int_in(raw[key], 0, high):
+                scoring[key] = raw[key]
+            else:
+                errors.append(f"scoring: {key} — целое 0–{high}")
+    return scoring
+
+
+def _parse_layout(data: dict[str, Any], nodes: dict[str, Node], errors: list[str]) -> dict[str, dict[str, float]]:
+    raw = data.get("layout")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        errors.append("layout должен быть объектом")
+        return {}
+    found: dict[str, dict[str, float]] = {}
+    for node_id, point in raw.items():
+        ok = (
+            node_id in nodes
+            and isinstance(point, dict)
+            and set(point) == {"x", "y"}
+            and all(
+                isinstance(point[k], (int, float)) and not isinstance(point[k], bool)
+                and math.isfinite(point[k]) and abs(point[k]) <= MAX_COORD
+                for k in ("x", "y")
+            )
+        )
+        if not ok:
+            errors.append(f"layout: узел «{node_id}» неизвестен или координаты некорректны (x, y — числа в пределах ±{MAX_COORD})")
+            continue
+        found[node_id] = {"x": point["x"], "y": point["y"]}
+    return found
 
 
 @dataclass(frozen=True)
 class Graph:
     start: str
     nodes: Mapping[str, Node]
+    decoys: tuple[tuple[str, str], ...] = ()
+    scoring: Mapping[str, int] = field(default_factory=lambda: dict(DEFAULT_SCORING))
+    layout: Mapping[str, Mapping[str, float]] = field(default_factory=dict)
+
+    def action_catalog(self) -> list[dict[str, str]]:
+        """Кнопки выбора обучающегося: подписи всех шагов-действий графа и ложных вариантов, по алфавиту подписи."""
+        found: dict[str, str] = {}
+        for node in self.nodes.values():
+            if node.type == "action" and node.action:
+                found.setdefault(node.action, node.label or node.action)
+        for code, label in self.decoys:
+            found.setdefault(code, label)
+        return [{"action": c, "label": lb} for c, lb in sorted(found.items(), key=lambda i: (i[1].casefold(), i[0]))]
 
     @classmethod
     def parse(cls, data: Any) -> Graph:
         errors: list[str] = []
         if not isinstance(data, dict):
             raise InvalidGraphError(["граф должен быть объектом"])
-        _extra_keys(data, {"schemaVersion", "start", "nodes"}, "граф", errors)
+        _extra_keys(data, {"schemaVersion", "start", "nodes", "decoys", "scoring", "layout"}, "граф", errors)
         if data.get("schemaVersion") != SCHEMA_VERSION:
             errors.append(f"schemaVersion должен быть {SCHEMA_VERSION}")
         raw_nodes = data.get("nodes")
@@ -268,9 +442,12 @@ class Graph:
                     errors.append(f"узел «{node.id}»: переход в несуществующий узел «{target}»")
         if not errors:
             cls._check_topology(str(start), nodes, errors)
+        decoys = _parse_decoys(data, nodes, errors)
+        scoring = _parse_scoring(data, errors)
+        layout = _parse_layout(data, nodes, errors)
         if errors:
             raise InvalidGraphError(errors)
-        return cls(start=str(start), nodes=nodes)
+        return cls(start=str(start), nodes=nodes, decoys=decoys, scoring=scoring, layout=layout)
 
     @staticmethod
     def _check_topology(start: str, nodes: dict[str, Node], errors: list[str]) -> None:

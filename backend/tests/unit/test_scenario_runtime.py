@@ -12,6 +12,7 @@ import pytest
 from app.scenario_runtime import (
     Graph,
     InvalidActionError,
+    InvalidChoiceError,
     InvalidGraphError,
     LoopLimitError,
     RunFinishedError,
@@ -99,16 +100,27 @@ def test_неожиданное_действие_отклоняется_без_�
     assert run.current == "classify"
 
 
-def test_действие_может_задать_факты_для_следующего_условия() -> None:
-    engine = ScenarioEngine(Graph.parse(diamond()))
+def with_urgency_input() -> dict[str, Any]:
+    data = copy.deepcopy(diamond())
+    next(n for n in data["nodes"] if n["id"] == "capture")["input"] = {
+        "fact": "urgency",
+        "options": [{"value": "high", "label": "Срочно"}, {"value": "low", "label": "Не срочно"}],
+    }
+    return data
+
+
+def test_выбор_задаёт_факт_для_следующего_условия_и_только_из_вариантов() -> None:
+    engine = ScenarioEngine(Graph.parse(with_urgency_input()))
     run = engine.start({})
-    engine.perform(run, "captureCaller", set_facts={"urgency": "high"})
+    with pytest.raises(InvalidChoiceError):
+        engine.perform(run, "captureCaller", choice={"nested": 1})
+    with pytest.raises(InvalidChoiceError):
+        engine.perform(run, "captureCaller")
+    assert run.current == "capture"
+    engine.perform(run, "captureCaller", choice="high")
     assert run.current == "notify" and run.facts["urgency"] == "high"
-    with pytest.raises(ValueError):
-        engine.perform(run, "notify:103", set_facts={"nested": {"a": 1}})
-    with pytest.raises(ValueError):
-        engine.perform(run, "notify:103", set_facts={1: "x"})  # type: ignore[dict-item]
-    assert run.current == "notify"
+    with pytest.raises(InvalidChoiceError):
+        engine.perform(run, "notify:103", choice="x")  # у шага нет вариантов
 
 
 def test_завершённый_прогон_не_принимает_действий_а_ручное_завершение_работает_один_раз() -> None:
@@ -142,7 +154,10 @@ def test_движок_детерминирован_и_прогон_восста�
 
 
 def retry_graph(max_visits: int | None = None) -> dict[str, Any]:
-    node: dict[str, Any] = {"id": "ask", "type": "action", "action": "askAgain", "next": "check"}
+    node: dict[str, Any] = {
+        "id": "ask", "type": "action", "action": "askAgain", "next": "check",
+        "input": {"fact": "ready", "options": [{"value": True, "label": "Да"}, {"value": False, "label": "Нет"}]},
+    }
     if max_visits is not None:
         node["maxVisits"] = max_visits
     return {
@@ -164,18 +179,18 @@ def retry_graph(max_visits: int | None = None) -> dict[str, Any]:
 def test_цикл_через_действие_допустим_но_ограничен_числом_посещений() -> None:
     engine = ScenarioEngine(Graph.parse(retry_graph(max_visits=3)))
     ok = engine.start({})
-    engine.perform(ok, "askAgain")
-    engine.perform(ok, "askAgain", set_facts={"ready": True})
+    engine.perform(ok, "askAgain", choice=False)
+    engine.perform(ok, "askAgain", choice=True)
     assert ok.status == "completed"
 
     run = engine.start({})
     with pytest.raises(LoopLimitError):
         for _ in range(10):
-            engine.perform(run, "askAgain")
+            engine.perform(run, "askAgain", choice=False)
     assert run.status == "faulted"
     assert run.events[-1].kind == "faulted" and run.events[-1].data["node"] == "ask"
     with pytest.raises(RunFinishedError):
-        engine.perform(run, "askAgain")
+        engine.perform(run, "askAgain", choice=False)
 
 
 def test_общий_лимит_шагов_останавливает_прогон() -> None:
@@ -183,7 +198,7 @@ def test_общий_лимит_шагов_останавливает_прого�
     run = engine.start({})
     with pytest.raises(LoopLimitError):
         for _ in range(100):
-            engine.perform(run, "askAgain")
+            engine.perform(run, "askAgain", choice=False)
     assert run.status == "faulted" and run.events[-1].data["reason"] == "maxSteps"
 
 
@@ -333,17 +348,17 @@ def test_сравнения_порядка_только_для_чисел(fact, 
     assert (chose == "urgent") is expected
 
 
-def test_факты_заданные_при_старте_нельзя_перезаписать_действием() -> None:
-    engine = ScenarioEngine(Graph.parse(diamond()))
+def test_факты_заданные_при_старте_нельзя_перезаписать_выбором_и_защита_переживает_снимок() -> None:
+    engine = ScenarioEngine(Graph.parse(with_urgency_input()))
     run = engine.start({"urgency": "high"})
     before = copy.deepcopy(run.to_dict())
-    with pytest.raises(ValueError, match="urgency"):
-        engine.perform(run, "captureCaller", set_facts={"urgency": "low"})
+    with pytest.raises(InvalidChoiceError, match="urgency"):
+        engine.perform(run, "captureCaller", choice="low")
     assert run.to_dict() == before
-    engine.perform(run, "captureCaller", set_facts={"note": "ok"})
     restored = ScenarioRun.from_dict(engine.graph, run.to_dict())
-    with pytest.raises(ValueError):
-        engine.perform(restored, "notify:103", set_facts={"urgency": "low"})  # защита переживает снимок
+    with pytest.raises(InvalidChoiceError):
+        engine.perform(restored, "captureCaller", choice="low")
+
 
 
 @pytest.mark.parametrize("value", ["a", True, None, [1]])

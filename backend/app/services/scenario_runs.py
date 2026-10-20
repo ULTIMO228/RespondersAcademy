@@ -18,6 +18,7 @@ from app.scenario_runtime import (
     EngineError,
     Graph,
     InvalidActionError,
+    InvalidChoiceError,
     LoopLimitError,
     RunFinishedError,
     ScenarioEngine,
@@ -193,10 +194,12 @@ async def perform_action(db: AsyncSession, run_id: str, body: ScenarioRunActionR
     if body.expected_steps != run.steps:
         raise conflict("Состояние прогона изменилось; обновите его и повторите действие")
     try:
-        engine.perform(run, body.action, set_facts=body.facts)
+        engine.perform(run, body.action, choice=body.choice)
     except InvalidActionError:
         # Ожидаемое действие не раскрываем: это ответ обучающегося.
         raise conflict("Действие не соответствует текущему шагу сценария") from None
+    except InvalidChoiceError as error:
+        raise validation_failed(str(error)) from None
     except RunFinishedError as error:
         raise conflict(str(error)) from None
     except ValueError as error:
