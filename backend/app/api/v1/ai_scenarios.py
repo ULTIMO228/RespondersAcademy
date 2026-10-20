@@ -14,6 +14,7 @@ from app.db.session import get_db
 from app.schemas.v1.ai import (
     GraphValidateRequest,
     ScenarioApproveRequest,
+    ScenarioDeriveRequest,
     ScenarioDraftRequest,
     ScenarioManualCreateRequest,
     ScenarioReviewRequest,
@@ -29,7 +30,7 @@ from app.services.ai_scenario_service import (
 )
 from app.services.scenario_access import user_permissions
 from app.services.scenario_service import create_ai_drafts
-from app.services.scenario_workflow import publish_version, review_version, submit_for_review
+from app.services.scenario_workflow import derive_version, publish_version, review_version, submit_for_review
 
 router = APIRouter(prefix="/ai/scenarios", tags=["AI scenarios"])
 
@@ -170,3 +171,16 @@ async def publish(
     result = await publish_version(db, scenario_id, body, viewer)
     await db.commit()
     return result
+
+
+@router.post("/{scenario_id}/versions/{version}/derive", status_code=201)
+async def derive(
+    scenario_id: str,
+    version: int,
+    body: ScenarioDeriveRequest,
+    db: AsyncSession = Depends(get_db),
+    viewer: Viewer = Depends(require_viewer),
+) -> JSONResponse:
+    result = await derive_version(db, scenario_id, version, body, viewer)
+    await db.commit()
+    return JSONResponse(result, status_code=201)

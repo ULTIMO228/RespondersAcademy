@@ -912,3 +912,60 @@ async def test_списки_прогонов_разграничены_по_ро�
     assert any(r["runId"] == run["runId"] for r in (await v1.get("/ai/scenario-runs")).json())
     v1.cookies.clear()
     assert (await v1.get("/ai/scenario-runs")).status_code == 401
+
+
+async def test_новая_версия_из_опубликованной_не_меняет_старую_и_результаты(v1: AsyncClient) -> None:
+    scenario_id, run = await start_rich(v1, "derive")
+    step = (await act(v1, run["runId"], "captureCaller", run["steps"])).json()
+    done = (await act(v1, run["runId"], "classify", step["steps"], choice="tree")).json()
+    old_result = done["result"]
+    old_graph = RICH
+    url = f"/ai/scenarios/{scenario_id}/versions/1/derive"
+
+    assert (await v1.post(url, json={"requestId": "t009-derive-s"})).status_code == 403  # студент
+    await login_as(v1, "admin")
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/versions/2/derive", json={"requestId": "t009-derive-none"})).status_code == 404
+    await login_as(v1, "teacher")
+    derived = await v1.post(url, json={"requestId": "t009-derive-1", "comment": "Уточнить ветку пожара"})
+    assert derived.status_code == 201, derived.text
+    version = derived.json()
+    assert version["version"] == 2 and version["approval"] == "draft" and version["parentVersion"] == 1
+    assert version["graph"] == old_graph and version["teacherComment"] == "Уточнить ветку пожара"
+    assert version["etalonVersion"] == f"{scenario_id}:etalon:2" and (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()["etalonVersion"] == f"{scenario_id}:etalon:1"
+    assert (await v1.post(url, json={"requestId": "t009-derive-1", "comment": "Уточнить ветку пожара"})).json() == version  # повтор
+    assert (await v1.post(url, json={"requestId": "t009-derive-2"})).status_code == 409  # черновик уже есть
+
+    # правка новой версии не трогает старую
+    edited = {**old_graph, "scoring": {"wrongActionPenalty": 10, "passScore": 80}}
+    revised = await v1.post(f"/ai/scenarios/{scenario_id}/revise", json={"baseVersion": 2, "graph": edited, "requestId": "t009-derive-rev"})
+    assert revised.status_code == 201 and revised.json()["version"] == 3
+    first = (await v1.get(f"/ai/scenarios/{scenario_id}/versions/1")).json()
+    assert first["approval"] == "approved" and first["graph"] == old_graph
+
+    # публикация новой версии: старые назначение и результат остаются прежними
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 3, "requestId": "t009-derive-sub"})).status_code == 200
+    await login_as(v1, "admin")
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 3, "decision": "accept", "requestId": "t009-derive-rv"})).status_code == 200
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 3, "requestId": "t009-derive-pb"})).status_code == 200
+    await login_as(v1, "student")
+    kept = (await v1.get(f"/ai/scenario-runs/{run['runId']}")).json()
+    assert kept["version"] == 1 and kept["result"] == old_result  # результат прежней попытки не пересчитан
+    again = await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/runs")
+    assert again.status_code == 201 and again.json()["version"] == 1  # назначенная версия 1 по-прежнему доступна
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/versions/3/runs")).status_code == 403  # версия 3 пока не назначена
+
+
+async def test_derive_только_из_опубликованной_версии_и_автором(v1: AsyncClient) -> None:
+    scenario_id = await create_draft(v1, "t009-builder-derive-guard", "dguard")
+    url = f"/ai/scenarios/{scenario_id}/versions/1/derive"
+    assert (await v1.post(url, json={"requestId": "t009-dguard-1"})).status_code == 409  # версия не опубликована
+    v1.cookies.clear()
+    assert (await v1.post(url, json={"requestId": "t009-dguard-2"})).status_code == 401
+    await grant(v1, "morozova", ["scenario.review", "scenario.publish"])
+    await login_as(v1, "teacher")
+    assert (await v1.post(f"/ai/scenarios/{scenario_id}/submit", json={"version": 1, "requestId": "t009-dguard-sub"})).status_code == 200
+    await login_as(v1, "admin")
+    await v1.post(f"/ai/scenarios/{scenario_id}/review", json={"version": 1, "decision": "accept", "requestId": "t009-dguard-r"})
+    await v1.post(f"/ai/scenarios/{scenario_id}/publish", json={"version": 1, "requestId": "t009-dguard-p"})
+    assert (await v1.post(url, json={})).status_code == 400  # requestId обязателен
+    assert (await v1.post(url, json={"requestId": "t009-dguard-ok"})).status_code == 201  # администратор может

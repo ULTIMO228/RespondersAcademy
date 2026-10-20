@@ -27,6 +27,7 @@
 | `POST /api/v1/ai/scenarios/graph/validate` | teacher/admin | `graph` | Проверка графа без сохранения: `{ valid, errors: [{ message, nodeId? }] }` (200 даже для некорректного графа; не-объект — `400`). |
 | `GET /api/v1/ai/scenarios/sources` | teacher/admin | — | Утверждённые очищенные ситуации для создания сценария: `[{ sourceTicketId, situationNo, preview }]`. |
 | `GET /api/v1/ai/scenarios/permissions` | teacher/admin | — | `{ permissions: [...] }` текущего пользователя (admin — оба права); для кнопок проверки и публикации. |
+| `POST /api/v1/ai/scenarios/{id}/versions/{n}/derive` | автор сценария / admin | `requestId`, `comment?` | Новая версия-черновик `latest+1` из опубликованной `n` (копия графа, карточки и эталона, `parentVersion = n`). `409`, если `n` не опубликована или уже есть неопубликованная версия. Старая версия, её назначения и результаты прогонов не меняются. |
 | `GET /api/v1/ai/scenarios?approval=` | эксперт (любое из прав `scenario.review`, `scenario.publish`) | — | Очередь экспертов; значения `draft`, `validation_failed`, `pending_review`, `approved`, `rejected`; иное — `400`. Эксперт читает любые сценарии. |
 | `PUT /api/v1/admin/users/{id}/permissions` | admin | `permissions[]` — подмножество `scenario.review`, `scenario.publish` | Выдаёт права эксперта; только пользователю с ролью `teacher` (иначе `400`); роль в JWT не меняется. |
 | `GET /api/v1/admin/users/{id}/permissions` | admin | — | Текущие права эксперта: `userId`, `permissions`. |

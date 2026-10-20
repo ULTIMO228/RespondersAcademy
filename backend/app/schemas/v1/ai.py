@@ -95,6 +95,11 @@ class ScenarioApproveRequest(StrictAIContractModel):
     request_id: RequestId
 
 
+class ScenarioDeriveRequest(StrictAIContractModel):
+    comment: Annotated[str, Field(max_length=2000)] = ""
+    request_id: RequestId
+
+
 class GraphValidateRequest(StrictAIContractModel):
     graph: dict[str, object]
 
