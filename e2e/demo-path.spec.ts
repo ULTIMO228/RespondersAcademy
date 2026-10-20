@@ -176,7 +176,9 @@ test.describe("Демо-путь защиты", () => {
     /* Открытие карточки: статус службы «Получена службой» проставляется автоматически. */
     await student.goto(`/arm/card/${DEMO_CARD.id}`);
     /* Карточка ДДС без поля «Действие диспетчера» (фича 012, памятка стр. 23): ввод — в форме статуса. */
-    await expect(student.getByRole("button", { name: "Сменить статус (Alt + E)" })).toBeVisible({ timeout: 30_000 });
+    await expect(student.getByRole("button", { name: "Сменить статус (Alt + E)" })).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(student.getByText("Получена службой").first()).toBeVisible();
     /* При открытой карточке линия телефонии занята (spec/000-фронт/04-pages/03 «Поведение»). */
     await expect(student.getByRole("button", { name: /Статус телефонии: недоступен/ })).toBeVisible();
@@ -245,7 +247,9 @@ test.describe("Демо-путь защиты", () => {
   test("шаг 3г — ручной ввод с опечаткой, «Работы завершены» и мок-разбор грамматики", async () => {
     await student.goto(`/arm/card/${DEMO_CARD.id}`);
     /* Фича 012: текст диспетчера вводится в комментарий формы статуса, поля «Действие диспетчера» в ДДС нет. */
-    await expect(student.getByRole("button", { name: "Сменить статус (Alt + E)" })).toBeVisible({ timeout: 30_000 });
+    await expect(student.getByRole("button", { name: "Сменить статус (Alt + E)" })).toBeVisible({
+      timeout: 30_000,
+    });
 
     await setStatus(student, DEMO_FINAL_STATUS, { isFinal: true, comment: DEMO_DISPATCHER_TEXT });
 
