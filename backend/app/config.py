@@ -73,6 +73,10 @@ class Settings(BaseSettings):
     live_call_barge_in_sec: float = Field(default=4.0, ge=0, le=30, alias="LIVE_CALL_BARGE_IN_SEC")
     # Реплику-перебивание начинают готовить раньше (распознавание + модель — секунды) и держат до порога.
     live_call_barge_prepare_sec: float = Field(default=1.5, ge=0, le=30, alias="LIVE_CALL_BARGE_PREPARE_SEC")
+    # Пока заявитель говорит, его обрывает только речь оператора длиннее этого; «угу», «так», кашель — нет. 0 — любой звук.
+    live_call_yield_ms: int = Field(default=600, ge=0, le=3000, alias="LIVE_CALL_YIELD_MS")
+    # Оператор молчит столько секунд — встревоженный заявитель сам напоминает о себе (спокойный ждёт вдвое дольше); 0 — нет.
+    live_call_nudge_sec: float = Field(default=5.0, ge=0, le=60, alias="LIVE_CALL_NUDGE_SEC")
     live_call_early_commit_ms: int = Field(default=250, ge=0, le=2000, alias="LIVE_CALL_EARLY_COMMIT_MS")
     live_call_sounds_dir: Path | None = Field(default=None, alias="LIVE_CALL_SOUNDS_DIR")
     speechkit_api_key: SecretStr | None = Field(default=None, alias="SPEECHKIT_API_KEY", repr=False)

@@ -733,3 +733,104 @@ async def test_prepared_barge_is_dropped_if_operator_stops_before_threshold(sett
     assert not any(e.get("response", {}).get("interrupting") for e in events if e["type"] == "response.created")
     assert all("Быстрее" not in m["content"] for m in session.history if m["role"] == "assistant")  # неуслышанное не помним
     await session.__aexit__()
+
+
+def _talking_caller(settings, monkeypatch):
+    calls = []
+    session = _speech_session(settings, monkeypatch, lambda r: calls.append(r) or httpx.Response(200, json={"text": "угу"}))
+    monkeypatch.setattr(settings, "live_call_yield_ms", 500)
+    monkeypatch.setattr(settings, "live_call_barge_in_sec", 0)
+    import time
+
+    session.caller_until = time.monotonic() + 30  # заявитель говорит
+    session.response = asyncio.create_task(asyncio.sleep(30))
+    return session, calls
+
+
+async def test_operator_uh_huh_does_not_cut_caller_off(settings, monkeypatch):
+    # Живой человек на «угу», «так», кашель продолжает говорить; раньше заявитель замолкал от 96 мс любого звука.
+    session, calls = _talking_caller(settings, monkeypatch)
+    session.listener = asyncio.create_task(session.listen())
+    for chunk in [SPEECH] * 3 + [SILENCE] * 7:  # 0,3 с «угу»
+        await session.audio.put(chunk)
+    await _drain(session)
+    types = [e["type"] for e in _sent(session)]
+    assert "input_audio_buffer.speech_started" not in types  # браузер не обрывает голос заявителя
+    assert not session.response.done() and calls == []  # ответ не отменён, «угу» не распознаём
+    await session.__aexit__()
+
+
+async def test_operator_real_speech_still_stops_caller(settings, monkeypatch):
+    session, _calls = _talking_caller(settings, monkeypatch)
+    response = session.response
+    session.listener = asyncio.create_task(session.listen())
+    for _ in range(7):  # 0,7 с речи — оператор действительно перебивает
+        await session.audio.put(SPEECH)
+    await _drain(session)
+    assert "input_audio_buffer.speech_started" in [e["type"] for e in _sent(session)]
+    assert response.cancelled()
+    await session.__aexit__()
+
+
+async def test_short_answer_after_caller_finished_is_heard(settings, monkeypatch):
+    # «Да» сразу после вопроса заявителя — ответ, а не поддакивание: заявитель уже замолчал.
+    import time
+
+    session, calls = _talking_caller(settings, monkeypatch)
+    session.caller_until = time.monotonic() + 0.1
+    session.response.cancel()
+    session.listener = asyncio.create_task(session.listen())
+    for _ in range(3):
+        await session.audio.put(SPEECH)
+    await asyncio.sleep(0.2)
+    for _ in range(7):
+        await session.audio.put(SILENCE)
+    for _ in range(100):
+        if calls:
+            break
+        await asyncio.sleep(0.01)
+    assert [r.url.path for r in calls][:1] == ["/api/v1/audio/transcriptions"]
+    await session.__aexit__()
+
+
+def _silent_operator(settings, monkeypatch, mood="тревожно"):
+    session = _speech_session(settings, monkeypatch, lambda r: httpx.Response(200, json={"text": "x"}))
+    monkeypatch.setattr(settings, "live_call_nudge_sec", 0.3)
+    session.mood = mood
+    session.history = [{"role": "assistant", "content": "[тревожно] Горит балкон!"}]
+    nudges = []
+
+    async def respond(initial=False, barge=None):
+        nudges.append(session.history[-1]["content"])
+
+    monkeypatch.setattr(session, "respond", respond)
+    return session, nudges
+
+
+async def _silence_for(session, seconds):
+    for _ in range(int(seconds / 0.05)):
+        await session.audio.put(b"\0" * 1600)
+        await asyncio.sleep(0.05)
+
+
+async def test_caller_speaks_up_when_operator_is_silent_but_not_endlessly(settings, monkeypatch):
+    # Оператор молча заполняет карточку: встревоженный заявитель сам напоминает о себе — не больше двух раз подряд.
+    session, nudges = _silent_operator(settings, monkeypatch)
+    session.listener = asyncio.create_task(session.listen())
+    await _silence_for(session, 1.6)
+    assert nudges == [polza.NUDGE, polza.NUDGE]
+    await session.__aexit__()
+
+
+async def test_calm_caller_waits_longer_in_silence(settings, monkeypatch):
+    session, nudges = _silent_operator(settings, monkeypatch, mood="спокойно")
+    session.listener = asyncio.create_task(session.listen())
+    await _silence_for(session, 0.45)
+    assert nudges == []  # спокойному — вдвое дольше
+    await session.__aexit__()
+
+
+def test_prompt_explains_silence_mark():
+    from app.services.caller_persona import STYLE
+
+    assert polza.NUDGE in STYLE

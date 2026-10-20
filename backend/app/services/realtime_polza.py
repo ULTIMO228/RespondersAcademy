@@ -30,6 +30,8 @@ PROVIDER = "Polza.ai"
 logger = logging.getLogger(__name__)
 # Пометка в истории модели: метка в скобках — её не покажет TagFilter и не озвучит segments(), даже если модель повторит.
 INTERRUPTED = "[перебили]"
+NUDGE = "[оператор молчит]"  # пометка для модели: оператор долго молчит, заявитель напоминает о себе
+MAX_NUDGES = 2  # подряд без ответа оператора: дальше заявитель ждёт молча
 BARGE_MOODS = {"тревожно", "паника", "плачет"}  # спокойный заявитель дослушивает оператора
 MIN_VOICED_MS = 200  # щелчок/стук короче не отправляем в STT
 MAX_UTTERANCE_MS = 15000
@@ -101,6 +103,9 @@ class PolzaSession(CascadeSession):
         self.held: list[dict] | None = None
         self.held_rid = ""
         self.released_rid = ""
+        self.caller_until = 0.0  # примерно когда в браузере закончится уже отправленный голос заявителя
+        self.last_activity = time.monotonic()
+        self.nudges = 0
 
 
     async def __aenter__(self):
@@ -235,6 +240,9 @@ class PolzaSession(CascadeSession):
         if self.held is not None and rid and rid == self.held_rid:
             self.held.append({"type": kind, **fields})
             return
+        if kind == "response.audio.delta":
+            now = time.monotonic()
+            self.caller_until = max(now, self.caller_until) + len(fields.get("delta", "")) * 3 / 4 / 48000
         # Замер хода: от конца речи оператора до первого слова модели и первого звука (без текста реплик).
         if self.turn_mark is not None and kind in ("response.text.delta", "response.audio.delta"):
             stage = "первое слово" if kind == "response.text.delta" else "первый звук"
@@ -290,6 +298,18 @@ class PolzaSession(CascadeSession):
             message = exc.message if isinstance(exc, ApiError) else "Распознавание речи прервалось. Подключитесь повторно"
             await self.emit("error", code="polza", message=message)
 
+    def caller_talking(self) -> bool:
+        return time.monotonic() < self.caller_until or (self.response is not None and not self.response.done())
+
+    async def nudge(self) -> None:
+        """Оператор долго молчит: заявитель сам говорит — как живой человек, а не ждёт реплики."""
+        self.nudges += 1
+        self.last_activity = time.monotonic()
+        logger.info("Оператор молчит: заявитель напоминает о себе (%d из %d)", self.nudges, MAX_NUDGES)
+        self.history.append({"role": "user", "content": NUDGE})
+        self.history = self.history[-16:]
+        self.response = asyncio.create_task(self.respond())
+
     async def barge_in(self, item_id: str, pcm: bytes):
         """Оператор говорит долго: распознаём услышанное и перебиваем по смыслу, пока он ещё говорит."""
         try:
@@ -314,6 +334,14 @@ class PolzaSession(CascadeSession):
         turn_end = asyncio.Event()
         barge: asyncio.Task | None = None  # перебивание длинной речи оператора
         barged = False
+        pending_start = False  # звук оператора поверх заявителя: ещё не ясно, «угу» это или перебивание
+
+        async def confirm_start():
+            nonlocal pending_start
+            pending_start = False
+            self.nudges = 0
+            await self.emit("input_audio_buffer.speech_started", item_id=self.item_id)
+            await self.cancel_response()
 
         def start_commit(event: asyncio.Event) -> asyncio.Task:
             task = asyncio.create_task(self.commit(self.item_id, bytes(utterance), event,
@@ -334,6 +362,11 @@ class PolzaSession(CascadeSession):
                     while sum(map(len, preroll)) > PREROLL_MS * 32:
                         preroll.popleft()
                     self.onset_ms = self.onset_ms + duration if voiced else 0
+                    nudge_sec = settings.live_call_nudge_sec * (1 if self.mood in BARGE_MOODS else 2)
+                    if (not self.onset_ms and nudge_sec and self.history and self.nudges < MAX_NUDGES
+                            and not self.transcriptions and not self.caller_talking()
+                            and time.monotonic() - max(self.last_activity, self.caller_until) >= nudge_sec):
+                        await self.nudge()
                     if self.onset_ms < 96:
                         continue
                     self.speaking, self.silent_ms = True, 0
@@ -342,16 +375,21 @@ class PolzaSession(CascadeSession):
                     preroll.clear()
                     voiced_ms = self.onset_ms
                     barged = False
-                    await self.emit("input_audio_buffer.speech_started", item_id=self.item_id)
-                    await self.cancel_response()
+                    self.last_activity = time.monotonic()
+                    if settings.live_call_yield_ms and self.caller_talking():
+                        pending_start = True  # заявитель говорит дальше, пока не ясно, что оператор перебивает
+                    else:
+                        await confirm_start()
                     continue
                 utterance += pcm
                 voiced_ms += duration if voiced else 0
                 self.silent_ms = 0 if voiced else self.silent_ms + duration
+                if pending_start and voiced_ms >= settings.live_call_yield_ms:
+                    await confirm_start()  # это не «угу»: оператор перебивает заявителя
                 barge_ms = settings.live_call_barge_in_sec * 1000
                 prepare_ms = min(settings.live_call_barge_prepare_sec * 1000, barge_ms)
                 # Пороги — по времени речи, без пауз между фразами.
-                if not barged and barge_ms and voiced_ms >= prepare_ms:
+                if not barged and not pending_start and barge_ms and voiced_ms >= prepare_ms:
                     barged = True
                     if self.mood not in BARGE_MOODS:
                         logger.info("Перебивания не будет: заявитель «%s» дослушивает оператора", self.mood)
@@ -367,12 +405,21 @@ class PolzaSession(CascadeSession):
                     early.cancel()  # оператор продолжил фразу: распознаем её целиком
                     early = None
                 end_ms, early_ms = settings.live_call_end_silence_ms, settings.live_call_early_commit_ms
-                if (early is None and 0 < early_ms < end_ms and self.silent_ms >= early_ms
+                if (early is None and not pending_start and 0 < early_ms < end_ms and self.silent_ms >= early_ms
                         and voiced_ms >= MIN_VOICED_MS):
                     turn_end = asyncio.Event()
                     early = start_commit(turn_end)
                 if self.silent_ms < end_ms and len(utterance) < MAX_UTTERANCE_MS * 32:
                     continue
+                self.last_activity = time.monotonic()
+                if pending_start:
+                    if self.caller_talking():
+                        # Короткий звук поверх заявителя («угу», «так», кашель): заявитель продолжает, в модель не идёт.
+                        logger.info("Короткий звук оператора поверх заявителя: заявитель продолжает")
+                        pending_start, self.speaking, self.onset_ms, self.silent_ms = False, False, 0, 0
+                        utterance = bytearray()
+                        continue
+                    await confirm_start()  # заявитель уже замолчал: короткое «да» — это ответ
                 if voiced_ms >= MIN_VOICED_MS:
                     if early is None:
                         turn_end = asyncio.Event()
