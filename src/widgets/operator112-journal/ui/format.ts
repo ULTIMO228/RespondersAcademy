@@ -1,6 +1,19 @@
 /** Форматирование даты и времени шапки/таблицы журнала 112 (референс ИНСТРУКЦИЯ_106). */
 const WEEKDAYS = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
-const MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+const MONTHS = [
+  "Январь",
+  "Февраль",
+  "Март",
+  "Апрель",
+  "Май",
+  "Июнь",
+  "Июль",
+  "Август",
+  "Сентябрь",
+  "Октябрь",
+  "Ноябрь",
+  "Декабрь",
+];
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -20,5 +33,8 @@ export function formatClock(ms: number): { hm: string; s: string } {
 export function splitCreatedAt(iso: string): { date: string; time: string } {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return { date: iso, time: "" };
-  return { date: `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${pad(d.getFullYear() % 100)}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
+  return {
+    date: `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${pad(d.getFullYear() % 100)}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
 }

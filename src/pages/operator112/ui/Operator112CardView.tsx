@@ -516,6 +516,7 @@ export function Operator112CardView({
             onAddServices={addServices}
             onSave={askSave}
             onLinks={form.links.length > 0 ? onOpenLinks : undefined}
+            isLinked={form.links.length > 0}
             onReminder={() => setDialog("reminder")}
             onProblem={onProblem}
             onClose={() => setDialog("close")}

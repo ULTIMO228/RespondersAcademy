@@ -121,4 +121,11 @@ describe("ServicesPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Повторить" }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
+
+  it("связанная карточка: значок связей становится «связана» и открывает «Показ связей» (ИНСТРУКЦИЯ_64)", () => {
+    const { onLinks } = setup({ isLinked: true });
+    expect(screen.queryByRole("button", { name: "Связи" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "связана" }));
+    expect(onLinks).toHaveBeenCalledOnce();
+  });
 });

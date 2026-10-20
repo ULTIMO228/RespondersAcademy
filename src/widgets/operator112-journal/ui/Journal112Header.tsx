@@ -3,7 +3,17 @@ import { ArmIcon } from "@/shared/ui";
 import { formatClock, formatHeaderDate } from "./format";
 import styles from "./Journal112Header.module.css";
 
-const MENU = ["журнал", "экран", "статистика", "УЕР", "вики", "заявители", "техника", "аудит", "отчёты"] as const;
+const MENU = [
+  "журнал",
+  "экран",
+  "статистика",
+  "УЕР",
+  "вики",
+  "заявители",
+  "техника",
+  "аудит",
+  "отчёты",
+] as const;
 
 type Props = {
   operatorName: string;
@@ -21,15 +31,21 @@ export function Journal112Header({ operatorName, nowMs, onCreateCard, onLogout }
         <h1 className={styles.title}>Поиск происшествий</h1>
         <div className={styles.field}>
           <input className={styles.input} type="text" aria-label="Строка поиска" readOnly />
-          <span className={styles.clear} aria-hidden="true">×</span>
+          <span className={styles.clear} aria-hidden="true">
+            ×
+          </span>
           <ArmIcon name="search" size={30} />
         </div>
         <div className={styles.searchRow}>
           <span className={styles.advanced} aria-disabled="true">
             расширенный по параметрам <ArmIcon name="advanced-chevron" size={12} />
           </span>
-          <button type="button" className={styles.ghost} aria-disabled="true">сбросить</button>
-          <button type="button" className={styles.ghost} aria-disabled="true">новый поиск</button>
+          <button type="button" className={styles.ghost} aria-disabled="true">
+            сбросить
+          </button>
+          <button type="button" className={styles.ghost} aria-disabled="true">
+            новый поиск
+          </button>
         </div>
       </section>
       <section className={styles.dark}>
@@ -42,7 +58,8 @@ export function Journal112Header({ operatorName, nowMs, onCreateCard, onLogout }
                 <ArmIcon name="top-settings" size={14} /> настроить
               </span>
               <span aria-disabled="true" className={styles.link}>
-                <ArmIcon name="top-info" size={14} />справка
+                <ArmIcon name="top-info" size={14} />
+                справка
               </span>
               <button type="button" className={styles.linkBtn} onClick={onLogout} disabled={!onLogout}>
                 <ArmIcon name="top-exit" size={14} /> выйти
@@ -50,7 +67,9 @@ export function Journal112Header({ operatorName, nowMs, onCreateCard, onLogout }
             </div>
           </div>
           <div className={styles.headset} aria-disabled="true">
-            <span className={styles.headsetIcon} aria-hidden="true">🎧</span>
+            <span className={styles.headsetIcon} aria-hidden="true">
+              🎧
+            </span>
             <span>не подключен</span>
           </div>
           <div className={styles.clock} role="timer" aria-label="Текущее время">
@@ -61,9 +80,13 @@ export function Journal112Header({ operatorName, nowMs, onCreateCard, onLogout }
         <nav className={styles.menu} aria-label="Разделы АРМ">
           {MENU.map((item) =>
             item === "журнал" ? (
-              <span key={item} className={`${styles.menuItem} ${styles.menuActive}`} aria-current="page">{item}</span>
+              <span key={item} className={`${styles.menuItem} ${styles.menuActive}`} aria-current="page">
+                {item}
+              </span>
             ) : (
-              <span key={item} className={styles.menuItem} aria-disabled="true">{item}</span>
+              <span key={item} className={styles.menuItem} aria-disabled="true">
+                {item}
+              </span>
             ),
           )}
         </nav>

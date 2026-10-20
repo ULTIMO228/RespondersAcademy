@@ -16,12 +16,34 @@ export type Operator112JournalProps = {
 };
 
 /** Журнал «Поиск происшествий» ученика-112: шапка + таблица с состояниями loading/error/ready. */
-export function Operator112Journal({ state, errorMessage, rows, operatorName, nowMs, onOpenRow, onCreateCard, onLogout }: Operator112JournalProps) {
+export function Operator112Journal({
+  state,
+  errorMessage,
+  rows,
+  operatorName,
+  nowMs,
+  onOpenRow,
+  onCreateCard,
+  onLogout,
+}: Operator112JournalProps) {
   return (
     <div className={styles.page}>
-      <Journal112Header operatorName={operatorName} nowMs={nowMs} onCreateCard={onCreateCard} onLogout={onLogout} />
-      {state === "loading" ? <p className={styles.note} role="status">Загрузка журнала…</p> : null}
-      {state === "error" ? <p className={styles.note} role="alert">{errorMessage ?? "Не удалось загрузить журнал"}</p> : null}
+      <Journal112Header
+        operatorName={operatorName}
+        nowMs={nowMs}
+        onCreateCard={onCreateCard}
+        onLogout={onLogout}
+      />
+      {state === "loading" ? (
+        <p className={styles.note} role="status">
+          Загрузка журнала…
+        </p>
+      ) : null}
+      {state === "error" ? (
+        <p className={styles.note} role="alert">
+          {errorMessage ?? "Не удалось загрузить журнал"}
+        </p>
+      ) : null}
       {state === "ready" ? <Journal112Table rows={rows} onOpenRow={onOpenRow} /> : null}
     </div>
   );

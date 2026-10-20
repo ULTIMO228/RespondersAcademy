@@ -8,7 +8,9 @@ const NOW = new Date(2019, 5, 27, 11, 39, 49).getTime();
 describe("Journal112Header", () => {
   it("показывает поиск, дату, оператора, часы и действия", () => {
     const onCreate = vi.fn();
-    render(<Journal112Header operatorName="Иванов С П" nowMs={NOW} onCreateCard={onCreate} onLogout={vi.fn()} />);
+    render(
+      <Journal112Header operatorName="Иванов С П" nowMs={NOW} onCreateCard={onCreate} onLogout={vi.fn()} />,
+    );
     expect(screen.getByText("Поиск происшествий")).toBeTruthy();
     for (const t of ["×", "сбросить", "новый поиск", "настроить", "справка", "выйти", "не подключен"]) {
       expect(screen.getAllByText(new RegExp(t)).length).toBeGreaterThan(0);

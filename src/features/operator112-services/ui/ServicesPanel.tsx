@@ -33,6 +33,8 @@ type ServicesPanelProps = {
   onSave: () => void;
   /** Значки справа; без обработчика значок неактивен (aria-disabled). */
   onLinks?: () => void;
+  /** Карточка связана: значок связей показывается как «связана» (ИНСТРУКЦИЯ_64). */
+  isLinked?: boolean;
   onReminder?: () => void;
   onProblem?: () => void;
   onClose?: () => void;
@@ -70,6 +72,7 @@ export function ServicesPanel({
   onAddServices,
   onSave,
   onLinks,
+  isLinked = false,
   onReminder,
   onProblem,
   onClose,
@@ -178,17 +181,19 @@ export function ServicesPanel({
         )}
         {ACTIONS.map((action) => {
           const handler = handlers[action.key];
+          const linked = action.key === "links" && isLinked;
           return (
             <button
               key={action.key}
               type="button"
-              className={styles.bar__square}
-              aria-label={action.title}
-              title={action.title}
+              className={[styles.bar__square, linked ? styles["bar__square--linked"] : ""].join(" ")}
+              aria-label={linked ? "связана" : action.title}
+              title={linked ? "Показ связей" : action.title}
               aria-disabled={handler ? undefined : "true"}
               onClick={handler}
             >
-              <Glyph name={action.glyph} size={24} />
+              <Glyph name={action.glyph} size={linked ? 20 : 24} />
+              {linked ? <span className={styles.bar__caption}>связана</span> : null}
             </button>
           );
         })}

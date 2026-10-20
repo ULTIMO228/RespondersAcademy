@@ -115,6 +115,19 @@
   cursor: pointer;
 }
 
+/* «связана» (ИНСТРУКЦИЯ_64): тот же квадрат, значок-цепочка над подписью. */
+.bar__square--linked {
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  width: 64px;
+}
+
+.bar__caption {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
 .bar__square:disabled,
 .bar__square[aria-disabled="true"] {
   cursor: default;

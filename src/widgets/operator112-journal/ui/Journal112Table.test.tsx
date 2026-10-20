@@ -6,15 +6,40 @@ import type { Journal112Row } from "@/shared/api";
 import { Journal112Table } from "./Journal112Table";
 
 const row = (o: Partial<Journal112Row>): Journal112Row => ({
-  cardId: "c1", number: "179968", createdAt: new Date(2019, 5, 26, 20, 15).toISOString(), operator: "", arm: "",
-  whatHappened: "Природная стихия", injured: "", status: "Не оповещено", address: "Москва", description: "Тест",
-  linked: true, chs: true, checked: true, isOwn: false, ...o,
+  cardId: "c1",
+  number: "179968",
+  createdAt: new Date(2019, 5, 26, 20, 15).toISOString(),
+  operator: "",
+  arm: "",
+  whatHappened: "Природная стихия",
+  injured: "",
+  status: "Не оповещено",
+  address: "Москва",
+  description: "Тест",
+  linked: true,
+  chs: true,
+  checked: true,
+  isOwn: false,
+  ...o,
 });
 
 describe("Journal112Table", () => {
   it("рисует заголовки, тумблеры, строки и пагинацию", () => {
     render(<Journal112Table rows={[row({})]} onOpenRow={vi.fn()} />);
-    for (const t of ["Связи", "ЧС", "Опер.", "АРМ", "Номер", "Дата", "Время", "Что случилось", "Постр.", "Статус", "Адрес", "Проверена"]) {
+    for (const t of [
+      "Связи",
+      "ЧС",
+      "Опер.",
+      "АРМ",
+      "Номер",
+      "Дата",
+      "Время",
+      "Что случилось",
+      "Постр.",
+      "Статус",
+      "Адрес",
+      "Проверена",
+    ]) {
       expect(screen.getByRole("columnheader", { name: new RegExp(t) })).toBeTruthy();
     }
     expect(screen.getByText(/Список происшествий/)).toBeTruthy();

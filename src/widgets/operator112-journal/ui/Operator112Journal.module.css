@@ -1,2 +1,9 @@
-.page { min-height: 100vh; background: var(--color-graphite-500); color: var(--color-light-text); }
-.note { padding: var(--spacing-2xl); font-size: var(--font-size-lg); }
+.page {
+  min-height: 100vh;
+  background: var(--color-graphite-500);
+  color: var(--color-light-text);
+}
+.note {
+  padding: var(--spacing-2xl);
+  font-size: var(--font-size-lg);
+}
