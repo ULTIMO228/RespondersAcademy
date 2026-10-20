@@ -44,6 +44,7 @@ const graphItem = (overrides: Partial<AIScenarioListItem> = {}): AIScenarioListI
   title: "Граф: дерево на дороге",
   mode: "operator112",
   latestVersion: 3,
+  latestApprovedVersion: 3,
   approval: "approved",
   validation: "passed",
   sourceKind: "ticket",
@@ -234,7 +235,7 @@ describe("мастер назначения", () => {
     expect(await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ })).toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: /Без графа/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: /Граф ДДС/ })).not.toBeInTheDocument();
-    expect(api.listGraphScenarios).toHaveBeenCalledWith({ approval: "approved" });
+    expect(api.listGraphScenarios).toHaveBeenCalledWith({});
   });
 
   it("выбор версии с графом подтягивает карточку и добавляет пару в запрос; снятие убирает обе записи", async () => {
@@ -266,6 +267,31 @@ describe("мастер назначения", () => {
       cardIds: ["c-900"],
       scenarioVersions: [{ scenarioId: "sc-g", version: 3, cardId: "c-900" }],
     });
+  });
+
+  it("черновик следующей версии не скрывает опубликованную: назначается именно опубликованная версия", async () => {
+    const api = makeApi({
+      listGraphScenarios: vi.fn().mockResolvedValue([
+        graphItem({ latestVersion: 4, approval: "draft", latestApprovedVersion: 3 }),
+        graphItem({
+          scenarioId: "sc-only-draft",
+          title: "Только черновик",
+          latestVersion: 1,
+          approval: "draft",
+          latestApprovedVersion: null,
+        }),
+      ]),
+    });
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    await pickStudent(/Иванов Иван/);
+    next();
+    next();
+    const row = await screen.findByRole("checkbox", { name: /Граф: дерево на дороге/ });
+    expect(screen.queryByRole("checkbox", { name: /Только черновик/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/версия 3/)).toBeInTheDocument();
+    fireEvent.click(row);
+    await waitFor(() => expect(row).toBeChecked());
+    expect(api.getGraphScenarioVersion).toHaveBeenCalledWith("sc-g", 3); // не 4: версия 4 — неопубликованный черновик
   });
 
   it("смесь сценария с графом и обычного билета не пускает дальше; сбой карточки версии показывается", async () => {

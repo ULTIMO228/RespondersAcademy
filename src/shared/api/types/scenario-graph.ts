@@ -118,6 +118,8 @@ export interface AIScenarioListItem {
   title: string;
   mode: AIWorkflowMode;
   latestVersion: number;
+  /** Последняя опубликованная версия (approved); null, если опубликованных ещё нет. */
+  latestApprovedVersion: number | null;
   approval: AIWorkflowApproval;
   validation: AIWorkflowValidation;
   sourceKind: AIWorkflowSourceKind;

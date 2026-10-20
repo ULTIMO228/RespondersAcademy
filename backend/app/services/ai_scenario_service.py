@@ -750,9 +750,12 @@ async def list_scenarios(
     if mode is not None:
         query = query.where(ScenarioVersion.mode == mode)
     latest: dict[str, ScenarioVersion] = {}
+    latest_approved: dict[str, int] = {}
     owners: dict[str, set[str]] = {}
     for version in (await db.execute(query)).scalars().all():
         latest[version.scenario_id] = version
+        if version.approval == "approved":
+            latest_approved[version.scenario_id] = version.version
         owners.setdefault(version.scenario_id, set()).add(version.created_by)
     scenarios = {
         row.id: row
@@ -774,6 +777,7 @@ async def list_scenarios(
                 "title": scenario.title,
                 "mode": version.mode,
                 "latestVersion": version.version,
+                "latestApprovedVersion": latest_approved.get(scenario_id),
                 "approval": version.approval,
                 "validation": version.validation,
                 "sourceKind": version.source_kind,

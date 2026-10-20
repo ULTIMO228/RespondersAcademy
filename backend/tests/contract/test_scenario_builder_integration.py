@@ -1034,3 +1034,20 @@ async def test_эксперт_открывает_чужой_сценарий_к�
     assert scenario_id in [item["id"] for item in (await client.get("/scenarios")).json()]
     patched = await client.patch(f"/scenarios/{scenario_id}", json={"title": "Чужое название", "updatedBy": "u-003"})
     assert patched.status_code == 403  # править по-прежнему может только автор
+
+
+async def test_список_сценариев_знает_последнюю_опубликованную_версию(v1: AsyncClient) -> None:
+    scenario_id, _ = await start_rich(v1, "latestapproved")
+    await login_as(v1, "teacher")
+    row = next(i for i in (await v1.get("/ai/scenarios")).json() if i["scenarioId"] == scenario_id)
+    assert row["latestVersion"] == 1 and row["latestApprovedVersion"] == 1 and row["approval"] == "approved"
+
+    derived = await v1.post(f"/ai/scenarios/{scenario_id}/versions/1/derive", json={"requestId": "t009-lav-derive"})
+    assert derived.status_code == 201
+    row = next(i for i in (await v1.get("/ai/scenarios")).json() if i["scenarioId"] == scenario_id)
+    # черновик следующей версии не скрывает опубликованную: её по-прежнему можно назначать
+    assert row["latestVersion"] == 2 and row["approval"] == "draft" and row["latestApprovedVersion"] == 1
+
+    draft_only = await create_draft(v1, "t009-builder-lav-draft", "lavd")
+    row = next(i for i in (await v1.get("/ai/scenarios")).json() if i["scenarioId"] == draft_only)
+    assert row["latestApprovedVersion"] is None

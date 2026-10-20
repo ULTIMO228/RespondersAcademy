@@ -352,8 +352,9 @@ function GraphScenarios({ api, draft, onChange }: GraphScenariosProps) {
   const mode = draft.trainingMode;
   const { state, reload } = useResource(
     async () =>
-      (await api.listGraphScenarios({ approval: "approved" })).filter(
-        (item) => item.hasGraph && item.approval === "approved" && item.mode === mode,
+      // Назначается последняя ОПУБЛИКОВАННАЯ версия: черновик следующей версии её не скрывает.
+      (await api.listGraphScenarios({})).filter(
+        (item) => item.hasGraph && item.latestApprovedVersion !== null && item.mode === mode,
       ),
     [api, mode],
   );
@@ -362,14 +363,14 @@ function GraphScenarios({ api, draft, onChange }: GraphScenariosProps) {
 
   const isSelected = (item: AIScenarioListItem) =>
     draft.scenarioVersions.some(
-      (entry) => entry.scenarioId === item.scenarioId && entry.version === item.latestVersion,
+      (entry) => entry.scenarioId === item.scenarioId && entry.version === item.latestApprovedVersion,
     );
 
   const toggle = async (item: AIScenarioListItem, checked: boolean) => {
     setMessage(null);
     if (!checked) {
       const entry = draft.scenarioVersions.find(
-        (value) => value.scenarioId === item.scenarioId && value.version === item.latestVersion,
+        (value) => value.scenarioId === item.scenarioId && value.version === item.latestApprovedVersion,
       );
       if (!entry) return;
       onChange({
@@ -380,11 +381,13 @@ function GraphScenarios({ api, draft, onChange }: GraphScenariosProps) {
     }
     setPending(item.scenarioId);
     try {
-      const loaded = await api.getGraphScenarioVersion(item.scenarioId, item.latestVersion);
+      const published = item.latestApprovedVersion;
+      if (published === null) return;
+      const loaded = await api.getGraphScenarioVersion(item.scenarioId, published);
       const cardId = loaded.cardSnapshot.id;
       const entry: AssignmentScenarioVersion = {
         scenarioId: item.scenarioId,
-        version: item.latestVersion,
+        version: published,
         cardId,
       };
       onChange({
@@ -422,7 +425,7 @@ function GraphScenarios({ api, draft, onChange }: GraphScenariosProps) {
               disabled={pending === item.scenarioId}
               onChange={(checked) => void toggle(item, checked)}
             >
-              <strong>{item.title}</strong> · версия {item.latestVersion}
+              <strong>{item.title}</strong> · версия {item.latestApprovedVersion}
             </CheckRow>
           ))
         : null}

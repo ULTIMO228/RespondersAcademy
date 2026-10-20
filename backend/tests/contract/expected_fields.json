@@ -74,6 +74,7 @@
     "title",
     "mode",
     "latestVersion",
+    "latestApprovedVersion",
     "approval",
     "validation",
     "sourceKind",
