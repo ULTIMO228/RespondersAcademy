@@ -7,6 +7,7 @@ Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanc
 Updated:2026-10-19
 
 ## Story
+0000000000000 2026-10-20 owner: emotion «чуть уменьшить» → STYLE: restrained, fillers rarely, [паника] only on threat to life, calmer examples | targeted tests 75 passed
 000000000000 2026-10-20 owner: Qwen «сухо, только по делу» ← my prompt «answer first, ≤1 filler, 1–2 phrases» + temp 0.3 → STYLE allows feelings/questions/thanks (no new facts), 3 fact-free manner examples, LIVE_CALL_POLZA_TEMPERATURE=0.7 | not checked live
 00000000000 2026-10-20 local STT option: extra stt-local (gigaam git@7447938, torchaudio 2.11 OK with torch 2.14 — import+features checked), ml/speech/gigaam_stt.py (in-memory, no ffmpeg), LIVE_CALL_STT_ENGINE=gigaam + LIVE_CALL_GIGAAM_MODEL, warm_stt, scripts/gigaam_check.py (local vs Polza ms) | ⚠️ real weights NOT run: CDN cdn.chatwm.opensmodel.sberdevices.ru blocked in cloud
 0000000000 2026-10-20 liveliness: LIVE_CALL_YIELD_MS=600 (operator sound over caller < 600ms voiced → ignored, no STT; after caller stopped → normal answer) | LIVE_CALL_NUDGE_SEC=5 (silence → «[оператор молчит]» → caller speaks; calm ×2; max 2 in a row) | pytest 1028 | not checked live | next: local GigaAM STT option + owner probe script

@@ -98,3 +98,10 @@ def test_style_examples_carry_manner_but_no_facts():
     assert examples.count("Оператор:") >= 3
     assert not any(ch.isdigit() for ch in examples)
     assert not any(word in examples.lower() for word in ("улиц", "дом ", "квартир", "телефон", "зовут"))
+
+
+def test_emotion_is_restrained_by_default():
+    # Owner 20.10: «эмоциональность можно чуть уменьшить» — паника только при угрозе жизни, междометия изредка.
+    assert "изредка" in persona.STYLE and "только при прямой угрозе жизни" in persona.STYLE
+    examples = persona.STYLE[persona.STYLE.index("Примеры манеры"):persona.STYLE.index("Конец примеров")]
+    assert "[паника]" not in examples
