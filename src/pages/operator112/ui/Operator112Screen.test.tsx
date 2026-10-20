@@ -405,7 +405,7 @@ describe("Operator112Screen: «создать новую карточку» (к�
 
 describe("Operator112Screen: СМС и связи", () => {
   it("СМС-билет: «Входящее сообщение», после «Принять» текст — в «Истории сообщений», канал карточки sms", async () => {
-    const sms = attempt({ cardSnapshot: { channel: "sms", smsText: "Горит балкон, помогите" } });
+    const sms = attempt({ channel: "sms", smsText: "Горит балкон, помогите" });
     const api = makeApi({
       startAssignment: vi.fn().mockResolvedValue({ kind: "operator112", attempt: sms }),
       answerAttempt: vi.fn().mockResolvedValue({ ...sms, state: "answered", answeredAt: OPENED }),

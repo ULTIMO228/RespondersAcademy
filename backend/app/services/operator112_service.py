@@ -147,14 +147,31 @@ def _event(events: list[dict[str, Any]], event_type: str, payload: dict[str, Any
     return event
 
 
+def ticket_fields(card: IncidentCard | None) -> dict[str, Any]:
+    """Поля билета для окна вызова (спека 009, FR-010, US5/US6): канал, текст СМС и повтор из `IncidentCard.extra`.
+
+    Сид кладёт в `extra` ключи билета как есть (`channel`, `smsText`, `repeatOf` из cards.json: c-066 — СМС, c-093 — повтор).
+    """
+    extra = (card.extra if card is not None else None) or {}
+    channel = "sms" if extra.get("channel") == "sms" else "call"
+    repeat_of = extra.get("repeatOf")
+    return {
+        "channel": channel,
+        "sms_text": str(extra.get("smsText") or "") if channel == "sms" else None,
+        "repeat_of": str(repeat_of) if repeat_of else None,
+    }
+
+
 async def contract_of(db: AsyncSession, attempt: Attempt, link: AssignmentAttempt | None, assignment: Assignment | None) -> dict[str, Any]:
     audio = await db.get(TicketAudio, attempt.card_id)
+    ticket = await db.get(IncidentCard, attempt.card_id)
     return attempt.to_operator_contract(
         replays=link.replays if link else 0,
         hints_shown=link.hints_shown if link else 0,
         hints=hints_of(assignment),
         assignment_id=link.assignment_id if link else None,
         audio=ticket_audio_service.audio_contract(audio, attempt.card_id),
+        **ticket_fields(ticket),
     )
 
 

@@ -303,6 +303,10 @@ class OperatorAttempt(ApiModel):
     hints: dict[str, Any] | None = None
     audio: dict[str, Any] | None = None
     card_snapshot: dict[str, Any] | None = None
+    # Поля билета (спека 009, FR-010, US5/US6): канал по умолчанию «звонок»; текст — только у СМС; repeatOf — при повторе.
+    channel: Literal["call", "sms"] = "call"
+    sms_text: str | None = None
+    repeat_of: str | None = None
 
 
 class OperatorEvaluation(ApiModel):
