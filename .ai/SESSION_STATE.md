@@ -1,37 +1,38 @@
 ## Facts
-Proj:RespondersAcademy | Branch:main | Mode:normal | HEAD:abc6347 pushed to origin/main | tree:only docs/demo.mp4 + docs/demo-new.mp4 untracked (not ours)
-Features:{005 performance-report ✅ T001-T005 (T006 open) | 000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ T001-T071 | 004 polza-provider ✅ T001-T006, T007 open}
-Stand:demo-up.sh running @2026-10-19 (front :3130, back :8130, db backend/var/demo.db) | stop: lsof -ti tcp:3130 tcp:8130 -sTCP:LISTEN | xargs kill
-Tests@2026-10-19:{pytest:911 passed/2 skipped/3 red(known debt, docs/FINAL-GATE.md),ruff:clean,vitest:1912 passed (234 files; 1 flaky IncidentScreen run, passes alone),steiger:pass,tsc:pass,build:pass,mocks:validate:pass}
-E2E@2026-10-19:{scripts/e2e-error-map.sh via run_frontend_e2e.sh --only error-map: 20/20} | not run:{simulator-visual playwright,e2e-student/teacher/admin since 002}
-npm run check:⚠️ stops at prettier on 2 foreign files (scripts/demo-video/record.mjs, GenerateDialog.tsx) | steiger/tsc/build run separately
-Updated:2026-10-19
+Proj:RespondersAcademy | Branch:main | Mode:normal | Status:feature007-partial
+HEAD:bd29eae "fix: страница отчёта занятия не падает на сводке ошибок бэкенда" | Updated:2026-10-20T14:11:27+03:00
+Runtime:demo front :3130 + backend :8130; preserve live .next and backend/var/demo.db
+Tests:{vitest:2054/2054,feature007-targeted:48/48,simulatorBoundary:6/6,backend-targeted:22/22 + access:11/11,backend-full:incomplete}
+Checks:{ruff-backend:pass,steiger:EMFILE,tsc:stale-.next-types,build:not_run,e2e:not_run,manual:not_run}
+Tree:wide dirty shared checkout; feature006, feature008, demo video files and other user changes are not owned by this task
 
 ## Story
-1 003 error-map: stages w/ traffic light (icon+word, thresholds 0.10/0.30, min 5/3, band ±10pp), stage detail, student map vs group, group journal, present mode, PDF, AI explain w/ agree/disagree verdict (migration 0005 error_map_verdicts, audit error_map.verdict), /me/focus + widget my-focus, thresholds in admin settings
-2 004 polza: AI_PROVIDER=local|polza (default local), PolzaClient in ml/generate/llm.py (OpenAI-compat, Bearer, rpm+daily limits, any error → None → template fallback), only scenario generation + explain_stage go external, audit ai.external_call (no texts/key), GET /api/v1/admin/ai/provider (admin), no admin UI; AGENTS §2 amended w/ owner OK
-3 docs: AGENTS §14-15 + .ai/LESSONS.md + PROJECT_MAP.md added; CLAUDE.md = Claude layer + @AGENTS.md
+1. Feature 007: specialization decisions 2,3,7,8 and open-attempt/hide/audit choices were confirmed by owner.
+2. Teacher specialization endpoint, own-group authorization, UI, and audit were implemented.
+3. Operator 112 lifecycle events, DDS read-only restrictions, assignment filtering, chain recipient checks, and report linkage were implemented.
+4. Compat link/SMS reads now check specialization for authenticated learners; T045 access matrix passed 11/11.
+5. Feature tasks show 50/66 complete; 16 remain open, including D6 transfer, teacher mirror, full report norm coverage, e2e, and manual checks.
 
 ## Reasoning
-verdict key omitted when none (dump() exclude_none for optional TS fields) > null
-explanation None when level==noData (model not called)
-external LLM only via llm.external_client(); configured_client() stays local (warmup must not hit network)
-audit events buffered in llm.py, flushed async by external_ai_audit.flush_external_calls (client is sync)
-polza without key → Settings validator fails startup (no silent switch)
+Open attempt completion after specialization removal > immediate revocation: owner confirmed existing attempt completion.
+Hide incompatible assignments > show disabled cards: owner confirmed.
+Reuse audit category > add fixed event type: owner confirmed.
+Anonymous write endpoint follow-up ID: 009 > 008 because `spec/008-full-cycle-review/` already exists.
 
 ## Action
-!1 T007 polza real-key check: owner puts POLZA_API_KEY in backend/.env, then says ready; run 1 scenario gen + 1 explain, check audit rows
-!2 T072 usability check w/ ≥3 teachers + T073 manual scenarios 1-14 (quickstart.md) NOT done
- 3 simulator-visual playwright (SC-010) NOT run
- 4 backend/var/dev.db lacks error_map_verdicts → alembic upgrade head or app.seed.load --reset (ask owner first)
- 5 `npm run mocks:sync` — spec mocks (sessions/users) changed, mocks/ copy not refreshed
- 6 owner checklist (screenshot): 5.1 filter sizes 44/16px (a11y.test only scans cursor:pointer rules → fields may be missed), 5.3 group assignments in existing DB, 5.4 student recommendations rating race (old phase-14 code, not ours)
- 7 T061 docs/demo.mp4 — owner records; never fabricate
- 8 2026-10-20 browser check /admin/performance as admin ✅: export.xlsx fetch 200 xlsx 14KB, tabs Students+Errors render; group col nowrap fixed (uncommitted, vitest 10 pass, eslint/prettier/tsc clean); 5 resolved: mock exportFormats csv|pdf is correct (mock layer has no xlsx)
+!1: Resume feature 007 open tasks; prioritize report norm scope UI and explicit chain zone transition.
+!2: Resolve incomplete full backend pytest run; baseline had 1122 passed, 2 skipped, 9 failed in dirty tree.
+ 3: Run clean-tree simulator visual, HTTP e2e, and human quickstart checks when demo stand can be safely rebuilt.
+ 4: Offer anonymous write endpoint closure as a new feature numbered 009.
 
 ## Caution
-⚠️ .next baked with BACKEND_URL=127.0.0.1:8130 after run_frontend_e2e.sh / demo-up → rebuild before plain `next dev`/start
-⚠️ e2e sh scripts need fresh servers/db each run (in-memory store, verdict rows)
-⚠️ other sessions may edit same checkout: git status first, test -e before creating files
-❌ NEVER git add . | never Co-Authored-By/agent signature in commits | never fabricate docs/demo.mp4 | never read/print backend/.env
-🧠 pre-existing red tests proven on clean HEAD via git archive, not by assumption
+⚠️ Preserve all unrelated dirty and untracked files; do not stage or revert them.
+⚠️ Do not run build/check or Playwright against the live :3130 stand; they can overwrite its `.next` output.
+⚠️ Full `pytest backend/tests -q` did not finish during this session; do not treat it as a pass.
+❌ Anonymous compat write endpoints remain outside feature 007; the finding is recorded in feature 008 audit and needs a feature 009 remediation.
+## Feature 008 (full-cycle-review) @2026-10-20
+Status:Audit completed ✅ | spec:spec/008-full-cycle-review/{spec.md,plan.md,tasks.md,reports/} | findings:DEF-01..DEF-10 verified
+Defects:{DEF-01:compat eval RBAC bypass(CVSS 9.1) | DEF-02:compat GET /users leak(CVSS 7.5) | DEF-03:chain A->B 409 conflict(14 addresses limit) | DEF-04:Assignment empty scenario_ids | DEF-05:operator112 address hint vs form mismatch | DEF-06:missing 100char 03 limit | DEF-07:pytest 7 isolated/11 cascaded red | DEF-08:operator112 hotkeys absent | DEF-09:cards status anonymous mutation | DEF-10:cards_query missing filters}
+Checks:{vitest:6 red in 3 files(2048 pass) | pytest:7 red isolated + 11 cascaded due to seeded_db session scope in conftest.py}
+Action:Remediation plan ready in tasks.md T001-T014
+

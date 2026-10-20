@@ -49,6 +49,11 @@
 ❌ edit mocks/ by hand
 ✅ edit spec/000-фронт/mocks → npm run mocks:sync && npm run mocks:validate (mocks/ is committed copy)
 
+## L011 | test isolation & verification
+❌ trust docs/memory for test metrics | ignore conftest.py session-scoped db pollution
+✅ run actual pytest & vitest; isolate tests when cascading failures occur; trace conftest.py fixtures
+
+
 ## L011 | external providers / invariant
 ❌ call external API from default path
 ✅ AGENTS §2: local contour; Polza.ai only AI_PROVIDER=polza + key, only scenario_gen/explain_stage, fallback on any error, audit w/o texts or key
@@ -60,3 +65,10 @@
 
 ## L013 | flaky tests
 ⚠️ IncidentScreen "card-881412" failed once in full vitest run, passes alone → rerun file before blaming own change
+
+## L014 | migration head in tests
+❌ test asserts alembic_version == "head" revision | another feature adds a later migration => test red for no reason
+✅ upgrade to the feature's own revision id, or assert the column exists; ! parallel sessions stack migrations on same tree
+
+## L015 | parallel sessions share tree
+⚠️ full pytest unreliable while another session adds tests before modules (collection errors) → run feature-area tests; compare failures on clean HEAD via `git worktree add --detach` before blaming own change
