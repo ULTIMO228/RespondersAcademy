@@ -13,7 +13,7 @@ from app.services import realtime_call_service as call
 from ml.speech import vad
 
 REQUIRED = {
-    "polza": ("polza_api_key", "live_call_polza_chat_model", "live_call_polza_stt_model", "live_call_polza_tts_model"),
+    "polza": ("polza_api_key", "live_call_polza_chat_model", "live_call_polza_stt_model"),
     "cascade": ("live_call_llm_url", "live_call_llm_api_key"),
     "speechkit": ("speechkit_api_key", "live_call_llm_url", "live_call_llm_api_key"),
     "omni": ("live_call_realtime_url",),
@@ -29,6 +29,14 @@ def problems() -> list[str]:
     if not settings.live_call_public_ws_url:
         found.append("LIVE_CALL_PUBLIC_WS_URL (ws://127.0.0.1:<порт бэкенда>/api/v1/operator112/realtime)")
     found += [name.upper() for name in REQUIRED[transport] if not getattr(settings, name)]
+    if transport == "polza" and settings.live_call_tts_engine == "silero":
+        from ml.speech import tts as silero
+
+        found += [name.upper() for name in ("live_call_silero_model", "live_call_silero_speaker") if not getattr(settings, name)]
+        if settings.live_call_silero_model and not silero.live_model_path(settings.live_call_silero_model).exists():
+            found.append(f"файл модели {silero.live_model_path(settings.live_call_silero_model)}")
+    elif transport == "polza" and not settings.live_call_polza_tts_model:
+        found.append("LIVE_CALL_POLZA_TTS_MODEL")
     if transport != "omni":
         if not importlib.util.find_spec("torch"):
             found.append("torch для Silero VAD: uv sync --extra tts")
@@ -45,7 +53,10 @@ def main() -> int:
     if transport == "polza":
         print(f"  разговор: {settings.live_call_polza_chat_model or '—'}")
         print(f"  распознавание: {settings.live_call_polza_stt_model or '—'}")
-        print(f"  голос: {settings.live_call_polza_tts_model or '—'} ({settings.live_call_polza_tts_voice or 'голос по умолчанию'})")
+        if settings.live_call_tts_engine == "silero":
+            print(f"  голос: Silero локально — {settings.live_call_silero_model or '—'}, {settings.live_call_silero_speaker or '—'}")
+        else:
+            print(f"  голос: {settings.live_call_polza_tts_model or '—'} ({settings.live_call_polza_tts_voice or 'голос по умолчанию'})")
     elif transport == "speechkit":
         print("  ⚠️ SpeechKit — закрытые модели, вне условия организаторов (только как запасной вариант)")
     if missing:

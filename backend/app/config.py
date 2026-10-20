@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     live_call_polza_stt_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_STT_MODEL")
     live_call_polza_tts_model: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_MODEL")
     live_call_polza_tts_voice: str | None = Field(default=None, alias="LIVE_CALL_POLZA_TTS_VOICE")
+    # Движок голоса заявителя: polza (облако) или silero (локально на CPU, без сети; модель — MODELS_DIR/silero/<файл>).
+    live_call_tts_engine: Literal["polza", "silero"] = Field(default="polza", alias="LIVE_CALL_TTS_ENGINE")
+    live_call_silero_model: str | None = Field(default=None, alias="LIVE_CALL_SILERO_MODEL")
+    live_call_silero_speaker: str | None = Field(default=None, alias="LIVE_CALL_SILERO_SPEAKER")
     # Уровень размышления разговорной модели (reasoning_effort). У GLM-5.3 размышление обязательно,
     # по умолчанию max → лишние секунды до первого слова; low — для телефонного темпа. Пусто — не передаём.
     live_call_polza_reasoning_effort: str | None = Field(default=None, alias="LIVE_CALL_POLZA_REASONING_EFFORT")

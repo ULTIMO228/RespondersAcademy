@@ -338,3 +338,42 @@ async def test_interrupted_reply_stays_in_memory_so_caller_does_not_greet_again(
     assert session.history[-1]["content"].startswith("[паника] Алло! Горит балкон.")
     assert "перебил" in session.history[-1]["content"]
     await session.client.aclose()
+
+
+async def test_local_silero_voice_gets_mood_as_prosody_and_no_network(settings, monkeypatch):
+    # Озвучка локально (Silero на CPU): без сетевого запроса, настроение — темпом и высотой (SSML).
+    from ml.speech import tts as silero
+
+    monkeypatch.setattr(settings, "live_call_tts_engine", "silero")
+    monkeypatch.setattr(settings, "live_call_silero_speaker", "xenia")
+    monkeypatch.setattr(settings, "live_call_silero_model", "v5_ru.pt")
+    seen = {}
+
+    class Model:
+        def apply_tts(self, ssml_text, speaker, sample_rate):
+            seen.update(ssml=ssml_text, speaker=speaker, rate=sample_rate)
+            return np.zeros(240, dtype=np.float32)
+
+    monkeypatch.setattr(silero, "load_live_model", lambda _name: Model())
+    session = _session(lambda _: pytest.fail("сетевой запрос к TTS при локальной озвучке"))
+    pcm = await session.tts("Горит дом 11!", "паника")
+    assert len(pcm) == 480
+    assert seen["speaker"] == "xenia" and seen["rate"] == 24000
+    assert seen["ssml"].startswith("<speak><prosody") and 'rate="fast"' in seen["ssml"] and 'pitch="high"' in seen["ssml"]
+    assert "одиннадцать" in seen["ssml"]  # Silero не читает цифры — переводим в слова
+    await session.client.aclose()
+
+
+def test_silero_engine_does_not_need_polza_tts_model(settings, monkeypatch):
+    monkeypatch.setattr(polza.vad, "model_path", lambda: type("P", (), {"exists": lambda self: True})())
+    monkeypatch.setattr(polza.importlib.util, "find_spec", lambda _name: object())
+    monkeypatch.setattr(settings, "live_call_tts_engine", "silero")
+    monkeypatch.setattr(settings, "live_call_polza_tts_model", None)
+    monkeypatch.setattr(settings, "live_call_silero_model", "v5_ru.pt")
+    monkeypatch.setattr(settings, "live_call_silero_speaker", "xenia")
+    from ml.speech import tts as silero
+
+    monkeypatch.setattr(silero, "live_model_path", lambda name: type("P", (), {"exists": lambda self: True})())
+    assert polza.configured()
+    monkeypatch.setattr(silero, "live_model_path", lambda name: type("P", (), {"exists": lambda self: False})())
+    assert not polza.configured()

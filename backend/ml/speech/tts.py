@@ -192,6 +192,53 @@ def synthesize_pcm(text: str, voice: str = "female") -> bytes:
         return (np.clip(audio.numpy(), -1.0, 1.0) * 32767).astype("<i2").tobytes()
 
 
+_live_models: dict[str, object] = {}
+
+
+def live_model_path(name: str) -> Path:
+    """Модель живого заявителя (например, Silero v5) — отдельно от v4 для аудио билетов."""
+    from app.config import get_settings
+
+    return get_settings().models_dir / MODEL_SUBDIR / name
+
+
+def load_live_model(name: str):
+    with _lock:
+        if name not in _live_models:
+            path = live_model_path(name)
+            if not path.exists():
+                raise TtsUnavailable(f"нет модели {path}")
+            import torch
+
+            torch.set_num_threads(max(1, min(4, torch.get_num_threads())))
+            model = torch.package.PackageImporter(str(path)).load_pickle("tts_models", "model")
+            model.to(torch.device("cpu"))
+            _live_models[name] = model
+        return _live_models[name]
+
+
+def synthesize_live(text: str, model_name: str, speaker: str, rate: str = "medium", pitch: str = "medium") -> bytes:
+    """Фраза → PCM16 LE 24 кГц; интонация — SSML prosody (Silero поддерживает rate/pitch)."""
+    from contextlib import nullcontext
+    from xml.sax.saxutils import escape
+
+    prepared = prepare_text(text)
+    if not prepared:
+        return b""
+    model = load_live_model(model_name)
+    ssml = f'<speak><prosody rate="{rate}" pitch="{pitch}">{escape(prepared)}</prosody></speak>'
+    try:
+        import torch
+
+        context = torch.inference_mode()
+    except ImportError:
+        context = nullcontext()
+    with _synthesis_lock, context:
+        audio = model.apply_tts(ssml_text=ssml, speaker=speaker, sample_rate=SAMPLE_RATE)
+    samples = audio.numpy() if hasattr(audio, "numpy") else np.asarray(audio)
+    return (np.clip(samples, -1.0, 1.0) * 32767).astype("<i2").tobytes()
+
+
 def write_wav(path: Path, samples: np.ndarray, sample_rate: int = SAMPLE_RATE) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     data = np.clip(samples, -1.0, 1.0)

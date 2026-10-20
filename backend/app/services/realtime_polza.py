@@ -34,9 +34,15 @@ PREROLL_MS = 300
 def configured() -> bool:
     settings = get_settings()
     key = settings.polza_api_key
+    if settings.live_call_tts_engine == "silero":
+        from ml.speech import tts as silero
+
+        voice = bool(settings.live_call_silero_model and settings.live_call_silero_speaker
+                     and silero.live_model_path(settings.live_call_silero_model).exists())
+    else:
+        voice = bool(settings.live_call_polza_tts_model)
     return bool(key and key.get_secret_value().strip()
-                and settings.live_call_polza_chat_model and settings.live_call_polza_stt_model
-                and settings.live_call_polza_tts_model
+                and settings.live_call_polza_chat_model and settings.live_call_polza_stt_model and voice
                 and importlib.util.find_spec("torch") and vad.model_path().exists())
 
 
@@ -218,6 +224,15 @@ class PolzaSession(CascadeSession):
     # --- озвучка: текст без меток + инструкция эмоции, неречевые звуки — вставками ---
     async def tts(self, text: str, mood: str | None = None) -> bytes:
         settings = get_settings()
+        if settings.live_call_tts_engine == "silero":
+            from ml.speech import tts as silero
+
+            rate, pitch = persona.PROSODY[mood or self.mood]
+            try:
+                return await asyncio.to_thread(silero.synthesize_live, text, settings.live_call_silero_model or "",
+                                               settings.live_call_silero_speaker or "", rate, pitch)
+            except Exception as exc:
+                raise ApiError(503, "internal", "Локальный голос Silero недоступен: проверьте LIVE_CALL_SILERO_*") from exc
         body: dict[str, str] = {"model": settings.live_call_polza_tts_model or "", "input": text,
                                 "response_format": settings.live_call_polza_tts_format}
         if settings.live_call_polza_tts_voice:
