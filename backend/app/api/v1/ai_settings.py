@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import logging
 import time
 from collections.abc import Callable
 from typing import Any
@@ -28,6 +29,8 @@ from app.services.ai_settings_service import (
 )
 from app.services.time import to_moscow_iso
 from ml.generate import llm
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 admin_only = require_role("admin")
@@ -136,7 +139,10 @@ def _probe_local() -> str:
 
 
 def _probe_cloud(
-    key: str, reserve_cloud_call: Callable[[], bool], before_send: Callable[[], bool]
+    key: str,
+    reserve_cloud_call: Callable[[], bool],
+    before_send: Callable[[], bool],
+    timeout_sec: float = PROBE_TIMEOUT_SEC,
 ) -> str:
     """Одна проба облака теми же примитивами, что и `complete_json` (закреплённый маршрут, лимиты, транспорт)."""
     if not ai_settings_service.cloud_allowed():
@@ -149,7 +155,7 @@ def _probe_cloud(
         settings.polza_base_url,
         key,
         llm.CLOUD_MODEL,
-        min(settings.polza_timeout_sec, PROBE_TIMEOUT_SEC),
+        min(settings.polza_timeout_sec, max(1.0, timeout_sec)),
         transport=llm._cloud_transport,
         limiter=llm._cloud_limiter(),
     )
@@ -171,19 +177,22 @@ async def test_ai_connection(
     response.headers["Cache-Control"] = NO_STORE
     _check_source(body.source)
     key = (body.api_key or "").strip() or None
+    effective = await ai_settings_service.effective(db)
     if body.source == "cloud" and key is None:
         try:
-            key = ai_settings_service.default_service().cloud_key(await ai_settings_service.effective(db))
+            key = ai_settings_service.default_service().cloud_key(effective)
         except AiSecretError:
             key = None
         if not key:
             raise validation_failed(CLOUD_NEEDS_KEY_MESSAGE)
+    # Освобождаем транзакцию сессии `db` до запуска потока и резервации,
+    # чтобы не удерживать блокировку SQLite (lock contention / busy wait)
+    await db.rollback()
     started = time.perf_counter()
     if body.source == "cloud":
         if not ai_settings_service.cloud_allowed() or llm.build_cloud_payload(PROBE_SYSTEM, PROBE_USER, PROBE_SCHEMA, max_tokens=16) is None:
             result = "wrong_route"
         else:
-            effective = await ai_settings_service.effective(db)
             event_loop = asyncio.get_running_loop()
             probe_deadline = time.monotonic() + PROBE_TIMEOUT_SEC
 
@@ -204,9 +213,10 @@ async def test_ai_connection(
                 return time.monotonic() < probe_deadline
 
             try:
+                remaining_sec = max(0.0, probe_deadline - time.monotonic())
                 result = await asyncio.wait_for(
-                    asyncio.to_thread(_probe_cloud, key, reserve_probe, probe_is_before_deadline),
-                    timeout=max(0.0, probe_deadline - time.monotonic()),  # type: ignore[arg-type]
+                    asyncio.to_thread(_probe_cloud, key, reserve_probe, probe_is_before_deadline, remaining_sec),
+                    timeout=remaining_sec + 0.5,
                 )
             except TimeoutError:
                 result = "timeout"
@@ -217,6 +227,8 @@ async def test_ai_connection(
             result = "timeout"
     latency = int((time.perf_counter() - started) * 1000)
     ok = result == "ok"
+    if not ok:
+        logger.warning("ai_probe_failed source=%s reason=%s latency_ms=%d", body.source, result, latency)
     await audit.record(
         db,
         action="ai.connection_test",

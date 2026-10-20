@@ -1,38 +1,33 @@
 ## Facts
-Proj:RespondersAcademy | Branch:main | Mode:normal | Status:feature007-partial
-HEAD:bd29eae "fix: страница отчёта занятия не падает на сводке ошибок бэкенда" | Updated:2026-10-20T14:11:27+03:00
-Runtime:demo front :3130 + backend :8130; preserve live .next and backend/var/demo.db
-Tests:{vitest:2054/2054,feature007-targeted:48/48,simulatorBoundary:6/6,backend-targeted:22/22 + access:11/11,backend-full:incomplete}
-Checks:{ruff-backend:pass,steiger:EMFILE,tsc:stale-.next-types,build:not_run,e2e:not_run,manual:not_run}
-Tree:wide dirty shared checkout; feature006, feature008, demo video files and other user changes are not owned by this task
+Proj:RespondersAcademy | Branch:feat/008-full-cycle-review | Mode:normal | Status:feature006-phase8-incomplete
+HEAD:bd29eaeef7b01c666571759d26f7929aadccf5c3 "fix: страница отчёта занятия не падает на сводке ошибок бэкенда"
+Updated:2026-10-20T16:12:00+03:00 | Dirty_paths:250
+Files_changed:[feature006,feature007,feature008,shared; preserve all]
+Runtime:live front :3130 stale build + backend :8130; preserve .next and backend/var/demo.db
+Tests:{backend_full:1153_pass,4_fail,2_skip;feature006_ai_suite:125/125;ReportSession:10/10}
+Checks:{ruff_backend:pass,diff_check:pass,focused_eslint_prettier:pass,npm_full:6_known_failures,npm_check:feature007_lint_block,e2e:blocked,visual:not_run}
 
 ## Story
-1. Feature 007: specialization decisions 2,3,7,8 and open-attempt/hide/audit choices were confirmed by owner.
-2. Teacher specialization endpoint, own-group authorization, UI, and audit were implemented.
-3. Operator 112 lifecycle events, DDS read-only restrictions, assignment filtering, chain recipient checks, and report linkage were implemented.
-4. Compat link/SMS reads now check specialization for authenticated learners; T045 access matrix passed 11/11.
-5. Feature tasks show 50/66 complete; 16 remain open, including D6 transfer, teacher mirror, full report norm coverage, e2e, and manual checks.
+1. Feature 006 T018, T040, T041 remain open; T022-T039, T044 complete ✅
+2. T044: fixed probe timeout — freed request db session before probe reservation (no SQLite lock contention), dynamic remaining timeout to httpx ✅
+2. Daily quota uses atomic ai_health calls_today + probe_calls_today reservations before cloud HTTP ✅
+3. Scenario source stays generated for access semantics; generation.provider reports actual source ✅
+4. Report-level AI comment now renders once; attempt comments remain attached to their own attempts ✅
+5. T043 tracks request DB connection retention during model I/O; full gate is not green ⚠️
 
 ## Reasoning
-Open attempt completion after specialization removal > immediate revocation: owner confirmed existing attempt completion.
-Hide incompatible assignments > show disabled cards: owner confirmed.
-Reuse audit category > add fixed event type: owner confirmed.
-Anonymous write endpoint follow-up ID: 009 > 008 because `spec/008-full-cycle-review/` already exists.
+Scenario.source=generated > template: preserve permissions, deletion, and deduplication semantics.
+probe_calls_today > calls_today mutation: persist probe usage separately while enforcing one shared daily cap.
+T043 follow-up > broad transaction refactor now: preserve report and idempotency transaction semantics.
 
 ## Action
-!1: Resume feature 007 open tasks; prioritize report norm scope UI and explicit chain zone transition.
-!2: Resolve incomplete full backend pytest run; baseline had 1122 passed, 2 skipped, 9 failed in dirty tree.
- 3: Run clean-tree simulator visual, HTTP e2e, and human quickstart checks when demo stand can be safely rebuilt.
- 4: Offer anonymous write endpoint closure as a new feature numbered 009.
+!1: Complete T018/T038 E2E/T041 browser and owner real-key workflow after a safe stand rebuild.
+!2: Resolve T043 connection retention and add limited-pool concurrency coverage.
+ 3: Re-run full backend/frontend gates after feature 007 baseline fixes.
 
 ## Caution
-⚠️ Preserve all unrelated dirty and untracked files; do not stage or revert them.
-⚠️ Do not run build/check or Playwright against the live :3130 stand; they can overwrite its `.next` output.
-⚠️ Full `pytest backend/tests -q` did not finish during this session; do not treat it as a pass.
-❌ Anonymous compat write endpoints remain outside feature 007; the finding is recorded in feature 008 audit and needs a feature 009 remediation.
-## Feature 008 (full-cycle-review) @2026-10-20
-Status:Audit completed ✅ | spec:spec/008-full-cycle-review/{spec.md,plan.md,tasks.md,reports/} | findings:DEF-01..DEF-10 verified
-Defects:{DEF-01:compat eval RBAC bypass(CVSS 9.1) | DEF-02:compat GET /users leak(CVSS 7.5) | DEF-03:chain A->B 409 conflict(14 addresses limit) | DEF-04:Assignment empty scenario_ids | DEF-05:operator112 address hint vs form mismatch | DEF-06:missing 100char 03 limit | DEF-07:pytest 7 isolated/11 cascaded red | DEF-08:operator112 hotkeys absent | DEF-09:cards status anonymous mutation | DEF-10:cards_query missing filters}
-Checks:{vitest:6 red in 3 files(2048 pass) | pytest:7 red isolated + 11 cascaded due to seeded_db session scope in conftest.py}
-Action:Remediation plan ready in tasks.md T001-T014
-
+⚠️ Preserve the shared dirty tree and user files; do not stage or revert unrelated paths.
+⚠️ Existing :3130 uses stale .next; sandbox denied loopback bind (`operation not permitted`); do not restart live processes.
+⚠️ PostgreSQL must run `alembic upgrade head` through 0009_ai_probe_quota before deployment.
+❌ Backend full pytest: 2 known audio tests, feature007 exam test, and test_release_invariants fail; npm full suite has 6 prior failures.
+🧠 Quota reservations commit before HTTP; timeout does not refund a sent-request reservation.

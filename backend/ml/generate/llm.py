@@ -386,9 +386,11 @@ class PolzaClient(OllamaClient):
                 response = http.post(
                     f"{self.url}/chat/completions", json=payload, headers={"Authorization": f"Bearer {self._api_key}"}
                 )
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as exc:
+            logger.warning("PolzaClient timeout (%.1fs) url=%s: %s", self.timeout, self.url, exc)
             return None, "timeout", True
-        except httpx.HTTPError:
+        except httpx.HTTPError as exc:
+            logger.warning("PolzaClient HTTP error url=%s: %s", self.url, exc)
             return None, "network", True
         if response.status_code != 200:
             return None, _http_reason(response.status_code), True
