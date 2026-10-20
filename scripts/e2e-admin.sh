@@ -38,9 +38,9 @@ STUDENT_ARM="${E2E_STUDENT_ARM:-1}"
 TWO_FACTOR="${E2E_2FA:-123456}"
 
 # Заблокированная учётка из моков (T4.1: отказ входа заблокированному).
-BLOCKED_LOGIN="${E2E_BLOCKED_LOGIN:-egorov}"
+BLOCKED_LOGIN="${E2E_BLOCKED_LOGIN:-lebedev}"
 BLOCKED_PASSWORD="${E2E_BLOCKED_PASSWORD:-student112}"
-BLOCKED_ARM="${E2E_BLOCKED_ARM:-6}"
+BLOCKED_ARM="${E2E_BLOCKED_ARM:-30}"
 
 # Новая учётка прогона (создаётся в сторе, сид users.json не меняется).
 NEW_LOGIN="${E2E_NEW_LOGIN:-e2eadmin}"

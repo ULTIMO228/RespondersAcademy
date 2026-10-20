@@ -60,9 +60,9 @@ describe("login() против handler'а /auth/login", () => {
     expect(mapLoginError(error).reason).toBe("invalid");
   });
 
-  it("заблокированная учётка (egorov, isActive=false) → 403", async () => {
+  it("заблокированная учётка (lebedev, isActive=false) → 403", async () => {
     const error = await captureError(
-      login({ login: "egorov", password: "student112", armNumber: 6 }, handlerClient),
+      login({ login: "lebedev", password: "student112", armNumber: 30 }, handlerClient),
     );
     expect((error as ApiError).status).toBe(403);
     expect(mapLoginError(error)).toEqual({ reason: "blocked", message: LOGIN_FAILURE_MESSAGES.blocked });

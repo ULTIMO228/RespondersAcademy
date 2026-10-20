@@ -39,3 +39,9 @@ Next:
 Caution:
   ⚠️ Do not use git add .
   ⚠️ no Co-Authored-By trailer
+
+## 2026-10-20 | claude/zealous-goldberg-mu6erp | unblock DDS operator egorov
+done: users.json u-010 egorov isActive=true | +u-025 lebedev blocked (АРМ 30) as demo of 403 accountBlocked | tests (front+back), e2e/auth-security, scripts/e2e-admin.sh, login hint, audit seed, README → lebedev | regress tests: egorov login 200 (mock route + backend contract)
+decision: owner chose "new blocked user" over dropping blocked demo; spec/000 12-tasks.md left as history (finished feature)
+🧠 role ≠ mode: all students are same role; ДДС/112/chain = TrainingMode of assignment, not account
+next: PR review/merge; reseed existing backend DBs

@@ -59,7 +59,7 @@ describe("LoginScreen (/login)", () => {
     expect(summary.closest("details")).not.toHaveAttribute("open");
     fireEvent.click(summary);
     expect(screen.getByText("ivanov")).toBeInTheDocument();
-    expect(screen.getByText("egorov")).toBeInTheDocument();
+    expect(screen.getByText("lebedev")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "преподаватель" })).toHaveAttribute(
       "href",
       "/login?demo=teacher",

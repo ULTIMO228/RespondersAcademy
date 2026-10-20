@@ -33,7 +33,7 @@ DEMO_USERS = {
     "student2": {"login": "petrova", "password": "student112", "armNumber": 2},
     "teacher": {"login": "morozova", "password": "teacher112", "armNumber": 21},
     "admin": {"login": "admin", "password": "admin112", "armNumber": 24},
-    "blocked": {"login": "egorov", "password": "student112", "armNumber": 6},
+    "blocked": {"login": "lebedev", "password": "student112", "armNumber": 30},
 }
 
 
