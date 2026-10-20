@@ -1,6 +1,7 @@
 /*
  * Учебные сценарии и эталоны — spec/000-фронт/05-data-models.md §6 (mocks/scenarios.json, 36 шт.).
  */
+import type { ScenarioGraph } from "./scenario-graph";
 import type { ScenarioMode } from "./session";
 
 /** Норматив п. 1.4: шаблон / генеративная вариация. */
@@ -133,6 +134,11 @@ export interface AIScenarioVersion {
   };
   fieldDecisions: AIFieldDecision[];
   approvedBy?: string;
+  /** Граф сценария `scenario-graph/1` (визуальный конструктор, спека 005). */
+  graph?: ScenarioGraph;
+  /** Эксперт, принявший или отклонивший версию, и его комментарий. */
+  reviewedBy?: string;
+  reviewComment?: string;
   /** Только в ответе на создание черновиков: чем и за сколько сгенерировано. */
   generation?: AIScenarioGeneration;
 }

@@ -67,6 +67,31 @@
    "optional": [],
    "extends": []
   },
+  "AIScenarioListItem": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "scenarioId",
+    "title",
+    "mode",
+    "latestVersion",
+    "approval",
+    "validation",
+    "sourceKind",
+    "hasGraph",
+    "updatedAt"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AIScenarioListQuery": {
+   "file": "scenario-graph.ts",
+   "required": [],
+   "optional": [
+    "mode",
+    "approval"
+   ],
+   "extends": []
+  },
   "AIScenarioReviseRequest": {
    "file": "scenario.ts",
    "required": [
@@ -107,6 +132,9 @@
     "parentVersion",
     "teacherComment",
     "approvedBy",
+    "graph",
+    "reviewedBy",
+    "reviewComment",
     "generation"
    ],
    "extends": []
@@ -1375,6 +1403,148 @@
    ],
    "extends": []
   },
+  "GraphAllPredicate": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "all"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphAnyPredicate": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "any"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphBranch": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "name",
+    "when",
+    "next"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphDecoy": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "action",
+    "label"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphElse": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "name",
+    "next"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphInput": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "fact",
+    "options"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphInputOption": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "value",
+    "label"
+   ],
+   "optional": [
+    "penalty"
+   ],
+   "extends": []
+  },
+  "GraphLayoutPoint": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "x",
+    "y"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphLeafPredicate": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "fact",
+    "op"
+   ],
+   "optional": [
+    "value"
+   ],
+   "extends": []
+  },
+  "GraphNode": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "id",
+    "type"
+   ],
+   "optional": [
+    "title",
+    "prompt",
+    "action",
+    "label",
+    "sets",
+    "input",
+    "next",
+    "maxVisits",
+    "branches",
+    "else",
+    "outcome",
+    "score",
+    "passed"
+   ],
+   "extends": []
+  },
+  "GraphNotPredicate": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "not"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphScoring": {
+   "file": "scenario-graph.ts",
+   "required": [],
+   "optional": [
+    "wrongActionPenalty",
+    "passScore"
+   ],
+   "extends": []
+  },
+  "GraphValidationError": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "message",
+    "nodeId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "GraphValidationResult": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "valid",
+    "errors"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "GroupInsight": {
    "file": "lobby.ts",
    "required": [
@@ -2138,6 +2308,49 @@
    "optional": [],
    "extends": []
   },
+  "ScenarioGraph": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "schemaVersion",
+    "start",
+    "nodes"
+   ],
+   "optional": [
+    "decoys",
+    "scoring",
+    "layout"
+   ],
+   "extends": []
+  },
+  "ScenarioGraphCreateRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "mode",
+    "sourceTicketId",
+    "category",
+    "summary",
+    "requestId"
+   ],
+   "optional": [
+    "title",
+    "address",
+    "graph"
+   ],
+   "extends": []
+  },
+  "ScenarioGraphReviseRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "baseVersion",
+    "requestId"
+   ],
+   "optional": [
+    "comment",
+    "acceptedFields",
+    "graph"
+   ],
+   "extends": []
+  },
   "ScenarioHints": {
    "file": "scenario.ts",
    "required": [
@@ -2156,6 +2369,54 @@
     "source",
     "validationStatus"
    ],
+   "extends": []
+  },
+  "ScenarioPermissionsResponse": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "permissions"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioPublishRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "version",
+    "requestId"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioReviewRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "version",
+    "decision",
+    "requestId"
+   ],
+   "optional": [
+    "comment"
+   ],
+   "extends": []
+  },
+  "ScenarioSourceItem": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "sourceTicketId",
+    "situationNo",
+    "preview"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ScenarioSubmitRequest": {
+   "file": "scenario-graph.ts",
+   "required": [
+    "version",
+    "requestId"
+   ],
+   "optional": [],
    "extends": []
   },
   "ScenarioTimeNorms": {
