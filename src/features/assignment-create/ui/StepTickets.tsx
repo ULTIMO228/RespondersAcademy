@@ -20,6 +20,7 @@ import {
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
 import type { StepErrors, TicketSource, WizardDraft } from "../model/types";
 import { CheckRow } from "./CheckRow";
+import { StudentCardBank } from "./StudentCardBank";
 
 import styles from "./AssignmentWizard.module.css";
 
@@ -79,9 +80,15 @@ function TicketsLoader({
 
 function CardList({ api, draft, errors, onChange }: StepTicketsProps) {
   return (
-    <TicketsLoader api={api}>
-      {(tickets) => <CardPicker tickets={tickets} draft={draft} errors={errors} onChange={onChange} />}
-    </TicketsLoader>
+    <>
+      <TicketsLoader api={api}>
+        {(tickets) => <CardPicker tickets={tickets} draft={draft} errors={errors} onChange={onChange} />}
+      </TicketsLoader>
+      {/* Спека 011: ДДС получает и карточки обучающихся-112 — только через отбор преподавателем. */}
+      {draft.trainingMode === "dds" ? (
+        <StudentCardBank api={api} draft={draft} errors={errors} onChange={onChange} />
+      ) : null}
+    </>
   );
 }
 
@@ -134,7 +141,7 @@ function CardPicker({
         </SelectField>
       </div>
       <p className={styles.step__note}>
-        Выбрано: {draft.cardIds.length} из {tickets.length}
+        Выбрано: {tickets.filter((ticket) => draft.cardIds.includes(ticket.id)).length} из {tickets.length}
       </p>
       <div className={styles.list} role="group" aria-label="Билеты">
         {visible.map((ticket) => (

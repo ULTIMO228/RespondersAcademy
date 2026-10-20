@@ -415,6 +415,7 @@
     "teacherId",
     "cardIds",
     "scenarioVersions",
+    "studentCards",
     "randomRule",
     "params",
     "dueAt",
@@ -487,7 +488,8 @@
     "workMessagesEnabled",
     "workMessageIntervalsSec",
     "adaptive",
-    "referenceAllowed"
+    "referenceAllowed",
+    "studentCards"
    ],
    "extends": []
   },
@@ -2527,6 +2529,37 @@
     "errors"
    ],
    "optional": [],
+   "extends": []
+  },
+  "StudentCard": {
+   "file": "student-cards.ts",
+   "required": [
+    "id",
+    "group",
+    "summary",
+    "address",
+    "authorId",
+    "authorName",
+    "selectedServices",
+    "ticketServices",
+    "proposed"
+   ],
+   "optional": [
+    "authorGroup",
+    "registeredAt",
+    "sourceCardId"
+   ],
+   "extends": []
+  },
+  "StudentCardEtalon": {
+   "file": "student-cards.ts",
+   "required": [
+    "cardId",
+    "expectedDecision"
+   ],
+   "optional": [
+    "expectedTransferTo"
+   ],
    "extends": []
   },
   "StudentErrorsResponse": {

@@ -4,6 +4,7 @@
  */
 import type { CardAttemptResponse } from "./attempts";
 import type { OperatorAttempt } from "./operator112";
+import type { StudentCardEtalon } from "./student-cards";
 
 /**
  * "chain" (цепочка A → B) выведен 20.10.2026 (spec/007 Clarifications): приходит только в старых заданиях,
@@ -39,6 +40,8 @@ export interface AssignmentParams {
   adaptive?: boolean;
   /** «Справочник доступен» (спека 005); сервер всегда записывает итог: тренировка — true, экзамен — false по умолчанию. */
   referenceAllowed?: boolean;
+  /** Эталоны карточек обучающихся-112, подтверждённые преподавателем (спека 011). */
+  studentCards?: StudentCardEtalon[];
 }
 
 export interface AssignmentRandomRule {
@@ -104,6 +107,8 @@ export interface AssignmentCreateRequest {
   format: AssignmentFormat;
   cardIds?: string[];
   scenarioVersions?: AssignmentScenarioVersion[];
+  /** Только режим ДДС: по записи на каждую карточку обучающегося-112 из cardIds (спека 011). */
+  studentCards?: StudentCardEtalon[];
   randomRule?: AssignmentRandomRule;
   params?: AssignmentParams;
   dueAt?: string;

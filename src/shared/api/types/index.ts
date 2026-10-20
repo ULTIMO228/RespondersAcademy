@@ -113,6 +113,7 @@ export type {
 export type { TrainingMode } from "./assignments";
 export type { AssignmentScenarioVersion } from "./assignments";
 export type { Ticket, TicketOrigin, TicketsQuery } from "./tickets";
+export type { StudentCard, StudentCardDecision, StudentCardEtalon } from "./student-cards";
 export type { GroupInsight, GroupInsights, StudentProfile, TypicalError } from "./lobby";
 export type { Analytics, AnalyticsDynamics, AnalyticsTopError, HistoryItem, HistoryQuery } from "./lobby";
 export type { LobbyMode, Recommendation, RecommendationKind, RecommendationReason, Stats } from "./lobby";

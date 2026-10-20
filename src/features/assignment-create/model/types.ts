@@ -1,4 +1,4 @@
-import type { AssignableMode, AssignmentFormat } from "@/shared/api";
+import type { AssignableMode, AssignmentFormat, StudentCardEtalon } from "@/shared/api";
 
 export const WIZARD_STEPS = [
   "Обучающиеся",
@@ -18,6 +18,8 @@ export type WizardDraft = {
   format: AssignmentFormat;
   ticketSource: TicketSource;
   cardIds: string[];
+  /** Только для ДДС: эталоны отобранных карточек обучающихся-112 (их id есть и в cardIds), спека 011. */
+  studentCards: StudentCardEtalon[];
   ruleGroups: string[];
   ruleDifficulty: number[];
   ruleCount: string;
@@ -64,6 +66,7 @@ export function createDraft(initial?: WizardInitial): WizardDraft {
     format: "training",
     ticketSource: "cards",
     cardIds: [],
+    studentCards: [],
     ruleGroups: [],
     ruleDifficulty: [],
     ruleCount: "5",

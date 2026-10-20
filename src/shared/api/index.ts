@@ -18,6 +18,7 @@ export type { MockAiGatewayDeps } from "./ai-gateway.mock";
 export { createAssignment, finishAssignment, getAssignment, listAssignments } from "./endpoints";
 export { downloadReportExport, getGroupInsights, getStudentProfile, listTickets } from "./endpoints";
 export { getHealth, startAssignment, updateKbArticle } from "./endpoints";
+export { listStudentCards } from "./endpoints";
 export {
   errorMapPdfUrl,
   getErrorMapGroup,
@@ -248,6 +249,9 @@ export type {
   ReportCheckResult,
   ReportTranscriptLine,
   StartAssignmentResult,
+  StudentCard,
+  StudentCardDecision,
+  StudentCardEtalon,
   StudentProfile,
   Stats,
   Ticket,

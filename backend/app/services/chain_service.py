@@ -1,14 +1,15 @@
-"""Transfer a submitted 112 card to a matching DDS learner and retain its source etalon."""
+"""Эталон ДДС для карточки, сохранённой обучающимся-112 (по исходному билету).
+
+Фича 011 (D4): сохранённая карточка сама обучающимся-ДДС не выдаётся — её подаёт преподаватель через задание
+режима ДДС (банк `student_card_service`). Задания «цепочка A → B» выведены 20.10.2026 (spec/007 Clarifications).
+"""
 
 from __future__ import annotations
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.card import IncidentCard
-from app.models.session import Attempt, TrainingSession
-from app.models.user import User
-from app.services.time import now_iso
+from app.models.session import Attempt
 
 
 def _norm(value: str) -> str:
@@ -26,39 +27,36 @@ def _matches(profile: str | None, service: str) -> bool:
     return profile_name in service_name or service_name in profile_name
 
 
-def etalon_from_source(card: IncidentCard, original: IncidentCard) -> dict:
-    """DDS acceptance depends on the original ticket, never the learner's selected type."""
+def proposed_decision(card: IncidentCard, original: IncidentCard) -> dict:
+    """Предложение эталона ДДС (фича 011): службы обучающегося-112 совпали с билетом → «Принята», иначе «Не принята»."""
     expected = list(original.expected_services or [])
     correct = any(_matches(service, selected) for service in expected for selected in card.expected_services or [])
     if correct:
-        return {"expectedActions": [f"openCard:{card.id}", "status:accepted"], "cards": {card.id: {"expectedDecision": "accepted"}}}
-    target = expected[0] if expected else "профильную службу"
+        return {"cardId": card.id, "expectedDecision": "accepted"}
+    return {"cardId": card.id, "expectedDecision": "notAccepted", "expectedTransferTo": expected[0] if expected else "профильную службу"}
+
+
+def etalon_for_decision(card_id: str, decision: str, transfer_to: str | None = None) -> dict:
+    """Эталон попытки ДДС по одной карточке: первичный статус и, для «Не принята», кому передано."""
+    if decision == "accepted":
+        return {"expectedActions": [f"openCard:{card_id}", "status:accepted"], "cards": {card_id: {"expectedDecision": "accepted"}}}
     return {
-        "expectedActions": [f"openCard:{card.id}", "status:notAccepted"],
-        "cards": {card.id: {"expectedDecision": "notAccepted", "expectedTransferTo": target,
-                            "expectedCommentPhrases": ["не профильное", f"передано в {target}"]}},
+        "expectedActions": [f"openCard:{card_id}", "status:notAccepted"],
+        "cards": {card_id: {"expectedDecision": "notAccepted", "expectedTransferTo": transfer_to,
+                            "expectedCommentPhrases": ["не профильное", f"передано в {transfer_to}"]}},
     }
 
 
-async def issue_submitted_card(db: AsyncSession, card: IncidentCard, source: Attempt) -> None:
-    """Выдаёт сохранённую 112-карточку в идущие занятия ДДС с пулом studentCreated/mixed.
+def etalon_from_source(card: IncidentCard, original: IncidentCard) -> dict:
+    """DDS acceptance depends on the original ticket, never the learner's selected type."""
+    proposal = proposed_decision(card, original)
+    return etalon_for_decision(card.id, proposal["expectedDecision"], proposal.get("expectedTransferTo"))
 
-    Задания «цепочка A → B» (assignment chain) выведены 20.10.2026 (spec/007 Clarifications): в задания карточка не уходит.
-    """
+
+async def issue_submitted_card(db: AsyncSession, card: IncidentCard, source: Attempt) -> None:
+    """Готовит автоэталон сохранённой 112-карточки; в идущие занятия ДДС карточка сама не попадает (фича 011, D4)."""
     original = await db.get(IncidentCard, source.card_id)
     if original is None:
         return
     card.extra = {**(card.extra or {}), "chainEtalon": etalon_from_source(card, original), "sourceAttemptId": source.id}
-    sessions = list((await db.execute(select(TrainingSession).where(TrainingSession.state == "running"))).scalars().all())
-    eligible_sessions = [s for s in sessions if s.card_source in ("studentCreated", "mixed") and s.training_mode == "dds"
-                         and not (s.mode or "").startswith("assignment:")]
-    users = {u.id: u for u in (await db.execute(select(User).where(User.role == "student", User.is_active.is_(True)))).scalars().all()}
-    for session in eligible_sessions:
-        recipients = [sid for sid in session.student_ids or [] if sid != source.student_id and sid in users
-                      and any(_matches(users[sid].service, service) for service in card.expected_services or [])]
-        for recipient in recipients:
-            if any(item.get("cardId") == card.id and item.get("studentId") == recipient for item in session.card_flow or []):
-                continue
-            session.card_flow = [*(session.card_flow or []), {"cardId": card.id, "studentId": recipient, "issuedAt": now_iso(),
-                                                           "level": 1, "issuedBy": "chain", "studentCreated": True}]
     await db.flush()

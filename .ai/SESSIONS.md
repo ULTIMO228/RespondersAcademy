@@ -155,3 +155,10 @@ Done: ✅ merge d08ce53 (doc conflicts only) | owner: live caller in training AN
 Decisions: 🧠 build-flag selects impl at module level (no conditional hooks) | no recording fallback when live server unconfigured (develop rule kept) | trainerText only for trainer strip (FR-027)
 Next: !1 T008 | owner: renumber 005 dup, T009 texts, Polza key + polza.ai allowed for real call
 ---
+
+## 2026-10-20d claude/kind-goldberg-ij6veq (from develop)
+focus:DDS operator — teacher feeds cards (feature 011, variant 3)
+done:spec/011-dds-card-feed (spec+tasks) | GET /student-cards + proposed etalon | studentCards in assignments + eval by teacher etalon | no auto-push to live DDS | wizard bank block + review | v1-endpoints.md
+decisions:owner — feed in assignments wizard; etalon edited at selection; auto-push removed; chain untouched
+checks:pytest 1042/4 skipped, ruff, vitest 1956/1957 (known Blob), tsc, steiger | check/e2e/browser not run
+next:T010 browser check; DDS card per spec 007 (SASHA) after merge

@@ -27,7 +27,21 @@ export function validateTickets(draft: WizardDraft): StepErrors {
     }
     return {};
   }
-  if (draft.cardIds.length === 0) return { cardIds: "Выберите хотя бы один билет" };
+  if (draft.cardIds.length === 0) {
+    const empty = {
+      dds: "Выберите хотя бы один билет или карточку обучающегося-112",
+      operator112: "Выберите хотя бы один билет",
+    } as const;
+    return { cardIds: empty[draft.trainingMode] };
+  }
+  const withoutTarget = draft.studentCards.filter(
+    (item) => item.expectedDecision === "notAccepted" && !item.expectedTransferTo?.trim(),
+  );
+  if (withoutTarget.length > 0) {
+    return {
+      studentCards: `Укажите, кому передана информация: ${withoutTarget.map((item) => item.cardId).join(", ")}`,
+    };
+  }
   return {};
 }
 
@@ -108,6 +122,13 @@ export function buildRequest(draft: WizardDraft): AssignmentCreateRequest {
     };
   } else {
     request.cardIds = draft.cardIds;
+    if (draft.trainingMode === "dds" && draft.studentCards.length > 0) {
+      request.studentCards = draft.studentCards.map((item) =>
+        item.expectedDecision === "notAccepted"
+          ? { ...item, expectedTransferTo: item.expectedTransferTo?.trim() }
+          : { cardId: item.cardId, expectedDecision: item.expectedDecision },
+      );
+    }
   }
   return request;
 }

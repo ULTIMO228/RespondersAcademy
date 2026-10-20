@@ -63,6 +63,7 @@ export { acceptRecommendation, getAnalytics, getGroupInsights, getHistory, getMe
 export { getStudentProfile, listRecommendations } from "./lobby";
 export { getKbArticle, getReferenceAccess, listKbArticles, updateKbArticle } from "./kb";
 export { listTickets } from "./tickets";
+export { listStudentCards } from "./student-cards";
 export {
   EXAM_REPLAY_DENIED_MESSAGE,
   STREET_QUERY_MIN_LENGTH,

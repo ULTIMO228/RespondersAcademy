@@ -1,4 +1,4 @@
-"""Phase 15: submitted 112 card reaches a matching DDS profile with the source-ticket etalon (only studentCreated/mixed DDS sessions)."""
+"""Phase 15 / фича 011: сохранённая 112-карточка получает эталон по исходному билету и сама в занятия ДДС не выдаётся."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from app.services.time import now_iso
 from tests.conftest import login_as
 
 
-async def test_submitted_card_reaches_dds_session_with_source_etalon_and_skips_assignments(app):
+async def test_submitted_card_gets_source_etalon_and_is_not_pushed_to_dds_sessions(app):
     async with get_sessionmaker()() as db:
         original = IncidentCard(id="c-990", ticket_no=990, situation_no=1, group="Водоснабжение",
                                 summary="Прорыв трубы, запах газа", address="Москва, Дубнинская, 2",
@@ -38,8 +38,8 @@ async def test_submitted_card_reaches_dds_session_with_source_etalon_and_skips_a
         try:
             await issue_submitted_card(db, card, source)
             await db.flush()
-            assert pool.card_flow[0]["studentId"] == "u-009"
-            assert pool.card_flow[0]["issuedBy"] == "chain" and pool.card_flow[0]["studentCreated"] is True
+            # Фича 011 (D4): карточку обучающегося-112 подаёт преподаватель через задание ДДС, автовыдачи нет.
+            assert pool.card_flow == []
             assert legacy.card_flow == []
             assert (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.card_id == card.id))).first() is None
             etalon = card.extra["chainEtalon"]["cards"][card.id]
@@ -77,3 +77,4 @@ async def test_teacher_can_issue_source_based_trap(app):
                     await db.delete(await db.get(IncidentCard, trap_id))
                 await db.delete(await db.get(TrainingSession, session_id))
                 await db.commit()
+

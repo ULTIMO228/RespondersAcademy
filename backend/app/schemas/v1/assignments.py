@@ -7,6 +7,7 @@ from typing import Any, Literal
 from pydantic import Field, field_validator, model_validator
 
 from app.schemas.common import ApiModel
+from app.schemas.v1.student_cards import StudentCardEtalon
 
 # "chain" (цепочка A → B) выведен 20.10.2026 (spec/007 Clarifications): остаётся только в ответах
 # для старых заданий, которые открываются на чтение; создать новое задание chain нельзя.
@@ -48,6 +49,8 @@ class AssignmentCreateRequest(ApiModel):
     format: AssignmentFormat
     card_ids: list[str] = Field(default_factory=list)
     scenario_versions: list[ScenarioVersionSelection] = Field(default_factory=list)
+    # Фича 011: эталоны карточек обучающихся-112, подтверждённые преподавателем (только режим ДДС).
+    student_cards: list[StudentCardEtalon] = Field(default_factory=list)
     random_rule: RandomRule | None = None
     params: dict[str, Any] = Field(default_factory=dict)
     due_at: str | None = None

@@ -37,6 +37,7 @@ const FIRST_ERROR_STEP: Record<string, number> = {
   studentIds: 0,
   trainingMode: 1,
   cardIds: 2,
+  studentCards: 2,
   ruleCount: 2,
 };
 
@@ -83,7 +84,7 @@ export function AssignmentWizard({
 
   const changeMode = (trainingMode: WizardDraft["trainingMode"]) =>
     // Доступные билеты зависят от режима: смена режима сбрасывает выбор билетов.
-    patch({ trainingMode, ticketSource: "cards", cardIds: [] });
+    patch({ trainingMode, ticketSource: "cards", cardIds: [], studentCards: [] });
 
   // spec/008: курсанты с профилем другого режима в задание не попадают — шаги 2–5 и запрос видят только допущенных.
   const selected = draft.studentIds.flatMap((id) => students.filter((student) => student.id === id));

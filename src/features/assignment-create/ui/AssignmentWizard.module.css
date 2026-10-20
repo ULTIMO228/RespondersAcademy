@@ -136,3 +136,15 @@
     transition: none;
   }
 }
+
+.etalon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+  padding-left: var(--pf-space-6);
+}
+
+.review__list {
+  margin: 0;
+  padding-left: var(--pf-space-4);
+}
