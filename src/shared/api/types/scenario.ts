@@ -16,7 +16,7 @@ export type Difficulty = 1 | 2 | 3 | 4 | 5;
 export type ScenarioValidationStatus = "draft" | "pending" | "approved" | "rejected";
 
 /** template — шаблон; generated — сгенерирован ИИ (контракт бейджа «ИИ» в UI). */
-export type ScenarioSource = "template" | "generated";
+export type ScenarioSource = "template" | "generated" | "manual";
 
 export interface Etalon {
   expectedFields?: Record<string, string>;

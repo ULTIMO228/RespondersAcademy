@@ -12,6 +12,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.api.deps import Viewer
 from app.api.errors import conflict, forbidden, not_found, unprocessable, validation_failed
@@ -353,6 +354,26 @@ def _action_records(
     ]
 
 
+def _legacy_scenario_defaults(ticket: dict[str, Any], actions: list[dict[str, Any]]) -> dict[str, Any]:
+    """Поля документа сценария, без которых классический редактор и контракт `Scenario` не открываются."""
+    return {
+        "level": "advanced",
+        "sourceTicketNo": int(ticket.get("ticketNo") or 0),
+        "timeNorms": {
+            "primaryReactionSec": scenario_generator.PRIMARY_REACTION_SEC,
+            "fullProcessingSec": scenario_generator.FULL_PROCESSING_SEC,
+        },
+        "hints": {"enabled": False, "texts": []},
+        "difficulty": 3,
+        "etalon": {"expectedActions": [str(item["action"]) for item in actions], "keyPhrases": []},
+        "successCriteria": {
+            "maxGrammarErrors": scenario_generator.MAX_GRAMMAR_ERRORS,
+            "requiredFields": list(scenario_generator.REQUIRED_FIELDS),
+            "syntaxRequirements": scenario_generator.SYNTAX_REQUIREMENTS,
+        },
+    }
+
+
 def _expected_fields(card: dict[str, Any]) -> dict[str, Any]:
     keys = ("group", "summary", "address", "classifierCode", "expectedServices", "expectedTags")
     return {key: card[key] for key in keys if key in card}
@@ -442,7 +463,6 @@ async def _save_draft(
     scenario_doc["title"] = str(scenario_doc.get("title") or f"Вариация: {category}")
     scenario_doc["cardIds"] = [card_id]
     scenario_doc["source"] = scenario_source
-    scenario_doc["mode"] = mode
     scenario_doc["validation"] = {"status": "draft"}
     scenario_doc.setdefault("generation", {})["sourceTicketId"] = source.source_ticket_id
     scenario = Scenario(
@@ -467,6 +487,10 @@ async def _save_draft(
     address_rule = "address:local-directory"
     rule_source_ids = [ticket_rule, classifier_rule, address_rule]
     actions = _action_records(mode, card_contract, rule_source_ids)
+    for key, value in _legacy_scenario_defaults(ticket, actions).items():
+        scenario.doc.setdefault(key, value)  # у сгенерированных документов поля уже есть и не затираются
+    flag_modified(scenario, "doc")
+    scenario.sync_columns()
     errors = validator.validate_ai_scenario(
         card_contract,
         actions,

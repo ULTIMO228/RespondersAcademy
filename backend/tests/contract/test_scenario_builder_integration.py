@@ -995,3 +995,23 @@ async def test_студент_видит_свои_назначенные_сце�
         await db.commit()
     await login_as(v1, "student")
     assert [i for i in (await v1.get(url)).json() if i["scenarioId"] == scenario_id] == []
+
+
+async def test_созданный_вручную_сценарий_открывается_классическим_редактором(v1: AsyncClient, client: AsyncClient) -> None:
+    from app.schemas.scenarios import Scenario as ScenarioContract
+
+    source_id = "t009-builder-legacy-doc"
+    await seed_source(source_id)
+    await login_as(v1, "teacher")
+    created = await v1.post("/ai/scenarios", json=manual_body(source_id, "t009-legacydoc-c", graph=RICH))
+    scenario_id = created.json()["scenarioId"]
+    await login_as(client, "teacher")  # классический API (/api/mock), та же серверная сессия роли
+    response = await client.get(f"/scenarios/{scenario_id}")
+    assert response.status_code == 200, response.text
+    doc = response.json()
+    parsed = ScenarioContract.model_validate(doc)  # полный контракт: классический редактор не падает на пустых полях
+    assert parsed.source == "manual" and parsed.etalon.key_phrases == [] and parsed.etalon.expected_actions
+    assert doc["level"] in ("beginner", "advanced") and doc["timeNorms"]["primaryReactionSec"] > 0
+    assert doc["hints"] == {"enabled": False, "texts": []} and doc["successCriteria"]["requiredFields"] is not None
+    assert doc["cardIds"] == [created.json()["cardSnapshot"]["id"]] and doc["validation"]["status"] == "draft"
+    assert any(item["id"] == scenario_id for item in (await client.get("/scenarios")).json())
