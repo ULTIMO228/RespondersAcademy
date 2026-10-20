@@ -283,3 +283,22 @@ export type {
   PerformanceReport,
   PerformanceStats,
 } from "./types";
+export {
+  AI_ERROR_REASON_MESSAGES,
+  getAiHealth,
+  getAiSettings,
+  putAiSettings,
+  testAiConnection,
+} from "./ai-settings";
+export type {
+  AiCloudSettings,
+  AiConnectionTestRequest,
+  AiConnectionTestResult,
+  AiErrorReason,
+  AiHealth,
+  AiHealthState,
+  AiServedBy,
+  AiSettings,
+  AiSettingsUpdate,
+  AiSourceKind,
+} from "./types";

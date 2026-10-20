@@ -50,6 +50,7 @@ export function buildAttempts(attempts: EvaluatedAttempt[], source: AttemptSourc
       weightedTotal,
       finalTotal: evaluation.teacherOverride?.score ?? weightedTotal,
       aiComment: evaluation.aiComment,
+      aiCommentSource: evaluation.aiCommentSource,
       teacherOverride: evaluation.teacherOverride,
     };
   });

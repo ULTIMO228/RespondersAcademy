@@ -2,9 +2,13 @@
 
 Пояснение — подсказка в разборе этапа, а не оценка: оно не меняет светофор, баллы и вывод карты. Источник текста:
 
-* `ai` — локальная модель через `AiGateway.explain_stage` (необязательный метод; по умолчанию шлюз возвращает `None`);
+* `ai` — ответ модели через `AiGateway.explain_stage` (необязательный метод; штатный шлюз зовёт `complete_json`:
+  локальная модель, облако — только при разрешённом облачном источнике);
 * `template` — шаблон по доминирующей ошибке этапа: детерминированный, без модели, без сети; на экране помечается
   «справочное пояснение». Шаблон включается, если шлюз вернул `None`, пустое, слишком длинное или бросил исключение.
+
+В `source` указывается фактический источник: `cloud`/`local` — по исходу `complete_json`, `template` — шаблон.
+Старое значение `ai` сохраняется для ответа стороннего шлюза, если фактический источник неизвестен.
 
 Текст — одна-две фразы. Для этапа без данных (`noData`) пояснения нет вовсе, и модель не вызывается. Вердикт «Согласен /
 Не согласен» привязан к хэшу показанного текста: новый текст — новый вердикт; решение остаётся за преподавателем.
@@ -31,7 +35,8 @@ from app.schemas.error_map import (
     ErrorMapStageLevel,
     ErrorMapTypicalError,
 )
-from app.services.external_ai_audit import flush_external_calls
+from app.services.ai_health_service import llm_scope
+from ml.generate import llm
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +45,7 @@ Subject = Literal["group", "student"]
 MAX_SENTENCES: Final = 2
 RAW_MAX_CHARS: Final = 400  # ответ модели длиннее — не «1–2 фразы», а сбой формата: берём шаблон
 TEXT_MAX_CHARS: Final = 300
+PURPOSE: Final = "error_map_explain"  # назначение вызова `complete_json` (аудит, здоровье)
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 
 
@@ -164,17 +170,30 @@ async def build_explanation(
     """Пояснение этапа с текущим вердиктом преподавателя; `None` — данных мало, пояснять нечего (FR-016)."""
     if level.level == "noData":
         return None
-    text = await _from_gateway(mode, stage, level, typical_errors, subject)
-    if await flush_external_calls(db, viewer):
-        await db.commit()  # разбор этапа — GET: запись аудита иначе не сохранится
-    source: Literal["ai", "template"] = "ai"
+    async with llm_scope(db, viewer) as calls:  # исходы вызова модели → ai_health и аудит (фича 006)
+        text = await _from_gateway(mode, stage, level, typical_errors, subject)
+    if calls.outcomes:
+        await db.commit()  # разбор этапа — GET: запись здоровья и аудита иначе не сохранится
+    source, model = _model_source(calls.outcomes)
     if text is None:
-        source = "template"
+        # Модель могла ответить, но текст не прошёл очистку: на экране шаблон, и он не выдаётся за ответ модели.
+        source, model = "template", None
         text = template_text(stage_title=stage.title, typical_errors=typical_errors, subject=subject)
     digest = text_hash(text)
     verdict = await current_verdict(
         db, viewer, group_id=group_id, student_id=student_id, mode=mode, stage_id=stage.id, digest=digest
     )
     return ErrorMapExplanation(
-        text=text, source=source, text_hash=digest, verdict=verdict  # type: ignore[arg-type]
+        text=text, source=source, text_hash=digest, verdict=verdict, model=model  # type: ignore[arg-type]
     )
+
+
+def _model_source(outcomes: Sequence[llm.LlmOutcome]) -> tuple[Literal["cloud", "local", "template", "ai"], str | None]:
+    """Кто ответил на пояснение; старое `ai` означает, что сторонний шлюз не сообщил точный источник."""
+    outcome = next((item for item in reversed(outcomes) if item.purpose == PURPOSE), None)
+    if outcome is None:
+        return "ai", None
+    if outcome.source == "template" or outcome.data is None:
+        return "template", None
+    model = outcome.provider.split(":", 1)[-1] if outcome.provider else None
+    return outcome.source, model

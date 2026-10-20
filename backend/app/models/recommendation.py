@@ -19,10 +19,15 @@ class Recommendation(Base):
     reason: Mapped[dict[str, Any]] = mapped_column(JSONVariant)
     created_at: Mapped[str] = mapped_column(String(32))
     accepted_at: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Пояснение модели и его источник (фича 006): cloud | local | template; NULL у старых данных читается как template.
+    text: Mapped[str | None] = mapped_column(String(600), nullable=True)
+    source: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     def to_contract(self) -> dict[str, Any]:
         data = {"id": self.id, "kind": self.kind, "targetId": self.target_id, "title": self.title,
-                "reason": dict(self.reason), "createdAt": self.created_at}
+                "reason": dict(self.reason), "createdAt": self.created_at, "source": self.source or "template"}
+        if self.text:
+            data["text"] = self.text
         if self.accepted_at:
             data["acceptedAt"] = self.accepted_at
         return data

@@ -8,7 +8,10 @@ from types import SimpleNamespace
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from pydantic import SecretStr
 
+from app.db.session import get_sessionmaker
+from app.services import ai_settings_service
 from ml.generate import llm
 from tests.conftest import login_as
 
@@ -44,8 +47,8 @@ def _settings(provider: str) -> SimpleNamespace:
 
 
 @pytest.mark.asyncio
-async def test_admin_sees_local_status_by_default(v1, monkeypatch):
-    monkeypatch.setattr("app.config.get_settings", lambda: _settings("local"))
+async def test_admin_sees_local_status_by_default(v1, ai_env, monkeypatch):
+    ai_env.configure(ai_provider="local", polza_api_key=None)
     llm.reset_external_client()
     await login_as(v1, "admin")
     response = await v1.get(ROUTE)
@@ -54,8 +57,9 @@ async def test_admin_sees_local_status_by_default(v1, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_admin_sees_polza_status_without_key(v1, monkeypatch):
-    monkeypatch.setattr("app.config.get_settings", lambda: _settings("polza"))
+async def test_admin_sees_polza_status_without_key(v1, ai_env, monkeypatch):
+    ai_env.configure(ai_provider="polza", polza_api_key=SecretStr(KEY), polza_model="openai/gpt-4o")
+    ai_settings_service.invalidate_cache()
     llm.reset_external_client()
     await login_as(v1, "admin")
     response = await v1.get(ROUTE)
@@ -65,6 +69,37 @@ async def test_admin_sees_polza_status_without_key(v1, monkeypatch):
     assert body["configured"] is True and body["withinLimits"] is True
     assert KEY not in response.text
     llm.reset_external_client()
+
+
+@pytest.mark.asyncio
+async def test_database_provider_status_tracks_saved_source_and_cloud_gate(v1, ai_env, monkeypatch):
+    monkeypatch.setattr(ai_settings_service, "CLOUD_ROUTE_VERIFIED", True)
+    async with get_sessionmaker()() as db:
+        await ai_settings_service.save(db, source="cloud", key=KEY, user_id="u-001")
+        await db.commit()
+    ai_settings_service.invalidate_cache()
+    monkeypatch.setattr(llm, "external_client", lambda: None)  # статус обязан читать сохранённую настройку
+    await login_as(v1, "admin")
+
+    cloud = await v1.get(ROUTE)
+    assert cloud.status_code == 200
+    assert cloud.json() == {"provider": "polza", "model": llm.CLOUD_MODEL, "configured": True, "withinLimits": True}
+    assert KEY not in cloud.text
+
+    async with get_sessionmaker()() as db:
+        await ai_settings_service.save(db, source="local", key=None, user_id="u-001")
+        await db.commit()
+    ai_settings_service.invalidate_cache()
+    local = await v1.get(ROUTE)
+    assert local.json() == {"provider": "local", "model": None, "configured": False, "withinLimits": True}
+
+    async with get_sessionmaker()() as db:
+        await ai_settings_service.save(db, source="cloud", key=None, user_id="u-001")
+        await db.commit()
+    ai_settings_service.invalidate_cache()
+    monkeypatch.setattr(ai_settings_service, "CLOUD_ROUTE_VERIFIED", False)
+    blocked = await v1.get(ROUTE)
+    assert blocked.json() == {"provider": "polza", "model": None, "configured": False, "withinLimits": True}
 
 
 @pytest.mark.asyncio

@@ -88,7 +88,7 @@ describe("Список сценариев на живых данных (T3.1-03,
     expect(bodyRows).toHaveLength(scenarios.length);
     const generated = bodyRows.filter((row) => row.querySelector("[data-source='generated']"));
     expect(generated.length).toBeGreaterThan(0);
-    generated.forEach((row) => expect(within(row).getByText("ИИ")).toBeInTheDocument());
+    generated.forEach((row) => expect(within(row).getByText("шаблон")).toBeInTheDocument());
     expect(screen.getAllByText("утверждён").length).toBeGreaterThan(0);
   });
 

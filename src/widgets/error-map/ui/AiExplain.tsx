@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { saveErrorMapVerdict } from "@/shared/api";
 import type { ErrorMapExplanation, ErrorMapVerdictRequest, VerdictKind } from "@/shared/api";
-import { AiBadge } from "@/shared/ui";
+import { AiBadge, AiSourceBadge } from "@/shared/ui";
 
 import styles from "./ErrorMap.module.css";
 
@@ -24,7 +24,7 @@ const VERDICTS: ReadonlyArray<{ kind: VerdictKind; label: string; icon: string }
 ];
 
 /**
- * Блок «Почему так происходит» (FR-016…FR-019): 1–2 фразы, пометка «ИИ» либо «справочное пояснение»,
+ * Блок «Почему так происходит» (FR-016…FR-019): 1–2 фразы, фактический источник текста и ответ преподавателя,
  * ответ преподавателя «Согласен / Не согласен». Ответ — значок и слово, кнопки нажимаются заново; ошибка
  * сохранения не стирает прежний ответ. Пояснение карту и оценки не меняет — приоритет за преподавателем.
  */
@@ -37,13 +37,15 @@ function ExplainBody({ explanation, target, save }: Required<AiExplainProps>) {
   const [verdict, setVerdict] = useState<VerdictKind | undefined>(explanation.verdict);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
-  const isAi = explanation.source === "ai";
+  const actualSource = explanation.source === "ai" ? (explanation.sourceKind ?? "ai") : explanation.source;
+  const isAi = actualSource !== "template";
+  const verdictSource = actualSource === "template" ? "template" : "ai";
 
   async function choose(next: VerdictKind) {
     setPending(true);
     setFailed(false);
     try {
-      await save({ ...target, textHash: explanation.textHash, source: explanation.source, verdict: next });
+      await save({ ...target, textHash: explanation.textHash, source: verdictSource, verdict: next });
       setVerdict(next);
     } catch {
       setFailed(true);
@@ -57,7 +59,11 @@ function ExplainBody({ explanation, target, save }: Required<AiExplainProps>) {
     <section className={styles.explain} aria-labelledby="error-map-explain-title">
       <h3 id="error-map-explain-title" className={styles.explain__title}>
         Почему так происходит ({isAi ? "предположение ИИ" : "справочное пояснение"}){" "}
-        {isAi ? <AiBadge title="Предположение ИИ-модуля: решение остаётся за преподавателем" /> : null}
+        {actualSource === "cloud" || actualSource === "local" ? (
+          <AiSourceBadge source={actualSource} model={explanation.model} />
+        ) : isAi ? (
+          <AiBadge title="Предположение ИИ-модуля: решение остаётся за преподавателем" />
+        ) : null}
       </h3>
       <p className={styles.explain__text}>{explanation.text}</p>
       <p className={styles.explain__note}>Это подсказка, а не оценка: решение остаётся за вами.</p>

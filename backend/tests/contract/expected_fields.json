@@ -142,7 +142,8 @@
    "optional": [
     "group",
     "service",
-    "assignedGroups"
+    "assignedGroups",
+    "specializations"
    ],
    "extends": [
     "AdminUserRoleFields"
@@ -174,7 +175,8 @@
    "optional": [
     "group",
     "service",
-    "assignedGroups"
+    "assignedGroups",
+    "specializations"
    ],
    "extends": []
   },
@@ -187,6 +189,7 @@
     "group",
     "service",
     "assignedGroups",
+    "specializations",
     "fullName",
     "login",
     "armNumber",
@@ -195,6 +198,81 @@
    "extends": [
     "AdminUserRoleFields"
    ]
+  },
+  "AiCloudSettings": {
+   "file": "ai-settings.ts",
+   "required": [
+    "model",
+    "route",
+    "keyConfigured",
+    "keyLast4",
+    "available"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AiConnectionTestRequest": {
+   "file": "ai-settings.ts",
+   "required": [
+    "source"
+   ],
+   "optional": [
+    "apiKey"
+   ],
+   "extends": []
+  },
+  "AiConnectionTestResult": {
+   "file": "ai-settings.ts",
+   "required": [
+    "ok",
+    "latencyMs",
+    "route"
+   ],
+   "optional": [
+    "reason"
+   ],
+   "extends": []
+  },
+  "AiHealth": {
+   "file": "ai-settings.ts",
+   "required": [
+    "state",
+    "activeSource",
+    "servedBy",
+    "lastOkAt",
+    "lastErrorAt"
+   ],
+   "optional": [
+    "reason",
+    "errorsToday",
+    "callsToday",
+    "dailyLimit"
+   ],
+   "extends": []
+  },
+  "AiSettings": {
+   "file": "ai-settings.ts",
+   "required": [
+    "source",
+    "cloud",
+    "fromEnv",
+    "cloudFunctions",
+    "updatedAt",
+    "updatedBy"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AiSettingsUpdate": {
+   "file": "ai-settings.ts",
+   "required": [
+    "source"
+   ],
+   "optional": [
+    "apiKey",
+    "clearKey"
+   ],
+   "extends": []
   },
   "Analytics": {
    "file": "lobby.ts",
@@ -658,7 +736,8 @@
     "what",
     "description",
     "emergency",
-    "notificationList"
+    "notificationList",
+    "notificationConfirmed"
    ],
    "optional": [],
    "extends": []
@@ -1085,7 +1164,9 @@
     "textHash"
    ],
    "optional": [
-    "verdict"
+    "verdict",
+    "sourceKind",
+    "model"
    ],
    "extends": []
   },
@@ -1302,6 +1383,7 @@
    "optional": [
     "revision",
     "status",
+    "aiCommentSource",
     "teacherOverride"
    ],
    "extends": []
@@ -1404,7 +1486,8 @@
     "charts"
    ],
    "optional": [
-    "reportIds"
+    "reportIds",
+    "groupInsightsSource"
    ],
    "extends": []
   },
@@ -1486,7 +1569,8 @@
     "noAmbulance",
     "crossRegion",
     "duplicateOf",
-    "createdByStudentId"
+    "createdByStudentId",
+    "cardStatus"
    ],
    "extends": []
   },
@@ -1691,6 +1775,7 @@
     "assessorVersion"
    ],
    "optional": [
+    "aiCommentSource",
     "passed"
    ],
    "extends": []
@@ -1894,7 +1979,8 @@
    "optional": [
     "group",
     "service",
-    "assignedGroups"
+    "assignedGroups",
+    "specializations"
    ],
    "extends": []
   },
@@ -1909,6 +1995,8 @@
     "createdAt"
    ],
    "optional": [
+    "source",
+    "text",
     "acceptedAt"
    ],
    "extends": []
@@ -1957,6 +2045,7 @@
    ],
    "optional": [
     "aiComment",
+    "aiCommentSource",
     "teacherFeedback"
    ],
    "extends": []
@@ -2201,6 +2290,7 @@
    ],
    "optional": [
     "callTarget",
+    "generation",
     "mode"
    ],
    "extends": []
@@ -2705,6 +2795,7 @@
     "crossRegion",
     "duplicateOf",
     "createdByStudentId",
+    "cardStatus",
     "audio",
     "validation"
    ],
@@ -2834,7 +2925,8 @@
    "optional": [
     "group",
     "service",
-    "assignedGroups"
+    "assignedGroups",
+    "specializations"
    ],
    "extends": []
   },

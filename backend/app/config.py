@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     polza_timeout_sec: float = Field(default=60.0, alias="POLZA_TIMEOUT_SEC")
     polza_rpm: int = Field(default=20, ge=1, alias="POLZA_RPM")  # запросов в минуту
     polza_daily_limit: int = Field(default=500, ge=1, alias="POLZA_DAILY_LIMIT")  # запросов в сутки
+    # Мастер-ключ шифрования ключа облака в БД (фича 006); не задан — производный от JWT_SECRET (HKDF).
+    ai_settings_key: SecretStr | None = Field(default=None, alias="AI_SETTINGS_KEY")
     api_prefixes: list[str] = Field(default=["/api/mock", "/api/v1"], alias="API_PREFIXES")
     two_factor_stub: bool = Field(default=True, alias="TWO_FACTOR_STUB")
     ml_warmup: bool = Field(default=True, alias="ML_WARMUP")  # прогрев моделей при старте (в тестах выключен)
@@ -49,6 +51,13 @@ class Settings(BaseSettings):
         secret = value.get_secret_value()
         if len(secret.encode("utf-8")) < 32 or secret in {"dev-secret-change-me", "change-me-in-production"}:
             raise ValueError("JWT_SECRET должен содержать не менее 32 байт случайного секрета")
+        return value
+
+    @field_validator("ai_settings_key")
+    @classmethod
+    def _strong_ai_settings_key(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None and len(value.get_secret_value().encode("utf-8")) < 32:
+            raise ValueError("AI_SETTINGS_KEY должен содержать не менее 32 байт случайного секрета")
         return value
 
     @model_validator(mode="after")

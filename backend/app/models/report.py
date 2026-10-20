@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, JSONVariant
 
+TEMPLATE_SOURCE = "template"  # источник текста без пометки (данные до фичи 006)
+
 
 class Report(Base):
     """Отчёт курсанта по занятию (Report контракта, rep-<хвост sessionId>-<studentId>)."""
@@ -25,6 +27,8 @@ class Report(Base):
     score: Mapped[int] = mapped_column(Integer, default=0)
     charts: Mapped[dict[str, Any]] = mapped_column(JSONVariant, default=dict)
     ai_comment: Mapped[str | None] = mapped_column(String(4000), nullable=True)
+    # Источник ИИ-комментария (фича 006): cloud | local | template; NULL у старых данных читается как template.
+    ai_comment_source: Mapped[str | None] = mapped_column(String(16), nullable=True)
     static: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def to_contract(self) -> dict[str, Any]:
@@ -42,6 +46,7 @@ class Report(Base):
         }
         if self.ai_comment is not None:
             data["aiComment"] = self.ai_comment
+            data["aiCommentSource"] = self.ai_comment_source or TEMPLATE_SOURCE
         return data
 
 
@@ -55,11 +60,12 @@ class GroupReport(Base):
     generated_at: Mapped[str] = mapped_column(String(32))
     report_ids: Mapped[list[str]] = mapped_column(JSONVariant, default=list)
     group_insights: Mapped[list[str]] = mapped_column(JSONVariant, default=list)
+    group_insights_source: Mapped[str | None] = mapped_column(String(16), nullable=True)  # cloud | local | template
     charts: Mapped[dict[str, Any]] = mapped_column(JSONVariant, default=dict)
     static: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def to_contract(self, report_ids: list[str] | None = None) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "id": self.id,
             "sessionId": self.session_id,
             "generatedAt": self.generated_at,
@@ -67,6 +73,9 @@ class GroupReport(Base):
             "groupInsights": list(self.group_insights or []),
             "charts": dict(self.charts or {}),
         }
+        if self.group_insights:
+            data["groupInsightsSource"] = self.group_insights_source or TEMPLATE_SOURCE
+        return data
 
 
 class ReportFeedback(Base):

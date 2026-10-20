@@ -64,6 +64,8 @@ export const ROUTES = {
   /** Профиль и безопасность (все роли). */
   account: "/account",
   accountSecurity: "/account/security",
+  /** Настройка источника ИИ (только администратор). */
+  accountAi: "/account/ai",
   teacher: "/teacher",
   teacherMonitor: (studentId: string) => `/teacher/monitor/${studentId}`,
   teacherScenarios: "/teacher/scenarios",

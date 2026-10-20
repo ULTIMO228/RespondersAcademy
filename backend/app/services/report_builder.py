@@ -23,6 +23,8 @@ from app.models.report import GroupReport, Report, ReportFeedback
 from app.models.scenario import Scenario
 from app.models.session import Attempt, TrainingSession
 from app.models.user import User
+from app.services import report_ai_text
+from app.services.ai_health_service import llm_scope
 from app.services.evaluation_service import _read_teacher, evaluate_if_possible, find_scenario_for_attempt
 from app.services.session_engine import evaluation_contract, list_session_rows, require_session_row
 from app.services.time import now_iso, parse_iso_ms
@@ -113,7 +115,7 @@ def _report_ai_comment(scored: list[dict[str, Any]], errors: list[dict[str, Any]
     timing = "Нормативы времени соблюдены." if exceeded == 0 else f"Нормативы времени превышены в {exceeded} из {len(scored)} попыток."
     critical = sum(1 for e in errors if e.get("severity") == "critical")
     remarks = "Замечаний по эталону нет." if not errors else f"Замечаний: {len(errors)}, из них критичных {critical}."
-    return f"ИИ-разбор: отработано карточек — {len(scored)}. {timing} {remarks}"
+    return f"Разбор по правилам: отработано карточек — {len(scored)}. {timing} {remarks}"
 
 
 def build_student_report(session: TrainingSession, student: User | None, student_id: str, scored: list[dict[str, Any]], generated_at: str) -> dict[str, Any]:
@@ -180,7 +182,7 @@ async def has_reports(db: AsyncSession, session_id: str) -> bool:
     return (await db.execute(select(GroupReport.id).where(GroupReport.session_id == session_id))).scalar_one_or_none() is not None or (await db.execute(select(Report.id).where(Report.session_id == session_id, Report.static.is_(True)))).first() is not None
 
 
-async def build_session_report(db: AsyncSession, session_id: str) -> None:
+async def build_session_report(db: AsyncSession, session_id: str, viewer: Viewer | None = None) -> None:
     """Идемпотентная сборка: ничего не делает для статики, незавершённого занятия и уже собранного отчёта."""
     session = await db.get(TrainingSession, session_id)
     if session is None or session.state not in REPORTABLE_STATES or await has_reports(db, session_id):
@@ -192,20 +194,33 @@ async def build_session_report(db: AsyncSession, session_id: str) -> None:
     for student_id in session.student_ids or []:
         student = await db.get(User, student_id)
         scored = await _score_student_attempts(db, session, student_id, groups, norms_cache)
-        built.append({"report": build_student_report(session, student, student_id, scored, generated_at), "attempts": scored})
-    insights = get_gateway().group_insights({"id": session.id}, [{**b["report"], "attempts": b["attempts"]} for b in built])
-    group = build_group_report(session, built, generated_at, insights)
+        report = build_student_report(session, student, student_id, scored, generated_at)
+        template = report["aiComment"]
+        built.append({"report": report, "attempts": scored, "templateComment": template})
+    async with llm_scope(db, viewer):
+        for item in built:
+            result = await report_ai_text.attempt_comment(
+                report_ai_text.attempt_facts(item["attempts"], item["report"]["errors"]), item["templateComment"]
+            )
+            item["report"]["aiComment"] = result.text or item["templateComment"]
+            item["report"]["aiCommentSource"] = result.source
+        template_insights = get_gateway().group_insights(
+            {"id": session.id}, [{**b["report"], "attempts": b["attempts"]} for b in built]
+        )
+        insights = await report_ai_text.group_insights(report_ai_text.group_facts(built), template_insights)
+    group = build_group_report(session, built, generated_at, insights.items)
+    group["groupInsightsSource"] = insights.source
     for item in built:
         doc = item["report"]
-        db.add(Report(id=doc["id"], session_id=session.id, student_id=doc["student"]["studentId"], generated_at=generated_at, export_formats=doc["exportFormats"], student=doc["student"], time_metrics=doc["timeMetrics"], grammar_errors=doc["grammarErrors"], errors=doc["errors"], score=doc["score"], charts=doc["charts"], ai_comment=doc["aiComment"], static=False))
-    db.add(GroupReport(id=group["id"], session_id=session.id, generated_at=generated_at, report_ids=group["reportIds"], group_insights=group["groupInsights"], charts=group["charts"], static=False))
+        db.add(Report(id=doc["id"], session_id=session.id, student_id=doc["student"]["studentId"], generated_at=generated_at, export_formats=doc["exportFormats"], student=doc["student"], time_metrics=doc["timeMetrics"], grammar_errors=doc["grammarErrors"], errors=doc["errors"], score=doc["score"], charts=doc["charts"], ai_comment=doc["aiComment"], ai_comment_source=doc.get("aiCommentSource", "template"), static=False))
+    db.add(GroupReport(id=group["id"], session_id=session.id, generated_at=generated_at, report_ids=group["reportIds"], group_insights=group["groupInsights"], group_insights_source=group.get("groupInsightsSource", "template"), charts=group["charts"], static=False))
     await db.flush()
 
 
-async def ensure_student_reports(db: AsyncSession, student_id: str) -> None:
+async def ensure_student_reports(db: AsyncSession, student_id: str, viewer: Viewer | None = None) -> None:
     for session in await list_session_rows(db):
         if student_id in (session.student_ids or []):
-            await build_session_report(db, session.id)
+            await build_session_report(db, session.id, viewer)
 
 
 # ─── Чтение ───────────────────────────────────────────────────────────────────────────────────────
@@ -235,9 +250,9 @@ async def get_reports(db: AsyncSession, viewer: Viewer | None, session_id: str |
         raise validation_failed("Укажите параметр «sessionId» или «studentId»")
     if session_id:
         await require_session_row(db, session_id)
-        await build_session_report(db, session_id)
+        await build_session_report(db, session_id, viewer)
     elif scope:
-        await ensure_student_reports(db, scope)
+        await ensure_student_reports(db, scope, viewer)
     query = select(Report).order_by(Report.id)
     if session_id:
         query = query.where(Report.session_id == session_id)
@@ -309,7 +324,7 @@ async def get_journal(db: AsyncSession, viewer: Viewer | None, query: dict[str, 
         raise forbidden(JOURNAL_TEACHER_ONLY_MESSAGE)
     sessions = await list_session_rows(db)
     for session in sessions:
-        await build_session_report(db, session.id)
+        await build_session_report(db, session.id, viewer)
     users = {u.id: u for u in (await db.execute(select(User))).scalars().all()}
     groups = {cid: group for cid, group in (await db.execute(select(IncidentCard.id, IncidentCard.group))).all()}
     rows = [await _journal_row(db, s, users, groups) for s in sessions if not query.get("teacherId") or s.teacher_id == query["teacherId"]]

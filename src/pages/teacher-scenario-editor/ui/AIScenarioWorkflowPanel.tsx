@@ -10,7 +10,7 @@ import type {
   AIWorkflowMode,
   AIScenarioVersion,
 } from "@/shared/api";
-import { AiBadge } from "@/shared/ui";
+import { AiBadge, AiSourceBadge } from "@/shared/ui";
 
 import type { ScenarioEditorApi } from "../api/editorApi";
 import { ScenarioTextCheck } from "./ScenarioTextCheck";
@@ -39,7 +39,15 @@ function providerLabel(provider: string): string {
   if (provider === "mock") return "автономный мок (без ИИ)";
   if (provider.startsWith("llamacpp:")) return `ИИ: локальная модель ${provider.slice("llamacpp:".length)}`;
   if (provider.startsWith("ollama:")) return `ИИ: локальная модель ${provider.slice("ollama:".length)}`;
+  if (provider.startsWith("polza:")) return `ИИ: облачная модель ${provider.slice("polza:".length)}`;
   return provider;
+}
+
+function providerSource(provider: string): "cloud" | "local" | "template" | null {
+  if (provider === "template") return "template";
+  if (provider.startsWith("polza:")) return "cloud";
+  if (provider.startsWith("llamacpp:") || provider.startsWith("ollama:")) return "local";
+  return null;
 }
 
 function fieldText(value: unknown): string {
@@ -248,7 +256,14 @@ export function AIScenarioWorkflowPanel({
       ) : null}
       {!saving && lastGeneration ? (
         <p className={styles.meta} role="status" data-testid="ai-generation-result">
-          Сгенерировано: {providerLabel(lastGeneration.provider)} · {formatSeconds(lastGeneration.durationMs)}
+          Сгенерировано:{" "}
+          {providerSource(lastGeneration.provider) ? (
+            <AiSourceBadge
+              source={providerSource(lastGeneration.provider) ?? undefined}
+              model={lastGeneration.provider.split(":").slice(1).join(":") || undefined}
+            />
+          ) : null}{" "}
+          {providerLabel(lastGeneration.provider)} · {formatSeconds(lastGeneration.durationMs)}
         </p>
       ) : null}
       {panelState.status === "loading" ? <p role="status">Загрузка версий…</p> : null}

@@ -1,5 +1,5 @@
 import { SEVERITY_RULES, SEVERITY_TITLES } from "@/entities/report";
-import { AiBadge } from "@/shared/ui";
+import { AiSourceBadge } from "@/shared/ui";
 
 import type { AttemptView, IssueView } from "../model/types";
 import { AttemptCalls } from "./AttemptCalls";
@@ -88,7 +88,7 @@ export function AttemptCard({ attempt, issues }: AttemptCardProps) {
         </span>
       </p>
       <p className={styles.report__ai}>
-        <AiBadge /> {attempt.aiComment}
+        <AiSourceBadge source={attempt.aiCommentSource} /> {attempt.aiComment}
       </p>
     </article>
   );

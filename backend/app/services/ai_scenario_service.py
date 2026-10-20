@@ -30,8 +30,8 @@ from app.models.scenario import Scenario
 from app.models.teacher import ProfileMappingRow
 from app.schemas.v1.ai import ScenarioDraftRequest
 from app.services import reference as reference_service
+from app.services.ai_health_service import llm_scope
 from app.services.audit import record
-from app.services.external_ai_audit import flush_external_calls
 from app.services.time import now_iso
 from ml import source_gate
 from ml.generate import llm, scenario_generator, validator
@@ -39,6 +39,11 @@ from ml.generate import llm, scenario_generator, validator
 SOURCE_TICKET_NUMBER = re.compile(r"(\d+)$")
 SERVICE_NUMBER = re.compile(r"\b10[1-4]\b")
 EDITABLE_PATH_SEGMENT = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+
+
+def _scenario_source_kind(provider: str) -> str:
+    """Map the generation provider to the workflow's coarse source kind."""
+    return "template" if provider == "template" else "llm"
 
 
 def _request_hash(payload: dict[str, Any]) -> str:
@@ -426,7 +431,7 @@ async def _save_draft(
     )
     passed = not errors
     provider = str((scenario_doc.get("generation") or {}).get("provider") or "template")
-    source_kind = "llm" if provider.startswith("ollama:") else "template"
+    source_kind = _scenario_source_kind(provider)
     etalon_id = f"{scenario_id}:etalon:1"
     classifier_version = str((await reference_service.read_classifier_meta(db)).get("version") or "classifier-seed")
     etalon = EtalonVersion(
@@ -484,7 +489,7 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
     addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
     reference = await reference_service.read_reference(db)
     started = time.perf_counter()
-    try:
+    async with llm_scope(db, viewer):  # исходы вызовов модели → ai_health и аудит (фича 006); поток видит контекст
         produced = await asyncio.to_thread(
             generate_from_approved_source,
             source,
@@ -496,8 +501,6 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
             count=body.count,
             generator=body.generator,
         )
-    finally:
-        await flush_external_calls(db, viewer)
     generation_ms = round((time.perf_counter() - started) * 1000)
     if len(produced) < body.count:
         base = _safe_base_card(source, body.category, classifier_entry, addresses)

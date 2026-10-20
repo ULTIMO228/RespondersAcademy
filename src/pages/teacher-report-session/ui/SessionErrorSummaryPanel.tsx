@@ -14,7 +14,7 @@ export type SessionErrorSummaryPanelProps = {
 const DETECTOR_NAMES: Record<string, string> = {
   rule: "Правило",
   ml: "ML-модель",
-  llm_confirmed: "Подтверждено LLM",
+  llm_confirmed: "Подтверждено ML и правилами",
   teacher: "Преподаватель",
   standalone_mock: "Имитация ИИ (автономный режим)",
 };
@@ -28,7 +28,7 @@ export function SessionErrorSummaryPanel({ summary, attempts }: SessionErrorSumm
   const minor = summary ? summary.minor : allIssues.filter((i) => i.severity === "minor").length;
 
   return (
-    <Panel title="Сводка ошибок (AI-контроль)" headerTone="dark">
+    <Panel title="Сводка ошибок" headerTone="dark">
       <div
         style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center", marginBottom: "12px" }}
       >

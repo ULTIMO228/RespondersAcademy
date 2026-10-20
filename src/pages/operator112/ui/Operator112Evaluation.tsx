@@ -1,5 +1,5 @@
 import type { AssignmentFormat, FieldDiff, OperatorEvaluation } from "@/shared/api";
-import { AiBadge, Table } from "@/shared/ui";
+import { AiSourceBadge, Table } from "@/shared/ui";
 import type { TableColumn } from "@/shared/ui";
 
 import styles from "./Operator112Evaluation.module.css";
@@ -59,7 +59,7 @@ const DIFF_COLUMNS: TableColumn<FieldDiff>[] = [
 
 /**
  * Разбор попытки режима 112: итоговый балл и составляющие, «сдал/не сдал» (только экзамен), ошибки одной строкой,
- * сличение введённого с эталоном по полям, версия оценщика. ИИ-составляющие и комментарий помечены бейджем «ИИ»;
+ * сличение введённого с эталоном по полям, версия оценщика. Источник комментария показан по контрактному полю;
  * приоритет итоговой оценки — за преподавателем (Q&A в3).
  */
 export function Operator112Evaluation({ evaluation, format, passThreshold }: Operator112EvaluationProps) {
@@ -119,7 +119,8 @@ export function Operator112Evaluation({ evaluation, format, passThreshold }: Ope
       </div>
 
       <p className={styles.eval__comment}>
-        <AiBadge /> {evaluation.aiComment || "Комментарий ИИ отсутствует"}
+        <AiSourceBadge source={evaluation.aiCommentSource} />{" "}
+        {evaluation.aiComment || "Комментарий отсутствует"}
       </p>
       <p className={styles.eval__note}>Оценщик: {evaluation.assessorVersion || "не указан"}</p>
     </section>

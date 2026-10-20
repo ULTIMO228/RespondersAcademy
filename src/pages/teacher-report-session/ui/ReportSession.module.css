@@ -214,6 +214,18 @@
   font-size: var(--font-size-sm);
 }
 
+.report__aiComments {
+  display: grid;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: var(--spacing-md);
+  list-style: none;
+}
+
+.report__aiComment {
+  margin: var(--spacing-xs) 0 0;
+}
+
 .report__muted {
   color: var(--color-ink-muted);
   font-size: var(--font-size-sm);

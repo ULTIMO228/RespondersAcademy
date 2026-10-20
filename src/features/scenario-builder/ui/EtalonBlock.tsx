@@ -1,4 +1,4 @@
-import { AiBadge, Panel } from "@/shared/ui";
+import { Panel } from "@/shared/ui";
 
 import type { LabeledValue } from "../model/types";
 import { HighlightedText } from "./HighlightedText";
@@ -20,8 +20,7 @@ export function EtalonBlock({ fields, actions, text, keyPhrases }: EtalonBlockPr
       headerTone="dark"
       actions={
         <span className={styles.editor__headerNote}>
-          <AiBadge title="Эталон сформирован системой автоматически, утверждает преподаватель" /> сформирован
-          системой
+          Эталон сформирован по правилам системы; утверждает преподаватель
         </span>
       }
     >

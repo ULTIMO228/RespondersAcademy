@@ -9,6 +9,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import Viewer
 from app.api.errors import forbidden, not_found
 from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.card import IncidentCard
@@ -16,12 +17,14 @@ from app.models.kb import KbArticle
 from app.models.recommendation import Recommendation
 from app.models.scenario import Scenario
 from app.models.user import User
-from app.services import analytics, rating_service
+from app.services import analytics, rating_service, report_ai_text
+from app.services.ai_health_service import llm_scope
 from app.services.assignment_service import _approved_ids
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso
 from ml.insights import rating as elo
 from ml.insights import recommender
+from ml.insights.group_insights import ERROR_TITLES
 
 
 def _id(student_id: str, kind: str, target_id: str) -> str:
@@ -29,7 +32,7 @@ def _id(student_id: str, kind: str, target_id: str) -> str:
     return f"rec-{digest}"
 
 
-async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[dict[str, Any]]:
+async def generate(db: AsyncSession, student_id: str, limit: int = 10, viewer: Viewer | None = None) -> list[dict[str, Any]]:
     history = await analytics.rows(db, student_id)
     if not history:
         return []
@@ -93,7 +96,28 @@ async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[d
         ranked_rows.append((priority - (500 if row.accepted_at else 0), row))
     await db.flush()
     ranked_rows.sort(key=lambda item: (-item[0], item[1].id))
-    return [row.to_contract() for _, row in ranked_rows[:limit]]
+    selected = [row for _, row in ranked_rows[:limit]]
+    selected_new = [row for row in selected if row.text is None and row.source is None]
+    if selected_new:
+        keyed_rows = {row.id: (str(index), row) for index, row in enumerate(selected_new)}
+        facts = [
+            {
+                "key": key,
+                "kind": row.kind,
+                # Never send card/article titles or IDs to the model; only a rule label and count are needed.
+                "target": ERROR_TITLES.get(str(row.reason.get("errorType") or ""), "типовая ошибка"),
+                "errorTitle": ERROR_TITLES.get(str(row.reason.get("errorType") or ""), "типовая ошибка"),
+                "count": int(row.reason.get("count") or 0),
+            }
+            for key, row in keyed_rows.values()
+        ]
+        async with llm_scope(db, viewer):
+            generated = await report_ai_text.recommendation_texts(facts)
+        for key, row in keyed_rows.values():
+            result = generated[key]
+            row.text = result.text
+            row.source = result.source
+    return [row.to_contract() for row in selected]
 
 
 async def accept(db: AsyncSession, student_id: str, rec_id: str) -> dict[str, Any]:

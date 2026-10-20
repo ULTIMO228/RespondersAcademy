@@ -1,4 +1,5 @@
 export { AiBadge } from "./ai-badge";
+export { AiSourceBadge } from "./AiSourceBadge";
 export { Button } from "./button";
 export type { ButtonSize, ButtonVariant } from "./button";
 export { BarChart, ChartDataTable, LineChart } from "./charts";

@@ -171,6 +171,7 @@ async def test_цепочка_ждёт_подтверждения_и_перен�
     submitted = await v1.post(
         f"/operator112/attempts/{attempt_id}/submit",
         json={
+            "notificationConfirmed": True,
             "applicant": {"name": "Учебный заявитель", "status": "очевидец"},
             "phones": {"provided": "0000000000"},
             "address": {"formal": source_fields["address"], "source": "directory"},

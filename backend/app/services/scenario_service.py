@@ -39,6 +39,7 @@ from app.schemas.scenarios import (
     parse_body,
     to_level,
 )
+from app.services.ai_health_service import llm_scope
 from app.services.audit import record
 from app.services.cards import list_training_cards
 from app.services.time import now_iso
@@ -333,7 +334,8 @@ async def generate_scenarios(db: AsyncSession, body: dict[str, Any], viewer: Vie
         raise validation_failed(f"Для категории «{category}» нет учебных карточек-источников")
     addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
     gateway = get_gateway()
-    produced = await asyncio.to_thread(gateway.generate_scenario, category, all_cards, addresses, count=GENERATED_COUNT)
+    async with llm_scope(db, viewer):  # исходы вызовов модели → ai_health и аудит (фича 006)
+        produced = await asyncio.to_thread(gateway.generate_scenario, category, all_cards, addresses, count=GENERATED_COUNT)
     existing = (await db.execute(select(Scenario).where(Scenario.deleted.is_(False), Scenario.source == "generated"))).scalars().all()
     by_title = {row.title: row for row in existing if row.created_by == teacher.id}
     saved: list[Scenario] = []

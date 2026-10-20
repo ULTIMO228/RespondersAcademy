@@ -193,3 +193,15 @@ export type {
   PerformanceStats,
   PerformanceStudentRow,
 } from "./performance";
+export type {
+  AiCloudSettings,
+  AiConnectionTestRequest,
+  AiConnectionTestResult,
+  AiErrorReason,
+  AiHealth,
+  AiHealthState,
+  AiServedBy,
+  AiSettings,
+  AiSettingsUpdate,
+  AiSourceKind,
+} from "./ai-settings";

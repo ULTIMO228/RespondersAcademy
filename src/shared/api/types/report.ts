@@ -1,8 +1,9 @@
 /*
  * Отчёты — spec/000-фронт/05-data-models.md §8 (mocks/reports.json).
- * Графики типизированы по факту мока (в спеке — unknown). aiComment/groupInsights — ИИ-происхождение (бейдж «ИИ» в UI).
+ * Графики типизированы по факту мока (в спеке — unknown); тексты содержат необязательные поля фактического источника.
  */
 import type { CardSource, ErrorSeverity, GrammarErrorType, ScenarioMode } from "./session";
+import type { AiServedBy } from "./ai-settings";
 
 export type ReportExportFormat = "csv" | "pdf" | "xlsx";
 
@@ -86,8 +87,10 @@ export interface Report {
   errors: ReportError[];
   score: number;
   charts: ReportCharts;
-  /** ИИ-разбор (мок). */
+  /** Пояснение к отчёту. */
   aiComment?: string;
+  /** Фактический источник комментария; для старых записей — шаблон. */
+  aiCommentSource?: AiServedBy;
   /** Обратная связь преподавателя (мок-стор, T3.4-10); в reports.json её нет. */
   teacherFeedback?: ReportFeedback;
 }
@@ -165,7 +168,9 @@ export interface GroupReport {
   generatedAt: string;
   /** По спеке обязателен; в mocks/reports.json отсутствует — вычисляется мок-слоем при отдаче. */
   reportIds?: string[];
-  /** Инсайты ИИ (мок). */
+  /** Выводы по группе. */
   groupInsights: string[];
+  /** Фактический источник выводов; старые записи читаются как шаблон. */
+  groupInsightsSource?: AiServedBy;
   charts: GroupReportCharts;
 }

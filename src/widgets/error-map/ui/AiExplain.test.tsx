@@ -37,6 +37,28 @@ describe("пояснение «Почему так происходит»", () =
     expect(screen.queryByLabelText(/^ИИ:/)).not.toBeInTheDocument();
   });
 
+  it("новый источник локальной модели показывает фактическую пометку, а вердикт хранит legacy source ai", async () => {
+    const save = vi.fn<(body: ErrorMapVerdictRequest) => Promise<void>>().mockResolvedValue();
+    const localText: ErrorMapExplanation = { ...aiText, source: "local", model: "qwen-local" };
+    render(<AiExplain explanation={localText} target={TARGET} save={save} />);
+
+    expect(screen.getByText("ИИ · локально")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Согласен" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ source: "ai" })));
+  });
+
+  it("старый ответ ai/sourceKind локально отображается с уточнённым источником", () => {
+    render(
+      <AiExplain
+        explanation={{ ...aiText, sourceKind: "local", model: "qwen-local" }}
+        target={TARGET}
+        save={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("ИИ · локально")).toBeInTheDocument();
+  });
+
   it("без ответа обе кнопки не нажаты, итог не показан", () => {
     render(<AiExplain explanation={aiText} target={TARGET} save={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Согласен" })).toHaveAttribute("aria-pressed", "false");

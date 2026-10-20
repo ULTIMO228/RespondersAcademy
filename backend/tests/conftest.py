@@ -91,3 +91,46 @@ async def token_for(user_id: str) -> str:
         session = await build_auth_session(db, user)
         await db.commit()
         return str(session["token"])
+
+
+class AiEnv:
+    """Герметичное окружение фичи 006: настройки без `backend/.env`-значений ИИ, чистые строки `ai_settings`/`ai_health`."""
+
+    def __init__(self) -> None:
+        self.settings = get_settings().model_copy(
+            update={"ai_provider": "local", "polza_api_key": None, "llama_url": None, "ollama_url": None, "ai_settings_key": None}
+        )
+
+    def configure(self, **updates) -> None:
+        self.settings = self.settings.model_copy(update=updates)
+
+
+async def _clear_ai_rows() -> None:
+    from sqlalchemy import delete
+
+    from app.models.ai_settings import AiHealth, AiSettings
+
+    async with get_sessionmaker()() as db:
+        await db.execute(delete(AiSettings))
+        await db.execute(delete(AiHealth))
+        await db.commit()
+
+
+@pytest_asyncio.fixture
+async def ai_env(app, monkeypatch) -> AsyncIterator[AiEnv]:
+    """Фича 006: подменяет `get_settings` для кода ИИ, чистит строки настроек/здоровья и кэши до и после теста."""
+    from app.services import ai_settings_service
+    from ml.generate import llm
+
+    env = AiEnv()
+    for target in ("app.config.get_settings", "app.services.ai_settings_service.get_settings", "app.services.ai_secrets.get_settings"):
+        monkeypatch.setattr(target, lambda: env.settings)
+    monkeypatch.setattr(llm, "_cloud_transport", None)
+    monkeypatch.setattr(llm, "configured_client", lambda: None)
+    await _clear_ai_rows()
+    ai_settings_service.invalidate_cache()
+    llm.reset_external_client()
+    yield env
+    await _clear_ai_rows()
+    ai_settings_service.invalidate_cache()
+    llm.reset_external_client()

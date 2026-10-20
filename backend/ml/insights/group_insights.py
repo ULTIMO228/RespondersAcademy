@@ -52,7 +52,7 @@ def build_insights(session: dict[str, Any], reports: list[dict[str, Any]]) -> li
     if not with_attempts:
         return [NO_ATTEMPTS_INSIGHT]
     total = len(with_attempts)
-    insights = [f"Инсайты ИИ: отчёт по {total} из {len(reports)} курсантов, средний балл группы {average([r['score'] for r in with_attempts])}."]
+    insights = [f"Сводка по правилам: отчёт по {total} из {len(reports)} курсантов, средний балл группы {average([r['score'] for r in with_attempts])}."]
     # Доля группы с каждым типом ошибки (курсант считается один раз на тип).
     by_type: Counter[str] = Counter()
     for report in with_attempts:

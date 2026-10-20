@@ -25,6 +25,20 @@
   font-size: var(--pf-fs-caption);
 }
 
+.item__title {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--pf-space-2);
+}
+
+.item__explanation {
+  display: block;
+  margin-top: var(--pf-space-2);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-caption);
+}
+
 .item__actions {
   display: flex;
   align-items: center;

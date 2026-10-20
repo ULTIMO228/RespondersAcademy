@@ -5,7 +5,7 @@ import { useCallback, useMemo } from "react";
 import { ReportExportButtons, ServerExportButtons } from "@/features/report-export";
 import type { FileSaver, Printer } from "@/features/report-export";
 import { ReportCharts } from "@/widgets/report-charts";
-import { Button, Panel } from "@/shared/ui";
+import { AiSourceBadge, Button, Panel } from "@/shared/ui";
 
 import { defaultReportApi } from "../api/reportApi";
 import type { ReportApi } from "../api/reportApi";
@@ -119,6 +119,18 @@ export function ReportSessionScreen({
       </ReportHeader>
       {hasData ? (
         <>
+          <Panel title="Комментарии ИИ к отчётам" headerTone="dark">
+            <ul className={styles.report__aiComments}>
+              {reports.map((report) => (
+                <li key={report.id}>
+                  <b>{report.student.fullName}</b>
+                  <p className={styles.report__aiComment}>
+                    <AiSourceBadge source={report.aiCommentSource} /> {report.aiComment}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </Panel>
           <ReportSummaryTable rows={summaryRows} />
           <SessionErrorSummaryPanel summary={state.data.errorSummary} attempts={attempts} />
           <ScoreWeights
@@ -138,7 +150,9 @@ export function ReportSessionScreen({
             />
             <StudentFeedback targets={buildFeedbackTargets(reports)} onSend={sendFeedback} />
           </div>
-          {groupReport ? <GroupInsights insights={groupReport.groupInsights} /> : null}
+          {groupReport ? (
+            <GroupInsights insights={groupReport.groupInsights} source={groupReport.groupInsightsSource} />
+          ) : null}
           <ReportCharts reports={reports} groupReport={groupReport} />
         </>
       ) : (

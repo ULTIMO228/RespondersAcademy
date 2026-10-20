@@ -76,7 +76,23 @@ async def export_data(db: AsyncSession, report_id: str, viewer: Viewer) -> dict[
             "; ".join(f"{key}: {value}" for key, value in sorted(errors.items())),
             score if score is not None else "", passed,
         ])
-    return {"id": target.id, "sessionId": session.id, "generatedAt": target.generated_at, "rows": rows, "insights": list(group.group_insights or []) if group else []}
+    insights = list(group.group_insights or []) if group else []
+    return {
+        "id": target.id,
+        "sessionId": session.id,
+        "generatedAt": target.generated_at,
+        "rows": rows,
+        "insights": insights,
+        "insightsSource": (group.group_insights_source or "template") if group and insights else None,
+    }
+
+
+def _source_label(source: str | None) -> str:
+    return {
+        "cloud": "ИИ · облако",
+        "local": "ИИ · локально",
+        "template": "шаблон",
+    }.get(source or "template", "шаблон")
 
 
 def _csv_cell(value: Any) -> Any:
@@ -125,7 +141,8 @@ def render_xlsx(data: dict[str, Any]) -> bytes:
         Sheet("Ошибки", ["Тип ошибки", "Количество"], by_error, heading=["Ошибки по типам"]),
     ]
     if data["insights"]:
-        sheets.append(Sheet("Выводы", ["Вывод"], [[text] for text in data["insights"]], heading=["Выводы по группе"]))
+        label = _source_label(data.get("insightsSource"))
+        sheets.append(Sheet("Выводы", ["Вывод", "Источник"], [[text, label] for text in data["insights"]], heading=["Выводы по группе"]))
     return _render_xlsx(sheets)
 
 
@@ -177,6 +194,7 @@ def render_pdf(data: dict[str, Any]) -> bytes:
             story.append(table(["Тип ошибки", "Количество"], [[key, count] for key, count in sorted(errors.items())], [630, 100]))
     if data.get("insights"):
         story.append(Paragraph("Комментарий по группе", section_style))
+        story.append(para(f"Источник: {_source_label(data.get('insightsSource'))}"))
         story.extend(para(text) for text in data["insights"])
 
     def footer(canvas, document):

@@ -26,7 +26,7 @@ function evaluation(overrides: Partial<OperatorEvaluation> = {}): OperatorEvalua
 }
 
 describe("Operator112Evaluation", () => {
-  it("тренировка: балл и составляющие, без «сдан/не сдан», бейдж «ИИ» у комментария", () => {
+  it("тренировка: балл и составляющие; неизвестный источник комментария честно помечен шаблоном", () => {
     render(<Operator112Evaluation evaluation={evaluation()} format="training" />);
     expect(screen.getByTestId("total-score")).toHaveTextContent("85");
     const components = within(screen.getByRole("list", { name: "Составляющие оценки" }));
@@ -34,8 +34,13 @@ describe("Operator112Evaluation", () => {
     expect(components.getByText("Смысл").nextSibling).toHaveTextContent("70");
     expect(screen.queryByRole("status")).toBeNull();
     expect(screen.getByText("Адрес указан верно, не уточнён этаж")).toBeInTheDocument();
-    expect(screen.getByLabelText(/^ИИ:/)).toBeInTheDocument();
+    expect(screen.getByText("шаблон")).toBeInTheDocument();
     expect(screen.getByText("Оценщик: operator112-1.0.0")).toBeInTheDocument();
+  });
+
+  it("показывает фактический источник комментария", () => {
+    render(<Operator112Evaluation evaluation={evaluation({ aiCommentSource: "local" })} format="training" />);
+    expect(screen.getByText("ИИ · локально")).toBeInTheDocument();
   });
 
   it("экзамен: «Сдан»/«Не сдан» по passed с порогом задания", () => {

@@ -22,7 +22,7 @@ teacher_or_admin = require_role("teacher", "admin")
 async def recommendations(request: Request, db: AsyncSession = Depends(get_db),
                           viewer: Viewer = Depends(student_only)) -> list[dict[str, Any]]:
     limit = read_int(request.query_params, "limit", 10, minimum=1, maximum=50)
-    result = await service.generate(db, viewer.user_id, limit)
+    result = await service.generate(db, viewer.user_id, limit, viewer)
     await db.commit()
     return result
 

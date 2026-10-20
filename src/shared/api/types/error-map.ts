@@ -8,7 +8,12 @@ export type ErrorMapPeriod = "2w" | "1m" | "all";
 export type StageLevelWord = "rare" | "sometimes" | "often" | "noData";
 export type StageComparison = "better" | "same" | "worse";
 export type ErrorMapSeverity = "critical" | "major" | "minor";
-export type ExplanationSource = "ai" | "template";
+/** Фактический источник текста; `ai` поддерживается только для старых ответов. */
+export type ExplanationSource = "cloud" | "local" | "template" | "ai";
+/** Временная совместимость с ответами предыдущей версии API; новые ответы кодируют это в `source`. */
+export type ExplanationSourceKind = "cloud" | "local" | "template";
+/** Исторический источник в API записи вердикта: новая облачная/локальная модель по-прежнему записывается как `ai`. */
+export type ExplanationVerdictSource = "ai" | "template";
 export type VerdictKind = "agree" | "disagree";
 export type HeadlineKind = "problems" | "clean" | "noData";
 export type ScopeKind = "group" | "student";
@@ -88,11 +93,15 @@ export interface ErrorMapChainLink {
 export interface ErrorMapExplanation {
   /** 1–2 фразы. */
   text: string;
-  /** "ai" — бейдж «ИИ»; "template" — «справочное пояснение». */
+  /** Фактический источник текста; старое `ai` остаётся допустимым для сохранённых ответов. */
   source: ExplanationSource;
   textHash: string;
   /** Текущий вердикт этого преподавателя. */
   verdict?: VerdictKind;
+  /** Устаревшее уточнение к `source: "ai"`, пока фронт совместим со старой версией API. */
+  sourceKind?: ExplanationSourceKind;
+  /** Модель, давшая текст; у шаблона нет. */
+  model?: string;
 }
 
 export interface ErrorMapStageDetail {
@@ -128,7 +137,7 @@ export interface ErrorMapVerdictRequest {
   period: ErrorMapPeriod;
   stageId: string;
   textHash: string;
-  source: ExplanationSource;
+  source: ExplanationVerdictSource;
   verdict: VerdictKind;
 }
 

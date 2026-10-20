@@ -1,4 +1,5 @@
 import type { MistakeSeverity } from "@/entities/report";
+import type { AiServedBy } from "@/shared/api";
 
 export type SummaryRow = {
   id: string;
@@ -72,6 +73,7 @@ export type AttemptView = {
   /** Итог с приоритетом преподавателя (Q&A в3). */
   finalTotal: number;
   aiComment: string;
+  aiCommentSource?: AiServedBy;
   teacherOverride?: TeacherOverrideView;
 };
 
