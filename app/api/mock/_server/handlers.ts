@@ -2,6 +2,7 @@
  * Серверная сборка route handlers мок-слоя, которым нужна доменная логика entities. src/shared/api/mock
  * не может импортировать entities (FSD), а корневой app/ (Next App Router, вне src/) — может; приватная папка
  * `_server` не становится роутом. route.ts соответствующих эндпоинтов — одна строка реэкспорта отсюда.
+ *   POST /cards/[id]/attempt         — открытие попытки; обучающийся без специализации ДДС → 403 (спека 007);
  *   POST /cards/[id]/status          — машина статусов ДДС из reference.ddsStatuses (T1.2-01);
  *   GET  /cards                      — расширенный поиск filterCards (T1.2-04);
  *   GET  /sessions/[id]/feed         — лента buildSessionFeed (T1.2-05) + доступ монитора (T3.3-09);
@@ -28,6 +29,7 @@ import {
   createGetSessionsHandler,
   createGetUsersHandler,
   createPostAttemptEvaluationHandler,
+  createPostCardAttemptHandler,
   createPostCardStatusHandler,
   createPostGrammarCheckHandler,
   createPostReportFeedbackHandler,
@@ -50,6 +52,8 @@ function getDdsStatusMachine(): DdsStatusMachine {
 export const handlePostCardStatus = createPostCardStatusHandler((from, to, payload) =>
   getDdsStatusMachine().assertTransition(from, to, payload),
 );
+
+export const handlePostCardAttempt = createPostCardAttemptHandler(readRequestViewer);
 
 export const handleGetCards = createGetCardsHandler(filterCards);
 

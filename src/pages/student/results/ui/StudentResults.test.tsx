@@ -228,3 +228,28 @@ describe("«Результаты»: разбор попытки", () => {
     expect(await screen.findByRole("heading", { level: 1 })).toHaveTextContent("Разбор: Попытка att-x");
   });
 });
+
+describe("чат-ассистент разбора (спека 010, T013)", () => {
+  it("при загруженной оценке есть кнопка «Обсудить результат с ИИ», она открывает шторку", async () => {
+    render(<StudentResultDetailScreen attemptId="att-2" mode="operator112" api={makeApi()} />);
+    fireEvent.click(await screen.findByRole("button", { name: /Обсудить результат с ИИ/ }));
+    expect(screen.getByRole("dialog", { name: "Разбор попытки: Экзамен, билет 2" })).toBeInTheDocument();
+    expect(screen.getByText(/вы набрали 85 баллов, зафиксировано 1 замечание/)).toBeInTheDocument();
+  });
+
+  it("парная проверка: при «Оценки пока нет» кнопки нет", async () => {
+    const api = makeApi({
+      review: vi.fn().mockRejectedValue(new ApiError(404, "evaluationPending", "Оценка ещё не готова")),
+    });
+    render(<StudentResultDetailScreen attemptId="att-9" mode="operator112" api={api} />);
+    await screen.findByText("Оценки пока нет");
+    expect(screen.queryByRole("button", { name: /Обсудить результат с ИИ/ })).toBeNull();
+  });
+
+  it("при ошибке загрузки разбора кнопки нет", async () => {
+    const api = makeApi({ review: vi.fn().mockRejectedValue(new ApiError(500, "internal", "Сбой")) });
+    render(<StudentResultDetailScreen attemptId="att-2" mode="operator112" api={api} />);
+    await screen.findByText("Не удалось загрузить разбор");
+    expect(screen.queryByRole("button", { name: /Обсудить результат с ИИ/ })).toBeNull();
+  });
+});

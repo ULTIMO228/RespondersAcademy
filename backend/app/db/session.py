@@ -55,15 +55,26 @@ async def init_db() -> None:
 def _add_missing_sqlite_columns(connection: Connection) -> None:
     """create_all не добавляет колонки в уже существующую таблицу: старые SQLite-базы (var/dev.db) догоняем вручную.
 
-    Повторяет миграцию 0006_user_training_profile (spec/008); в PostgreSQL схему ведёт Alembic.
+    Повторяет миграции 0007_user_specializations и 0012_specializations_from_training_profile: обучающимся — «оператор
+    ДДС», профиль spec/008 (колонка `training_profile` баз SASHA) переносится в список; база без профиля — ivanov
+    переводится в чистые специалисты-112, как 0006_user_training_profile. В PostgreSQL схему ведёт Alembic.
     """
     if connection.dialect.name != "sqlite":
         return
     columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(users)")}
-    if columns and "training_profile" not in columns:
-        connection.exec_driver_sql("ALTER TABLE users ADD COLUMN training_profile VARCHAR(16)")
+    if not columns or "specializations" in columns:
+        return
+    connection.exec_driver_sql("ALTER TABLE users ADD COLUMN specializations JSON")
+    connection.exec_driver_sql("UPDATE users SET specializations = '[\"dds\"]' WHERE role = 'student'")
+    if "training_profile" in columns:
         connection.exec_driver_sql(
-            "UPDATE users SET training_profile = 'operator112', service = 'ЦОВ системы-112' WHERE login = 'ivanov'"
+            "UPDATE users SET specializations = json_array(training_profile) "
+            "WHERE role = 'student' AND training_profile IN ('operator112', 'dds')"
+        )
+    else:
+        connection.exec_driver_sql(
+            "UPDATE users SET specializations = '[\"operator112\"]', service = 'ЦОВ системы-112' "
+            "WHERE login = 'ivanov' AND role = 'student'"
         )
 
 

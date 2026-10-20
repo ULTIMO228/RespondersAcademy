@@ -118,3 +118,8 @@ export function saveErrorMapSettings(settings: ErrorMapSettings): Promise<ErrorM
 export function errorMapPdfUrl(params: ErrorMapPdfParams): string {
   return `${v1ApiBaseUrl}/error-map/export.pdf${buildQuery({ ...params })}`;
 }
+
+/** URL Excel-выгрузки (GET /error-map/export.xlsx): те же параметры и права, что у PDF; файл скачивается ссылкой. */
+export function errorMapXlsxUrl(params: ErrorMapPdfParams): string {
+  return `${v1ApiBaseUrl}/error-map/export.xlsx${buildQuery({ ...params })}`;
+}

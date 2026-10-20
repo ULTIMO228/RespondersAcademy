@@ -72,7 +72,7 @@ export function validateParams(draft: WizardDraft): StepErrors {
 
 export function validateStep(step: number, draft: WizardDraft): StepErrors {
   switch (step) {
-    case 0:
+    case 1:
       return validateStudents(draft);
     case 2:
       return validateTickets(draft);

@@ -23,7 +23,13 @@ const linkedCards: LinkedCard[] = [
 ];
 
 function renderCard(
-  options: { isExceeded?: boolean; readOnly?: boolean; id?: string; showTimer?: boolean } = {},
+  options: {
+    isExceeded?: boolean;
+    readOnly?: boolean;
+    isDdsLearner?: boolean;
+    id?: string;
+    showTimer?: boolean;
+  } = {},
 ) {
   const card = options.id ? getFixture(options.id) : fireCard;
   return render(
@@ -34,6 +40,7 @@ function renderCard(
       isExceeded={options.isExceeded}
       readOnly={options.readOnly}
       showTimer={options.showTimer}
+      isDdsLearner={options.isDdsLearner}
       stateToggleHref="/arm/card/card-36814845?state=exceeded"
     />,
   );
@@ -190,5 +197,22 @@ describe("IncidentCardView — readOnly (преподаватель)", () => {
     expect(screen.getByRole("button", { name: "Статус телефонии: недоступен" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "просмотр" })).toBeDisabled();
     expect(screen.queryByRole("link", { name: "Происшествие 36814859" })).toBeNull();
+  });
+});
+
+describe("IncidentCardView — специализация ДДС", () => {
+  it("блокирует поля и действия 112; блока отработок в карточке нет (спека 012)", () => {
+    renderCard({ isDdsLearner: true, id: "card-881412" });
+    expect(screen.getByRole("button", { name: "дополнение" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Отключение" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Копировать АОН" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Отправить СМС: АОН" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Изменить (Alt + E)" })).toBeDisabled();
+    // Спека 012: отработки ДДС ведутся в форме статуса службы, в карточке их нет (памятка, стр. 23).
+    expect(screen.queryByRole("button", { name: "Добавить отработку" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /Развернуть адрес/ }));
+    expect(screen.getByLabelText("Улица:")).toHaveAttribute("readonly");
+    expect(screen.getByRole("button", { name: "Указать на карте" })).toBeDisabled();
   });
 });

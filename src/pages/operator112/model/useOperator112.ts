@@ -29,6 +29,8 @@ export type Screen =
 
 export type Result = {
   evaluation: OperatorEvaluation;
+  /** Статус сохранённой карточки (фича 007): registered → «Отработана» → closed; «нет контакта» / «срыв» — completed. */
+  cardStatus: string;
 };
 
 /** Итог попытки, закрытой сервером по лимиту времени экзамена (оценка 0, «не выполнено»). */
@@ -212,7 +214,7 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
         const submitted = await api.submitAttempt(attempt.id, draft);
         setAttempt(submitted.attempt);
         const evaluation = await api.getEvaluation(attempt.id);
-        setResult({ evaluation });
+        setResult({ evaluation, cardStatus: submitted.card.cardStatus ?? "registered" });
         setView("result");
       } catch (error) {
         const message =
@@ -242,6 +244,23 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
     }
   }, [api, applyStart, assignmentId, screen]);
 
+  /** «Отработана» / «Закрыть карточку» на экране разбора (фича 007): событие processed / close меняет статус на сервере. */
+  const updateCardStatus = useCallback(
+    async (type: "processed" | "close") => {
+      if (!attempt || !result) return;
+      setNextProblem(null);
+      try {
+        await api.sendEvent(attempt.id, { type });
+        setResult((current) =>
+          current ? { ...current, cardStatus: type === "processed" ? "processed" : "closed" } : current,
+        );
+      } catch (error) {
+        setNextProblem(toProblem(error).message);
+      }
+    },
+    [api, attempt, result],
+  );
+
   return {
     screen,
     attempt,
@@ -265,6 +284,7 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
     closePractice,
     submit,
     next,
+    updateCardStatus,
     checkExpiry,
   };
 }

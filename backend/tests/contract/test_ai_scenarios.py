@@ -274,6 +274,15 @@ async def test_generator_template_возвращает_провайдера_и_�
     assert isinstance(generation["durationMs"], int) and generation["durationMs"] >= 0
 
 
+def test_scenario_source_kind_tracks_provider_family() -> None:
+    from app.services.ai_scenario_service import _scenario_source_kind
+
+    assert _scenario_source_kind("template") == "template"
+    assert _scenario_source_kind("llamacpp:qwen-local") == "llm"
+    assert _scenario_source_kind("polza:qwen/qwen3.8-27b") == "llm"
+    assert _scenario_source_kind("ollama:qwen-local") == "llm"
+
+
 async def test_generator_ai_без_ollama_даёт_422_без_подмены_шаблоном(v1: AsyncClient, monkeypatch) -> None:
     from ml.generate import llm
 

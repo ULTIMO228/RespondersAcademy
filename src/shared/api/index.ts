@@ -21,6 +21,10 @@ export { getHealth, startAssignment, updateKbArticle } from "./endpoints";
 export { listStudentCards } from "./endpoints";
 export {
   errorMapPdfUrl,
+  errorMapXlsxUrl,
+  getPerformanceReport,
+  performancePdfUrl,
+  performanceXlsxUrl,
   getErrorMapGroup,
   getErrorMapJournal,
   getErrorMapSettings,
@@ -130,6 +134,7 @@ export {
 } from "./endpoints";
 export { ADMIN_USER_FAILURE_MESSAGES, adminCreateUser, adminResetUserPassword } from "./endpoints";
 export { adminSetUserActive, adminSetUserRole, adminUpdateUser, mapAdminUserError } from "./endpoints";
+export { updateStudentSpecializations } from "./endpoints";
 export type { AdminUserFailure, AdminUserFailureReason } from "./endpoints";
 export type { LoginFailure, LoginFailureReason, LoginResult } from "./endpoints";
 export type { ArmCardFixture, CardEvent, NotificationEntry, NotificationStatus } from "./prototype-types";
@@ -151,7 +156,6 @@ export type { IncidentCard, IncidentCardId, IncidentVictims, InternalNumber, Lab
 export type { ChangePasswordRequest, LoginRequest, NotificationAddedBy } from "./types";
 export type { NotificationEntry as NotificationEntryContract, NotificationMode, PageQuery } from "./types";
 export type { PageResponse, PhoneCall, PublicUser, QueryParams, QueryScalar, QueryValue } from "./types";
-export type { TrainingProfile } from "./types";
 export type { ReferenceData, Report as ReportContract, ReportCharts, ReportError } from "./types";
 export type { ReportExportFormat, ReportGrammarError, ReportStageAttempt, ReportStudent } from "./types";
 export type { EvaluationOverrideRequest, ReportFeedback, ReportFeedbackRequest } from "./types";
@@ -215,7 +219,7 @@ export type { UsageStats, UsageStatsPeriod, UsageStatsPeriodId, UsageStatsQuery 
 export { SETTINGS_LIMITS, SETTINGS_MESSAGES, SETTINGS_NORMS } from "./validation/settings";
 export { validateSettings, validateSettingsPatch } from "./validation/settings";
 export type { SettingsFieldError } from "./validation/settings";
-export type { TranscriptLine, TranscriptSpeaker, User, UserRole } from "./types";
+export type { Specialization, TranscriptLine, TranscriptSpeaker, User, UserRole } from "./types";
 export type { CardSearchFilters, WorkLine as WorkLineContract } from "./types";
 export type { CallReply, CallReplyRequest, CallTurn, CallVoice, CardCallRequest } from "./types";
 export type { CardCallResponse } from "./types";
@@ -311,3 +315,32 @@ export { liveCallApi } from "./endpoints/live-call";
 export type { LiveCallRecord, LiveTranscriptLine } from "./endpoints/live-call";
 export { realtimeCallApi } from "./endpoints/realtime-call";
 export type { RealtimeEvent, RealtimeConnection } from "./endpoints/realtime-call";
+export type { PerformanceQuery } from "./endpoints";
+export type {
+  PerformanceLevel,
+  PerformanceMode,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceStats,
+} from "./types";
+export {
+  AI_ERROR_REASON_MESSAGES,
+  getAiHealth,
+  getAiSettings,
+  putAiSettings,
+  testAiConnection,
+} from "./ai-settings";
+export type {
+  AiCloudSettings,
+  AiConnectionTestRequest,
+  AiConnectionTestResult,
+  AiErrorReason,
+  AiHealth,
+  AiHealthState,
+  AiServedBy,
+  AiSettings,
+  AiSettingsUpdate,
+  AiSourceKind,
+} from "./types";
+export { postAttemptChat } from "./endpoints";
+export type { ChatMessage, ChatRequest, ChatResponse, ChatTurn } from "./types";

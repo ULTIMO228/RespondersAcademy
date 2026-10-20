@@ -100,6 +100,15 @@ describe("Шапка, сводная таблица и детализация (T
     expect(screen.getByRole("button", { name: "Скачать PDF" })).toBeInTheDocument();
   });
 
+  it("сводный ИИ-комментарий показывается один раз отдельно от комментариев попыток", async () => {
+    const { container } = await renderReport();
+    const comment =
+      "Нормативы соблюдены. Реакция 14 с (норма 30 с), отработка 178 с (норма 180 с). Формулировка соответствует эталону. По второй карточке все этапы пройдены с комментариями, небольшая пауза перед звонком — в пределах нормы. Рекомендуется переход на следующий уровень сложности.";
+    const commentsPanel = panelByTitle("Комментарии ИИ к отчётам");
+    expect(within(commentsPanel).getByText(comment)).toBeInTheDocument();
+    expect(container.querySelector("article[aria-label='Попытка att-01']")).not.toHaveTextContent(comment);
+  });
+
   it("сводная таблица совпадает с reports.json, превышение норматива подсвечено", async () => {
     await renderReport();
     const petrova = within(summaryTable()).getByText("Петрова Анна Дмитриевна").closest("tr") as HTMLElement;
@@ -190,10 +199,10 @@ describe("Обратная связь, инсайты, графики и экс�
     );
   });
 
-  it("инсайты ИИ по группе и графики byStage/dynamics с нормативами 30/180", async () => {
+  it("помечает выводы группы источником и показывает графики byStage/dynamics с нормативами 30/180", async () => {
     const { container } = await renderReport();
-    const insights = panelByTitle("6. Инсайты ИИ по группе");
-    expect(within(insights).getAllByText("ИИ").length).toBeGreaterThan(1);
+    const insights = panelByTitle("6. Выводы по группе");
+    expect(within(insights).getByText("шаблон")).toBeInTheDocument();
     const byStage = container.querySelector("[data-block='byStage']") as HTMLElement;
     expect(byStage.querySelector("[data-norm='30']")).not.toBeNull();
     expect(byStage.querySelector("[data-norm='180']")).not.toBeNull();
@@ -223,11 +232,11 @@ describe("Print-вёрстка отчёта (T3.4-17)", () => {
     const { container } = await renderReport();
     for (const title of [
       "2. Сводная таблица по курсантам",
-      "Сводка ошибок (AI-контроль)",
+      "Сводка ошибок",
       "3. Детализация по попыткам",
       "4. Оценка: ИИ vs преподаватель",
       "5. Обратная связь курсанту",
-      "6. Инсайты ИИ по группе",
+      "6. Выводы по группе",
       "7. Графики и диаграммы",
     ]) {
       expect(panelByTitle(title)).toBeInTheDocument();

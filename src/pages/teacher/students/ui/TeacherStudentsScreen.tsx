@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { useSessionUser } from "@/entities/user";
-import type { PublicUser } from "@/shared/api";
+import type { PublicUser, Specialization } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import {
   Card,
@@ -22,6 +22,62 @@ import type { TeacherStudentsApi } from "../api/teacherStudentsApi";
 import styles from "./TeacherStudents.module.css";
 
 const NO_GROUP = "Без группы";
+const SPECIALIZATIONS: { value: Specialization; title: string }[] = [
+  { value: "operator112", title: "Специалист 112" },
+  { value: "dds", title: "Оператор ДДС" },
+];
+
+function SpecializationEditor({
+  student,
+  onSave,
+}: {
+  student: PublicUser;
+  onSave: (values: Specialization[]) => Promise<void>;
+}) {
+  const [values, setValues] = useState<Specialization[]>(student.specializations?.length ? student.specializations : ["dds"]);
+  const [isSaving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const toggle = (value: Specialization, checked: boolean) => {
+    setValues((current) => {
+      const next = checked ? [...current, value] : current.filter((item) => item !== value);
+      return SPECIALIZATIONS.map((item) => item.value).filter((item) => next.includes(item));
+    });
+    setMessage(null);
+  };
+  const save = async () => {
+    setSaving(true);
+    try {
+      await onSave(values);
+      setMessage("Специализация сохранена");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось сохранить специализацию");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={styles.specialization}>
+      <fieldset disabled={isSaving} aria-label={`Специализация: ${student.fullName}`}>
+        <legend>Специализация</legend>
+        {SPECIALIZATIONS.map(({ value, title }) => (
+          <label key={value}>
+            <input
+              type="checkbox"
+              checked={values.includes(value)}
+              onChange={(event) => toggle(value, event.currentTarget.checked)}
+            />
+            {title}
+          </label>
+        ))}
+      </fieldset>
+      <PlatformButton variant="secondary" disabled={isSaving || values.length === 0} onClick={() => void save()}>
+        Сохранить
+      </PlatformButton>
+      {message ? <span role="status">{message}</span> : null}
+    </div>
+  );
+}
 
 /** Обучающиеся преподавателя по группам; группы — из `assignedGroups` профиля, без них групп нет. */
 export function groupStudents(students: PublicUser[], assignedGroups?: string[]): [string, PublicUser[]][] {
@@ -88,6 +144,13 @@ export function TeacherStudentsScreen({ api = teacherStudentsApi }: TeacherStude
                         <Link href={ROUTES.teacherStudent(student.id)}>{student.fullName}</Link>
                         {student.service ? <span className={styles.muted}>{student.service}</span> : null}
                         {student.isActive ? null : <Tag tone="warning">Заблокирован</Tag>}
+                        <SpecializationEditor
+                          student={student}
+                          onSave={async (specializations) => {
+                            await api.setSpecializations(student.id, specializations);
+                            await reload();
+                          }}
+                        />
                       </li>
                     ))}
                   </ul>

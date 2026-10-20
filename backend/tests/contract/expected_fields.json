@@ -143,7 +143,7 @@
     "group",
     "service",
     "assignedGroups",
-    "trainingProfile"
+    "specializations"
    ],
    "extends": [
     "AdminUserRoleFields"
@@ -176,7 +176,7 @@
     "group",
     "service",
     "assignedGroups",
-    "trainingProfile"
+    "specializations"
    ],
    "extends": []
   },
@@ -189,7 +189,7 @@
     "group",
     "service",
     "assignedGroups",
-    "trainingProfile",
+    "specializations",
     "fullName",
     "login",
     "armNumber",
@@ -198,6 +198,81 @@
    "extends": [
     "AdminUserRoleFields"
    ]
+  },
+  "AiCloudSettings": {
+   "file": "ai-settings.ts",
+   "required": [
+    "model",
+    "route",
+    "keyConfigured",
+    "keyLast4",
+    "available"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AiConnectionTestRequest": {
+   "file": "ai-settings.ts",
+   "required": [
+    "source"
+   ],
+   "optional": [
+    "apiKey"
+   ],
+   "extends": []
+  },
+  "AiConnectionTestResult": {
+   "file": "ai-settings.ts",
+   "required": [
+    "ok",
+    "latencyMs",
+    "route"
+   ],
+   "optional": [
+    "reason"
+   ],
+   "extends": []
+  },
+  "AiHealth": {
+   "file": "ai-settings.ts",
+   "required": [
+    "state",
+    "activeSource",
+    "servedBy",
+    "lastOkAt",
+    "lastErrorAt"
+   ],
+   "optional": [
+    "reason",
+    "errorsToday",
+    "callsToday",
+    "dailyLimit"
+   ],
+   "extends": []
+  },
+  "AiSettings": {
+   "file": "ai-settings.ts",
+   "required": [
+    "source",
+    "cloud",
+    "fromEnv",
+    "cloudFunctions",
+    "updatedAt",
+    "updatedBy"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "AiSettingsUpdate": {
+   "file": "ai-settings.ts",
+   "required": [
+    "source"
+   ],
+   "optional": [
+    "apiKey",
+    "clearKey"
+   ],
+   "extends": []
   },
   "Analytics": {
    "file": "lobby.ts",
@@ -669,7 +744,8 @@
     "channel",
     "incidents",
     "links",
-    "outcome"
+    "outcome",
+    "notificationConfirmed"
    ],
    "extends": []
   },
@@ -1009,6 +1085,52 @@
    "optional": [],
    "extends": []
   },
+  "ChatMessage": {
+   "file": "ai-chat.ts",
+   "required": [
+    "id",
+    "role",
+    "content",
+    "status",
+    "timestamp"
+   ],
+   "optional": [
+    "source",
+    "modelName"
+   ],
+   "extends": []
+  },
+  "ChatRequest": {
+   "file": "ai-chat.ts",
+   "required": [
+    "attemptId",
+    "mode",
+    "message",
+    "history"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ChatResponse": {
+   "file": "ai-chat.ts",
+   "required": [
+    "reply",
+    "source",
+    "provider",
+    "modelName"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "ChatTurn": {
+   "file": "ai-chat.ts",
+   "required": [
+    "role",
+    "content"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ClassifierEntry": {
    "file": "classifier.ts",
    "required": [
@@ -1096,7 +1218,9 @@
     "textHash"
    ],
    "optional": [
-    "verdict"
+    "verdict",
+    "sourceKind",
+    "model"
    ],
    "extends": []
   },
@@ -1313,6 +1437,7 @@
    "optional": [
     "revision",
     "status",
+    "aiCommentSource",
     "teacherOverride"
    ],
    "extends": []
@@ -1415,7 +1540,8 @@
     "charts"
    ],
    "optional": [
-    "reportIds"
+    "reportIds",
+    "groupInsightsSource"
    ],
    "extends": []
   },
@@ -1497,7 +1623,8 @@
     "noAmbulance",
     "crossRegion",
     "duplicateOf",
-    "createdByStudentId"
+    "createdByStudentId",
+    "cardStatus"
    ],
    "extends": []
   },
@@ -1746,6 +1873,7 @@
     "assessorVersion"
    ],
    "optional": [
+    "aiCommentSource",
     "passed"
    ],
    "extends": []
@@ -1819,6 +1947,82 @@
     "total",
     "page",
     "pageSize"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceError": {
+   "file": "performance.ts",
+   "required": [
+    "label",
+    "attempts"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceFilters": {
+   "file": "performance.ts",
+   "required": [
+    "mode",
+    "period"
+   ],
+   "optional": [
+    "from",
+    "to",
+    "groupId"
+   ],
+   "extends": []
+  },
+  "PerformanceGroupRow": {
+   "file": "performance.ts",
+   "required": [
+    "groupId",
+    "title",
+    "stats"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceReport": {
+   "file": "performance.ts",
+   "required": [
+    "filters",
+    "generatedAt",
+    "thresholds",
+    "totals",
+    "groups",
+    "students",
+    "topErrors"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceStats": {
+   "file": "performance.ts",
+   "required": [
+    "students",
+    "activeStudents",
+    "attempts",
+    "avgScore",
+    "previousAvgScore",
+    "delta",
+    "reactionInNormShare",
+    "processingInNormShare",
+    "exams",
+    "examsPassed",
+    "weakStage",
+    "level"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "PerformanceStudentRow": {
+   "file": "performance.ts",
+   "required": [
+    "studentId",
+    "name",
+    "groupId",
+    "stats"
    ],
    "optional": [],
    "extends": []
@@ -1899,8 +2103,8 @@
    "optional": [
     "group",
     "service",
-    "trainingProfile",
-    "assignedGroups"
+    "assignedGroups",
+    "specializations"
    ],
    "extends": []
   },
@@ -1933,6 +2137,8 @@
     "createdAt"
    ],
    "optional": [
+    "source",
+    "text",
     "acceptedAt"
    ],
    "extends": []
@@ -1992,6 +2198,7 @@
    ],
    "optional": [
     "aiComment",
+    "aiCommentSource",
     "teacherFeedback"
    ],
    "extends": []
@@ -2174,7 +2381,9 @@
     "cardId",
     "factMs"
    ],
-   "optional": [],
+   "optional": [
+    "normScope"
+   ],
    "extends": []
   },
   "ReportStudent": {
@@ -2196,7 +2405,9 @@
     "factMs",
     "deviationMs"
    ],
-   "optional": [],
+   "optional": [
+    "normScope"
+   ],
    "extends": []
   },
   "ReportTranscriptLine": {
@@ -2236,6 +2447,7 @@
    ],
    "optional": [
     "callTarget",
+    "generation",
     "mode"
    ],
    "extends": []
@@ -2876,6 +3088,7 @@
     "crossRegion",
     "duplicateOf",
     "createdByStudentId",
+    "cardStatus",
     "audio",
     "validation"
    ],
@@ -3005,8 +3218,8 @@
    "optional": [
     "group",
     "service",
-    "trainingProfile",
-    "assignedGroups"
+    "assignedGroups",
+    "specializations"
    ],
    "extends": []
   },

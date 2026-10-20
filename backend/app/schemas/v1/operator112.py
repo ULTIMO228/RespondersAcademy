@@ -20,6 +20,8 @@ EventType = Literal[
     "fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown",
     # спека 009: вкладки «что случилось?», ручные службы, связи карточек, закрытие окна вызова «×»
     "typeAdded", "typeRemoved", "serviceRemoved", "linkAdded", "linkRemoved", "linkPrimary", "callHidden",
+    # фича 007: исходы звонка и статусы сохранённой карточки «Отработана» / «Закрыть»
+    "noContact", "callDropped", "processed", "close",
 ]
 EVENT_TYPES: tuple[str, ...] = get_args(EventType)
 LINK_EVENT_TYPES: tuple[str, ...] = ("linkAdded", "linkRemoved", "linkPrimary")
@@ -243,6 +245,8 @@ class CardDraft(ApiModel):
     incidents: list[CardDraftWhat] = Field(default_factory=list)
     links: list[CardDraftLink] = Field(default_factory=list)
     outcome: Literal["filled", "noContact", "dropped"] = "filled"
+    # Фича 007: «Сохранить» заполненной карточки — только после подтверждения списка оповещения (проверяет submit).
+    notification_confirmed: bool = False
 
     @field_validator("description", mode="before")
     @classmethod

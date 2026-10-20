@@ -59,27 +59,34 @@
   line-height: var(--pf-lh-heading);
 }
 
+/* Лента этапов: сетка одинаковых плиток, номер этапа вместо стрелок (при переносе строки стрелки «ломали» ряд). */
 .strip {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   align-items: stretch;
-  gap: var(--pf-space-2);
+  gap: var(--pf-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
+  counter-reset: stage;
 }
 
 .strip__item {
-  flex: 1 1 140px;
-  min-width: 140px;
   display: flex;
+  flex-direction: column;
+  gap: var(--pf-space-1);
+  min-width: 0;
+  counter-increment: stage;
+}
+
+.strip__item::before {
+  content: "Этап " counter(stage);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-lead);
 }
 
 .strip__link {
-  display: flex;
-  align-items: center;
-  flex: none;
-  color: var(--pf-text-muted);
+  display: none;
 }
 
 .strip__arrow {
@@ -94,7 +101,7 @@
   gap: var(--pf-space-2);
   width: 100%;
   min-height: var(--pf-target-touch);
-  padding: var(--pf-space-3) var(--pf-space-4);
+  padding: var(--pf-space-4) var(--pf-space-5);
   border: 1px solid var(--pf-border-control);
   border-top-width: 4px;
   border-radius: var(--pf-radius-card);

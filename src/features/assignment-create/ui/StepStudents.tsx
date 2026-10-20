@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import type { PublicUser } from "@/shared/api";
-import { PROFILE_SHORT, TRAINING_PROFILE_TITLES } from "@/shared/config";
+import { singleSpecialization, SPECIALIZATION_SHORT, SPECIALIZATION_TITLES } from "@/entities/user";
+import type { PublicUser, TrainingMode } from "@/shared/api";
 import { Alert, EmptyState, ErrorState, Skeleton, ServerRequiredState, Tag } from "@/shared/ui/platform";
 import { useResource } from "@/shared/ui/platform";
 
@@ -18,6 +18,7 @@ type StepStudentsProps = {
   api: AssignmentCreateApi;
   /** Закреплённые за преподавателем группы: если заданы, показываются только они. */
   assignedGroups?: string[];
+  trainingMode: TrainingMode;
   selected: string[];
   errors: StepErrors;
   onChange: (studentIds: string[]) => void;
@@ -28,6 +29,7 @@ type StepStudentsProps = {
 export function StepStudents({
   api,
   assignedGroups,
+  trainingMode,
   selected,
   errors,
   onChange,
@@ -42,12 +44,12 @@ export function StepStudents({
   const groups = useMemo(() => {
     if (state.status !== "ready") return [];
     const byGroup = new Map<string, PublicUser[]>();
-    for (const user of assignableStudents(state.data, assignedGroups)) {
+    for (const user of assignableStudents(state.data, assignedGroups, trainingMode)) {
       const group = user.group ?? NO_GROUP;
       byGroup.set(group, [...(byGroup.get(group) ?? []), user]);
     }
     return [...byGroup.entries()].sort(([left], [right]) => left.localeCompare(right, "ru"));
-  }, [state, assignedGroups]);
+  }, [state, assignedGroups, trainingMode]);
 
   if (state.status === "loading") return <Skeleton label="Загрузка обучающихся…" lines={3} />;
   if (state.status === "serverRequired") return <ServerRequiredState onRetry={reload} />;
@@ -56,7 +58,7 @@ export function StepStudents({
     return (
       <EmptyState
         title="Нет доступных обучающихся"
-        text="Назначать можно только активных обучающихся закреплённых за вами групп."
+        text="В выбранном режиме нет активных обучающихся с нужной специализацией в закреплённых за вами группах."
       />
     );
   }
@@ -85,24 +87,28 @@ export function StepStudents({
           >
             <strong>Вся группа ({members.length})</strong>
           </CheckRow>
-          {members.map((member) => (
-            <CheckRow
-              key={member.id}
-              checked={selected.includes(member.id)}
-              onChange={(checked) => toggle(member.id, checked)}
-            >
-              {member.fullName}
-              {member.trainingProfile ? (
-                <>
-                  {" "}
-                  <span title={`Профиль: ${TRAINING_PROFILE_TITLES[member.trainingProfile]}`}>
-                    <Tag tone="info">{PROFILE_SHORT[member.trainingProfile]}</Tag>
-                  </span>
-                </>
-              ) : null}
-              <span className={styles.check__meta}> · {member.service ?? `АРМ ${member.armNumber}`}</span>
-            </CheckRow>
-          ))}
+          {members.map((member) => {
+            // Метка профиля spec/008: у обучающегося с одной специализацией — «112» или «ДДС» рядом с ФИО.
+            const only = singleSpecialization(member);
+            return (
+              <CheckRow
+                key={member.id}
+                checked={selected.includes(member.id)}
+                onChange={(checked) => toggle(member.id, checked)}
+              >
+                {member.fullName}
+                {only ? (
+                  <>
+                    {" "}
+                    <span title={`Профиль: ${SPECIALIZATION_TITLES[only]}`}>
+                      <Tag tone="info">{SPECIALIZATION_SHORT[only]}</Tag>
+                    </span>
+                  </>
+                ) : null}
+                <span className={styles.check__meta}> · {member.service ?? `АРМ ${member.armNumber}`}</span>
+              </CheckRow>
+            );
+          })}
         </fieldset>
       ))}
     </div>

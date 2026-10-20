@@ -10,6 +10,7 @@ import {
   getSessionErrorSummaryFor,
   resolveAssessmentFor,
 } from "../ai-assessment";
+import { postAttemptChatFor } from "../ai-chat";
 import {
   approveAiScenario,
   createAiScenarioDrafts,
@@ -55,6 +56,9 @@ export function createAiHandlers(evaluate: AttemptEvaluator, resolveViewer: View
     ),
     getMyErrors: withErrorHandling(async (request: Request) =>
       jsonOk(await getMyErrorsFor(request, evaluate, resolveViewer(request))),
+    ),
+    postAttemptChat: withErrorHandling(async (request: Request) =>
+      jsonOk(await postAttemptChatFor(request, evaluate, resolveViewer(request))),
     ),
   };
 }

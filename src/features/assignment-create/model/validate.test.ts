@@ -13,8 +13,8 @@ const draft = (overrides: Partial<WizardDraft> = {}): WizardDraft => ({
 
 describe("валидация мастера назначения", () => {
   it("без обучающихся шаг 1 невалиден", () => {
-    expect(validateStep(0, draft({ studentIds: [] })).studentIds).toBeTruthy();
-    expect(validateStep(0, draft())).toEqual({});
+    expect(validateStep(1, draft({ studentIds: [] })).studentIds).toBeTruthy();
+    expect(validateStep(1, draft())).toEqual({});
   });
 
   it("билеты: нужен источник; перечень пуст — ошибка; случайный набор — количество 1–100", () => {

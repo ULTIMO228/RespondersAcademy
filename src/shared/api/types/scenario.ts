@@ -14,7 +14,7 @@ export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export type ScenarioValidationStatus = "draft" | "pending" | "approved" | "rejected";
 
-/** template — шаблон; generated — сгенерирован ИИ (контракт бейджа «ИИ» в UI). */
+/** template — системный шаблон; generated — вариация преподавателя (включая шаблонный fallback). */
 export type ScenarioSource = "template" | "generated";
 
 export interface Etalon {
@@ -69,6 +69,8 @@ export interface Scenario {
   validation: ScenarioValidation;
   successCriteria: SuccessCriteria;
   source: ScenarioSource;
+  /** Фактический поставщик генерации; отсутствие у старых данных читается как шаблон. */
+  generation?: { provider: string };
   /**
    * [расширение] Режим отработки по умолчанию (spec/000-фронт/04-pages/11, редактор п. 1: demo/follow/practice).
    * В spec/05 §6 поля нет — в mocks/scenarios.json оно отсутствует; мастер занятия задаёт Session.mode.

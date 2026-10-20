@@ -1,10 +1,16 @@
+"use client";
+
+import { useSessionUser } from "@/entities/user";
 import { ROUTES } from "@/shared/config";
 import { LinkButton } from "@/shared/ui/platform";
 
 import styles from "./Account.module.css";
 
-/** Переключатель разделов профиля: «Профиль» и «Безопасность». */
-export function AccountNav({ active }: { active: "profile" | "security" }) {
+type AccountSection = "profile" | "security" | "ai";
+
+/** Переключатель разделов профиля: «Профиль», «Безопасность» и (только администратору) «Модель ИИ». */
+export function AccountNav({ active }: { active: AccountSection }) {
+  const isAdmin = useSessionUser()?.role === "admin";
   return (
     <nav className={styles.nav} aria-label="Разделы профиля">
       <LinkButton
@@ -21,6 +27,15 @@ export function AccountNav({ active }: { active: "profile" | "security" }) {
       >
         Безопасность
       </LinkButton>
+      {isAdmin ? (
+        <LinkButton
+          href={ROUTES.accountAi}
+          variant={active === "ai" ? "primary" : "secondary"}
+          aria-current={active === "ai" ? "page" : undefined}
+        >
+          Модель ИИ
+        </LinkButton>
+      ) : null}
     </nav>
   );
 }

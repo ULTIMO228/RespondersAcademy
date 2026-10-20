@@ -17,6 +17,8 @@ import styles from "./IncidentCardView.module.css";
  * наряда диспетчер вводит в форме статуса своей службы.
  * readOnly — просмотр преподавателем: контролы неактивны/скрыты, без смены статусов, ввода и запросов к API.
  * controls — живой режим обучающегося (данные и действия из pages/incident).
+ * isDdsLearner — обучающийся ДДС (спека 007): поля и действия специалиста 112 (телефония, адрес, заявитель, «дополнение»,
+ * тип происшествия) только для чтения.
  */
 export function IncidentCardView({
   card,
@@ -24,6 +26,7 @@ export function IncidentCardView({
   linkedCards,
   isExceeded = false,
   readOnly = false,
+  isDdsLearner = false,
   stateToggleHref,
   timerValue = DEFAULT_TIMER_VALUE,
   reactionValue = DEFAULT_REACTION_VALUE,
@@ -31,6 +34,7 @@ export function IncidentCardView({
   controls,
 }: IncidentCardViewProps) {
   const live = readOnly ? undefined : controls;
+  const dispatcherFieldsReadOnly = readOnly || isDdsLearner;
   const isLocked = live?.isLocked ?? false;
   const amend = live?.amend;
   const isInputBlocked = isLocked || Boolean(amend?.isBlocked);
@@ -43,7 +47,13 @@ export function IncidentCardView({
       data-mode={amend?.isActive ? "amend" : "view"}
     >
       <div className={styles.card__top}>
-        <PhoneBar card={card} readOnly={readOnly} isLive={Boolean(live)} amend={amend} isLocked={isLocked} />
+        <PhoneBar
+          card={card}
+          readOnly={dispatcherFieldsReadOnly}
+          isLive={Boolean(live)}
+          amend={amend}
+          isLocked={isLocked}
+        />
         <CardHeader
           number={card.number}
           createdAt={card.createdAt}
@@ -57,9 +67,9 @@ export function IncidentCardView({
           isReactionExceeded={live?.isReactionExceeded}
           isFromVis={card.createdByVis}
           onViewClick={amend?.onView}
-          onAmendClick={amend?.onStart}
+          onAmendClick={isDdsLearner ? undefined : amend?.onStart}
           isAmendActive={amend?.isActive}
-          isAmendDisabled={isLocked}
+          isAmendDisabled={isLocked || isDdsLearner}
         />
       </div>
       <ApplicantRow
@@ -67,24 +77,29 @@ export function IncidentCardView({
         casualties={card.what.casualties}
         emergency={card.emergency}
         isFromVis={card.createdByVis}
-        flags={live?.flags}
+        flags={live?.flags ? { ...live.flags, canEdit: live.flags.canEdit && !isDdsLearner } : undefined}
         isLocked={isInputBlocked}
       />
       <div className={styles.card__body}>
         <div className={styles.card__column}>
-          <AddressBlock address={card.address} readOnly={readOnly} showPolygon={live?.showSmsPolygon} />
+          <AddressBlock
+            address={card.address}
+            readOnly={dispatcherFieldsReadOnly}
+            showPolygon={live?.showSmsPolygon}
+          />
           <EventJournal
             description={card.description}
             isFromVis={card.createdByVis}
             extraEntries={live?.journalExtra}
           />
-          {amend ? <AmendBlock amend={amend} isLocked={isLocked} /> : null}
+          {amend && !isDdsLearner ? <AmendBlock amend={amend} isLocked={isLocked} /> : null}
         </div>
         <div className={styles.card__column}>
           <WhatHappened
             what={card.what}
             classifierEntries={classifierEntries}
             isFromVis={card.createdByVis}
+            readOnly={isDdsLearner}
           />
           <CardLinks linkedCards={linkedCards} readOnly={readOnly} />
         </div>

@@ -1,8 +1,8 @@
 import type { AssignableMode, AssignmentFormat, StudentCardEtalon } from "@/shared/api";
 
 export const WIZARD_STEPS = [
-  "Обучающиеся",
   "Режим и формат",
+  "Обучающиеся",
   "Билеты",
   "Параметры",
   "Проверка и создание",

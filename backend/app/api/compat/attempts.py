@@ -22,9 +22,10 @@ router = APIRouter()
 async def open_card_attempt(card_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> JSONResponse:
     await require_card(db, card_id)
     body = await read_body(request)
-    if isinstance(body.get("studentId"), str):
-        assert_own_attempt(viewer, body["studentId"].strip())
-    response, created = await attempts_service.open_attempt(db, card_id, body)
+    student_id = body["studentId"].strip() if isinstance(body.get("studentId"), str) else None
+    if student_id is not None:
+        assert_own_attempt(viewer, student_id)
+    response, created = await attempts_service.open_attempt(db, card_id, body, viewer)  # зона — по режиму попытки (фича 007)
     await db.commit()
     return JSONResponse(status_code=201 if created else 200, content=response)
 
@@ -32,7 +33,7 @@ async def open_card_attempt(card_id: str, request: Request, db: AsyncSession = D
 @router.post("/attempts/{attempt_id}/progress")
 async def attempt_progress(attempt_id: str, request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer | None = Depends(get_viewer)) -> dict[str, Any]:
     body = await read_body(request)
-    attempt, just_completed = await attempts_service.record_progress(db, attempt_id, body)
+    attempt, just_completed = await attempts_service.record_progress(db, attempt_id, body, viewer)  # зона — по режиму попытки
     assert_own_attempt(viewer, attempt.student_id)
     if just_completed:
         # Завершение ставит оценку синхронно (≤ 5 с); без эталона оценка появится при GET /evaluation.

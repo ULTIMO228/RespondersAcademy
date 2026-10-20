@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 
+import { isModeAvailable } from "@/entities/assignment";
 import type { AssignmentView } from "@/entities/assignment";
+import { useSessionUser, zonesOf } from "@/entities/user";
 import { ApiError } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import {
@@ -33,6 +35,15 @@ type StudentAssignmentsScreenProps = {
 export function StudentAssignmentsScreen({ api = studentAssignmentsApi }: StudentAssignmentsScreenProps) {
   const router = useRouter();
   const { state, reload } = useAssignments(api);
+  const user = useSessionUser();
+  /* Без сессии на клиенте (тесты, предзагрузка) фильтра нет; запрет всё равно держит сервер. */
+  const zones = user ? zonesOf(user) : null;
+  const visibleItems =
+    state.status !== "ready"
+      ? []
+      : zones
+        ? state.items.filter((view) => isModeAvailable(view.assignment.trainingMode, zones))
+        : state.items;
 
   const start = async (view: AssignmentView): Promise<string | null> => {
     const { assignment } = view;
@@ -69,12 +80,12 @@ export function StudentAssignmentsScreen({ api = studentAssignmentsApi }: Studen
       {state.status === "loading" ? <Skeleton label="Загрузка заданий…" lines={3} /> : null}
       {state.status === "serverRequired" ? <ServerRequiredState onRetry={() => void reload()} /> : null}
       {state.status === "error" ? <ErrorState message={state.message} onRetry={() => void reload()} /> : null}
-      {state.status === "ready" && state.items.length === 0 ? (
+      {state.status === "ready" && visibleItems.length === 0 ? (
         <EmptyState title="Заданий пока нет" text="Задание назначает преподаватель." />
       ) : null}
-      {state.status === "ready" ? (
+      {state.status === "ready" && visibleItems.length > 0 ? (
         <div className={styles.page__list}>
-          {state.items.map((view) => (
+          {visibleItems.map((view) => (
             <AssignmentCard key={view.assignment.id} view={view} onStart={start} />
           ))}
         </div>

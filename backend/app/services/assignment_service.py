@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import Viewer
+from app.api.deps import Viewer, deny_specialization
 from app.api.errors import conflict, forbidden, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.ai_scenario import ScenarioVersion
@@ -35,11 +35,16 @@ def _can_manage(row: Assignment, viewer: Viewer) -> bool:
     return viewer.role == "admin" or (viewer.role == "teacher" and row.teacher_id == viewer.user_id)
 
 
-async def _assert_profile(db: AsyncSession, row: Assignment, student_id: str) -> None:
-    """spec/008: курсант с профилем другого режима не открывает и не запускает задание."""
+async def _assert_profile(db: AsyncSession, row: Assignment, student_id: str, viewer: Viewer, where: str) -> None:
+    """spec/008 + фича 007: обучающийся без специализации режима задания не открывает и не запускает его.
+
+    Отказ пишется в аудит (`access.denied.specialization`, как зоны фичи 007), текст — профильный (spec/008).
+    """
     student = await db.get(User, student_id)
     if student is not None and not training_profile.allows(student, row.training_mode):
-        raise forbidden(training_profile.blocked_message(student, row.training_mode))
+        target = None if viewer.user_id == student_id else student_id
+        await deny_specialization(db, viewer, row.training_mode, where, student_id=target,
+                                  message=training_profile.blocked_message(student, row.training_mode))
 
 
 def _assert_visible(row: Assignment, viewer: Viewer) -> None:
@@ -222,7 +227,7 @@ async def detail(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[s
     row = await require_assignment(db, assignment_id)
     _assert_visible(row, viewer)
     if viewer.is_student:
-        await _assert_profile(db, row, viewer.user_id)
+        await _assert_profile(db, row, viewer.user_id, viewer, "просмотр задания")
     await _expire(db, row)
     links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id).order_by(AssignmentAttempt.id))).scalars().all()
     progress = []
@@ -275,7 +280,7 @@ async def start(db: AsyncSession, assignment_id: str, viewer: Viewer, student_id
         raise conflict(LEGACY_CHAIN_MESSAGE)
     await _expire(db, row)
     student = _student(viewer, student_id, row)
-    await _assert_profile(db, row, student)
+    await _assert_profile(db, row, student, viewer, "старт задания")
     links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == row.id, AssignmentAttempt.student_id == student).order_by(AssignmentAttempt.id))).scalars().all()
     opened = next((link for link in links if link.state not in ("submitted", "notCompleted")), None)
     if opened is not None:

@@ -1,7 +1,8 @@
 """Спека 004, T002/T004: клиент Polza.ai (`ml.generate.llm.PolzaClient`) — запрос, ошибки, лимиты, утечка ключа.
 
 Сеть не используется: `httpx.MockTransport`. Внешний провайдер выключен по умолчанию (`AI_PROVIDER=local`), и тогда
-исходящих запросов нет вообще.
+исходящих запросов нет вообще. Фича 006: глобального списка событий больше нет — результат запроса возвращает
+`request_json`, а цепочку и аудит проверяют `test_complete_json.py` и `test_ai_health_service.py`.
 """
 
 from __future__ import annotations
@@ -31,13 +32,6 @@ def _client(handler, **kwargs: Any) -> llm.PolzaClient:
     return llm.PolzaClient(
         "https://polza.ai/api/v1/", KEY, "openai/gpt-4o", 30.0, transport=httpx.MockTransport(handler), **options
     )
-
-
-@pytest.fixture(autouse=True)
-def _clean_events():
-    llm.drain_external_events()
-    yield
-    llm.drain_external_events()
 
 
 def test_request_shape_and_parsed_answer():
@@ -87,19 +81,14 @@ def test_timeout_and_network_error_give_none():
     assert _client(timeout).chat_json("s", "u", SCHEMA) is None
 
 
-def test_valid_answer_is_the_only_ok_event_and_events_carry_no_content_or_key():
+def test_request_result_is_ok_only_for_valid_answer_and_carries_no_key():
+    payload = {"model": "openai/gpt-4o", "messages": []}
     ok = _client(lambda request: _answer(json.dumps({"text": "x"})))
-    ok.purpose = "scenario_generation"
-    ok.chat_json("секретный запрос", "u", SCHEMA)
+    assert ok.request_json(payload) == ({"text": "x"}, "ok", True)
     bad = _client(lambda request: httpx.Response(401, json={"error": KEY}))
-    bad.chat_json("s", "u", SCHEMA)
-    events = llm.drain_external_events()
-    assert [event["result"] for event in events] == ["ok", "http_401"]
-    assert events[0]["purpose"] == "scenario_generation" and events[0]["provider"] == "polza:openai/gpt-4o"
-    assert events[0]["requestChars"] > 0
-    dumped = json.dumps(events, ensure_ascii=False)
-    assert KEY not in dumped and "секретный" not in dumped
-    assert llm.drain_external_events() == []
+    data, result, sent = bad.request_json(payload)
+    assert data is None and result == "invalid_key" and sent is True
+    assert (KEY in result) is False
 
 
 def test_key_is_not_in_repr_or_str():
@@ -120,7 +109,7 @@ def test_requests_per_minute_limit_falls_back_without_network():
     assert client.healthy() is False
     assert client.chat_json("s", "u", SCHEMA) is None
     assert len(calls) == 2
-    assert llm.drain_external_events()[-1]["result"] == "rate_limited"
+    assert client.request_json({"model": "m"}) == (None, "rate_limited", False)  # лимит — без сети
     now[0] += 61
     assert client.healthy() is True
     assert client.chat_json("s", "u", SCHEMA) == {"text": "x"}
@@ -173,7 +162,8 @@ def test_polza_provider_builds_one_shared_guarded_client(monkeypatch):
     llm.reset_external_client()
     first = llm.external_client()
     assert isinstance(first, llm.PolzaClient) and first is llm.external_client()
-    assert llm.generation_client() is first
+    # Фича 006: генерация идёт через complete_json; облако закрыто стопором (T003), локальной нет → клиента нет.
+    assert llm.generation_client() is None
     llm.reset_external_client()
 
 
@@ -209,19 +199,18 @@ def test_unknown_provider_is_rejected():
         Settings(JWT_SECRET="x" * 40, AI_PROVIDER="somebody")
 
 
-class _FakeExternal:
-    provider = "polza:fake"
+class _FakeComplete:
+    """Подмена `llm.complete_json`: запоминает запросы и отдаёт заданный ответ как исход облака."""
 
     def __init__(self, answer: Any) -> None:
         self.answer = answer
-        self.calls: list[tuple[str, str]] = []
+        self.calls: list[tuple[str, str, str]] = []
 
-    def healthy(self) -> bool:
-        return True
-
-    def chat_json(self, system: str, user: str, schema: Any, **kwargs: Any) -> Any:
-        self.calls.append((system, user))
-        return self.answer
+    def __call__(self, purpose: str, system: str, user: str, schema: Any, **kwargs: Any) -> llm.LlmOutcome:
+        self.calls.append((purpose, system, user))
+        return llm.LlmOutcome(
+            self.answer, "cloud", llm.CLOUD_PROVIDER, None, purpose=purpose, active_source="cloud", request_chars=1
+        )
 
 
 ERRORS = [{"ruleId": "v1", "plainText": "Не проставлен статус «Принята»", "severity": "critical", "studentCount": 3}]
@@ -229,22 +218,38 @@ STAGE = {"id": "statuses", "title": "Статусы реагирования"}
 CONTEXT = {"subject": "group", "level": {"level": "often", "share": 0.5, "attempts": 10, "attemptsWithError": 5, "affectedStudents": 3}}
 
 
-def test_explain_stage_without_external_provider_is_none(monkeypatch):
-    monkeypatch.setattr(llm, "external_client", lambda: None)
+def _cloud_context() -> llm.LlmCallContext:
+    return llm.LlmCallContext(ai=SimpleNamespace(source="cloud"))
+
+
+def test_explain_stage_with_local_source_goes_through_complete_json(monkeypatch):
+    # T029: пояснение больше не ограничено облаком — при источнике local (и без контекста) тоже идёт в `complete_json`,
+    # а уже он выбирает локальную модель; без ответа модели (`data=None`) шлюз возвращает None → шаблон.
+    fake = _FakeComplete({"text": "Путают порядок статусов."})
+    monkeypatch.setattr(llm, "complete_json", fake)
+    assert LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT) == "Путают порядок статусов."
+    with llm.bind_context(llm.LlmCallContext(ai=SimpleNamespace(source="local"))):
+        assert LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT) == "Путают порядок статусов."
+    assert [call[0] for call in fake.calls] == ["error_map_explain", "error_map_explain"]
+    monkeypatch.setattr(llm, "complete_json", _FakeComplete(None))
     assert LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT) is None
 
 
-def test_explain_stage_uses_external_text_and_sends_no_people(monkeypatch):
-    fake = _FakeExternal({"text": "Обучающиеся торопятся и пропускают статус."})
-    monkeypatch.setattr(llm, "external_client", lambda: fake)
-    text = LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT)
+def test_explain_stage_uses_cloud_text_and_sends_no_people(monkeypatch):
+    fake = _FakeComplete({"text": "Обучающиеся торопятся и пропускают статус."})
+    monkeypatch.setattr(llm, "complete_json", fake)
+    with llm.bind_context(_cloud_context()):
+        text = LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT)
     assert text == "Обучающиеся торопятся и пропускают статус."
-    sent = " ".join(fake.calls[0])
+    purpose, *messages = fake.calls[0]
+    assert purpose == "error_map_explain"
+    sent = " ".join(messages)
     assert "Статусы реагирования" in sent and "Не проставлен статус" in sent
     assert "studentId" not in sent and "students" not in sent
 
 
 @pytest.mark.parametrize("answer", [None, {}, {"text": ""}, {"text": 5}, {"other": "x"}])
-def test_explain_stage_bad_external_answer_is_none(monkeypatch, answer):
-    monkeypatch.setattr(llm, "external_client", lambda: _FakeExternal(answer))
-    assert LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT) is None
+def test_explain_stage_bad_answer_is_none(monkeypatch, answer):
+    monkeypatch.setattr(llm, "complete_json", _FakeComplete(answer))
+    with llm.bind_context(_cloud_context()):
+        assert LocalAiGateway().explain_stage("dds", STAGE, ERRORS, CONTEXT) is None

@@ -48,7 +48,7 @@ async def cleanup_exam() -> AsyncIterator[None]:
 
 async def test_dds_exam_timeout_and_no_repeat(v1: AsyncClient):
     await login_as(v1, "teacher")
-    created = await v1.post("/assignments", json={"studentIds": ["u-006", "u-016"], "trainingMode": "dds", "format": "exam", "cardIds": ["c-010", "c-013"], "params": {"passThreshold": 70, "timeLimitSec": 1}, "title": "T093 DDS экзамен"})
+    created = await v1.post("/assignments", json={"studentIds": ["u-006", "u-021"], "trainingMode": "dds", "format": "exam", "cardIds": ["c-010", "c-013"], "params": {"passThreshold": 70, "timeLimitSec": 1}, "title": "T093 DDS экзамен"})
     assert created.status_code == 201, created.text
     assignment_id = created.json()["id"]
     await login_as(v1, "student2")  # spec/008: ivanov — специалист-112

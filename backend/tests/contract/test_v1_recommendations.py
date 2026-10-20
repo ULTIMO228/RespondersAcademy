@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import AsyncIterator
+from typing import Any
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -12,6 +14,7 @@ from app.db.session import get_sessionmaker
 from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.recommendation import Recommendation, StudentRating
 from app.models.session import Attempt, Evaluation
+from ml.generate import llm
 from tests.conftest import login_as
 
 TEST_IDS = [f"att-98{index}" for index in range(6)]
@@ -47,7 +50,7 @@ async def gas_history() -> AsyncIterator[None]:
         await db.commit()
 
 
-async def test_recommendations_and_role_isolation(v1: AsyncClient, gas_history):
+async def test_recommendations_and_role_isolation(v1: AsyncClient, gas_history, ai_env):
     assert (await v1.get("/me/recommendations")).status_code == 401
     await login_as(v1, "student2")
     response = await v1.get("/me/recommendations?limit=10")
@@ -68,6 +71,31 @@ async def test_recommendations_and_role_isolation(v1: AsyncClient, gas_history):
     assert profile["typicalErrors"]["dds"]
     insights = (await v1.get("/teacher/groups/ДДС-01/insights")).json()
     assert insights["suggestedGroup"] and insights["insights"]
+
+
+async def test_recommendation_text_is_saved_without_student_or_card_ids(v1: AsyncClient, gas_history, ai_env, monkeypatch):
+    calls = 0
+
+    def complete_json(purpose: str, system: str, user: str, schema: dict[str, Any], **kwargs: Any) -> llm.LlmOutcome:
+        nonlocal calls
+        calls += 1
+        assert purpose == "recommendation_text"
+        assert "u-006" not in user and "c-093" not in user
+        keys = re.findall(r"key=([^;\n]+);", user)
+        return llm.LlmOutcome(
+            {"items": [{"key": key, "text": "Повторите тему и потренируйте точное решение диспетчера."} for key in keys]},
+            "local", "llamacpp:test-model", None, purpose, "local", len(system) + len(user),
+        )
+
+    monkeypatch.setattr(llm, "complete_json", complete_json)
+    await login_as(v1, "student2")
+    first = await v1.get("/me/recommendations?limit=10")
+    assert first.status_code == 200, first.text
+    rows = first.json()
+    assert rows and all(row["source"] == "local" and "text" in row for row in rows)
+    second = await v1.get("/me/recommendations?limit=10")
+    assert second.status_code == 200, second.text
+    assert calls == 1, "сохранённые пояснения не должны перегенерироваться при просмотре"
 
 
 async def test_adaptive_assignment_selects_harder_card(v1: AsyncClient):

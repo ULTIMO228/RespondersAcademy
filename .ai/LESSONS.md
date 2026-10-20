@@ -49,6 +49,11 @@
 ❌ edit mocks/ by hand
 ✅ edit spec/000-фронт/mocks → npm run mocks:sync && npm run mocks:validate (mocks/ is committed copy)
 
+## L011 | test isolation & verification
+❌ trust docs/memory for test metrics | ignore conftest.py session-scoped db pollution
+✅ run actual pytest & vitest; isolate tests when cascading failures occur; trace conftest.py fixtures
+
+
 ## L011 | external providers / invariant
 ❌ call external API from default path
 ✅ AGENTS §2: local contour; Polza.ai only AI_PROVIDER=polza + key, only scenario_gen/explain_stage, fallback on any error, audit w/o texts or key
@@ -115,3 +120,21 @@
 ## L026 | base branch for owner-visible work
 ❌ built 011 on develop while newest front + voice lived in SASHA → owner saw old UI (ARM button at 112, no voice)
 ✅ before feature work: git fetch all; compare develop vs active team branches (merge-base, last commits); ask/announce base
+## L027 | migration head in tests
+❌ test asserts alembic_version == "head" revision | another feature adds a later migration => test red for no reason
+✅ upgrade to the feature's own revision id, or assert the column exists; ! parallel sessions stack migrations on same tree
+
+## L028 | parallel sessions share tree
+⚠️ full pytest unreliable while another session adds tests before modules (collection errors) → run feature-area tests; compare failures on clean HEAD via `git worktree add --detach` before blaming own change
+
+## L029 | cloud quota
+❌ count cloud usage after LLM response → timeout and concurrent workers can undercount paid requests
+✅ reserve shared DB quota before HTTP; persist request and probe buckets; mark timed-out reservations as spent
+
+## L030 | SAVEPOINT on aiosqlite
+❌ trust begin_nested() rollback on SQLite → pending marker survives rollback, retry gets 409 forever
+✅ marker with owner token + TTL, explicit release on failure, fenced final UPDATE (ai_scenario_service)
+
+## L031 | e2e script launch
+❌ run run_frontend_e2e.sh directly / without env → permission denied, JWT_SECRET missing
+✅ `JWT_SECRET=<32+ bytes> bash backend/scripts/run_frontend_e2e.sh [--only ai]`; verify failures belong to own change by reverting own files temporarily

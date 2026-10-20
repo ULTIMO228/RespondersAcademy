@@ -1,0 +1,17 @@
+.banner {
+  margin-bottom: var(--pf-space-4);
+}
+
+.banner__text {
+  line-height: var(--pf-lh-body);
+}
+
+.banner__link {
+  color: var(--pf-link);
+  font-weight: var(--pf-fw-medium);
+  text-decoration: underline;
+}
+
+.banner__link:hover {
+  color: var(--pf-link-hover);
+}

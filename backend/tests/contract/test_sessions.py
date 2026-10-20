@@ -83,7 +83,7 @@ async def test_session_validation_and_feed_access(client):
     unapproved = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-005"], "scenarioIds": ["s-999"], "mode": "practice", "cardSource": "generated"})
     assert unapproved.status_code == 400
     plan = {"categories": [], "issueOrder": "manual", "hints": True, "timeNorms": {"primaryReactionSec": 30, "fullProcessingSec": 180}, "maxGrammarErrors": 1, "paceSec": 60, "conveyor": False}
-    created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-006", "u-016"], "scenarioIds": ["s-001"], "mode": "follow", "cardSource": "generated", "plan": plan})
+    created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-006", "u-021"], "scenarioIds": ["s-001"], "mode": "follow", "cardSource": "generated", "plan": plan})
     assert created.status_code == 201, created.text
     session_id = created.json()["id"]
     await login_as(client, "teacher")
@@ -116,7 +116,8 @@ async def test_session_validation_and_feed_access(client):
 
 
 async def test_card_actions(client):
-    await login_as(client, "student")  # API требует вход (ТЗ §9)
+    # API требует вход (ТЗ §9); карточки ДДС — зона «оператор ДДС» (фича 007): petrova, ivanov — только 112 (spec/008)
+    await login_as(client, "student2")
     card = "card-881412"
     links = await client.post(f"/cards/{card}/links")
     assert links.status_code == 200 and links.json() == {"cardId": card, "chain": []}

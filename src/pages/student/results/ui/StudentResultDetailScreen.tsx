@@ -7,6 +7,7 @@ import { ApiError } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import { formatDate } from "@/shared/lib";
 import { AiTag, Card, EmptyState, PageHeader, ResourceView, Tag, useResource } from "@/shared/ui/platform";
+import { AttemptChat } from "@/widgets/attempt-chat";
 import { AttemptReview } from "@/widgets/attempt-review";
 import type { ReviewModel } from "@/widgets/attempt-review";
 
@@ -80,6 +81,12 @@ export function StudentResultDetailScreen({
                       </Tag>
                     ) : null}
                     <Tag tone="info">{loaded.review.totalScore} баллов</Tag>
+                    <AttemptChat
+                      attemptId={attemptId}
+                      mode={mode}
+                      review={loaded.review}
+                      title={`Разбор попытки: ${loaded.title}`}
+                    />
                   </div>
                 ) : undefined
               }

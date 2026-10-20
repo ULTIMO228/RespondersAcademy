@@ -15,6 +15,7 @@ type Operator112ResultProps = {
   expired: Expired | null;
   nextProblem: string | null;
   onNext: () => void;
+  onCardStatus: (type: "processed" | "close") => void;
 };
 
 /**
@@ -27,6 +28,7 @@ export function Operator112Result({
   expired,
   nextProblem,
   onNext,
+  onCardStatus,
 }: Operator112ResultProps) {
   const evaluation: OperatorEvaluation | null = result?.evaluation ?? null;
   return (
@@ -51,6 +53,16 @@ export function Operator112Result({
         <p className={styles.work__error} role="alert">
           {nextProblem}
         </p>
+      ) : null}
+      {result?.cardStatus === "registered" ? (
+        <Button variant="secondary" onClick={() => onCardStatus("processed")}>
+          Отработана
+        </Button>
+      ) : null}
+      {result?.cardStatus === "completed" || result?.cardStatus === "processed" ? (
+        <Button variant="secondary" onClick={() => onCardStatus("close")}>
+          Закрыть карточку
+        </Button>
       ) : null}
       <div className={styles.result__actions}>
         <Button variant="primary" onClick={onNext}>

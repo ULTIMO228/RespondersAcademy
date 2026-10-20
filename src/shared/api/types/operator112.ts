@@ -3,11 +3,13 @@
  * сборка ответа — Attempt.to_operator_contract и services/operator112_service.py). Формы 1:1 с бэкендом.
  * Попытка по id не читается (GET /operator112/attempts/{id} нет): выдача и восстановление — assignments.startAssignment.
  */
+import type { AiServedBy } from "./ai-settings";
 
 export type OperatorAttemptState = "ringing" | "answered" | "submitted";
 /**
  * Типы событий, которые отправляет клиент (POST …/events); иное сервер отклоняет 400.
  * Спека 009: вкладки типов, ручное удаление службы, связи карточек, скрытие окна вызова «×».
+ * Фича 007: исходы звонка «нет контакта» / «срыв звонка», статусы сохранённой карточки «Отработана» / «Закрыть».
  */
 export type OperatorEventType =
   | "fieldChanged"
@@ -21,9 +23,16 @@ export type OperatorEventType =
   | "linkAdded"
   | "linkRemoved"
   | "linkPrimary"
-  | "callHidden";
-/** Событие в ленте попытки: клиентские типы + answerTimeout, который сервер пишет сам при ответе позже норматива. */
-export type OperatorEventKind = OperatorEventType | "answerTimeout";
+  | "callHidden"
+  | "noContact"
+  | "callDropped"
+  | "processed"
+  | "close";
+/**
+ * Событие в ленте попытки: клиентские типы + answerTimeout, который сервер пишет сам при ответе позже норматива,
+ * и save — фиксация сохранения карточки (фича 007).
+ */
+export type OperatorEventKind = OperatorEventType | "answerTimeout" | "save";
 export type TicketAudioStatus = "pending" | "ready" | "failed";
 export type AddressSource = "directory" | "manual";
 export type NotificationAdder = "auto" | "manual";
@@ -182,6 +191,11 @@ export interface CardDraft {
   incidents?: CardDraftWhat[];
   links?: CardDraftLink[];
   outcome?: CardOutcome;
+  /**
+   * Список оповещения подтверждён в окне «Подтвердите оповещение служб» (фича 007). Без него сервер не сохраняет
+   * заполненную карточку (409); для исходов «noContact» / «dropped» не требуется. Нет поля — сервер читает false.
+   */
+  notificationConfirmed?: boolean;
 }
 
 /** Строка журнала специалиста-112 (спека 009, FR-006, FR-007): фон задания, свои карточки ученика, ожидающий вызов. */
@@ -263,6 +277,8 @@ export interface OperatorEvaluation {
   grammarErrors: Record<string, unknown>[];
   errors: Record<string, unknown>[];
   aiComment: string;
+  /** Источник поясняющего текста; старые данные читаются как шаблон. */
+  aiCommentSource?: AiServedBy;
   fieldDiff: FieldDiff[];
   mode: string;
   assessorVersion: string;

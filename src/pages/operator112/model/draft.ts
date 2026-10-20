@@ -112,8 +112,11 @@ export function mergeNotificationList(
   return [...byService.values()];
 }
 
-/** Карточка к передаче. АОН заявителя — из попытки: обучающийся его не вводит. */
-export function toCardDraft(form: DraftForm, aon: string): CardDraft {
+/**
+ * Карточка к передаче. АОН заявителя — из попытки: обучающийся его не вводит. notificationConfirmed — «оповестить» в
+ * окне подтверждения оповещения служб (фича 007): без него сервер не сохраняет заполненную карточку.
+ */
+export function toCardDraft(form: DraftForm, aon: string, notificationConfirmed = false): CardDraft {
   const first: CardDraftWhat = {
     pollAnswers: form.pollAnswers.trim(),
     signs: form.signs,
@@ -138,6 +141,7 @@ export function toCardDraft(form: DraftForm, aon: string): CardDraft {
     channel: form.channel,
     links: form.links,
     outcome: form.outcome,
+    notificationConfirmed,
   };
 }
 

@@ -88,6 +88,20 @@ describe("POST /auth/login — cookie сессии выдаёт сервер", (
 });
 
 describe("проверка токена: подделка, срок, отзыв, блокировка", () => {
+  it("GET /auth/session отдаёт специализации обучающегося; у преподавателя поля нет (спека 007)", async () => {
+    const student = await signIn();
+    const profile: PublicUser = await (await sessionRoute(get("/session", student.cookie))).json();
+    expect(profile.specializations).toEqual(["operator112"]); // ivanov — чистый специалист-112 (spec/008)
+    const dds = await signIn({ login: "sidorova", password: "student112" });
+    expect(
+      ((await (await sessionRoute(get("/session", dds.cookie))).json()) as PublicUser).specializations,
+    ).toEqual(["dds"]);
+    const teacher = await signIn({ login: "morozova", password: "teacher112" });
+    expect(
+      ((await (await sessionRoute(get("/session", teacher.cookie))).json()) as PublicUser).specializations,
+    ).toBeUndefined();
+  });
+
   it("GET /auth/session возвращает профиль без пароля; без cookie — 401", async () => {
     const { cookie } = await signIn();
     const response = await sessionRoute(get("/session", cookie));

@@ -69,6 +69,9 @@ def _plan() -> list[tuple[str, str, list[str]]]:
 
 
 def _user(uid: str, role: str, **extra: Any) -> User:
+    # Обучающимся — обе специализации (спека 021): иначе действует «оператор ДДС» по умолчанию и фокус сужается до ДДС.
+    if role == "student":
+        extra.setdefault("specializations", ["operator112", "dds"])
     return User(
         id=uid, login=uid, password_hash=PASSWORD_HASH, full_name=f"Имя {uid}", role=role, arm_number=300,
         is_active=True, **extra,

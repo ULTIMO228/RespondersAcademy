@@ -21,8 +21,9 @@
 (не больше трёх, самая частая первой) и `context = { subject: group|student, level: { level, share, attempts,
 attemptsWithError, affectedStudents } }`; выход — текст из одной-двух фраз на русском о вероятной причине либо `None`,
 тогда бэкенд берёт шаблон «справочное пояснение». Бэкенд сам ограничивает длину и число фраз, пометку «ИИ» и вердикт
-преподавателя ставит интерфейс; ответ никогда не меняет светофор и оценки. Реализация обязана работать локально:
-внешних обращений (облачные LLM, онлайн-сервисы) контур не допускает (конституция, принцип I).
+преподавателя ставит интерфейс; ответ никогда не меняет светофор и оценки. Штатная реализация зовёт модель через
+`ml.generate.llm.complete_json` (фича 006): по умолчанию локальная модель, облако — только при выбранном и разрешённом
+облачном источнике; без модели — шаблон.
 """
 
 from __future__ import annotations
@@ -92,14 +93,12 @@ class LocalAiGateway:
         return None
 
     def explain_stage(self, mode: str, stage: dict[str, Any], errors: list[dict[str, Any]], context: dict[str, Any]) -> str | None:
-        # Внешний провайдер (спека 004, `AI_PROVIDER=polza`) — единственный источник текста; иначе None → шаблон
-        # в error_map_explain. Имена обучающихся не передаются: только название этапа, формулировки правил и числа.
+        # Фича 006 (T029): вызов всегда через `complete_json` — выбранный источник (облако только при разрешении,
+        # иначе локальная модель) → при облачной ошибке локальная (FR-018) → None → шаблон в `error_map_explain`.
+        # Исход (кто ответил) пишется в контекст запроса (`ai_health_service.llm_scope`), по нему сервис ставит
+        # `sourceKind`. Имена и id обучающихся не передаются: только название этапа, формулировки правил и числа.
         from ml.generate import llm
 
-        client = llm.external_client()
-        if client is None or not client.healthy():
-            return None
-        client.purpose = "error_map_explain"
         listing = "\n".join(f"- {item['plainText']} (обучающихся: {item['studentCount']})" for item in errors)
         user = (
             f"Режим: {mode}. Этап: «{stage['title']}». Типовые ошибки:\n{listing or '- нет'}\n"
@@ -109,7 +108,8 @@ class LocalAiGateway:
             "Ты помощник преподавателя диспетчеров. Отвечай по-русски, одной-двумя короткими фразами, "
             "без оценок людей, без терминов и списков. Ответ — JSON {\"text\": \"...\"}."
         )
-        answer = client.chat_json(system, user, {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}, max_tokens=200)
+        schema = {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}
+        answer = llm.complete_json("error_map_explain", system, user, schema, max_tokens=200).data
         text = answer.get("text") if isinstance(answer, dict) else None
         return text if isinstance(text, str) and text.strip() else None
 

@@ -26,6 +26,8 @@ vi.mock("next/link", () => ({
 const STUDENT_NO_PROFILE: PublicUser = { ...STUDENT, service: undefined };
 /** spec/008: ivanov — специалист-112 («ЦОВ системы-112»); курсант ДДС Чертаново Южное — petrova. */
 const DDS_STUDENT = findStudent("u-006");
+/** Напоминание — действие специалиста 112: обучающемуся ДДС недоступно (спека 007), проверяется от преподавателя. */
+const TEACHER: PublicUser = { ...STUDENT, id: "u-002", role: "teacher" };
 const SECOND = 1000;
 const ISSUE_STEP_MS = 180_000;
 
@@ -176,7 +178,7 @@ describe("Поступление карточек и таймер 30 сек (T2.
 describe("Будильник «напоминание» (T2.2-11)", () => {
   async function createReminder() {
     const deps = createTestDeps();
-    await renderJournal(deps);
+    await renderJournal(deps, TEACHER);
     const row = screen.getAllByRole("rowgroup")[0];
     fireEvent.click(within(row).getByRole("button", { name: "Напоминание" }));
     const dialog = screen.getByRole("dialog");

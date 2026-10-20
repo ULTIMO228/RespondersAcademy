@@ -20,6 +20,17 @@ describe("кнопки показа и печати", () => {
     expect(screen.getByRole("link", { name: /Распечатать/ })).toBeInTheDocument();
   });
 
+  it("«Скачать в Excel» — обычная ссылка на файл; без адреса её нет", () => {
+    const { rerender } = render(
+      <ErrorMapActions pdfHref="/x.pdf" xlsxHref="/api/v1/error-map/export.xlsx?scope=journal" />,
+    );
+    const excel = screen.getByRole("link", { name: /Скачать в Excel/ });
+    expect(excel).toHaveAttribute("href", "/api/v1/error-map/export.xlsx?scope=journal");
+    expect(excel).toHaveAttribute("download");
+    rerender(<ErrorMapActions pdfHref="/x.pdf" />);
+    expect(screen.queryByRole("link", { name: /Скачать в Excel/ })).not.toBeInTheDocument();
+  });
+
   it("панель держит содержимое в одной строке", () => {
     render(
       <ErrorMapToolbar>

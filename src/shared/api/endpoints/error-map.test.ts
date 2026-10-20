@@ -4,6 +4,7 @@ import { ApiError, ServerRequiredError } from "../client";
 import type { ErrorMapVerdictRequest } from "../types";
 import {
   errorMapPdfUrl,
+  errorMapXlsxUrl,
   getErrorMapGroup,
   getErrorMapJournal,
   getErrorMapSettings,
@@ -269,5 +270,18 @@ describe("клиент карты ошибок: раздел только для
     const error = await caught(getErrorMapSettings());
     expect(error).not.toBeInstanceOf(ServerRequiredError);
     expect(error).toMatchObject({ status: 0, code: "networkError" });
+  });
+});
+
+describe("errorMapXlsxUrl: адрес Excel-выгрузки", () => {
+  it("те же параметры, что у PDF, другой путь; запроса не делает", () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    const params = { scope: "journal", groupId: "ДДС-01", mode: "dds", period: "1m" } as const;
+    const xlsx = new URL(errorMapXlsxUrl(params), "http://localhost");
+    const pdf = new URL(errorMapPdfUrl(params), "http://localhost");
+    expect(xlsx.pathname).toBe("/api/v1/error-map/export.xlsx");
+    expect(Object.fromEntries(xlsx.searchParams)).toEqual(Object.fromEntries(pdf.searchParams));
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

@@ -308,7 +308,7 @@ export function Operator112CardView({
     );
   };
 
-  const draftOf = (changes: Partial<DraftForm> = {}) =>
+  const draftOf = (changes: Partial<DraftForm> = {}, notificationConfirmed = false) =>
     toCardDraft(
       {
         ...form,
@@ -316,13 +316,15 @@ export function Operator112CardView({
         extraIncidents: tabs.incidents.slice(1).map((what) => ({ what, notifications: [] })),
       },
       aon,
+      notificationConfirmed,
     );
 
   const examZero = attempt ? examRemainingSec(attempt, limitSec, nowMs) === 0 : false;
 
-  const submitNow = (changes: Partial<DraftForm> = {}) => {
+  /** notificationConfirmed — сохранение после «оповестить» (фича 007); исходы «нет контакта» / «срыв» идут без него. */
+  const submitNow = (changes: Partial<DraftForm> = {}, notificationConfirmed = false) => {
     events.flush();
-    onSubmit(draftOf(changes), examZero);
+    onSubmit(draftOf(changes, notificationConfirmed), examZero);
   };
 
   /** «нет контакта» / «срыв звонка»: карточка сохраняется пустой с исходом (007, FR-017). */
@@ -563,7 +565,7 @@ export function Operator112CardView({
                 confirmLabel="оповестить"
                 onConfirm={() => {
                   setDialog(null);
-                  submitNow();
+                  submitNow({}, true);
                 }}
                 onCancel={() => setDialog(null)}
               >

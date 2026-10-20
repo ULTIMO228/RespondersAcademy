@@ -35,6 +35,20 @@ ERROR_TITLES = {
     "addressTypo": "опечатка в адресе",
     "parallelCardIgnored": "не открыта параллельная карточка",
     "reportIncomplete": "неполный доклад точке C",
+    "trapNotDetected": "не распознана ловушка сценария",
+    "statusWithoutBasis": "статус поставлен до получения информации о ходе работ",
+    "statusAfterInformationLate": "статус поставлен с опозданием после сообщения",
+    "addressMismatch": "адрес не совпадает с билетом или не заполнен",
+    "addressUnknown": "улица не найдена в справочнике улиц Москвы",
+    "guessing": "возможное угадывание решения",
+    "answerTimeout": "вызов принят с опозданием или не принят",
+    "wrongFinalType": "неверно определён итоговый тип происшествия",
+    "missingService": "в оповещении нет нужной службы",
+    "missingSign": "не выставлен признак из билета",
+    "extraFlag": "флаг выставлен без оснований по билету",
+    "lostFact": "потерян ключевой факт записи в описании",
+    "applicantMismatch": "неверно записан заявитель",
+    "phoneMismatch": "неверно записан или не записан телефон заявителя",
 }
 MAX_TYPE_INSIGHTS = 3
 
@@ -52,7 +66,7 @@ def build_insights(session: dict[str, Any], reports: list[dict[str, Any]]) -> li
     if not with_attempts:
         return [NO_ATTEMPTS_INSIGHT]
     total = len(with_attempts)
-    insights = [f"Инсайты ИИ: отчёт по {total} из {len(reports)} курсантов, средний балл группы {average([r['score'] for r in with_attempts])}."]
+    insights = [f"Сводка по правилам: отчёт по {total} из {len(reports)} курсантов, средний балл группы {average([r['score'] for r in with_attempts])}."]
     # Доля группы с каждым типом ошибки (курсант считается один раз на тип).
     by_type: Counter[str] = Counter()
     for report in with_attempts:

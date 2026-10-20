@@ -1,5 +1,5 @@
 /* Public API контрактных типов мок-слоя (spec/000-фронт/05-data-models.md + транспорт /api/mock/*). */
-export type { AuthPolicy, AuthSession, PublicUser, Role, TrainingProfile, User } from "./user";
+export type { AuthPolicy, AuthSession, PublicUser, Role, Specialization, User } from "./user";
 export type { CallerStatus, CardStatus, CardStatusDef, ClassifierRowsRef, DdsStatus } from "./reference";
 export type { DdsStatusDef, District, InternalNumber, ReferenceData, ServiceKind } from "./reference";
 export type { ServiceRef, ServiceStatus, ServiceStatusDef } from "./reference";
@@ -198,3 +198,27 @@ export type {
   StudentStatsSummary,
 } from "./student-rating";
 export type { ProblemReport, ProblemReportList } from "./problem-report";
+export type {
+  PerformanceError,
+  PerformanceFilters,
+  PerformanceGroupRow,
+  PerformanceLevel,
+  PerformanceMode,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceStats,
+  PerformanceStudentRow,
+} from "./performance";
+export type {
+  AiCloudSettings,
+  AiConnectionTestRequest,
+  AiConnectionTestResult,
+  AiErrorReason,
+  AiHealth,
+  AiHealthState,
+  AiServedBy,
+  AiSettings,
+  AiSettingsUpdate,
+  AiSourceKind,
+} from "./ai-settings";
+export type { ChatMessage, ChatRequest, ChatResponse, ChatTurn } from "./ai-chat";

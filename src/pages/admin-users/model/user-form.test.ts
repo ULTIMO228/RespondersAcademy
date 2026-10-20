@@ -95,6 +95,21 @@ describe("validateUserForm — создание", () => {
   });
 });
 
+describe("validateUserForm — специализация обучающегося (спека 007)", () => {
+  it("обучающемуся нужна хотя бы одна специализация; парный случай с одной — без ошибки", () => {
+    expect(validateUserForm({ ...STUDENT, specializations: [] }, { mode: "create" }).specializations).toBe(
+      USER_FORM_MESSAGES.specializations,
+    );
+    expect(
+      validateUserForm({ ...STUDENT, specializations: ["operator112"] }, { mode: "create" }).specializations,
+    ).toBeUndefined();
+  });
+
+  it("преподавателю и администратору специализация не требуется", () => {
+    expect(validateUserForm({ ...TEACHER, specializations: [] }, { mode: "create" })).toEqual({});
+  });
+});
+
 describe("validateUserForm — редактирование", () => {
   it("временный пароль не требуется", () => {
     expect(validateUserForm({ ...STUDENT, password: "" }, { mode: "edit" })).toEqual({});
@@ -113,28 +128,19 @@ describe("сборка тела запроса", () => {
       group: "ДДС-01",
       service: "ДДС района Зюзино",
       assignedGroups: undefined,
-      trainingProfile: null,
+      specializations: ["dds"],
     });
     expect(toCreateRequest(TEACHER, ADMIN_ID)).toMatchObject({
       role: "teacher",
       group: undefined,
       assignedGroups: ["ДДС-01"],
+      specializations: undefined,
     });
     expect(toCreateRequest({ ...STUDENT, role: "admin" }, ADMIN_ID)).toMatchObject({
       group: undefined,
       service: undefined,
       assignedGroups: undefined,
     });
-  });
-
-  it("профиль режима (spec/008): у обучающегося уходит значение или null, у других ролей — не отправляется", () => {
-    expect(toCreateRequest({ ...STUDENT, trainingProfile: "operator112" }, ADMIN_ID).trainingProfile).toBe(
-      "operator112",
-    );
-    expect(toUpdateRequest({ ...STUDENT, trainingProfile: "" }, ADMIN_ID).trainingProfile).toBeNull();
-    expect(
-      toUpdateRequest({ ...STUDENT, role: "teacher", trainingProfile: "dds" }, ADMIN_ID).trainingProfile,
-    ).toBeUndefined();
   });
 
   it("toUpdateRequest не содержит роли (смена роли — отдельное действие T4.1-08)", () => {
@@ -151,7 +157,7 @@ describe("сборка тела запроса", () => {
       isActive: true,
       group: "ДДС-01",
       service: "ЦОВ системы-112",
-      trainingProfile: "operator112",
+      specializations: ["operator112"],
     };
     expect(toFormValues(user)).toEqual({
       fullName: "Иванов Сергей Петрович",
@@ -162,7 +168,31 @@ describe("сборка тела запроса", () => {
       group: "ДДС-01",
       service: "ЦОВ системы-112",
       assignedGroups: [],
-      trainingProfile: "operator112",
+      specializations: ["operator112"],
     });
+  });
+
+  it("toFormValues: специализации обучающегося берутся из профиля, у не-обучающегося список пуст", () => {
+    const base: PublicUser = {
+      id: "u-x",
+      login: "x",
+      fullName: "Х",
+      role: "student",
+      armNumber: 1,
+      isActive: true,
+    };
+    expect(toFormValues({ ...base, specializations: ["operator112"] }).specializations).toEqual([
+      "operator112",
+    ]);
+    expect(toFormValues({ ...base, role: "teacher" }).specializations).toEqual([]);
+  });
+
+  it("toUpdateRequest передаёт специализации только обучающегося", () => {
+    expect(toUpdateRequest({ ...STUDENT, specializations: ["operator112", "dds"] }, ADMIN_ID)).toMatchObject({
+      specializations: ["operator112", "dds"],
+    });
+    expect(
+      toUpdateRequest({ ...TEACHER, specializations: ["dds"] }, ADMIN_ID).specializations,
+    ).toBeUndefined();
   });
 });

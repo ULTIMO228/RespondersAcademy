@@ -130,3 +130,19 @@
 - Миграции: `uv run alembic heads` → `0007_problem_reports` (одна)
 - Гейт кластера: lint ✅ · steiger ✅ · test **2173 passed** ✅ · typecheck ✅ · build ✅ · pytest **1184 passed / 0 / 4** ✅ · ruff ✅
 - Итог: влит. Кластер ДДС (K1–K4) в интеграционной ветке; K5, K6 — уже содержатся (T009, T010)
+
+## F5 — K7+K9 fix/ai-connection-probe-timeout @ 5e309ef
+
+- Дата: 2026-10-20 · База: `0fe02c2` · Вершина сверена ✅
+- Конфликты: 70 (61 content, 6 modify/delete, 2 add/add, 1 file location). Разбор: группа «модель специализации» и группа «окно 112» — субагенты Opus (предложения в scratchpad, только чтение WT); точки регистрации, документы, e2e-скрипт, lock — интегратор. Интегратор перепроверил: в окне 112 строки HEAD/theirs, отсутствующие в итоге, — только эквивалентные замены (доступ через зоны, объединённые наборы событий); найдена и исправлена своя ошибка объединения `src/shared/api/types/index.ts` (потерян `export type {`)
+- Решения:
+  - P1/В1: единственный источник — `users.specializations`; миграция `0012_specializations_from_training_profile.py` (rev `0012_specs_from_training_profile`, ≤32 символов для `alembic_version`) переносит `training_profile` → `[X]` и удаляет колонку; `app/services/training_profile.py` — адаптер поверх специализаций (прежний API); `TrainingProfile`/`trainingProfile` убраны из TS и API. Учётки: ivanov `["operator112"]`, egorov `["dds"]`, petrova обе, u-016/u-017 112, lebedev `["dds"]` заблокирован; остальные — ДДС (данные seva)
+  - P4/R6: удаления SASHA приняты (`Operator112Workspace.tsx`, `Operator112Softphone.*`, `test_ai_chain.py`, `test_seed_chain_demo.py`, `app/arm/(operator112)/operator112/layout.tsx`); флаг `notificationConfirmed` перенесён в `Operator112CardView`/`draft.ts` (необязательный в `CardDraft`), обязателен только при `outcome=filled`; «Нет контакта»/«Срыв звонка» — событие дописывает сервер по `outcome`; новый `tests/integration/test_operator112_save_to_bank.py` (409 без подтверждения + парный 200 + карточка в `/student-cards`)
+  - удалены: `ArmDdsGuardLayout.tsx`, `src/shared/config/trainingProfile.ts`, `platform-nav/model/visibleNav.{ts,test.ts}` (заменены зонами `resolvePlatformNav`)
+  - уроки seva L014–L018 → L027–L031; `AGENTS.md` §2: опции live-caller и чат-облака, выключены по умолчанию
+  - `config.py`: `POLZA_MODEL` без значения по умолчанию (правило develop, условие организаторов) → тест-хелпер `tests/unit/test_ai_settings_service.py::_env` задаёт модель явно
+  - `IncidentScreen.test.tsx` «обучающийся ДДС не может редактировать поля 112»: проверка «Действие диспетчера» заменена на «поля нет» (спека 012 убрала поле)
+- Генерируемые: `uv lock` (+openpyxl, et-xmlfile), `expected_fields.json` перегенерирован (256 типов)
+- Миграции: `0011_merge_sasha_seva` (пустая, родители `0007_problem_reports` + `0010_ai_request_started_at`) → `0012_specs_from_training_profile`; `alembic heads` → одна
+- Гейт кластера: lint ✅ · steiger ✅ · test 2381/2382 → после правки теста ✅ · typecheck ✅ (первый прогон — устаревший `.next/types`, после build 0) · build ✅ · pytest 1519/5/4 → 5 красных `test_ai_settings_service` исправлены (15/15) · ruff ✅
+- Итог: влит

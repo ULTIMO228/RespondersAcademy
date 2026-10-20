@@ -23,7 +23,7 @@ teacher_or_admin = require_role("teacher", "admin")
 async def recommendations(request: Request, db: AsyncSession = Depends(get_db),
                           viewer: Viewer = Depends(student_only)) -> list[dict[str, Any]]:
     limit = read_int(request.query_params, "limit", 10, minimum=1, maximum=50)
-    result = await service.generate(db, viewer.user_id, limit)
+    result = await service.generate(db, viewer.user_id, limit, viewer)
     await db.commit()
     return result
 
@@ -41,7 +41,7 @@ async def student_profile(student_id: str, db: AsyncSession = Depends(get_db),
                           viewer: Viewer = Depends(teacher_or_admin)) -> dict[str, Any]:
     # Только обучающиеся закреплённых групп; администратор — любой (спека 006, FR-009; ТЗ §8).
     await error_map_access.require_student_access(db, viewer, student_id)
-    result = await service.profile(db, student_id)
+    result = await service.profile(db, student_id, viewer)
     await db.commit()
     return result
 

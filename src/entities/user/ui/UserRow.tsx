@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { PublicUser, UserRole } from "@/shared/api";
 
 import { ROLE_TITLES } from "../model/roles";
+import { SPECIALIZATION_TITLES } from "../model/specialization";
 
 import styles from "./UserRow.module.css";
 
@@ -26,6 +27,11 @@ export function UserRow({ user, actions }: UserRowProps) {
       <td className={styles.row__login}>{user.login}</td>
       <td>
         <span className={[styles.role, styles[`role--${role}`]].join(" ")}>{ROLE_TITLES[role]}</span>
+      </td>
+      <td>
+        {user.role === "student" && user.specializations?.length
+          ? user.specializations.map((item) => SPECIALIZATION_TITLES[item]).join(", ")
+          : EMPTY_CELL}
       </td>
       <td className={styles.row__arm}>{user.armNumber}</td>
       <td>{user.group ?? EMPTY_CELL}</td>

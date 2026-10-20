@@ -174,6 +174,25 @@ def pdf_filename(scope: Scope, group_id: str | None, student_id: str | None) -> 
     return f"error-map-{'journal-' if scope == 'journal' else ''}{group_id}.pdf"
 
 
+def xlsx_filename(scope: Scope, group_id: str | None, student_id: str | None) -> str:
+    return pdf_filename(scope, group_id, student_id).removesuffix(".pdf") + ".xlsx"
+
+
+def render_xlsx(document: PdfDocument) -> bytes:
+    """Excel с теми же заголовком, таблицей и пояснениями, что и в PDF (`Sheet` из общего модуля выгрузки)."""
+    from app.services.xlsx_export import Sheet
+    from app.services.xlsx_export import render_xlsx as render
+
+    heading = [document.title, document.subtitle]
+    if document.headline:
+        heading.append(document.headline)
+    sheet_title = {"group": "Карта группы", "student": "Карта обучающегося", "journal": "Журнал группы"}[document.scope]
+    notes = [*document.notes, document.legend]
+    # Целые числа (попытки, число обучающихся) — числами: Excel сортирует и считает по ним.
+    rows = [[int(cell) if cell.isdigit() else cell for cell in row] for row in document.rows]
+    return render([Sheet(sheet_title, document.columns, rows, heading=heading, notes=notes)])
+
+
 def _ensure_font() -> None:
     if FONT_NAME not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont(FONT_NAME, str(FONT_PATH)))

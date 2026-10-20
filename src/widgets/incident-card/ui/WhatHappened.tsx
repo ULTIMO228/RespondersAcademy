@@ -18,6 +18,7 @@ type WhatHappenedProps = {
   what: IncidentCardData["what"];
   classifierEntries: ClassifierEntry[];
   isFromVis?: boolean;
+  readOnly?: boolean;
 };
 
 const VIS_EMPTY_QUESTIONNAIRE = "Опросная карта не заполнена (карточка из ВИС)";
@@ -30,7 +31,7 @@ function formatSigns(signs: string[]): string {
  * «Что случилось»: тёмный заголовок типа, строка атрибутов анкеты (свёрнутая опросная карта),
  * «Класс.:», «[ВИС] Класс.:» (только у ВИС-карточек). Клик по заголовку разворачивает опросную карту (read-only).
  */
-export function WhatHappened({ what, classifierEntries, isFromVis = false }: WhatHappenedProps) {
+export function WhatHappened({ what, classifierEntries, isFromVis = false, readOnly = false }: WhatHappenedProps) {
   const [isExpanded, setExpanded] = useState(false);
   const classifierCode = what.classifierCode ?? "";
   const cardEntry = classifierEntries.find((entry) => entry.code === classifierCode);
@@ -46,6 +47,7 @@ export function WhatHappened({ what, classifierEntries, isFromVis = false }: Wha
           type="button"
           className={styles.what__header}
           aria-expanded={isExpanded}
+          aria-readonly={readOnly}
           title={isExpanded ? "Свернуть опросную карту (Alt + T)" : "Развернуть опросную карту (Alt + T)"}
           onClick={() => setExpanded((expanded) => !expanded)}
         >

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { ROUTES } from "@/shared/config";
-import { AiBadge, Button, StatusChip, Table } from "@/shared/ui";
+import { AiSourceBadge, Button, StatusChip, Table } from "@/shared/ui";
 import type { TableColumn } from "@/shared/ui";
 
 import { APPROVED_STATUS, getSourceTitle, getValidationView } from "../config/dictionaries";
@@ -41,7 +41,7 @@ export function renderList(values: string[]) {
 function renderSource(row: ScenarioRow) {
   return (
     <span className={styles.catalog__source} data-source={row.source}>
-      {row.source === GENERATED_SOURCE ? <AiBadge title="Сценарий сгенерирован ИИ-модулем (мок)" /> : null}
+      {row.source === GENERATED_SOURCE ? <AiSourceBadge source={row.aiSource} model={row.model} /> : null}
       {getSourceTitle(row.source)}
     </span>
   );
@@ -118,7 +118,7 @@ function buildColumns({ onPreview, onDelete }: Omit<ScenarioTableProps, "rows">)
   ];
 }
 
-/** Таблица сценариев: название, категории, типы ЕКП, сложность, источник («ИИ»), статус, действия. */
+/** Таблица сценариев: название, категории, типы ЕКП, сложность, источник, статус, действия. */
 export function ScenarioTable({ rows, onPreview, onDelete }: ScenarioTableProps) {
   return (
     <Table

@@ -26,7 +26,9 @@ ErrorMapPeriod = Literal["2w", "1m", "all"]
 StageLevelWord = Literal["rare", "sometimes", "often", "noData"]
 StageComparison = Literal["better", "same", "worse"]
 ErrorMapSeverity = Literal["critical", "major", "minor"]
-ExplanationSource = Literal["ai", "template"]
+ExplanationSource = Literal["cloud", "local", "template", "ai"]  # ai — совместимость со старыми ответами
+ExplanationSourceKind = Literal["cloud", "local", "template"]  # legacy-поле в ранее выпущенном контракте
+ExplanationVerdictSource = Literal["ai", "template"]  # хранимый контракт вердиктов остаётся совместимым
 VerdictKind = Literal["agree", "disagree"]
 HeadlineKind = Literal["problems", "clean", "noData"]
 ScopeKind = Literal["group", "student"]
@@ -130,6 +132,8 @@ class ErrorMapExplanation(ErrorMapModel):
     source: ExplanationSource
     text_hash: str
     verdict: VerdictKind | None = None
+    source_kind: ExplanationSourceKind | None = None  # опциональное legacy-поле; новые ответы используют source
+    model: str | None = None  # модель, давшая текст (без префикса транспорта); у шаблона нет
 
 
 class ErrorMapStageDetail(ErrorMapModel):
@@ -162,7 +166,7 @@ class ErrorMapVerdictRequest(ErrorMapModel):
     period: ErrorMapPeriod
     stage_id: str
     text_hash: str
-    source: ExplanationSource
+    source: ExplanationVerdictSource
     verdict: VerdictKind
 
 

@@ -48,6 +48,7 @@ from app.schemas.error_map import (
     MyFocusResponse,
     StageComparison,
 )
+from app.services import training_profile
 from app.services.error_map_access import require_group_access, require_student_access
 from app.services.error_map_explain import build_explanation
 from app.services.error_map_settings import ErrorMapSettings, read_error_map_settings
@@ -616,9 +617,9 @@ async def my_focus(db: AsyncSession, viewer: Viewer) -> MyFocusResponse:
     уровнем «иногда» и «часто», по убыванию доли ошибок; подсказка — нейтральный шаблон без оценок.
     """
     settings = await read_error_map_settings(db)
-    # spec/008: курсанту с профилем режима — только его режим.
+    # spec/008: курсанту с одной специализацией (профиль режима) — только его режим.
     student = await db.get(User, viewer.user_id)
-    profile = cast(Literal["dds", "operator112"] | None, student.training_profile if student else None)
+    profile = cast(Literal["dds", "operator112"] | None, training_profile.profile_of(student) if student else None)
     modes: tuple[Literal["dds", "operator112"], ...] = (profile,) if profile else ("dds", "operator112")
     by_mode = {mode: await load_attempts(db, "", mode, FOCUS_PERIOD, student_id=viewer.user_id) for mode in modes}
     if not any(by_mode.values()):

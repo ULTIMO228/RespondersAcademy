@@ -12,7 +12,7 @@ export const VALIDATION_STATUSES: ValidationStatus[] = ["draft", "pending", "app
 
 export const SOURCE_TITLES: Record<ScenarioSource, string> = {
   template: "шаблон",
-  generated: "генерация ИИ",
+  generated: "сгенерирован",
 };
 
 export const SCENARIO_SOURCES: ScenarioSource[] = ["template", "generated"];

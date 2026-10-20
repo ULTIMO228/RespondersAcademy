@@ -368,3 +368,66 @@ async def test_unknown_targets_are_404(app, world):
     assert (await _pdf(app, tokens["teacher1"], scope="group", groupId=GROUP_A)).status_code == 200  # парный
     assert (await _pdf(app, tokens["teacher1"], scope="group", groupId="ТЕСТ-НЕТ-ТАКОЙ")).status_code == 404
     assert (await _pdf(app, tokens["teacher1"], scope="student", studentId="no-such")).status_code == 404
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Excel: тот же документ, что и в PDF (спека 003, выгрузка в .xlsx)
+# ---------------------------------------------------------------------------------------------------------------
+
+
+async def _xlsx(app, token: str | None, **params: str) -> httpx.Response:
+    return await _get(app, "/error-map/export.xlsx", token, params)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"scope": "group", "groupId": GROUP_A},
+        {"scope": "student", "studentId": "s-1"},
+        {"scope": "journal", "groupId": GROUP_A},
+    ],
+)
+async def test_xlsx_has_the_same_table_as_the_pdf_document(app, world, params):
+    from io import BytesIO
+
+    from openpyxl import load_workbook
+
+    tokens, maker = world
+    response = await _xlsx(app, tokens["teacher1"], mode="dds", period="1m", **params)
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    assert response.headers["content-disposition"].startswith("attachment;")
+    assert ".xlsx" in response.headers["content-disposition"]
+    assert response.headers["cache-control"] == "no-store"
+    ws = load_workbook(BytesIO(response.content)).worksheets[0]
+    async with maker() as db:
+        document = await build_document(
+            db,
+            ADMIN,
+            scope=params["scope"],
+            group_id=params.get("groupId"),
+            student_id=params.get("studentId"),
+            mode="dds",
+            period="1m",
+        )
+    table = [[("" if v is None else str(v)) for v in row[: len(document.columns)]] for row in ws.iter_rows(values_only=True)]
+    start = next(i for i, row in enumerate(table) if row == document.columns)
+    assert table[start + 1 : start + 1 + len(document.rows)] == document.rows
+    assert document.title in {str(cell.value) for row in ws.iter_rows() for cell in row}
+
+
+@pytest.mark.asyncio
+async def test_xlsx_access_and_input_checks_match_pdf(app, world):
+    tokens, _ = world
+    group = {"scope": "group", "groupId": GROUP_A}
+    assert (await _xlsx(app, tokens["teacher1"], **group)).status_code == 200  # парный запрос
+    assert (await _xlsx(app, tokens["admin"], **group)).status_code == 200
+    assert (await _xlsx(app, tokens["teacher2"], **group)).status_code == 403
+    assert (await _xlsx(app, tokens["student"], **group)).status_code == 403
+    assert (await _xlsx(app, None, **group)).status_code == 401
+    assert (await _xlsx(app, tokens["teacher1"])).status_code == 400
+    assert (await _xlsx(app, tokens["teacher1"], scope="group")).status_code == 400
+    assert (await _xlsx(app, tokens["teacher1"], scope="student")).status_code == 400
+    assert (await _xlsx(app, tokens["teacher1"], scope="group", groupId=GROUP_A, mode="bogus")).status_code == 400
+    assert (await _xlsx(app, tokens["teacher1"], scope="group", groupId="ТЕСТ-НЕТ-ТАКОЙ")).status_code == 404

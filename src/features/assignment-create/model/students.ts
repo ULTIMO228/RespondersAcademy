@@ -1,34 +1,25 @@
-import type { PublicUser, TrainingProfile } from "@/shared/api";
-import { allowsMode } from "@/shared/config";
+import { requiredSpecializations } from "@/entities/assignment";
+import type { PublicUser, TrainingMode } from "@/shared/api";
 
 /** Группа для обучающихся без группы: подпись в списке и ключ в наборе закреплённых групп. */
 export const NO_GROUP = "Без группы";
 
 /**
  * Обучающиеся, которых мастер может назначить: активные и из закреплённых за преподавателем групп.
- * Пустой набор групп — ни одного обучающегося. Сервер проверяет роль и активность, но не группу (см. R12),
- * поэтому это ограничение действует только здесь и на шаге «Обучающиеся».
+ * Сервер повторяет проверку активности и специализации при создании задания.
  */
 export function assignableStudents(
   students: PublicUser[],
   assignedGroups: string[] | undefined,
+  trainingMode: TrainingMode,
 ): PublicUser[] {
   const allowed = new Set(assignedGroups ?? []);
+  const required = requiredSpecializations(trainingMode);
   return students.filter(
-    (user) => user.isActive && user.role === "student" && allowed.has(user.group ?? NO_GROUP),
+    (user) =>
+      user.isActive &&
+      user.role === "student" &&
+      allowed.has(user.group ?? NO_GROUP) &&
+      required.every((specialization) => (user.specializations ?? ["dds"]).includes(specialization)),
   );
-}
-
-/**
- * Разбивка выбранных по профилю режима (spec/008): курсант с профилем другого режима пропускается.
- * Шаг «Обучающиеся» идёт до выбора режима, поэтому пропуск показывается на шаге «Режим и формат».
- */
-export function splitByMode(
-  students: PublicUser[],
-  mode: TrainingProfile,
-): { allowed: PublicUser[]; skipped: PublicUser[] } {
-  const allowed: PublicUser[] = [];
-  const skipped: PublicUser[] = [];
-  for (const user of students) (allowsMode(user, mode) ? allowed : skipped).push(user);
-  return { allowed, skipped };
 }

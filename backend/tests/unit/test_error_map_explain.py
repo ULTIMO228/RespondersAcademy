@@ -38,6 +38,7 @@ from app.services.error_map_explain import (
 )
 from app.services.error_map_service import group_map, stage_detail, student_stage_detail
 from app.services.time import MOSCOW, to_moscow_iso
+from ml.generate import llm
 
 ADMIN = Viewer(user_id="adm", role="admin")
 GROUP = "G-EXPL"
@@ -153,9 +154,28 @@ async def maker():
 
 
 @pytest.fixture(autouse=True)
-def restore_gateway():
+def restore_gateway(monkeypatch):
+    # Фича 006 (T029): штатный шлюз всегда идёт в `complete_json`; локальной модели в тестах нет, если тест её не подставил —
+    # иначе результат зависел бы от `LLAMA_URL` окружения разработчика.
+    monkeypatch.setattr(llm, "configured_client", lambda: None)
     yield
     ai_gateway.set_gateway(None)
+
+
+class _LocalModel:
+    """Подмена локальной модели для `complete_json` (без сети): отдаёт заданный ответ и запоминает запросы."""
+
+    provider = "llamacpp:test-model"
+
+    def __init__(self, answer: Any) -> None:
+        self.answer, self.prompts = answer, []
+
+    def healthy(self) -> bool:
+        return True
+
+    def chat_json(self, system, user, schema, *, seed=None, max_tokens=None):
+        self.prompts.append((system, user))
+        return self.answer
 
 
 class _Gateway:
@@ -190,7 +210,7 @@ async def _explain(maker, *, level: ErrorMapStageLevel | None = None, errors=Non
 async def test_default_gateway_gives_template(maker):
     result = await _explain(maker)
     assert result is not None
-    assert result.source == "template"
+    assert result.source == "template" and result.model is None
     assert result.text == template_text(stage_title=STAGE.title, typical_errors=[_typical("v1", "Нет первичного статуса", 3)], subject="group")
     assert result.text_hash == text_hash(result.text)
     assert result.verdict is None
@@ -218,6 +238,49 @@ async def test_unusable_gateway_answer_falls_back_to_template(maker, answer):
     ai_gateway.set_gateway(_Gateway(answer=answer))
     result = await _explain(maker)
     assert result is not None and result.source == "template"
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Штатный шлюз через `complete_json` (фича 006, T029): работает и на локальной модели, а не только в облаке
+# ---------------------------------------------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_default_gateway_uses_local_model_when_source_is_local(maker, monkeypatch):
+    model = _LocalModel({"text": " Торопятся  и пропускают статус. Стоит разобрать пример. Третья фраза. "})
+    monkeypatch.setattr(llm, "configured_client", lambda: model)
+    errors = [_typical("v1", "Нет первичного статуса", 3)]
+    result = await _explain(maker, errors=errors)
+    assert result is not None
+    assert result.source == "local" and result.model == "test-model"
+    assert result.text == "Торопятся и пропускают статус. Стоит разобрать пример."  # та же очистка: ≤ двух фраз
+    assert result.text_hash == text_hash(result.text)
+    (system, user), = model.prompts
+    assert "Нет первичного статуса" in user and "«Статусы реагирования»" in user
+    for name in ("Студент 0", "Студент 1", "Студент 2", "u-0"):  # имена и id обучающихся модель не видит
+        assert name not in user and name not in system
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("answer", [None, {}, {"text": ""}, {"text": 7}, {"text": "Слишком длинный. " * 60}])
+async def test_unusable_model_answer_is_template_not_ai(maker, monkeypatch, answer):
+    # Модель ответила, но ответ не годится — на экране шаблон, и он не выдаётся за ответ модели (FR-011).
+    monkeypatch.setattr(llm, "configured_client", lambda: _LocalModel(answer))
+    result = await _explain(maker)
+    assert result is not None
+    assert result.source == "template" and result.model is None
+    assert result.text == template_text(stage_title=STAGE.title, typical_errors=[_typical("v1", "Нет первичного статуса", 3)], subject="group")
+
+
+@pytest.mark.asyncio
+async def test_actual_source_is_serialized_and_legacy_gateway_source_is_preserved(maker, monkeypatch):
+    monkeypatch.setattr(llm, "configured_client", lambda: _LocalModel({"text": "Путают статусы."}))
+    dumped = (await _explain(maker)).dump()
+    assert dumped["source"] == "local" and dumped["model"] == "test-model"
+    assert "sourceKind" not in dumped
+    ai_gateway.set_gateway(_Gateway(answer="Текст стороннего шлюза."))
+    dumped = (await _explain(maker)).dump()
+    assert dumped["source"] == "ai" and "model" not in dumped
 
 
 @pytest.mark.asyncio

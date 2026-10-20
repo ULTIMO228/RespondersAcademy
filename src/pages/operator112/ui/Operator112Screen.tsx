@@ -59,6 +59,7 @@ export function Operator112Screen({ assignmentId, api = operator112Api, clock }:
         expired={op.expired}
         nextProblem={op.nextProblem}
         onNext={() => void op.next()}
+        onCardStatus={(type) => void op.updateCardStatus(type)}
       />
     );
   }

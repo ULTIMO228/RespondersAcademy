@@ -17,7 +17,7 @@ import type {
   AdminUserUpdateRequest,
   PublicUser,
   Role,
-  TrainingProfile,
+  Specialization,
   User,
 } from "../types";
 import { readJsonBody, readStringParam } from "./request";
@@ -37,6 +37,7 @@ export const AUDIT_ACTION = {
   userCreated: "user.create",
   userUpdated: "user.update",
   userRoleChanged: "user.roleChange",
+  userSpecializationChanged: "user.specialization_changed",
   userBlocked: "user.block",
   userUnblocked: "user.unblock",
   userPasswordReset: "user.passwordReset",
@@ -47,6 +48,13 @@ export const LOGIN_TAKEN_MESSAGE = "Логин уже занят";
 export const SELF_BLOCK_MESSAGE = "Нельзя заблокировать собственную учётную запись";
 
 const ROLES: readonly Role[] = ["student", "teacher", "admin"];
+const SPECIALIZATIONS: readonly Specialization[] = ["operator112", "dds"];
+const SPECIALIZATION_TITLE: Record<Specialization, string> = {
+  operator112: "Специалист 112",
+  dds: "Оператор ДДС",
+};
+/** Специализация обучающегося по умолчанию — как у ранее заведённых учёток (миграция бэкенда, спека 007). */
+const DEFAULT_SPECIALIZATIONS: Specialization[] = ["dds"];
 const STATES: readonly AdminUserState[] = ["active", "blocked"];
 export const ROLE_TITLE: Record<Role, string> = {
   student: "Обучающийся",
@@ -127,20 +135,22 @@ function readGroupList(value: unknown): string[] | undefined {
   return groups.length > 0 ? groups : undefined;
 }
 
-/** spec/008: подписи профиля режима — как в backend/app/services/training_profile.py. */
-const PROFILE_TITLE: Record<TrainingProfile, string> = {
-  operator112: "Специалист системы-112",
-  dds: "Диспетчер ДДС",
-};
-const NO_PROFILE = "Не задан";
-
-/** undefined — поле не передано; null — «не задан» (сброс). */
-function readTrainingProfile(fields: AdminUserRoleFields): TrainingProfile | null | undefined {
-  if (!("trainingProfile" in fields) || fields.trainingProfile === undefined) return undefined;
-  const value = fields.trainingProfile as unknown;
-  if (value === null || value === "") return null;
-  if (value === "operator112" || value === "dds") return value;
-  throw validationFailed("Профиль режима: специалист системы-112, диспетчер ДДС или не задан");
+/**
+ * Специализации из тела запроса (спека 007): у обучающегося — непустой список без дублей из допустимых значений, у
+ * преподавателя и администратора поле не принимается (400). Не передано → undefined.
+ */
+function readSpecializations(value: unknown, role: Role): Specialization[] | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (role !== "student") throw validationFailed("Специализация задаётся только обучающемуся");
+  if (!Array.isArray(value) || value.length === 0) {
+    throw validationFailed("Укажите хотя бы одну специализацию обучающегося");
+  }
+  const list = value as unknown[];
+  if (list.some((entry) => !(SPECIALIZATIONS as readonly unknown[]).includes(entry))) {
+    throw validationFailed("Специализация — «operator112» или «dds»");
+  }
+  if (new Set(list).size !== list.length) throw validationFailed("Специализации не должны повторяться");
+  return list as Specialization[];
 }
 
 /**
@@ -152,13 +162,14 @@ function applyRoleFields(draft: Omit<User, "id">, role: Role, fields: AdminUserR
   const group = readOptionalText(fields.group, "группа");
   const service = readOptionalText(fields.service, "служба");
   const assignedGroups = readGroupList(fields.assignedGroups);
-  const trainingProfile = readTrainingProfile(fields);
+  const specializations = readSpecializations(fields.specializations, role);
+  const keptSpecializations = draft.role === "student" ? draft.specializations : undefined;
   draft.role = role;
+  draft.specializations =
+    role === "student" ? (specializations ?? keptSpecializations ?? [...DEFAULT_SPECIALIZATIONS]) : undefined;
   draft.group = role === "student" ? (group ?? draft.group) : undefined;
   draft.service = role === "admin" ? undefined : (service ?? draft.service);
   draft.assignedGroups = role === "teacher" ? (assignedGroups ?? draft.assignedGroups) : undefined;
-  const nextProfile = trainingProfile === undefined ? draft.trainingProfile : (trainingProfile ?? undefined);
-  draft.trainingProfile = role === "student" ? nextProfile : undefined;
 }
 
 /* ── Список ── */
@@ -239,16 +250,16 @@ function collectChanges(before: User, after: User): string[] {
   if (before.service !== after.service) {
     changes.push(`служба «${before.service ?? "—"}» → «${after.service ?? "—"}»`);
   }
-  if (before.trainingProfile !== after.trainingProfile) {
-    const title = (profile?: TrainingProfile) => (profile ? PROFILE_TITLE[profile] : NO_PROFILE);
-    changes.push(`профиль «${title(before.trainingProfile)}» → «${title(after.trainingProfile)}»`);
-  }
   if ((before.assignedGroups ?? []).join(", ") !== (after.assignedGroups ?? []).join(", ")) {
     changes.push(
       `закреплённые группы «${(before.assignedGroups ?? []).join(", ") || "—"}» → «${(after.assignedGroups ?? []).join(", ") || "—"}»`,
     );
   }
   return changes;
+}
+
+function specializationLabel(user: User): string {
+  return (user.specializations ?? []).map((item) => SPECIALIZATION_TITLE[item]).join(", ") || "—";
 }
 
 /**
@@ -261,6 +272,7 @@ export async function updateAdminUser(userId: string, httpRequest: Request): Pro
   const payload = body as unknown as AdminUserUpdateRequest;
   const before = requireUser(userId);
   const nextRole = payload.role === undefined ? before.role : readRole(payload.role);
+  readSpecializations(payload.specializations, nextRole); // проверка до правок: неверное значение ничего не меняет
   const updated = updateStoredUser(userId, (draft) => {
     if (payload.fullName !== undefined) draft.fullName = readFullName(payload.fullName);
     if (payload.login !== undefined) draft.login = readLogin(payload.login, userId);
@@ -273,6 +285,16 @@ export async function updateAdminUser(userId: string, httpRequest: Request): Pro
       admin.id,
       AUDIT_ACTION.userRoleChanged,
       `Изменена роль учётной записи ${describe(updated)}: «${ROLE_TITLE[before.role]}» → «${ROLE_TITLE[nextRole]}»`,
+    );
+  }
+  if (
+    nextRole === "student" &&
+    (before.specializations ?? []).join() !== (updated.specializations ?? []).join()
+  ) {
+    audit(
+      admin.id,
+      AUDIT_ACTION.userSpecializationChanged,
+      `Изменена специализация учётной записи ${describe(updated)}: «${specializationLabel(before)}» → «${specializationLabel(updated)}»`,
     );
   }
   const changes = collectChanges(before, updated);

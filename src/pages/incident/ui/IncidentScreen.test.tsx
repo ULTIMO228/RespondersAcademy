@@ -154,7 +154,8 @@ describe("IncidentScreen — загрузка и попытка (T2.3-01)", () =
 
 describe("IncidentScreen — статусы, итог, хоткеи (T2.3-12, T2.3-19, T2.3-22)", () => {
   it("полный цикл «Принята → … → Работы завершены» с предупреждением; итог с мок-оценкой ИИ", async () => {
-    await renderCard("c-094", student("u-005"));
+    // Карточка ДДС — зона «оператор ДДС» (спека 007): petrova; ivanov — только 112 (spec/008).
+    await renderCard("c-094", student("u-006", 2, "ДДС района Чертаново Южное"));
     await setStatus("Не принята");
     expect(screen.getByRole("button", { name: "Сохранить статус (Enter)" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Отмена (Esc)" }));
@@ -178,24 +179,23 @@ describe("IncidentScreen — статусы, итог, хоткеи (T2.3-12, T2
     expect(screen.queryByRole("button", { name: "Сменить статус (Alt + E)" })).toBeNull();
   });
 
-  it("завершённая попытка занятия (att-01) сразу показывает итог с баллами и разбором", async () => {
-    render(<IncidentScreen cardId="c-063" student={student("u-005")} />);
+  it("завершённая попытка занятия (att-03) сразу показывает итог с баллами и разбором", async () => {
+    // att-01 — старая ДДС-попытка ivanov, а он теперь только специалист-112 (spec/008): берём att-03 petrova.
+    render(<IncidentScreen cardId="c-063" student={student("u-006", 2, "ДДС района Чертаново Южное")} />);
     const result = await screen.findByRole("region", { name: "Итог попытки" }, { timeout: 4000 });
     expect(await within(result).findByText("Разбор ошибок")).toBeInTheDocument();
   });
 
-  it("Alt — подсказки; Alt+T не действует; Shift+F2 — дополнение; Esc — закрытие карточки", async () => {
+  it("для оператора ДДС показываются только доступные горячие клавиши", async () => {
     await renderCard("card-36814854", student("u-105"));
     fireEvent.keyDown(document, { key: "Alt", altKey: true });
-    expect(screen.getByRole("dialog", { name: "Горячие клавиши" })).toHaveTextContent("Alt+T");
+    const hints = screen.getByRole("dialog", { name: "Горячие клавиши" });
+    expect(hints).toHaveTextContent("Shift+F1");
+    expect(hints).not.toHaveTextContent("Alt+T");
     fireEvent.keyDown(document, { key: "t", code: "KeyT", altKey: true });
     fireEvent.keyUp(document, { key: "Alt" });
     expect(screen.queryByRole("dialog", { name: "Горячие клавиши" })).toBeNull();
     expect(push).not.toHaveBeenCalled();
-    fireEvent.keyDown(document, { key: "F2", shiftKey: true });
-    expect(screen.getByRole("region", { name: "Дополнение карточки" })).toBeInTheDocument();
-    fireEvent.keyDown(document, { key: "F1", shiftKey: true });
-    expect(screen.queryByRole("region", { name: "Дополнение карточки" })).toBeNull();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(push).toHaveBeenCalledWith("/arm");
   });
@@ -235,11 +235,11 @@ describe("IncidentScreen — подсказки; без «Действия ди�
     expect(screen.getByLabelText("Комментарий")).toBeInTheDocument();
   });
 
-  it("входящая СМС-карточка: текст СМС предзаполняет «Описание со слов заявителя»", async () => {
+  it("обучающийся ДДС не может редактировать поля 112 карточки", async () => {
     await renderCard("card-36814859", student("u-110"));
     fireEvent.click(screen.getByRole("button", { name: "дополнение" }));
-    expect(screen.getByLabelText("Описание со слов заявителя")).toHaveValue(
-      "Помогите мне! Дым в квартире. Имя: Адрес: Группа крови…",
-    );
+    expect(screen.queryByLabelText("Описание со слов заявителя")).toBeNull();
+    // Поле «Действие диспетчера» убрано из карточки ДДС (спека 012) — редактировать нечего.
+    expect(screen.queryByLabelText("Действие диспетчера")).toBeNull();
   });
 });

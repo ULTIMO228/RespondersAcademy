@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 import subprocess
@@ -13,6 +14,7 @@ from sqlalchemy import create_engine
 
 from app import models  # noqa: F401
 from app.db.base import Base
+from app.models.ai_settings import AI_ERROR_REASONS, AI_SERVED_BY, AI_SOURCES
 
 BACKEND = Path(__file__).resolve().parents[2]
 
@@ -55,14 +57,16 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
     with sqlite3.connect(database) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert set(Base.metadata.tables) <= tables
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0007_problem_reports"
+        # Одна голова после слияния веток SASHA и seva (спека 021): перенос профиля spec/008 в специализации.
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0012_specs_from_training_profile"
         assert "problem_reports" in tables  # спека 009, US6: «Сообщить о проблеме»
     _run("-m", "alembic", "check", environment=environment)
     _run("-m", "app.seed.load", environment=environment)
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT COUNT(*) FROM users").fetchone()[0] >= 20
         assert connection.execute("SELECT COUNT(*) FROM incident_cards").fetchone()[0] >= 96
-        assert connection.execute("SELECT training_profile FROM users WHERE login = 'ivanov'").fetchone()[0] == "operator112"
+        assert json.loads(connection.execute("SELECT specializations FROM users WHERE login = 'ivanov'").fetchone()[0]) == ["operator112"]
+        assert "training_profile" not in {row[1] for row in connection.execute("PRAGMA table_info(users)")}
 
 
 def test_migrated_schema_has_every_model_table_and_same_guards_as_create_all(migrated_database: Path, tmp_path: Path):
@@ -153,4 +157,36 @@ def test_error_map_verdicts_are_unique_per_target_even_without_student(migrated_
             connection.execute(insert, ("emv-004", *row[:3], "bogus", *row[4:]))  # режим вне списка
         with pytest.raises(sqlite3.IntegrityError):
             connection.execute(insert, ("emv-005", "t-1", "G-1", "", "dds", "other", "1m", "ai", "x" * 64, "maybe", "2026"))
+        connection.rollback()
+
+
+def test_ai_settings_cloud_requires_cipher_and_health_reason_is_enum(migrated_database: Path):
+    """Фича 006: `source='cloud'` только при непустом `cloud_key_cipher`; причина сбоя — из перечня data-model.md."""
+    insert = "INSERT INTO ai_settings (id, source, cloud_key_cipher, cloud_key_last4, updated_at) VALUES (1, ?, ?, ?, ?)"
+    now = "2026-10-20 10:00:00+03:00"
+    with sqlite3.connect(migrated_database) as connection:
+        for source, cipher in (("cloud", None), ("cloud", ""), ("other", "c")):
+            with pytest.raises(sqlite3.IntegrityError):
+                connection.execute(insert, (source, cipher, None, now))
+        connection.execute(insert, ("cloud", "gAAAA-cipher", "abcd", now))  # парный: с шифртекстом допустимо
+        connection.execute("DELETE FROM ai_settings")
+        connection.execute(insert, ("local", None, None, now))  # локальный источник без ключа допустим
+        health = (
+            "INSERT INTO ai_health (id, active_source, served_by_last, last_error_reason, errors_today, calls_today)"
+            " VALUES (1, 'cloud', 'local', ?, 0, 0)"
+        )
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(health, ("bogus",))
+        connection.execute(health, (None,))
+        for reason in AI_ERROR_REASONS:  # перечень модели = перечень CHECK миграции (alembic check его не сверяет)
+            connection.execute("DELETE FROM ai_health")
+            connection.execute(health, (reason,))
+        served = "INSERT INTO ai_health (id, active_source, served_by_last) VALUES (1, ?, ?)"
+        for active in AI_SOURCES:
+            for served_by in AI_SERVED_BY:
+                connection.execute("DELETE FROM ai_health")
+                connection.execute(served, (active, served_by))
+        connection.execute("DELETE FROM ai_health")
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(served, ("local", "polza"))
         connection.rollback()

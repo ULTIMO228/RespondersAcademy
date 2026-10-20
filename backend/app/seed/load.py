@@ -42,6 +42,7 @@ from app.models import (
     TrainingSession,
     User,
 )
+from app.models.user import DEFAULT_STUDENT_SPECIALIZATIONS, normalize_specializations
 from app.seed.assignments_seed import ASSIGNMENTS_SEED
 from app.seed.profile_mapping_seed import PROFILE_MAPPING_SEED
 from app.services.security import hash_password
@@ -108,6 +109,9 @@ async def _upsert(db: AsyncSession, model, key: str, values: dict[str, Any]) -> 
 async def seed_users(db: AsyncSession, paths: SeedPaths) -> int:
     users = read_json(paths.spec("users.json"))["users"]
     for user in users:
+        specializations = user.get("specializations")
+        if user["role"] == "student" and specializations is None:  # запись без поля — как миграция 0007
+            specializations = list(DEFAULT_STUDENT_SPECIALIZATIONS)
         await _upsert(
             db,
             User,
@@ -123,7 +127,7 @@ async def seed_users(db: AsyncSession, paths: SeedPaths) -> int:
                 "group": user.get("group"),
                 "service": user.get("service"),
                 "assigned_groups": user.get("assignedGroups"),
-                "training_profile": user.get("trainingProfile"),
+                "specializations": normalize_specializations(user["role"], specializations),
             },
         )
     return len(users)

@@ -3,6 +3,7 @@
  * Отдельного типа per-student Session нет: это проекция Session (cardEvents/cardFlow по studentId).
  */
 import type { DdsStatus } from "./reference";
+import type { AiServedBy } from "./ai-settings";
 
 export type SessionState = "draft" | "configured" | "running" | "finished" | "reported";
 
@@ -79,7 +80,7 @@ export interface TeacherOverride {
   by: string;
 }
 
-/** Оценка попытки. aiComment — ИИ-происхождение (мок), UI обязан показать бейдж «ИИ». */
+/** Оценка попытки; источник пояснения отсутствует у старых данных и тогда считается шаблонным. */
 export interface Evaluation {
   revision?: number;
   status?: "pending" | "preliminary" | "review_required" | "final";
@@ -91,6 +92,8 @@ export interface Evaluation {
   grammarErrors: GrammarError[];
   errors: EvaluationError[];
   aiComment: string;
+  /** Источник поясняющего текста; отсутствие у старых данных трактуется как шаблон. */
+  aiCommentSource?: AiServedBy;
   /** Приоритет преподавателя над оценкой ИИ. */
   teacherOverride?: TeacherOverride;
 }

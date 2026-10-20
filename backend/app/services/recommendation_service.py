@@ -9,19 +9,28 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import Viewer
 from app.api.errors import forbidden, not_found
 from app.models.assignment import Assignment, AssignmentAttempt
 from app.models.card import IncidentCard
 from app.models.kb import KbArticle
 from app.models.recommendation import Recommendation
 from app.models.scenario import Scenario
-from app.models.user import User
-from app.services import analytics, rating_service, training_profile
+from app.models.user import DEFAULT_STUDENT_SPECIALIZATIONS, MODE_SPECIALIZATIONS, User, covers_mode
+from app.services import analytics, rating_service, report_ai_text
+from app.services.ai_health_service import llm_scope
 from app.services.assignment_service import _approved_ids
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso
 from ml.insights import rating as elo
 from ml.insights import recommender
+from ml.insights.group_insights import ERROR_TITLES
+
+
+def _covers(student: User, mode: str) -> bool:
+    """Режим доступен обучающемуся по специализации (фича 007); без поля — «оператор ДДС», режим вне словаря не скрываем."""
+    owned = student.specializations or DEFAULT_STUDENT_SPECIALIZATIONS
+    return mode not in MODE_SPECIALIZATIONS or covers_mode(owned, mode)
 
 
 def _id(student_id: str, kind: str, target_id: str) -> str:
@@ -29,12 +38,12 @@ def _id(student_id: str, kind: str, target_id: str) -> str:
     return f"rec-{digest}"
 
 
-async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[dict[str, Any]]:
+async def generate(db: AsyncSession, student_id: str, limit: int = 10, viewer: Viewer | None = None) -> list[dict[str, Any]]:
     history = await analytics.rows(db, student_id)
     student = await db.get(User, student_id)
-    # spec/008: курсанту с профилем режима не предлагаем повторять то, что ему недоступно.
+    # spec/008 → фича 007: не предлагаем повторять режим, которого нет в специализации обучающегося.
     if student is not None:
-        history = [row for row in history if training_profile.allows(student, row["mode"])]
+        history = [row for row in history if _covers(student, row["mode"])]
     if not history:
         return []
     weak = recommender.weak_categories(history, now_iso())
@@ -78,7 +87,9 @@ async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[d
                 penalty = 200 if card["id"] in issued or card["id"] in completed else 0
                 proposals.append((base - 10 - penalty, "card", card["id"], card["title"], reason))
     stronger = recommender.stronger_mode(ratings)
-    if stronger and abs(ratings["dds"] - ratings["operator112"]) >= 20 and (student is None or student.training_profile is None):
+    # «Повторить режим» — только тому, у кого обе специализации (раньше: профиль режима не задан).
+    both = student is None or (_covers(student, "dds") and _covers(student, "operator112"))
+    if stronger and abs(ratings["dds"] - ratings["operator112"]) >= 20 and both:
         weaker = "dds" if stronger == "operator112" else "operator112"
         proposals.append((100, "mode", weaker, f"Повторить режим {weaker}",
                           {"errorType": "modeGap", "count": 1, "ruleId": "R10"}))
@@ -97,7 +108,30 @@ async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[d
         ranked_rows.append((priority - (500 if row.accepted_at else 0), row))
     await db.flush()
     ranked_rows.sort(key=lambda item: (-item[0], item[1].id))
-    return [row.to_contract() for _, row in ranked_rows[:limit]]
+    selected = [row for _, row in ranked_rows[:limit]]
+    selected_new = [row for row in selected if row.text is None and row.source is None]
+    if selected_new:
+        keyed_rows = {row.id: (str(index), row) for index, row in enumerate(selected_new)}
+        facts = [
+            {
+                "key": key,
+                "kind": row.kind,
+                # Never send card/article titles or IDs to the model; only a rule label and count are needed.
+                "target": ERROR_TITLES.get(str(row.reason.get("errorType") or ""), "типовая ошибка"),
+                "errorTitle": ERROR_TITLES.get(str(row.reason.get("errorType") or ""), "типовая ошибка"),
+                "count": int(row.reason.get("count") or 0),
+            }
+            for key, row in keyed_rows.values()
+        ]
+        # T045: новые предложения (детерминированные upsert) фиксируются до модели, соединение отпускается на время
+        # ответа. Повтор после отката заново запросит тексты: `text` остаётся пустым (гард в тесте).
+        async with llm_scope(db, viewer, release_connection=True):
+            generated = await report_ai_text.recommendation_texts(facts)
+        for key, row in keyed_rows.values():
+            result = generated[key]
+            row.text = result.text
+            row.source = result.source
+    return [row.to_contract() for row in selected]
 
 
 async def accept(db: AsyncSession, student_id: str, rec_id: str) -> dict[str, Any]:
@@ -112,7 +146,7 @@ async def accept(db: AsyncSession, student_id: str, rec_id: str) -> dict[str, An
     return row.to_contract()
 
 
-async def profile(db: AsyncSession, student_id: str) -> dict[str, Any]:
+async def profile(db: AsyncSession, student_id: str, viewer: Viewer | None = None) -> dict[str, Any]:
     student = await db.get(User, student_id)
     if student is None or student.role != "student":
         raise not_found("Обучающийся не найден")
@@ -123,7 +157,7 @@ async def profile(db: AsyncSession, student_id: str) -> dict[str, Any]:
         errors = Counter(str(error.get("type") or "unknown") for row in history if row["mode"] == mode for error in row["errors"])
         typical[mode] = [{"type": key, "count": value} for key, value in errors.most_common(3)]
     return {"ratings": scores, "strongerMode": recommender.stronger_mode(scores),
-            "typicalErrors": typical, "recommendations": await generate(db, student_id, 10)}
+            "typicalErrors": typical, "recommendations": await generate(db, student_id, 10, viewer)}
 
 
 async def group_insights(db: AsyncSession, group_id: str, assignment_id: str | None = None) -> dict[str, Any]:

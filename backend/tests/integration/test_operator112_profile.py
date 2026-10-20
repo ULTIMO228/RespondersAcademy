@@ -1,4 +1,4 @@
-"""Профиль режима обучаемого (spec/008): ivanov (u-005) — чистый специалист-112.
+"""Профиль режима обучаемого (spec/008) через специализации (спека 021): ivanov (u-005) — чистый специалист-112.
 
 US1 — курсант не видит и не запускает задания/занятия ДДС; US2 — преподаватель не может их назначить.
 Задание и занятие ДДС «до фичи» вставляются прямо в БД: через API их теперь не создать.
@@ -71,7 +71,7 @@ async def legacy_dds(app) -> AsyncIterator[None]:
 async def test_ivanov_в_сидах_специалист_112(v1: AsyncClient) -> None:
     await login_as(v1, "student")
     me = (await v1.get("/me")).json()
-    assert me["trainingProfile"] == "operator112"
+    assert me["specializations"] == ["operator112"] and "trainingProfile" not in me
     assert me["service"] == "ЦОВ системы-112"
     assert me["group"] == "ДДС-01" and me["armNumber"] == 1
 
@@ -136,7 +136,7 @@ async def test_назначить_ддс_специалисту_112_нельзя
     assert mixed.status_code == 400 and "Иванов С. П." in mixed.text and "Петрова" not in mixed.text
 
 
-async def test_режим_112_ivanov_и_оба_режима_без_профиля(v1: AsyncClient) -> None:
+async def test_режим_112_ivanov_и_оба_режима_у_petrova_с_двумя_специализациями(v1: AsyncClient) -> None:
     await login_as(v1, "teacher")
     for student, mode in ((IVANOV, "operator112"), (PETROVA, "operator112"), (PETROVA, "dds")):
         created = await v1.post("/assignments", json={"studentIds": [student], "trainingMode": mode,
@@ -155,5 +155,5 @@ async def test_занятие_ддс_со_специалистом_112_не_со
 
 async def test_профиль_читается_из_бд(app) -> None:
     async with get_sessionmaker()() as db:
-        assert (await db.get(User, IVANOV)).training_profile == "operator112"
-        assert (await db.get(User, PETROVA)).training_profile is None
+        assert (await db.get(User, IVANOV)).specializations == ["operator112"]
+        assert (await db.get(User, PETROVA)).specializations == ["operator112", "dds"]

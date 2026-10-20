@@ -136,3 +136,31 @@ async def test_assignment_and_logout_actions_are_audited(v1: AsyncClient):
     assert logout["userId"] == student["userId"] and logout["operatorArm"] == 1
     by_type = (await v1.get("/admin/audit", params={"type": "content", "perPage": 100})).json()["items"]
     assert {"assignment.create", "assignment.start", "assignment.finish"} <= {e["action"] for e in by_type}
+
+
+async def test_create_checks_the_specialization_of_every_student(v1: AsyncClient):
+    """T021 (фича 007) + spec/008: назначаемый обучающийся должен иметь специализацию режима; отказ называет его
+    (профильный текст spec/008); пара — подходящий обучающийся → 201. Цепочка выведена: создать её нельзя (400)."""
+    await login_as(v1, "teacher")
+    dds_only = await v1.post("/assignments", json=fixed_payload(studentIds=["u-007"], title="T093 специализация 112"))
+    assert dds_only.status_code == 400 and "Сидорова М. И." in dds_only.json()["error"]["message"], dds_only.text
+    assert (await v1.post("/assignments", json=fixed_payload(title="T093 специализация 112"))).status_code == 201
+    only_112 = {"studentIds": ["u-016"], "trainingMode": "dds", "format": "training", "randomRule": {"count": 1}, "params": {}, "title": "T093 специализация ДДС"}
+    assert (await v1.post("/assignments", json=only_112)).status_code == 400
+    assert (await v1.post("/assignments", json={**only_112, "studentIds": ["u-007"]})).status_code == 201
+    chain = {"studentIds": ["u-006"], "trainingMode": "chain", "format": "training", "cardIds": ["c-010"], "params": {}, "title": "T093 цепочка"}
+    assert (await v1.post("/assignments", json=chain)).status_code == 400  # режим выведен 20.10.2026 (spec/007 SASHA)
+
+
+async def test_operator112_attempt_refuses_a_dds_assignment(v1: AsyncClient):
+    """T021 (фича 007): режим попытки = режим задания. Обучающийся с обеими специализациями: 112-задание открывается, ДДС-задание — 403."""
+    await login_as(v1, "teacher")
+    dds = await v1.post("/assignments", json={"studentIds": ["u-006"], "trainingMode": "dds", "format": "training", "randomRule": {"count": 1}, "params": {}, "title": "T093 режим ДДС"})
+    assert dds.status_code == 201, dds.text
+    training = await v1.post("/assignments", json={"studentIds": ["u-006"], "trainingMode": "operator112", "format": "training", "cardIds": ["c-010"], "params": {}, "title": "T093 режим 112"})
+    assert training.status_code == 201, training.text
+    await login_as(v1, "student2")  # petrova — обе специализации; ivanov — только 112 (spec/008)
+    refused = await v1.post("/operator112/attempts", json={"assignmentId": dds.json()["id"], "cardId": "c-010"})
+    assert refused.status_code == 403 and refused.json()["error"]["code"] == "forbidden", refused.text
+    opened = await v1.post("/operator112/attempts", json={"assignmentId": training.json()["id"], "cardId": "c-010"})
+    assert opened.status_code == 201, opened.text

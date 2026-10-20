@@ -60,7 +60,8 @@ function requireViewer(viewer: MockViewer | null): MockViewer {
   return viewer;
 }
 
-async function loadEvaluation(
+/** Попытка и её оценка с проверкой прав: нет попытки → 404, чужая → 403, оценки ещё нет → 404 evaluationPending. */
+export async function loadEvaluation(
   attemptId: string,
   evaluate: AttemptEvaluator,
   viewer: MockViewer,

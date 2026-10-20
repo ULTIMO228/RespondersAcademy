@@ -282,3 +282,6 @@ class AIRequest(Base):
     request_id: Mapped[str] = mapped_column(String(128))
     request_hash: Mapped[str] = mapped_column(String(64))
     response: Mapped[Any | None] = mapped_column(JSONVariant, nullable=True)
+    # Токен владельца pending-запроса (T046): ISO-метка с микросекундами; у завершённого запроса NULL.
+    # NULL у pending-строки — строка до миграции 0010, она считается брошенной (см. ai_scenario_service).
+    started_at: Mapped[str | None] = mapped_column(String(40), nullable=True)

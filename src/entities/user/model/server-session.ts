@@ -9,11 +9,12 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import type { PublicUser, TrainingProfile, UserRole } from "@/shared/api";
+import type { PublicUser, Specialization, UserRole } from "@/shared/api";
 import { APP_ENV, ROUTES } from "@/shared/config";
 
-import { buildLoginHref, isModeForbidden } from "./route-access";
+import { buildLoginHref } from "./route-access";
 import { RETURN_URL_HEADER, SESSION_COOKIE } from "./session";
+import { hasSpecialization } from "./specialization";
 
 const HTTP_UNAUTHORIZED = 401;
 const SESSION_PATH = "/auth/session";
@@ -78,13 +79,20 @@ export const verifySession = cache(async (): Promise<SessionUser> => {
   return sessionUser;
 });
 
-/**
- * verifySession + роль раздела (вторая линия после proxy): чужая роль → /forbidden.
- * mode — режим экранов АРМ раздела: обучаемому с профилем другого режима → /forbidden (spec/008, T041).
- */
-export async function requireSessionUser(role: UserRole, mode?: TrainingProfile): Promise<SessionUser> {
+/** verifySession + роль раздела (вторая линия после proxy): чужая роль → /forbidden. */
+export async function requireSessionUser(role: UserRole): Promise<SessionUser> {
   const sessionUser = await verifySession();
   if (sessionUser.user.role !== role) redirect(ROUTES.forbidden);
-  if (isModeForbidden(sessionUser.user, mode)) redirect(ROUTES.forbidden);
+  return sessionUser;
+}
+
+/**
+ * Гвард рабочей зоны симулятора (спека 007): роль «Обучающийся» + специализация зоны. Отказ — тот же путь, что для чужой
+ * роли (/forbidden). Преподаватель и администратор специализацией не ограничиваются, но в зоны обучающегося их не пускает
+ * проверка роли (как и раньше).
+ */
+export async function requireSpecialization(mode: Specialization): Promise<SessionUser> {
+  const sessionUser = await requireSessionUser("student");
+  if (!hasSpecialization(sessionUser.user, mode)) redirect(ROUTES.forbidden);
   return sessionUser;
 }

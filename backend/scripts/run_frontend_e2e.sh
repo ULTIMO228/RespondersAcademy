@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # T074 — гейт волны A: бэкенд с чистым сидом + собранный фронт (rewrite /api/mock → BACKEND_URL) + три сквозных
 # скрипта фронта (scripts/e2e-student.sh, e2e-teacher.sh, e2e-admin.sh). Запуск из корня репозитория или из backend/:
-#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|platform|error-map]
+#   backend/scripts/run_frontend_e2e.sh [--skip-build] [--only student|teacher|admin|platform|error-map|ai]
 # --only chain удалён: режим «цепочка A → B» выведен 20.10.2026 (spec/007 Clarifications), вместе с ним —
 # seed_chain_demo.py и e2e/two-mode-full-path.spec.ts.
 # --only platform (спека 002, T058): чистая БД + Playwright e2e/platform.spec.ts (путь по платформе) и
 # e2e/auth-security.spec.ts (cookie, подделка, повтор после выхода, две вкладки, смена пароля, лимит попыток) против стенда.
 # --only error-map (спека 003, T068): чистая БД + демо-набор карты ошибок (seed_error_map_demo.py) + scripts/e2e-error-map.sh.
+# --only ai (спека 006, T038): чистая БД + scripts/e2e-ai.sh (настройки, роли, здоровье, редактирование ключа).
 # PLAYWRIGHT_CONFIG — необязательный путь к другой конфигурации Playwright (например, с другим executablePath браузера).
 # Переменные: BACKEND_PORT (8130), FRONT_PORT (3130), E2E_DB (backend/var/e2e.db).
 # Linux/macOS/WSL/Git Bash. В Git Bash (MSYS) mingw-curl портит кириллицу в argv, поэтому в PATH подставляется
@@ -137,6 +138,16 @@ if [ "$ONLY" = "error-map" ]; then
     echo "  PASS e2e-error-map"
   else
     echo "  FAIL e2e-error-map (полный вывод: $LOG_DIR/e2e-error-map.log)"
+    STATUS=1
+  fi
+  exit "$STATUS"
+fi
+if [ "$ONLY" = "ai" ]; then
+  echo "▸ scripts/e2e-ai.sh (локальный источник, фиктивный ключ; внешняя сеть не используется)"
+  if (cd "$ROOT" && BASE_URL="http://127.0.0.1:$FRONT_PORT" bash scripts/e2e-ai.sh 2>&1 | tee "$LOG_DIR/e2e-ai.log" | tail -35); then
+    echo "  PASS e2e-ai"
+  else
+    echo "  FAIL e2e-ai (полный вывод: $LOG_DIR/e2e-ai.log)"
     STATUS=1
   fi
   exit "$STATUS"

@@ -206,7 +206,9 @@ async def test_audit_filters_and_pagination(client: AsyncClient):
     assert any(e["id"].startswith("audit-") for e in everything)
 
     users_only = (await client.get("/admin/audit", params={"type": "users", "perPage": 100})).json()["items"]
-    assert users_only and all(e["action"].startswith("user.") for e in users_only)
+    # Тип «users» включает отказы по специализации (`access.*`, фича 007): у ivanov — только 112 (spec/008), и его
+    # попытки в чужие зоны ДДС в других модулях тоже попадают сюда.
+    assert users_only and all(e["action"].startswith(("user.", "access.")) for e in users_only)
     by_operator = (await client.get("/admin/audit", params={"operator": "admin", "perPage": 100})).json()["items"]
     assert by_operator and all(e["userId"] == ADMIN_ID for e in by_operator)
     with_card = next((e for e in everything if e.get("cardId")), None)
@@ -223,24 +225,27 @@ async def test_audit_filters_and_pagination(client: AsyncClient):
     assert (await client.get("/admin/audit", params={"page": "x"})).status_code == 400
 
 
-async def test_admin_sets_training_profile(client: AsyncClient, app):
-    """spec/008 US3: профиль режима виден и меняется админом, изменение пишется в аудит и сразу действует."""
+async def test_admin_sets_single_specialization_profile(client: AsyncClient, app):
+    """spec/008 US3 через специализации (спека 021): ivanov — чистый специалист-112; одна специализация админом сразу
+    ограничивает назначение режима, изменение пишется в аудит `user.specialization_changed`."""
     await login_as(client, "admin")
     ivanov = next(u for u in (await client.get("/admin/users", params={"q": "ivanov"})).json() if u["login"] == "ivanov")
-    assert ivanov["trainingProfile"] == "operator112" and ivanov["service"] == "ЦОВ системы-112"
+    assert ivanov["specializations"] == ["operator112"] and ivanov["service"] == "ЦОВ системы-112"
+    assert "trainingProfile" not in ivanov
 
     body = {"adminId": ADMIN_ID, "fullName": "Профильный Курсант Тестович", "login": "profile.tester", "password": "Temp-1234",
-            "role": "student", "armNumber": 34, "group": "ДДС-01", "service": "ДДС района Чертаново Южное"}
+            "role": "student", "armNumber": 34, "group": "ДДС-01", "service": "ДДС района Чертаново Южное",
+            "specializations": ["operator112", "dds"]}
     created = await client.post("/admin/users", json=body)
-    assert created.status_code == 201 and "trainingProfile" not in created.json(), created.text
+    assert created.status_code == 201 and created.json()["specializations"] == ["operator112", "dds"], created.text
     user_id = created.json()["id"]
-    bad = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": "chain"})
-    assert bad.status_code == 400 and "Профиль режима: специалист системы-112, диспетчер ДДС или не задан" in bad.text
+    bad = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["chain"]})
+    assert bad.status_code == 400 and "Недопустимая специализация: chain" in bad.text
 
-    set_112 = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": "operator112"})
-    assert set_112.status_code == 200 and set_112.json()["trainingProfile"] == "operator112"
+    set_112 = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["operator112"]})
+    assert set_112.status_code == 200 and set_112.json()["specializations"] == ["operator112"]
     untouched = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "fullName": "Профильный Курсант Петрович"})
-    assert untouched.json()["trainingProfile"] == "operator112"
+    assert untouched.json()["specializations"] == ["operator112"]
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api/v1") as v1:
         await login_as(v1, "teacher")
@@ -249,14 +254,39 @@ async def test_admin_sets_training_profile(client: AsyncClient, app):
         assert refused.status_code == 400 and "Профильный К. П." in refused.text
 
     await login_as(client, "admin")
-    reset = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": None})
-    assert reset.status_code == 200 and "trainingProfile" not in reset.json()
-    await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": "dds"})
     teacher = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "role": "teacher", "assignedGroups": ["ДДС-01"]})
-    assert teacher.status_code == 200 and "trainingProfile" not in teacher.json()
+    assert teacher.status_code == 200 and "specializations" not in teacher.json()
 
     audit = await client.get("/admin/audit", params={"type": "users", "perPage": 100})
-    details = [e["details"] for e in audit.json()["items"] if user_id in e["details"] and e["action"] == "user.update"]
-    assert any("профиль «Не задан» → «Специалист системы-112»" in d for d in details)
-    assert any("профиль «Специалист системы-112» → «Не задан»" in d for d in details)
-    assert any("профиль «Диспетчер ДДС» → «Не задан»" in d for d in details)
+    details = [e["details"] for e in audit.json()["items"] if user_id in e["details"] and e["action"] == "user.specialization_changed"]
+    assert any("Специалист 112, Оператор ДДС → Специалист 112" in d for d in details)
+    assert any("Специалист 112 → —" in d for d in details)
+
+
+async def test_admin_edits_student_specializations(client: AsyncClient):
+    """T018 (фича 007): специализация обучающегося — только администратором; правила по роли; аудит `user.specialization_changed`."""
+    await login_as(client, "admin")
+    body = {"adminId": ADMIN_ID, "fullName": "Специализация Тестовая", "login": "spec.tester", "password": "Temp-1234", "role": "student", "armNumber": 34}
+    created = await client.post("/admin/users", json=body)
+    assert created.status_code == 201, created.text
+    user_id = created.json()["id"]
+    assert created.json()["specializations"] == ["dds"]  # новая учётная запись без выбора — «оператор ДДС» (допущение 10)
+    both = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["operator112", "dds"]})
+    assert both.status_code == 200 and both.json()["specializations"] == ["operator112", "dds"]
+    for bad in ([], ["dds", "dds"], ["pilot"], "dds"):
+        rejected = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": bad})
+        assert rejected.status_code == 400 and rejected.json()["error"]["code"] == "validationFailed", (bad, rejected.text)
+    audit = (await client.get("/admin/audit", params={"type": "users", "perPage": 100})).json()["items"]
+    changed = [e for e in audit if e["action"] == "user.specialization_changed" and user_id in e["details"]]
+    assert len(changed) == 1 and changed[0]["userId"] == ADMIN_ID
+
+    teacher = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "role": "teacher"})
+    assert teacher.status_code == 200 and "specializations" not in teacher.json()
+    assert (await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["dds"]})).status_code == 400
+    back = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "role": "student"})
+    assert back.status_code == 200 and back.json()["specializations"] == ["dds"]
+
+    await login_as(client, "teacher")
+    assert (await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["dds"]})).status_code == 403
+    await login_as(client, "admin")
+    assert (await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "specializations": ["operator112"]})).status_code == 200

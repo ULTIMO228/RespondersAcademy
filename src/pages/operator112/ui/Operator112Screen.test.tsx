@@ -249,6 +249,7 @@ describe("Operator112Screen: основной путь", () => {
     expect(draft.address).toMatchObject({ street: "улица Грина", source: "manual", subject: "Москва" });
     expect(draft.phones.aon).toBe("9161263471");
     expect(draft.outcome).toBe("filled");
+    expect(draft.notificationConfirmed).toBe(true);
     expect(draft.channel).toBe("call");
     expect(screen.getByTestId("total-score")).toHaveTextContent("85");
     expect(screen.queryByRole("button", { name: /Завершить/ })).toBeNull();
@@ -259,6 +260,23 @@ describe("Operator112Screen: основной путь", () => {
     await screen.findByRole("dialog", { name: "Входящий звонок" });
     expect(screen.queryByLabelText("Описание со слов заявителя")).toBeNull();
     expect(screen.queryByRole("button", { name: "сохранить" })).toBeNull();
+  });
+
+  it("после сохранения «Отработана», затем «Закрыть карточку» — события processed и close (фича 007)", async () => {
+    const api = makeApi({
+      submitAttempt: vi.fn().mockResolvedValue({
+        attempt: attempt({ state: "submitted", completedAt: "2026-09-29T10:01:00+03:00" }),
+        card: { cardStatus: "registered" },
+        evaluationId: "att-100",
+      }),
+    });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
+    await openSavedConfirm();
+    fireEvent.click(await screen.findByRole("button", { name: "Отработана" }));
+    await waitFor(() => expect(api.sendEvent).toHaveBeenLastCalledWith("att-100", { type: "processed" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Закрыть карточку" }));
+    await waitFor(() => expect(api.sendEvent).toHaveBeenLastCalledWith("att-100", { type: "close" }));
   });
 
   it("«отмена» в подтверждении оповещения не передаёт карточку", async () => {
@@ -349,7 +367,8 @@ describe("Operator112Screen: основной путь", () => {
       await acceptCall();
       fireEvent.click(screen.getByRole("button", { name: button }));
       expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
-      expect(api.submitAttempt.mock.calls[0][1]).toMatchObject({ outcome });
+      // Пустая карточка с исходом сохраняется без окна оповещения: подтверждение сервер для неё не требует.
+      expect(api.submitAttempt.mock.calls[0][1]).toMatchObject({ outcome, notificationConfirmed: false });
       unmount();
     }
   });

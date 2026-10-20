@@ -72,6 +72,8 @@ export const ROUTES = {
   /** Профиль и безопасность (все роли). */
   account: "/account",
   accountSecurity: "/account/security",
+  /** Настройка источника ИИ (только администратор). */
+  accountAi: "/account/ai",
   teacher: "/teacher",
   teacherMonitor: (studentId: string) => `/teacher/monitor/${studentId}`,
   teacherScenarios: "/teacher/scenarios",
@@ -99,6 +101,9 @@ export const ROUTES = {
   teacherErrorMapStudent: (studentId: string) =>
     `/teacher/error-map/students/${encodeURIComponent(studentId)}`,
   teacherErrorMapPresent: (groupId: string) => `/teacher/error-map/${encodeURIComponent(groupId)}/present`,
+  /** Сводная успеваемость (спека 005): преподавателю — свои группы, администратору (руководству) — все. */
+  teacherPerformance: "/teacher/performance",
+  adminPerformance: "/admin/performance",
   adminHome: "/admin",
   adminAudit: "/admin/audit",
   adminSecurity: "/admin/security",

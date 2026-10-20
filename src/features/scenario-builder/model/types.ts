@@ -1,4 +1,4 @@
-import type { Difficulty } from "@/shared/api";
+import type { AiServedBy, Difficulty } from "@/shared/api";
 import type { StatusTone } from "@/shared/ui";
 
 export type ValidationStatus = "draft" | "pending" | "approved" | "rejected";
@@ -30,6 +30,8 @@ export type ScenarioRow = {
   finalTypes: string[];
   difficulty: number;
   source: string;
+  aiSource?: AiServedBy;
+  model?: string;
   status: string;
   comment?: string;
   keyPhrases: string[];

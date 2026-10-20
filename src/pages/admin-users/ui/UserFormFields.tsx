@@ -1,8 +1,8 @@
 "use client";
 
+import { SPECIALIZATION_TITLES } from "@/entities/user";
 import { Input, Select } from "@/shared/ui";
-import type { Role, TrainingProfile } from "@/shared/api";
-import { NO_PROFILE_TITLE, TRAINING_PROFILE_TITLES } from "@/shared/config";
+import type { Role, Specialization } from "@/shared/api";
 
 import type { RoleOption } from "../model/types";
 import type { UserFormErrors, UserFormValues } from "../model/user-form";
@@ -23,12 +23,7 @@ type UserFormFieldsProps = {
  * Поля учётной записи (spec/000-фронт/04-pages/20-admin-users.md): общие для создания и редактирования.
  * № АРМ обязателен для всех ролей — в реальном АРМ-112 вход выполняется с номером АРМ (02-roles.md).
  */
-/** spec/008: профиль режима обучаемого — задания только своего режима; «Не задан» — оба режима. */
-const PROFILE_OPTIONS = [
-  { value: "", label: NO_PROFILE_TITLE },
-  { value: "operator112", label: TRAINING_PROFILE_TITLES.operator112 },
-  { value: "dds", label: TRAINING_PROFILE_TITLES.dds },
-];
+const SPECIALIZATION_ORDER: Specialization[] = ["operator112", "dds"];
 
 export function UserFormFields({ values, errors, groups, roleOptions, mode, onChange }: UserFormFieldsProps) {
   const groupOptions = groups.map((group) => ({ value: group, label: group }));
@@ -37,6 +32,13 @@ export function UserFormFields({ values, errors, groups, roleOptions, mode, onCh
       assignedGroups: values.assignedGroups.includes(group)
         ? values.assignedGroups.filter((entry) => entry !== group)
         : [...values.assignedGroups, group],
+    });
+
+  const toggleSpecialization = (item: Specialization) =>
+    onChange({
+      specializations: values.specializations.includes(item)
+        ? values.specializations.filter((entry) => entry !== item)
+        : SPECIALIZATION_ORDER.filter((entry) => entry === item || values.specializations.includes(entry)),
     });
 
   return (
@@ -96,13 +98,23 @@ export function UserFormFields({ values, errors, groups, roleOptions, mode, onCh
         />
       ) : null}
       {values.role === "student" ? (
-        <Select
-          label="Профиль режима"
-          tone="boxed"
-          options={PROFILE_OPTIONS}
-          value={values.trainingProfile}
-          onChange={(event) => onChange({ trainingProfile: event.target.value as TrainingProfile | "" })}
-        />
+        <fieldset className={[styles.form__groups, styles.form__wide].join(" ")}>
+          {/* [расширение, спека 007] специализация определяет рабочие зоны симулятора обучающегося. */}
+          <legend className={styles.form__legend}>Специализация</legend>
+          {SPECIALIZATION_ORDER.map((item) => (
+            <label key={item} className={styles.form__check}>
+              <input
+                type="checkbox"
+                checked={values.specializations.includes(item)}
+                onChange={() => toggleSpecialization(item)}
+              />{" "}
+              {SPECIALIZATION_TITLES[item]}
+            </label>
+          ))}
+          {errors.specializations ? (
+            <span className={styles.form__error}>{errors.specializations}</span>
+          ) : null}
+        </fieldset>
       ) : null}
       {values.role !== "admin" ? (
         <Input

@@ -18,11 +18,14 @@ from app.ai_gateway import get_gateway
 from app.api.deps import Viewer, resolve_student_scope
 from app.api.errors import forbidden, not_found, validation_failed
 from app.db.ids import group_report_id, report_id
+from app.models.assignment import AssignmentAttempt
 from app.models.card import IncidentCard
 from app.models.report import GroupReport, Report, ReportFeedback
 from app.models.scenario import Scenario
 from app.models.session import Attempt, TrainingSession
 from app.models.user import User
+from app.services import report_ai_text
+from app.services.ai_health_service import llm_scope
 from app.services.evaluation_service import (
     OTHER_TEACHER_MESSAGE,
     _read_teacher,
@@ -37,7 +40,7 @@ REPORTABLE_STATES = ("finished", "reported")
 STAGE_REACTION = "Первичная реакция"
 STAGE_PROCESSING = "Полная отработка"
 STAGES = (STAGE_REACTION, STAGE_PROCESSING)
-EXPORT_FORMATS = ["csv", "pdf"]
+EXPORT_FORMATS = ["csv", "pdf", "xlsx"]
 GRAMMAR_TYPES = ("spelling", "syntax")
 SEVERITIES = ("critical", "major", "minor")
 CRITERIA = ["Время", "Корректность", "Грамматика", "Смысл"]
@@ -79,17 +82,31 @@ def _is_completed(attempt: Attempt) -> bool:
 # ─── Сборка ───────────────────────────────────────────────────────────────────────────────────────
 
 
-async def _norms_for(db: AsyncSession, session: TrainingSession, attempt: Attempt, cache: dict[str, dict[str, int]]) -> dict[str, int]:
-    if attempt.card_id in cache:
-        return cache[attempt.card_id]
+async def _norms_for(db: AsyncSession, session: TrainingSession, attempt: Attempt, cache: dict[tuple[str, str], dict[str, int]]) -> dict[str, int]:
+    cache_key = (attempt.mode or "dds", attempt.card_id)
+    if cache_key in cache:
+        return cache[cache_key]
     scenario: Scenario | None = await find_scenario_for_attempt(db, attempt, session)
     norms = resolve_time_norms(scenario.to_contract() if scenario else None, (session.plan or {}).get("timeNorms"))
-    cache[attempt.card_id] = {"primaryReactionMs": norms.primary_reaction_ms, "fullProcessingMs": norms.full_processing_ms}
-    return cache[attempt.card_id]
+    cache[cache_key] = {"primaryReactionMs": norms.primary_reaction_ms, "fullProcessingMs": norms.full_processing_ms}
+    return cache[cache_key]
 
 
-async def _score_student_attempts(db: AsyncSession, session: TrainingSession, student_id: str, groups: dict[str, str], norms_cache: dict[str, dict[str, int]]) -> list[dict[str, Any]]:
-    rows = (await db.execute(select(Attempt).where(Attempt.session_id == session.id, Attempt.student_id == student_id).order_by(Attempt.seq, Attempt.id))).scalars().all()
+async def _score_student_attempts(db: AsyncSession, session: TrainingSession, student_id: str, groups: dict[str, str], norms_cache: dict[tuple[str, str], dict[str, int]]) -> list[dict[str, Any]]:
+    rows_by_id = {row.id: row for row in (await db.execute(select(Attempt).where(Attempt.session_id == session.id, Attempt.student_id == student_id))).scalars().all()}
+    if session.mode.startswith("assignment:"):
+        assignment_id = session.mode.removeprefix("assignment:")
+        links = (await db.execute(select(AssignmentAttempt).where(
+            AssignmentAttempt.assignment_id == assignment_id,
+            AssignmentAttempt.student_id == student_id,
+        ))).scalars().all()
+        linked_ids = [link.attempt_id for link in links]
+        if linked_ids:
+            linked_attempts = (await db.execute(select(Attempt).where(
+                Attempt.id.in_(linked_ids), Attempt.mode == "operator112"
+            ))).scalars().all()
+            rows_by_id.update({attempt.id: attempt for attempt in linked_attempts})
+    rows = sorted(rows_by_id.values(), key=lambda row: (row.seq, row.id))
     scored: list[dict[str, Any]] = []
     for attempt in rows:
         if not _is_completed(attempt):
@@ -98,7 +115,9 @@ async def _score_student_attempts(db: AsyncSession, session: TrainingSession, st
         if evaluation is None:
             continue
         card = await db.get(IncidentCard, attempt.card_id)
-        scored.append({"attempt": attempt.to_contract(), "evaluation": evaluation, "norms": await _norms_for(db, session, attempt, norms_cache), "score": effective_score(evaluation), "group": groups.get(attempt.card_id, ""), "errors": evaluation.get("errors", []), "sourceAttemptId": card.source_attempt_id if card else None})
+        attempt_contract = attempt.to_contract()
+        attempt_contract["mode"] = attempt.mode or "dds"
+        scored.append({"attempt": attempt_contract, "evaluation": evaluation, "norms": await _norms_for(db, session, attempt, norms_cache), "score": effective_score(evaluation), "group": groups.get(attempt.card_id, ""), "errors": evaluation.get("errors", []), "sourceAttemptId": card.source_attempt_id if card else None})
     return scored
 
 
@@ -106,8 +125,9 @@ def _time_metrics(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
     metrics = []
     for item in scored:
         attempt, norms = item["attempt"], item["norms"]
-        metrics.append({"cardId": attempt["cardId"], "stage": STAGE_REACTION, "normMs": norms["primaryReactionMs"], "factMs": attempt["primaryReactionMs"], "deviationMs": attempt["primaryReactionMs"] - norms["primaryReactionMs"]})
-        metrics.append({"cardId": attempt["cardId"], "stage": STAGE_PROCESSING, "normMs": norms["fullProcessingMs"], "factMs": attempt["fullProcessingMs"], "deviationMs": attempt["fullProcessingMs"] - norms["fullProcessingMs"]})
+        norm_scope = attempt.get("mode") or "dds"
+        metrics.append({"cardId": attempt["cardId"], "stage": STAGE_REACTION, "normScope": norm_scope, "normMs": norms["primaryReactionMs"], "factMs": attempt["primaryReactionMs"], "deviationMs": attempt["primaryReactionMs"] - norms["primaryReactionMs"]})
+        metrics.append({"cardId": attempt["cardId"], "stage": STAGE_PROCESSING, "normScope": norm_scope, "normMs": norms["fullProcessingMs"], "factMs": attempt["fullProcessingMs"], "deviationMs": attempt["fullProcessingMs"] - norms["fullProcessingMs"]})
     return metrics
 
 
@@ -118,7 +138,7 @@ def _report_ai_comment(scored: list[dict[str, Any]], errors: list[dict[str, Any]
     timing = "Нормативы времени соблюдены." if exceeded == 0 else f"Нормативы времени превышены в {exceeded} из {len(scored)} попыток."
     critical = sum(1 for e in errors if e.get("severity") == "critical")
     remarks = "Замечаний по эталону нет." if not errors else f"Замечаний: {len(errors)}, из них критичных {critical}."
-    return f"ИИ-разбор: отработано карточек — {len(scored)}. {timing} {remarks}"
+    return f"Разбор по правилам: отработано карточек — {len(scored)}. {timing} {remarks}"
 
 
 def build_student_report(session: TrainingSession, student: User | None, student_id: str, scored: list[dict[str, Any]], generated_at: str) -> dict[str, Any]:
@@ -137,7 +157,7 @@ def build_student_report(session: TrainingSession, student: User | None, student
         "chainLinks": [{"sourceAttemptId": i["sourceAttemptId"], "ddsAttemptId": i["attempt"]["id"], "cardId": i["attempt"]["cardId"]} for i in scored if i.get("sourceAttemptId")],
         "score": average_floor([i["score"] for i in scored]),
         "charts": {
-            "byStage": {"stages": list(STAGES), "normMs": [norms["primaryReactionMs"], norms["fullProcessingMs"]], "attempts": [{"attemptId": i["attempt"]["id"], "cardId": i["attempt"]["cardId"], "factMs": [i["attempt"]["primaryReactionMs"], i["attempt"]["fullProcessingMs"]]} for i in scored]},
+            "byStage": {"stages": list(STAGES), "normMs": [norms["primaryReactionMs"], norms["fullProcessingMs"]], "attempts": [{"attemptId": i["attempt"]["id"], "cardId": i["attempt"]["cardId"], "normScope": i["attempt"].get("mode", "dds"), "factMs": [i["attempt"]["primaryReactionMs"], i["attempt"]["fullProcessingMs"]]} for i in scored]},
             "byErrorType": {"grammar": _count_by(GRAMMAR_TYPES, [e["type"] for e in grammar_errors]), "errors": _count_by(SEVERITIES, [e["severity"] for e in errors])},
             "dynamics": {"labels": [i["attempt"]["id"] for i in scored], "scores": [i["score"] for i in scored]},
         },
@@ -185,32 +205,51 @@ async def has_reports(db: AsyncSession, session_id: str) -> bool:
     return (await db.execute(select(GroupReport.id).where(GroupReport.session_id == session_id))).scalar_one_or_none() is not None or (await db.execute(select(Report.id).where(Report.session_id == session_id, Report.static.is_(True)))).first() is not None
 
 
-async def build_session_report(db: AsyncSession, session_id: str) -> None:
-    """Идемпотентная сборка: ничего не делает для статики, незавершённого занятия и уже собранного отчёта."""
+async def build_session_report(db: AsyncSession, session_id: str, viewer: Viewer | None = None, *, release_connection: bool = False) -> None:
+    """Идемпотентная сборка: ничего не делает для статики, незавершённого занятия и уже собранного отчёта.
+
+    `release_connection` — см. `llm_scope`: соединение отпускается до вызовов модели. Включает его тот, кто вправе
+    зафиксировать текущую транзакцию до сборки (просмотр отчётов; управление занятием — до смены состояния).
+    """
     session = await db.get(TrainingSession, session_id)
     if session is None or session.state not in REPORTABLE_STATES or await has_reports(db, session_id):
         return
     generated_at = now_iso()
     groups = {cid: group for cid, group in (await db.execute(select(IncidentCard.id, IncidentCard.group))).all()}
-    norms_cache: dict[str, dict[str, int]] = {}
+    norms_cache: dict[tuple[str, str], dict[str, int]] = {}
     built = []
     for student_id in session.student_ids or []:
         student = await db.get(User, student_id)
         scored = await _score_student_attempts(db, session, student_id, groups, norms_cache)
-        built.append({"report": build_student_report(session, student, student_id, scored, generated_at), "attempts": scored})
-    insights = get_gateway().group_insights({"id": session.id}, [{**b["report"], "attempts": b["attempts"]} for b in built])
-    group = build_group_report(session, built, generated_at, insights)
+        report = build_student_report(session, student, student_id, scored, generated_at)
+        template = report["aiComment"]
+        built.append({"report": report, "attempts": scored, "templateComment": template})
+    async with llm_scope(db, viewer, release_connection=release_connection):
+        for item in built:
+            result = await report_ai_text.attempt_comment(
+                report_ai_text.attempt_facts(item["attempts"], item["report"]["errors"]), item["templateComment"]
+            )
+            item["report"]["aiComment"] = result.text or item["templateComment"]
+            item["report"]["aiCommentSource"] = result.source
+        template_insights = get_gateway().group_insights(
+            {"id": session.id}, [{**b["report"], "attempts": b["attempts"]} for b in built]
+        )
+        insights = await report_ai_text.group_insights(report_ai_text.group_facts(built), template_insights)
+    group = build_group_report(session, built, generated_at, insights.items)
+    group["groupInsightsSource"] = insights.source
     for item in built:
         doc = item["report"]
-        db.add(Report(id=doc["id"], session_id=session.id, student_id=doc["student"]["studentId"], generated_at=generated_at, export_formats=doc["exportFormats"], student=doc["student"], time_metrics=doc["timeMetrics"], grammar_errors=doc["grammarErrors"], errors=doc["errors"], score=doc["score"], charts=doc["charts"], ai_comment=doc["aiComment"], static=False))
-    db.add(GroupReport(id=group["id"], session_id=session.id, generated_at=generated_at, report_ids=group["reportIds"], group_insights=group["groupInsights"], charts=group["charts"], static=False))
+        db.add(Report(id=doc["id"], session_id=session.id, student_id=doc["student"]["studentId"], generated_at=generated_at, export_formats=doc["exportFormats"], student=doc["student"], time_metrics=doc["timeMetrics"], grammar_errors=doc["grammarErrors"], errors=doc["errors"], score=doc["score"], charts=doc["charts"], ai_comment=doc["aiComment"], ai_comment_source=doc.get("aiCommentSource", "template"), static=False))
+    db.add(GroupReport(id=group["id"], session_id=session.id, generated_at=generated_at, report_ids=group["reportIds"], group_insights=group["groupInsights"], group_insights_source=group.get("groupInsightsSource", "template"), charts=group["charts"], static=False))
     await db.flush()
 
 
-async def ensure_student_reports(db: AsyncSession, student_id: str) -> None:
+async def ensure_student_reports(db: AsyncSession, student_id: str, viewer: Viewer | None = None) -> None:
+    # Каждое занятие фиксируется отдельно (см. release_connection): готовые отчёты предыдущего занятия уходят в коммит
+    # до вызова модели для следующего. Сборка каждого занятия идемпотентна, частичный результат дособирается при просмотре.
     for session in await list_session_rows(db):
         if student_id in (session.student_ids or []):
-            await build_session_report(db, session.id)
+            await build_session_report(db, session.id, viewer, release_connection=True)
 
 
 # ─── Чтение ───────────────────────────────────────────────────────────────────────────────────────
@@ -240,9 +279,9 @@ async def get_reports(db: AsyncSession, viewer: Viewer | None, session_id: str |
         raise validation_failed("Укажите параметр «sessionId» или «studentId»")
     if session_id:
         await require_session_row(db, session_id)
-        await build_session_report(db, session_id)
+        await build_session_report(db, session_id, viewer, release_connection=True)
     elif scope:
-        await ensure_student_reports(db, scope)
+        await ensure_student_reports(db, scope, viewer)
     query = select(Report).order_by(Report.id)
     if session_id:
         query = query.where(Report.session_id == session_id)
@@ -314,7 +353,7 @@ async def get_journal(db: AsyncSession, viewer: Viewer | None, query: dict[str, 
         raise forbidden(JOURNAL_TEACHER_ONLY_MESSAGE)
     sessions = await list_session_rows(db)
     for session in sessions:
-        await build_session_report(db, session.id)
+        await build_session_report(db, session.id, viewer)
     users = {u.id: u for u in (await db.execute(select(User))).scalars().all()}
     groups = {cid: group for cid, group in (await db.execute(select(IncidentCard.id, IncidentCard.group))).all()}
     rows = [await _journal_row(db, s, users, groups) for s in sessions if not query.get("teacherId") or s.teacher_id == query["teacherId"]]
@@ -369,8 +408,19 @@ async def build_ai_session_report(db: AsyncSession, session_id: str) -> Any:
     from app.schemas.v1.ai import ModeBreakdown
     from app.schemas.v1.ai import SessionReport as SessionReportSchema
 
+    session = await db.get(TrainingSession, session_id)
     stmt = select(Attempt).where(Attempt.session_id == session_id).order_by(Attempt.seq, Attempt.id)
-    attempts = list((await db.execute(stmt)).scalars().all())
+    attempts_by_id = {attempt.id: attempt for attempt in (await db.execute(stmt)).scalars().all()}
+    if session is not None and session.mode.startswith("assignment:"):
+        assignment_id = session.mode.removeprefix("assignment:")
+        links = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.assignment_id == assignment_id))).scalars().all()
+        linked_ids = [link.attempt_id for link in links]
+        if linked_ids:
+            linked_attempts = (await db.execute(select(Attempt).where(
+                Attempt.id.in_(linked_ids), Attempt.mode == "operator112"
+            ))).scalars().all()
+            attempts_by_id.update({attempt.id: attempt for attempt in linked_attempts})
+    attempts = sorted(attempts_by_id.values(), key=lambda attempt: (attempt.seq, attempt.id))
 
     if not attempts:
         return SessionReportSchema(

@@ -1,1 +1,1 @@
-export { ArmDdsGuardLayout as default } from "@/app";
+export { ArmPhoneLayout as default } from "@/app";

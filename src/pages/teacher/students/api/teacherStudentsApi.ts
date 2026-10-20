@@ -1,6 +1,19 @@
 /* Зависимости страниц «Обучающиеся»: доменные функции shared/api за интерфейсом. */
-import { getErrorMapStudent, getStudentProfile, getStudentStats, listUsers } from "@/shared/api";
-import type { ErrorMapMode, ErrorMapResponse, PublicUser, StudentProfile, StudentStats } from "@/shared/api";
+import {
+  getErrorMapStudent,
+  getStudentProfile,
+  getStudentStats,
+  listUsers,
+  updateStudentSpecializations,
+} from "@/shared/api";
+import type {
+  ErrorMapMode,
+  ErrorMapResponse,
+  PublicUser,
+  Specialization,
+  StudentProfile,
+  StudentStats,
+} from "@/shared/api";
 
 export type TeacherStudentsApi = {
   listStudents: () => Promise<PublicUser[]>;
@@ -9,6 +22,8 @@ export type TeacherStudentsApi = {
   stats?: (studentId: string) => Promise<StudentStats>;
   /** Карта ошибок обучающегося по режиму — источник «слабых этапов» (спека 003). */
   errorMap?: (studentId: string, mode: ErrorMapMode) => Promise<ErrorMapResponse>;
+  /** Смена специализации обучающегося своей группы (спека 007). */
+  setSpecializations: (studentId: string, specializations: Specialization[]) => Promise<PublicUser>;
 };
 
 export const teacherStudentsApi: TeacherStudentsApi = {
@@ -16,4 +31,5 @@ export const teacherStudentsApi: TeacherStudentsApi = {
   profile: (studentId) => getStudentProfile(studentId),
   stats: (studentId) => getStudentStats(studentId, { mode: "all", period: "all" }),
   errorMap: (studentId, mode) => getErrorMapStudent(studentId, { mode, period: "all" }),
+  setSpecializations: updateStudentSpecializations,
 };

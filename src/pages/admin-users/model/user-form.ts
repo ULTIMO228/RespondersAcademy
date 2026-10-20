@@ -9,10 +9,11 @@ import type {
   AdminUserUpdateRequest,
   PublicUser,
   Role,
-  TrainingProfile,
+  Specialization,
 } from "@/shared/api";
 
-export type UserFormField = "fullName" | "login" | "password" | "armNumber" | "group" | "assignedGroups";
+export type UserFormField =
+  "fullName" | "login" | "password" | "armNumber" | "group" | "assignedGroups" | "specializations";
 
 export type UserFormValues = {
   fullName: string;
@@ -25,8 +26,8 @@ export type UserFormValues = {
   group: string;
   service: string;
   assignedGroups: string[];
-  /** spec/008: профиль режима обучаемого; "" — «не задан». */
-  trainingProfile: TrainingProfile | "";
+  /** Специализации обучающегося (спека 007): «Специалист 112», «Оператор ДДС». */
+  specializations: Specialization[];
 };
 
 export type UserFormErrors = Partial<Record<UserFormField, string>>;
@@ -40,7 +41,7 @@ export const EMPTY_USER_FORM: UserFormValues = {
   group: "",
   service: "",
   assignedGroups: [],
-  trainingProfile: "",
+  specializations: ["dds"],
 };
 
 /** Логин АРМ-112: латиница без пробелов (совпадает с проверкой мок-слоя). */
@@ -55,6 +56,7 @@ export const USER_FORM_MESSAGES = {
   armNumber: "Номер АРМ — целое число больше нуля",
   group: "Выберите учебную группу",
   assignedGroups: "Отметьте хотя бы одну закреплённую группу",
+  specializations: "Отметьте хотя бы одну специализацию",
 } as const;
 
 type ValidateOptions = {
@@ -85,6 +87,9 @@ export function validateUserForm(values: UserFormValues, options: ValidateOption
   if (values.role === "teacher" && values.assignedGroups.length === 0) {
     errors.assignedGroups = USER_FORM_MESSAGES.assignedGroups;
   }
+  if (values.role === "student" && values.specializations.length === 0) {
+    errors.specializations = USER_FORM_MESSAGES.specializations;
+  }
   return errors;
 }
 
@@ -98,8 +103,7 @@ function roleFields(values: UserFormValues) {
     group: values.role === "student" ? values.group.trim() || undefined : undefined,
     service: values.role === "admin" ? undefined : values.service.trim() || undefined,
     assignedGroups: values.role === "teacher" ? values.assignedGroups : undefined,
-    // null явно сбрасывает профиль при редактировании; у других ролей сервер обнуляет поле сам.
-    trainingProfile: values.role === "student" ? values.trainingProfile || null : undefined,
+    specializations: values.role === "student" ? values.specializations : undefined,
   };
 }
 
@@ -136,6 +140,6 @@ export function toFormValues(user: PublicUser): UserFormValues {
     group: user.group ?? "",
     service: user.service ?? "",
     assignedGroups: user.assignedGroups ?? [],
-    trainingProfile: user.trainingProfile ?? "",
+    specializations: user.role === "student" ? (user.specializations ?? ["dds"]) : [],
   };
 }

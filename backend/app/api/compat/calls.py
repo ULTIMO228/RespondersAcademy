@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai_gateway import get_gateway
 from app.api.compat.auth import read_body
-from app.api.deps import Viewer, assert_own_attempt, get_viewer
+from app.api.deps import Viewer, assert_own_attempt, ensure_zone_access, get_viewer
 from app.api.errors import not_found
 from app.db.ids import PREFIX, format_id, max_suffix
 from app.db.session import get_db
@@ -76,6 +76,7 @@ async def post_card_call(card_id: str, request: Request, db: AsyncSession = Depe
     if found is None:
         raise not_found(f"Попытка по карточке «{card_id}» не открыта — вызов не записан")
     session, attempt = found
+    await ensure_zone_access(db, viewer, attempt.mode, "звонок по карточке", student_id=body.student_id)  # зона — по режиму попытки
     transcript = [line.dump() for line in body.transcript]
     call: dict[str, Any] = {
         "id": await _next_call_id(db),

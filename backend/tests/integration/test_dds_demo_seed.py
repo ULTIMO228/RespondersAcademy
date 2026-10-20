@@ -50,7 +50,7 @@ async def test_egorov_is_dds_profile_and_cannot_open_112_assignment(v1: AsyncCli
     session = await v1.post("/auth/login", json=EGOROV)
     assert session.status_code == 200, session.text
     async with get_sessionmaker()() as db:
-        assert (await db.get(User, "u-010")).training_profile == "dds"
+        assert (await db.get(User, "u-010")).specializations == ["dds"]
     listing = [item["id"] for item in (await v1.get("/assignments")).json()]
     assert "asg-001" not in listing and DDS_ASSIGNMENT in listing
     assert (await v1.post("/assignments/asg-001/start")).status_code == 403

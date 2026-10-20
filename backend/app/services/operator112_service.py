@@ -17,7 +17,7 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import Viewer
+from app.api.deps import Viewer, deny_specialization, ensure_zone_access
 from app.api.errors import (
     conflict,
     evaluation_pending,
@@ -35,7 +35,7 @@ from app.models.street import Street
 from app.models.ticket_audio import TicketAudio
 from app.models.user import User
 from app.schemas.v1.operator112 import Journal112Response, Journal112Row
-from app.services import ticket_audio_service, training_profile
+from app.services import audit, ticket_audio_service, training_profile
 from app.services.reference import read_reference
 from app.services.session_engine import evaluation_contract
 from app.services.time import now_iso, parse_iso_ms
@@ -71,12 +71,29 @@ async def require_assignment(db: AsyncSession, assignment_id: str) -> Assignment
     return row
 
 
+# События, которые принимаются до «Принять» (спека 009 R5 + фича 007); исходы звонка ⇄ поле `outcome` черновика (009 FR-017).
+CALL_OUTCOME_EVENTS: dict[str, str] = {"noContact": "noContact", "dropped": "callDropped"}
+RINGING_EVENT_TYPES: tuple[str, ...] = ("callHidden", *CALL_OUTCOME_EVENTS.values())
+
+
+def _ended_without_talk(draft: dict[str, Any], events: list[dict[str, Any]]) -> bool:
+    """Карточка «нет контакта» / «срыв звонка»: исход черновика (009) или событие исхода звонка (007) → «Завершена»."""
+    outcome = str(draft.get("outcome") or "filled")
+    return outcome != "filled" or any(event.get("type") in CALL_OUTCOME_EVENTS.values() for event in events)
+
+
 async def require_attempt(db: AsyncSession, attempt_id: str, viewer: Viewer) -> tuple[Attempt, AssignmentAttempt | None, Assignment | None]:
     attempt = await db.get(Attempt, attempt_id)
+    if viewer.is_student and not viewer.has_specialization(MODE) and (
+        attempt is None or attempt.mode != MODE or attempt.student_id != viewer.user_id
+    ):
+        await deny_specialization(db, viewer, MODE, "доступ к попытке 112")
     if attempt is None or attempt.mode != MODE:
         raise not_found(f"Попытка «{attempt_id}» режима 112 не найдена")
     if viewer.is_student and viewer.user_id != attempt.student_id:
         raise forbidden("Обучающемуся доступны только собственные попытки")
+    # Специализация может быть снята после старта; владелец завершает уже существующую попытку,
+    # но создание новой по-прежнему проходит через ensure_zone_access в create_attempt.
     link = (await db.execute(select(AssignmentAttempt).where(AssignmentAttempt.attempt_id == attempt_id))).scalars().first()
     assignment = await db.get(Assignment, link.assignment_id) if link else None
     if viewer.role == "teacher" and assignment is not None and assignment.teacher_id != viewer.user_id and viewer.user_id not in (assignment.student_ids or []):
@@ -184,6 +201,9 @@ async def create_attempt(db: AsyncSession, assignment_id: str, card_id: str, stu
     student = resolve_student_id(viewer, student_id)
     if viewer.role == "teacher" and assignment.teacher_id != viewer.user_id:
         raise forbidden("Задание другого преподавателя")
+    if assignment.training_mode not in ("operator112", "chain"):
+        raise forbidden("Режим задания не совпадает с режимом попытки «специалист 112»")
+    await ensure_zone_access(db, viewer, assignment.training_mode, "открытие попытки 112", student_id=student)
     if student not in (assignment.student_ids or []):
         raise forbidden("Обучающийся не назначен на это задание")
     if assignment.state != "active":
@@ -236,6 +256,8 @@ async def create_attempt(db: AsyncSession, assignment_id: str, card_id: str, stu
 
 async def answer(db: AsyncSession, attempt_id: str, viewer: Viewer) -> dict[str, Any]:
     attempt, link, assignment = await require_attempt(db, attempt_id, viewer)
+    if not viewer.is_student:
+        raise forbidden("Преподаватель и администратор могут только просматривать попытку")
     if attempt.state == "submitted":
         raise invalid_transition("Карточка уже отправлена")
     if attempt.state != "answered":
@@ -266,15 +288,49 @@ def _last_payload(events: list[dict[str, Any]], event_type: str, key: str | None
 
 async def add_event(db: AsyncSession, attempt_id: str, event_type: str, payload: dict[str, Any], viewer: Viewer) -> dict[str, Any]:
     attempt, link, assignment = await require_attempt(db, attempt_id, viewer)
-    # Окно вызова можно закрыть «×» до приёма (спека 009, R5): «callHidden» — единственное событие в состоянии ringing.
-    if attempt.state == "ringing" and event_type != "callHidden":
-        raise invalid_transition("Сначала примите вызов")
+    if not viewer.is_student:
+        raise forbidden("Преподаватель и администратор могут только просматривать попытку")
+    if event_type in ("processed", "close"):
+        if not viewer.is_student or attempt.state != "submitted":
+            raise invalid_transition("Действие доступно после сохранения карточки специалистом 112")
+        card = await saved_card_for_attempt(db, attempt_id)
+        extra = dict(card.extra or {})
+        status = str(extra.get("cardStatus") or "")
+        if event_type == "processed":
+            if status != "registered":
+                raise invalid_transition("Отметить карточку «Отработана» можно только после регистрации")
+            next_status, action = "processed", "card.processed"
+        else:
+            if status not in ("created", "completed", "cancelled", "processed"):
+                raise invalid_transition("Закрыть можно только карточку после «Отработана» или в статусе «Создана», «Завершена» или «Отменена»")
+            next_status, action = "closed", "card.closed"
+        extra["cardStatus"] = next_status
+        card.extra = extra
+        events = list(attempt.events or [])
+        event = _event(events, event_type, payload)
+        attempt.events = [*events, event]
+        await audit.record(db, action=action, user_id=viewer.user_id, role=viewer.role,
+                           details=f"Карточка {card.id}: {next_status}", card_id=card.id)
+        await db.flush()
+        return event
     if attempt.state == "submitted":
         raise invalid_transition("Карточка уже отправлена")
+    # До приёма вызова допустимы: «×» на окне вызова (спека 009, R5) и исходы звонка «нет контакта» / «срыв» (фича 007).
+    if attempt.state == "ringing" and event_type not in RINGING_EVENT_TYPES:
+        raise invalid_transition("Сначала примите вызов")
     events = list(attempt.events or [])
     before: Any = None
     exam = assignment is not None and assignment.format == "exam"
-    if event_type == "fieldChanged":
+    if event_type in ("noContact", "callDropped"):
+        if not viewer.is_student:
+            raise invalid_transition("Действие доступно специалисту 112")
+        if attempt.state == "ringing":
+            attempt.answered_at = now_iso()
+            attempt.primary_reaction_ms = max(0, parse_iso_ms(attempt.answered_at) - parse_iso_ms(attempt.opened_at))
+            attempt.state = "answered"
+            if link is not None:
+                link.state = "answered"
+    elif event_type == "fieldChanged":
         before = _last_payload(events, "fieldChanged", "value", field=str(payload.get("field")))
     elif event_type == "replay":
         if exam and link is not None and link.replays >= 1:
@@ -293,6 +349,15 @@ async def add_event(db: AsyncSession, attempt_id: str, event_type: str, payload:
     event = _event(events, event_type, payload, before)
     events.append(event)
     attempt.events = events
+    if event_type in ("noContact", "callDropped"):
+        await audit.record(
+            db,
+            action=f"card.{event_type}",
+            user_id=viewer.user_id,
+            role=viewer.role,
+            details=f"Попытка 112 {attempt.id}: {event_type}",
+            card_id=attempt.card_id,
+        )
     await db.flush()
     return event
 
@@ -369,13 +434,20 @@ def _card_from_draft(card_id: str, draft: dict[str, Any], ticket: IncidentCard, 
         created_by_student_id=attempt.student_id,
         mode_origin=MODE,
         source_attempt_id=attempt.id,
-        extra={"sourceCardId": ticket.id, "finalType": what.get("finalType") or "", "classifierCode": what.get("classifierCode") or "", "registeredAt": attempt.completed_at, "cardStatus": "registered"},
+        extra={"sourceCardId": ticket.id, "finalType": what.get("finalType") or "", "classifierCode": what.get("classifierCode") or "", "registeredAt": attempt.completed_at,
+               "cardStatus": "completed" if _ended_without_talk(draft, list(attempt.events or [])) else "registered"},
     )
 
 
 async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewer: Viewer) -> dict[str, Any]:
     """Отправка карточки (FR-016): «Зарегистрирована», попытка завершена, оценка режима A, новая `incident_cards`."""
     attempt, link, assignment = await require_attempt(db, attempt_id, viewer)
+    if not viewer.is_student:
+        raise forbidden("Преподаватель и администратор могут только просматривать попытку")
+    outcome = str(draft.get("outcome") or "filled")
+    # Подтверждение оповещения — у заполненной карточки; «нет контакта» / «срыв» сохраняются без списка (009, FR-017).
+    if outcome == "filled" and draft.get("notificationConfirmed") is not True:
+        raise invalid_transition("Подтвердите список оповещения перед сохранением")
     if attempt.state == "ringing":
         raise invalid_transition("Сначала примите вызов")
     if attempt.state == "submitted":
@@ -393,11 +465,23 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     attempt.full_processing_ms = max(0, parse_iso_ms(attempt.completed_at) - parse_iso_ms(attempt.answered_at or attempt.opened_at))
     attempt.card_snapshot = draft
     attempt.state = "submitted"
+    events = list(attempt.events or [])
+    outcome_event = CALL_OUTCOME_EVENTS.get(outcome)
+    # Исход из черновика (кнопки карточки 009) пишется событием, как кнопки софтфона 007: его видят оценщик
+    # (activity.callOutcomes) и аудит; если событие уже пришло отдельно, второе не добавляется.
+    if outcome_event and not any(event.get("type") == outcome_event for event in events):
+        events.append(_event(events, outcome_event, {}))
+        await audit.record(db, action=f"card.{outcome_event}", user_id=viewer.user_id, role=viewer.role,
+                           details=f"Попытка 112 {attempt.id}: {outcome_event}", card_id=attempt.card_id)
+    events.append(_event(events, "save", {"serviceIds": [str(item.get("serviceId") or "") for item in draft.get("notificationList") or []]}))
+    attempt.events = events
     if link is not None:
         link.state = "submitted"
     card = _card_from_draft(await next_id(db, PREFIX["card"], IncidentCard.id), draft, ticket, attempt, entries, reference)
     db.add(card)
     await db.flush()
+    await audit.record(db, action="card.registered", user_id=viewer.user_id, role=viewer.role,
+                       details=f"Зарегистрирована карточка {card.id}", card_id=card.id)
     from app.services.chain_service import issue_submitted_card
 
     await issue_submitted_card(db, card, attempt)
@@ -711,12 +795,11 @@ async def _journal_entries(db: AsyncSession, student_id: str, assignment_id: str
 
 
 async def journal(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[str, Any]:
-    """GET /operator112/journal?assignmentId= (FR-006, FR-007): обучающийся с профилем 112; чужое задание → 404."""
+    """GET /operator112/journal?assignmentId= (FR-006, FR-007): обучающийся со специализацией 112; чужое задание → 404."""
     if not viewer.is_student:
         raise forbidden("Журнал ученика-112 доступен обучающемуся")
-    student = await db.get(User, viewer.user_id)
-    if student is not None and not training_profile.allows(student, MODE):
-        raise forbidden(training_profile.blocked_message(student, MODE))
+    # Зона 112 (фича 007): обучающийся без специализации «специалист 112» → 403 с записью аудита.
+    await ensure_zone_access(db, viewer, MODE, "журнал 112")
     assignment = await db.get(Assignment, assignment_id)
     if assignment is None or viewer.user_id not in (assignment.student_ids or []):
         raise not_found(f"Задание «{assignment_id}» не найдено")

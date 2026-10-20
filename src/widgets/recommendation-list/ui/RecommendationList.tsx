@@ -1,4 +1,5 @@
 import type { Recommendation } from "@/shared/api";
+import { AiSourceBadge } from "@/shared/ui";
 import { LinkButton, Tag } from "@/shared/ui/platform";
 
 import { describeReason, recommendationHref } from "../lib/links";
@@ -10,10 +11,7 @@ type RecommendationListProps = {
   onOpen?: (recommendation: Recommendation) => void;
 };
 
-/**
- * Рекомендации ИИ: название, причина, принятие. Пометка о приоритете преподавателя обязательна (Q&A в3): содержимое
- * подготовлено ИИ-модулем, итоговое решение — за преподавателем.
- */
+/** Рекомендации, объяснение и источник; итоговое решение по оценке остаётся за преподавателем (Q&A в3). */
 export function RecommendationList({ items, onOpen }: RecommendationListProps) {
   return (
     <>
@@ -21,8 +19,11 @@ export function RecommendationList({ items, onOpen }: RecommendationListProps) {
         {items.map((item) => (
           <li key={item.id} className={styles.item}>
             <span>
-              {item.title}
+              <span className={styles.item__title}>
+                {item.title} <AiSourceBadge source={item.source} />
+              </span>
               <span className={styles.item__reason}>{describeReason(item)}</span>
+              {item.text ? <span className={styles.item__explanation}>{item.text}</span> : null}
             </span>
             <span className={styles.item__actions}>
               {item.acceptedAt ? <Tag tone="success">Принята</Tag> : null}
@@ -39,7 +40,7 @@ export function RecommendationList({ items, onOpen }: RecommendationListProps) {
         ))}
       </ul>
       <p className={styles.note}>
-        Рекомендации подготовлены ИИ; приоритет итоговой оценки — за преподавателем.
+        Источник текста указан у каждой рекомендации; приоритет итоговой оценки — за преподавателем.
       </p>
     </>
   );

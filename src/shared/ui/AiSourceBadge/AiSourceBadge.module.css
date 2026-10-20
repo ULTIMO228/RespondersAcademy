@@ -1,0 +1,25 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--pf-space-2);
+  border-radius: var(--pf-radius-chip);
+  font-size: var(--pf-fs-caption);
+  font-weight: var(--pf-fw-medium);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.badge--cloud {
+  background: var(--pf-info-bg);
+  color: var(--pf-info);
+}
+
+.badge--local {
+  background: var(--pf-success-bg);
+  color: var(--pf-success);
+}
+
+.badge--template {
+  background: var(--pf-bg-subtle);
+  color: var(--pf-text-muted);
+}

@@ -58,6 +58,7 @@ describe("AIScenarioWorkflowPanel: способ генерации", () => {
     expect(screen.getByTestId("ai-generation-result").textContent).toContain(
       "ИИ: локальная модель qwen2.5:7b-instruct",
     );
+    expect(screen.getByTestId("ai-generation-result")).toHaveTextContent("ИИ · локально");
     expect(screen.getByTestId("ai-generation-result").textContent).toContain("12.3 с");
   });
 

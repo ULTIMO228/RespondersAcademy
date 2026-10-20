@@ -1,4 +1,4 @@
-"""CSV/PDF: строка на попытку, живые оценки, локальный кириллический шрифт."""
+"""CSV/PDF/XLSX: строка на попытку, живые оценки, локальный кириллический шрифт."""
 
 from __future__ import annotations
 
@@ -26,6 +26,8 @@ from app.models.user import User
 from app.services.evaluation_service import find_scenario_for_attempt
 from app.services.report_builder import _norms_for, effective_score
 from app.services.session_engine import evaluation_contract
+from app.services.xlsx_export import Sheet
+from app.services.xlsx_export import render_xlsx as _render_xlsx
 
 HEADERS = ["Обучаемый", "АРМ", "Режим", "Формат", "Попытка", "Сценарий / карточка", "Реакция, мс", "Отклонение реакции, мс", "Отработка, мс", "Отклонение отработки, мс", "Ошибки по типам", "Балл", "Сдал / не сдал"]
 FONT_PATH = Path(__file__).resolve().parents[2] / "data" / "fonts" / "DejaVuSans.ttf"
@@ -74,7 +76,23 @@ async def export_data(db: AsyncSession, report_id: str, viewer: Viewer) -> dict[
             "; ".join(f"{key}: {value}" for key, value in sorted(errors.items())),
             score if score is not None else "", passed,
         ])
-    return {"id": target.id, "sessionId": session.id, "generatedAt": target.generated_at, "rows": rows, "insights": list(group.group_insights or []) if group else []}
+    insights = list(group.group_insights or []) if group else []
+    return {
+        "id": target.id,
+        "sessionId": session.id,
+        "generatedAt": target.generated_at,
+        "rows": rows,
+        "insights": insights,
+        "insightsSource": (group.group_insights_source or "template") if group and insights else None,
+    }
+
+
+def _source_label(source: str | None) -> str:
+    return {
+        "cloud": "ИИ · облако",
+        "local": "ИИ · локально",
+        "template": "шаблон",
+    }.get(source or "template", "шаблон")
 
 
 def _csv_cell(value: Any) -> Any:
@@ -90,6 +108,42 @@ def render_csv(data: dict[str, Any]) -> bytes:
     writer.writerow(HEADERS)
     writer.writerows([_csv_cell(v) for v in row] for row in data["rows"])
     return stream.getvalue().encode("utf-8-sig")
+
+
+def _summaries(rows: list[list[Any]]) -> tuple[list[list[Any]], list[list[Any]]]:
+    """Средний балл по обучаемым и число ошибок по типам — те же сводки, что в PDF."""
+    scores: dict[str, list[float]] = defaultdict(list)
+    errors: Counter[str] = Counter()
+    for row in rows:
+        if isinstance(row[11], (int, float)):
+            scores[f"{row[0]} (АРМ {row[1]})"].append(row[11])
+        for entry in str(row[10]).split("; "):
+            if entry:
+                kind, count = entry.rsplit(": ", 1)
+                errors[kind] += int(count)
+    by_student = [[name, len(values), round(sum(values) / len(values), 1)] for name, values in scores.items()]
+    return by_student, [[key, count] for key, count in sorted(errors.items())]
+
+
+def render_xlsx(data: dict[str, Any]) -> bytes:
+    """Excel: лист «Попытки» (как CSV), «Сводка» (балл и ошибки) и, для группового отчёта, «Выводы»."""
+    rows = data["rows"]
+    by_student, by_error = _summaries(rows)
+    sheets = [
+        Sheet(
+            "Попытки",
+            HEADERS,
+            rows,
+            heading=["Отчёт по занятию", f"{data['sessionId']} | {data['id']} | Сформирован: {data['generatedAt']}"],
+            notes=[] if rows else ["Нет данных по попыткам."],
+        ),
+        Sheet("Сводка", ["Обучаемый", "Оценённых попыток", "Средний балл"], by_student, heading=["Сводные показатели"]),
+        Sheet("Ошибки", ["Тип ошибки", "Количество"], by_error, heading=["Ошибки по типам"]),
+    ]
+    if data["insights"]:
+        label = _source_label(data.get("insightsSource"))
+        sheets.append(Sheet("Выводы", ["Вывод", "Источник"], [[text, label] for text in data["insights"]], heading=["Выводы по группе"]))
+    return _render_xlsx(sheets)
 
 
 def render_pdf(data: dict[str, Any]) -> bytes:
@@ -140,6 +194,7 @@ def render_pdf(data: dict[str, Any]) -> bytes:
             story.append(table(["Тип ошибки", "Количество"], [[key, count] for key, count in sorted(errors.items())], [630, 100]))
     if data.get("insights"):
         story.append(Paragraph("Комментарий по группе", section_style))
+        story.append(para(f"Источник: {_source_label(data.get('insightsSource'))}"))
         story.extend(para(text) for text in data["insights"])
 
     def footer(canvas, document):

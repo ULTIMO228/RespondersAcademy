@@ -103,7 +103,7 @@ async def test_журнал_фон_поля_и_сортировка_дата_в�
 async def test_профиль_без_112_403_пара_ivanov_200(v1: AsyncClient):
     assignment_id = await _assignment(v1)  # задание 112 создаётся до перевода учётки: иначе назначение откажет
     async with get_sessionmaker()() as db:
-        (await db.get(User, PETROVA)).training_profile = "dds"
+        (await db.get(User, PETROVA)).specializations = ["dds"]  # только «оператор ДДС» (спека 021)
         await db.commit()
     try:
         refused = await _journal(v1, assignment_id, "student2")
@@ -111,7 +111,7 @@ async def test_профиль_без_112_403_пара_ivanov_200(v1: AsyncClient
         assert (await _journal(v1, assignment_id)).status_code == 200
     finally:
         async with get_sessionmaker()() as db:
-            (await db.get(User, PETROVA)).training_profile = None
+            (await db.get(User, PETROVA)).specializations = ["operator112", "dds"]
             await db.commit()
 
 

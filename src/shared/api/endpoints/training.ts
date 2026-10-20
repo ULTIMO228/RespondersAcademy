@@ -144,15 +144,40 @@ export function getSessionErrors(
 }
 
 /** GET /api/v1/ai/sessions/[id]/error-summary — агрегированная сводка ошибок по осям. */
-export function getSessionErrorSummary(
+export async function getSessionErrorSummary(
   sessionId: string,
   signal?: AbortSignal,
 ): Promise<SessionErrorSummaryResponse> {
-  return aiApiClient.get<SessionErrorSummaryResponse>(
+  const raw = await aiApiClient.get<Partial<SessionErrorSummaryResponse> & RawBackendSummary>(
     `/sessions/${encodeURIComponent(sessionId)}/error-summary`,
     undefined,
     signal,
   );
+  return normalizeErrorSummary(sessionId, raw);
+}
+
+/** Бэкенд отдаёт `bySeverity`/`byType`, автономный режим — `critical`/`major`/`minor`/`byRule`/`byDetector`. */
+type RawBackendSummary = {
+  bySeverity?: Record<string, number>;
+  byType?: Record<string, number>;
+};
+
+function normalizeErrorSummary(
+  sessionId: string,
+  raw: Partial<SessionErrorSummaryResponse> & RawBackendSummary,
+): SessionErrorSummaryResponse {
+  const severity = raw.bySeverity ?? {};
+  return {
+    sessionId: raw.sessionId ?? sessionId,
+    totalErrors: raw.totalErrors ?? 0,
+    critical: raw.critical ?? severity.critical ?? 0,
+    major: raw.major ?? severity.major ?? 0,
+    minor: raw.minor ?? severity.minor ?? 0,
+    byCategory: raw.byCategory ?? {},
+    byRule: raw.byRule ?? raw.byType ?? {},
+    byDetector: raw.byDetector ?? {},
+    byStudent: raw.byStudent ?? {},
+  };
 }
 
 /** GET /api/v1/ai/me/errors — доказанные ошибки текущего курсанта с группировкой по попыткам. */

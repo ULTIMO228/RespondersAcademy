@@ -138,6 +138,7 @@ export function IncidentWorkspace({
           <HintBar hint={hint} />
           <IncidentCardView
             card={card}
+            isDdsLearner={student.role === "student"}
             classifierEntries={data.classifierEntries}
             linkedCards={data.linkedCards}
             isExceeded={timer.isExceeded}
@@ -163,7 +164,7 @@ export function IncidentWorkspace({
           {workMessages.messages.length > 0 ? <ReportRecorder attemptId={attempt.id} /> : null}
         </>
       )}
-      <HotkeyHints isVisible={isAltHeld} />
+      <HotkeyHints isVisible={isAltHeld} isDdsLearner={student.role === "student"} />
     </main>
   );
 }

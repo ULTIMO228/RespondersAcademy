@@ -6,6 +6,7 @@ from app.models.ai_scenario import (
     SanitizedTicket,
     ScenarioVersion,
 )
+from app.models.ai_settings import AiHealth, AiSettings
 from app.models.assignment import Assignment, AssignmentAttempt, AssignmentScenarioVersion, AssignmentStudent
 from app.models.audit import AuditLog
 from app.models.auth_session import AuthSession
@@ -30,6 +31,8 @@ from app.models.work_message import WorkMessage
 __all__ = [
     "Address",
     "AIRequest",
+    "AiHealth",
+    "AiSettings",
     "AssessmentJob",
     "AuthSession",
     "AuthThrottle",

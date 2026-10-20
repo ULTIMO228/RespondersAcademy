@@ -15,8 +15,9 @@
 билета и строк классификатора (принцип V), не придумываются.
 
 LLM-путь: при `OLLAMA_URL` и живом сервере — запрос с JSON-схемой и ≤ 2 повторами; фабулы и адреса генерирует
-модель, эталон строится теми же правилами; при любом сбое — шаблонный путь. Заголовки вариаций детерминированы
-(`Вариация N (ИИ): <категория>`), поэтому повторная генерация не создаёт дублей (дедупликация по `title` в сервисе).
+модель, эталон строится теми же правилами; при любом сбое — шаблонный путь. Заголовки вариаций различают
+источник (`Вариация N (ИИ): …` для модели, `Вариация N: …` для шаблона), а также остаются детерминированными
+для дедупликации по `title` в сервисе.
 """
 
 from __future__ import annotations
@@ -343,7 +344,7 @@ def build_scenario(index: int, category: str, ticket: dict[str, Any], base: dict
         if base_etalon.get("cards"):
             etalon["cards"] = {**etalon.get("cards", {}), **base_etalon["cards"]}
     scenario: dict[str, Any] = {
-        "title": f"Вариация {index + 1} (ИИ): {category}",
+        "title": f"Вариация {index + 1}{' (ИИ)' if provider != 'template' else ''}: {category}",
         "level": "advanced",
         "sourceTicketNo": int(base.get("ticketNo") or 0),
         "cardIds": [card_ref, *([base_id] if base_id else [])],

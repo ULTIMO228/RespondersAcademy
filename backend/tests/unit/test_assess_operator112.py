@@ -107,6 +107,14 @@ def test_etalon_card_has_no_errors(entries, reference):
     assert adapter.to_evaluation(assessor.assess(attempt_with(GAS_DRAFT), GAS_TICKET, entries, reference))["totalScore"] == evaluation["totalScore"]
 
 
+@pytest.mark.parametrize("event_type", ["noContact", "callDropped"])
+def test_call_outcome_events_are_retained_in_activity_component(entries, reference, event_type):
+    attempt = attempt_with(GAS_DRAFT)
+    attempt["events"] = [{"type": event_type, "at": "2026-09-22T10:00:01+03:00", "payload": {}}]
+    result = assessor.assess(attempt, GAS_TICKET, entries, reference, options=AssessOptions())
+    assert result.components["activity"].details["callOutcomes"] == [event_type]
+
+
 def test_wrong_final_type_lists_missing_services(entries, reference):
     draft = copy.deepcopy(GAS_DRAFT)
     draft["what"].update({"signs": ["Дом", "газовая плита"], "finalType": "пожар: газовая плита", "classifierCode": "1050401"})

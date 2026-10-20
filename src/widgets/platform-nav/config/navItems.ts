@@ -1,4 +1,4 @@
-import type { TrainingProfile, UserRole } from "@/shared/api";
+import type { Specialization, UserRole } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import type { PfIconName } from "@/shared/ui/platform";
 
@@ -12,8 +12,8 @@ export type PlatformNavEntry = {
   exact?: boolean;
   outlined?: boolean;
   separatorBefore?: boolean;
-  /** Пункт только для обучаемых, которым доступен этот режим (spec/008): «Открыть АРМ» — журнал режима ДДС. */
-  requiresMode?: TrainingProfile;
+  /** Пункт входа в зону симулятора: показывается обучающемуся с этой специализацией (спека 007). */
+  zone?: Specialization;
 };
 
 const REFERENCE: PlatformNavEntry = { href: ROUTES.reference, title: "Справочник", icon: "book" };
@@ -35,14 +35,15 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
     { href: ROUTES.studentAnalytics, title: "Аналитика", icon: "analytics" },
     REFERENCE,
     {
-      href: ROUTES.arm,
+      href: ROUTES.armOperator112,
       title: "Открыть АРМ",
       icon: "sim",
       outlined: true,
       separatorBefore: true,
       activeOn: [],
-      requiresMode: "dds",
+      zone: "operator112",
     },
+    { href: ROUTES.arm, title: "Открыть АРМ", icon: "sim", outlined: true, activeOn: [], zone: "dds" },
     { ...PROFILE, separatorBefore: false },
   ],
   teacher: [
@@ -60,6 +61,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
       icon: "users",
       activeOn: [ROUTES.teacherStudents, "/teacher/groups"],
     },
+    { href: ROUTES.teacherPerformance, title: "Успеваемость", icon: "results" },
     { href: ROUTES.teacherErrorMap, title: "Карта ошибок", icon: "analytics" },
     { href: ROUTES.teacherRating, title: "Рейтинг", icon: "results" },
     { href: ROUTES.teacherScenarios, title: "Сценарии", icon: "doc" },
@@ -70,6 +72,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
   admin: [
     { href: ROUTES.adminHome, title: "Главная", icon: "home", exact: true },
     { href: ROUTES.adminUsers, title: "Пользователи", icon: "users" },
+    { href: ROUTES.adminPerformance, title: "Успеваемость", icon: "results" },
     { href: ROUTES.adminAudit, title: "Аудит", icon: "log" },
     { href: ROUTES.adminSecurity, title: "Безопасность", icon: "shield" },
     { href: ROUTES.adminSystem, title: "Система", icon: "server" },
@@ -92,4 +95,24 @@ export function isNavEntryActive(entry: PlatformNavEntry, pathname: string): boo
   if (entry.exact) return pathname === entry.href;
   const prefixes = entry.activeOn ?? [entry.href];
   return prefixes.some((prefix) => startsWithSegments(pathname, prefix));
+}
+
+const ZONE_SUFFIX: Record<Specialization, string> = { operator112: "112", dds: "ДДС" };
+
+/**
+ * Пункты боковой панели с учётом специализации: вход в АРМ только в свои зоны. При двух зонах пункты подписаны («АРМ 112»,
+ * «АРМ ДДС»), при одной — «Открыть АРМ». `zones` не задан — без фильтра по зонам.
+ */
+export function resolvePlatformNav(role: UserRole, zones?: readonly Specialization[]): PlatformNavEntry[] {
+  const visible = PLATFORM_NAV[role].filter((entry) => !entry.zone || !zones || zones.includes(entry.zone));
+  const zoneEntries = visible.filter((entry) => entry.zone);
+  return visible.map((entry) => {
+    if (!entry.zone) return entry;
+    const isFirst = entry === zoneEntries[0];
+    return {
+      ...entry,
+      title: zoneEntries.length > 1 ? `${entry.title} ${ZONE_SUFFIX[entry.zone]}` : entry.title,
+      separatorBefore: isFirst,
+    };
+  });
 }

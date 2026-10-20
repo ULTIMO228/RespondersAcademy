@@ -31,6 +31,7 @@ AUDIT_EVENT_TYPES: tuple[str, ...] = ("login", "users", "grades", "settings", "b
 AUDIT_TYPE_BY_PREFIX = {
     "auth": "login",
     "user": "users",
+    "access": "users",
     "evaluation": "grades",
     "report": "grades",
     "settings": "settings",
@@ -54,6 +55,8 @@ AUDIT_ACTION_TITLES = {
     "user.create": "Создана учётная запись",
     "user.update": "Изменена учётная запись",
     "user.roleChange": "Смена роли",
+    "user.specialization_changed": "Смена специализации обучающегося",
+    "access.denied.specialization": "Отказ в доступе по специализации",
     "user.block": "Блокировка учётной записи",
     "user.unblock": "Разблокировка учётной записи",
     "user.passwordReset": "Сброс пароля",
@@ -67,6 +70,9 @@ AUDIT_ACTION_TITLES = {
     "ai.external_call": "Обращение к внешней модели",
     "card.registered": "Зарегистрирована",
     "card.processed": "Отработана",
+    "card.closed": "Карточка закрыта",
+    "card.noContact": "Нет контакта с заявителем",
+    "card.callDropped": "Срыв звонка",
     "card.checked": "Проверена",
     "card.notNotified": "Переход в Не оповещено",
     "card.notCompleted": "Переход в Не завершено",
@@ -151,6 +157,15 @@ def read_group_list(value: Any) -> list[str] | None:
     return groups or None
 
 
+def read_specialization_list(value: Any) -> list[str] | None:
+    """Только тип поля; допустимость значений и повторы проверяет `normalize_specializations` по роли (фича 007)."""
+    if value is None:
+        return None
+    if not isinstance(value, list) or any(not isinstance(entry, str) for entry in value):
+        raise ValueError("«Специализации» — список значений operator112 и/или dds")
+    return value
+
+
 class AdminUserActionRequest(ApiModel):
     admin_id: str | None = None
 
@@ -158,15 +173,6 @@ class AdminUserActionRequest(ApiModel):
     @classmethod
     def _admin(cls, value: Any) -> Any:
         return value.strip() if isinstance(value, str) else value
-
-
-def read_training_profile(value: Any) -> Any:
-    """spec/008: "operator112" | "dds"; пусто/null — «не задан»."""
-    if value is None or (isinstance(value, str) and not value.strip()):
-        return None
-    if value not in ("operator112", "dds"):
-        raise ValueError("Профиль режима: специалист системы-112, диспетчер ДДС или не задан")
-    return value
 
 
 class AdminUserCreateRequest(AdminUserActionRequest):
@@ -178,7 +184,7 @@ class AdminUserCreateRequest(AdminUserActionRequest):
     group: str | None = None
     service: str | None = None
     assigned_groups: list[str] | None = None
-    training_profile: str | None = None
+    specializations: list[str] | None = None
 
     @field_validator("full_name", mode="before")
     @classmethod
@@ -222,10 +228,10 @@ class AdminUserCreateRequest(AdminUserActionRequest):
     def _assigned(cls, value: Any) -> Any:
         return read_group_list(value)
 
-    @field_validator("training_profile", mode="before")
+    @field_validator("specializations", mode="before")
     @classmethod
-    def _training_profile(cls, value: Any) -> Any:
-        return read_training_profile(value)
+    def _specializations(cls, value: Any) -> Any:
+        return read_specialization_list(value)
 
 
 class AdminUserUpdateRequest(AdminUserActionRequest):
@@ -235,10 +241,10 @@ class AdminUserUpdateRequest(AdminUserActionRequest):
     login: str | None = None
     arm_number: int | None = None
     role: str | None = None
+    specializations: list[str] | None = None
     group: str | None = None
     service: str | None = None
     assigned_groups: list[str] | None = None
-    training_profile: str | None = None
 
     @field_validator("full_name", mode="before")
     @classmethod
@@ -275,10 +281,10 @@ class AdminUserUpdateRequest(AdminUserActionRequest):
     def _assigned(cls, value: Any) -> Any:
         return read_group_list(value)
 
-    @field_validator("training_profile", mode="before")
+    @field_validator("specializations", mode="before")
     @classmethod
-    def _training_profile(cls, value: Any) -> Any:
-        return read_training_profile(value)
+    def _specializations(cls, value: Any) -> Any:
+        return read_specialization_list(value)
 
 
 # ─── Система ──────────────────────────────────────────────────────────────────────────────────────

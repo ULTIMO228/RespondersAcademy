@@ -1,9 +1,9 @@
 import type { Evaluation } from "@/shared/api";
-import { AiBadge } from "@/shared/ui";
+import { AiSourceBadge } from "@/shared/ui";
 
 import styles from "./AttemptResult.module.css";
 
-/** Разбор ошибок мок-оценки: грамматика (фрагмент → исправление), прочие ошибки, комментарий ИИ. */
+/** Разбор ошибок оценки: грамматика (фрагмент → исправление), прочие ошибки и комментарий с источником. */
 export function EvaluationDetails({ evaluation }: { evaluation: Evaluation }) {
   const { grammarErrors, errors, aiComment, teacherOverride } = evaluation;
   return (
@@ -26,7 +26,7 @@ export function EvaluationDetails({ evaluation }: { evaluation: Evaluation }) {
         </ul>
       )}
       <p className={styles.result__comment}>
-        <AiBadge /> {aiComment}
+        <AiSourceBadge source={evaluation.aiCommentSource} /> {aiComment}
       </p>
       {teacherOverride ? (
         <p className={styles.result__note}>

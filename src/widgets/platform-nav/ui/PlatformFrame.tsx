@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { LogoutLink, ROLE_TITLES } from "@/entities/user";
+import { LogoutLink, ROLE_TITLES, zonesOf } from "@/entities/user";
 import type { PublicUser } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import {
@@ -16,9 +16,8 @@ import {
 } from "@/shared/ui/platform";
 import type { SideNavItem } from "@/shared/ui/platform";
 
-import { isNavEntryActive, PLATFORM_NAV } from "../config/navItems";
+import { isNavEntryActive, PLATFORM_NAV, resolvePlatformNav } from "../config/navItems";
 import { resolveCrumbs } from "../lib/breadcrumbs";
-import { visibleNavEntries } from "../model/visibleNav";
 import { toInitials, toShortName } from "../lib/initials";
 
 type PlatformFrameProps = {
@@ -32,7 +31,7 @@ type PlatformFrameProps = {
  */
 export function PlatformFrame({ user, children }: PlatformFrameProps) {
   const pathname = usePathname() ?? "";
-  const items: SideNavItem[] = visibleNavEntries(user).map((entry) => ({
+  const items: SideNavItem[] = resolvePlatformNav(user.role, zonesOf(user)).map((entry) => ({
     href: entry.href,
     title: entry.title,
     icon: entry.icon,

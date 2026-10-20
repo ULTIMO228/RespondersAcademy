@@ -3,8 +3,9 @@
  * Проверка кредов — на сервере мок-слоя (POST /api/mock/auth/login), клиент список учёток не получает.
  */
 import type { AuthCredentials } from "@/features/auth-form";
+import { singleSpecialization } from "@/entities/user";
 import { users } from "@/shared/api";
-import type { TrainingProfile, UserRole } from "@/shared/api";
+import type { Specialization, UserRole } from "@/shared/api";
 import { DEMO_USER_IDS } from "@/shared/config";
 
 import { BLOCKED_DEMO_LOGIN, DDS_DEMO_LOGIN } from "../config/loginContent";
@@ -16,8 +17,8 @@ export type DemoAccount = {
   role: UserRole;
   armNumber: number;
   isActive: boolean;
-  /** Профиль режима обучаемого (spec/008): подпись в подсказке — профиль, а не роль. */
-  trainingProfile?: TrainingProfile;
+  /** Единственная специализация обучающегося (профиль spec/008): подпись в подсказке — она, а не роль. */
+  specialization?: Specialization;
 };
 
 const ROLES: UserRole[] = ["student", "teacher", "admin"];
@@ -29,8 +30,9 @@ export function isUserRole(role: unknown): role is UserRole {
 function toDemoAccount(login: string): DemoAccount[] {
   const user = users.find((candidate) => candidate.login === login);
   if (!user || !isUserRole(user.role)) return [];
-  const { password, role, armNumber, isActive, trainingProfile } = user;
-  return [{ login, password, role, armNumber, isActive, ...(trainingProfile ? { trainingProfile } : {}) }];
+  const { password, role, armNumber, isActive } = user;
+  const specialization = singleSpecialization(user);
+  return [{ login, password, role, armNumber, isActive, ...(specialization ? { specialization } : {}) }];
 }
 
 /** Подсказки демо-режима: по учётке на роль + оператор ДДС + заблокированная (демо отказа входа). */

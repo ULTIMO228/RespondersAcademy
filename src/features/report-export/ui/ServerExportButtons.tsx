@@ -19,7 +19,7 @@ type ServerExportButtonsProps = {
 };
 
 /**
- * Выгрузка отчёта с сервера (CSV с BOM или PDF): файл собирает бэкенд по своим правилам доступа. Отказ (403 —
+ * Выгрузка отчёта с сервера (CSV с BOM, PDF или Excel): файл собирает бэкенд по своим правилам доступа. Отказ (403 —
  * чужой отчёт, 404, нет сервера) показывается сообщением сервера.
  */
 export function ServerExportButtons({
@@ -60,6 +60,15 @@ export function ServerExportButtons({
         title="Отчёт с сервера в PDF"
       >
         PDF с сервера
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={busy !== null}
+        onClick={() => void run("xlsx")}
+        title="Отчёт с сервера в Excel: листы «Попытки», «Сводка», «Ошибки»"
+      >
+        Excel с сервера
       </Button>
       {error ? <span role="alert">{error}</span> : null}
     </div>

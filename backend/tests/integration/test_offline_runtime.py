@@ -14,7 +14,7 @@ from tests.conftest import login_as
 
 @pytest.mark.asyncio
 async def test_reference_classifier_and_template_generation_without_network(client, monkeypatch):
-    await login_as(client, "student")  # API требует вход (ТЗ §9)
+    await login_as(client, "student2")  # API требует вход (ТЗ §9); статус ДДС — зона «оператор ДДС» (ivanov — только 112)
     settings = get_settings()
     monkeypatch.setattr(settings, "ollama_url", None)
     attempts: list[object] = []

@@ -7,12 +7,11 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.errors import forbidden, invalid_transition, not_found, validation_failed
+from app.api.deps import Viewer, ensure_zone_access
+from app.api.errors import invalid_transition, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.scenario import Scenario
 from app.models.session import Attempt, TrainingSession
-from app.models.user import User
-from app.services import training_profile
 from app.services.session_engine import evaluation_contract
 from app.services.time import is_iso, now_iso, parse_iso_ms
 
@@ -84,7 +83,12 @@ async def _session_for_issuance(db: AsyncSession, card_id: str, student_id: str,
     )), None)
 
 
-async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+def _attempt_mode(session: TrainingSession) -> str:
+    return session.training_mode if session.training_mode in ("dds", "operator112") else "dds"
+
+
+async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any], viewer: Viewer | None = None) -> tuple[dict[str, Any], bool]:
+    """Открывает или возвращает попытку. Зона (фича 007) — по режиму попытки/сессии до любой записи; аноним не проверяется."""
     student_id = body.get("studentId")
     if not isinstance(student_id, str) or not student_id.strip():
         raise validation_failed("Укажите курсанта (studentId)")
@@ -96,16 +100,17 @@ async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any]) -> 
             Attempt.session_id == session.id, Attempt.card_id == card_id, Attempt.student_id == student_id,
         ).order_by(Attempt.seq.desc(), Attempt.id.desc()))).scalars().first()
         if attempt is not None:
+            await ensure_zone_access(db, viewer, attempt.mode, "открытие попытки", student_id=student_id)
             return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False
+        await ensure_zone_access(db, viewer, _attempt_mode(session), "открытие попытки", student_id=student_id)
     else:
         existing = await find_student_attempt(db, card_id, student_id)
         if existing:
             session, attempt = existing
+            await ensure_zone_access(db, viewer, attempt.mode, "открытие попытки", student_id=student_id)
             return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False
+        await ensure_zone_access(db, viewer, "dds", "открытие попытки", student_id=student_id)  # новая практика — режим ДДС
         session = await _resolve_session(db, card_id, student_id)
-    student = await db.get(User, student_id)
-    if student is not None and not training_profile.allows(student, session.training_mode):
-        raise forbidden(training_profile.blocked_message(student, session.training_mode))
     opened_at = now_iso()
     if issued_at is None:
         issued_at = next((i["issuedAt"] for i in (session.card_flow or []) if i.get("cardId") == card_id and i.get("studentId") == student_id), None)
@@ -116,7 +121,7 @@ async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any]) -> 
         session_id=session.id,
         card_id=card_id,
         student_id=student_id,
-        mode=session.training_mode if session.training_mode in ("dds", "operator112") else "dds",
+        mode=_attempt_mode(session),
         opened_at=opened_at,
         primary_reaction_ms=reaction,
         statuses=[],
@@ -146,8 +151,8 @@ def _parse_mark(value: Any) -> dict[str, Any]:
     return mark
 
 
-async def record_progress(db: AsyncSession, attempt_id: str, body: dict[str, Any]) -> tuple[Attempt, bool]:
-    """Возвращает попытку и флаг «только что завершена» (для запуска оценки)."""
+async def record_progress(db: AsyncSession, attempt_id: str, body: dict[str, Any], viewer: Viewer | None = None) -> tuple[Attempt, bool]:
+    """Возвращает попытку и флаг «только что завершена» (для запуска оценки). Зона — по режиму попытки (фича 007)."""
     status = _parse_mark(body["status"]) if body.get("status") is not None else None
     entered = body.get("enteredText")
     if entered is not None and not (isinstance(entered, dict) and all(isinstance(v, str) for v in entered.values())):
@@ -156,6 +161,7 @@ async def record_progress(db: AsyncSession, attempt_id: str, body: dict[str, Any
     attempt = await find_attempt(db, attempt_id)
     if attempt is None:
         raise not_found(f"Попытка «{attempt_id}» не найдена")
+    await ensure_zone_access(db, viewer, attempt.mode, "ход попытки", student_id=attempt.student_id)
     if attempt.mode == "operator112":
         raise invalid_transition("Попытка режима специалиста-112 ведётся через /api/v1/operator112/attempts")
     if status:

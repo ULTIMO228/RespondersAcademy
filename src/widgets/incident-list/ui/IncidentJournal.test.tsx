@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTestDeps } from "../lib/journalFakeApi.testing";
 import { LIST_POLL_MS } from "../model/useCardsList";
-import { advance, DEMO_NOW, renderJournal } from "./journalTestUtils.testing";
+import { advance, DEMO_NOW, renderJournal, STUDENT } from "./journalTestUtils.testing";
 
 const COLUMNS = [
   "Связи",
@@ -56,6 +56,12 @@ describe("IncidentJournal — таблица и данные мок-слоя (T2
     expect(deps.api.calls.getCards.at(-1)).toMatchObject({ dataset: "fixtures", page: 1, perPage: 10 });
     expect(getRows()).toHaveLength(10);
     expect(screen.getByText("1-10 из 12")).toBeInTheDocument();
+  });
+
+  it("обучающийся ДДС не может поставить напоминание или пометить происшествие важным", async () => {
+    await renderJournal(undefined, { ...STUDENT, role: "student", specializations: ["dds"] });
+    expect(screen.getAllByRole("button", { name: /Важное происшествие/ }).every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getAllByRole("button", { name: "Напоминание" }).every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
   });
 
   it("маркер статуса службы, красный бейдж ЧП/ЧС, тултип кода типа, индикатор СМС", async () => {
@@ -171,7 +177,7 @@ describe("IncidentJournal — раскрытие, предпросмотр, го
 
 describe("IncidentJournal — молния «важное» (T2.2-10)", () => {
   it("пометка строки, уведомление с «АРМ 001» и ФИО, повторный клик снимает; переживает автообновление", async () => {
-    await renderJournal();
+    await renderJournal(undefined, { ...STUDENT, role: "teacher" });
     const [firstRow] = getRows();
     const bolt = within(firstRow).getByRole("button", { name: "Важное происшествие (Alt + I)" });
     fireEvent.click(bolt);

@@ -34,7 +34,7 @@ def test_template_variations_keep_category_and_use_directory_addresses(cards, ad
     produced = gen.generate_template(CATEGORY, cards, addresses)
     assert len(produced) == 3
     titles = [item["scenario"]["title"] for item in produced]
-    assert len(set(titles)) == 3 and all(CATEGORY in t and "(ИИ)" in t for t in titles)
+    assert len(set(titles)) == 3 and all(CATEGORY in t and "(ИИ)" not in t for t in titles)
     known_streets = {a["street"] for a in addresses if a.get("street")}
     for item in produced:
         scenario, ticket = item["scenario"], item["cards"][0]
@@ -152,7 +152,8 @@ def test_llm_path_falls_back_and_retries(cards, addresses):
     assert all(item["scenario"]["generation"]["provider"] == "ollama:test-model" for item in produced)
     assert all(item["cards"][0]["group"] == CATEGORY and "(место:" in item["cards"][0]["summary"] for item in produced)
     assert produced[1]["cards"][0]["victims"] == {"count": 1, "note": ""} and "victims" not in produced[0]["cards"][0]
-    assert produced[0]["scenario"]["title"] == gen.generate_template(CATEGORY, cards, addresses)[0]["scenario"]["title"]
+    assert produced[0]["scenario"]["title"] != gen.generate_template(CATEGORY, cards, addresses)[0]["scenario"]["title"]
+    assert "(ИИ)" in produced[0]["scenario"]["title"]
 
 
 def test_openai_клиент_llama_server_разбирает_json_и_называет_провайдера(monkeypatch) -> None:
