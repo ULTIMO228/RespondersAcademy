@@ -97,3 +97,36 @@
 - Миграции: голова `0006_user_training_profile`
 - Быстрый гейт: lint ✅ · steiger ✅ · test **2033 passed** ✅ · typecheck ✅ · pytest **1135 passed / 0 failed / 4 skipped** ✅ · ruff ✅
 - Итог: влит
+
+## T005 — эталон вершин веток (субагенты Haiku, 2026-10-20; typecheck — после `mocks:sync`)
+
+| Ветка @ вершина | lint | steiger | test | tsc | pytest | ruff |
+|---|---|---|---|---|---|---|
+| feat/011-dds-sasha @ ada3e78 | ✅ | ✅ | 2032/2033 | ✅ | 1135 / 0 / 4 | ✅ |
+| SASHA @ ad5e271 | ✅ | ✅ | 2151/2151 | ✅ | 1171 / 0 / 4 | ✅ |
+| fix/ai-connection-probe-timeout @ 5e309ef | ❌ 2 | ✅ | 2132/2133 | ❌ 1 | 1248 / 4 / 2 | ✅ |
+| feature/scenario-graph-builder @ cdef678 | ✅ | ✅ | 2000/2000 | ✅ | 1053 / 3 / 2 | ✅ |
+
+Унаследованные красные (существуют на вершине исходной ветки до слияния):
+- vitest `src/pages/incident/ui/IncidentScreen.test.tsx` «card-881412 … линия «недоступен»» (dds-sasha, fix) — известный флейк L013; в F2 и F3 зелёный
+- fix: lint `src/pages/operator112/ui/Operator112Workspace.tsx:155` (react-hooks/exhaustive-deps), `src/pages/student/assignments/ui/StudentAssignmentsScreen.tsx:5` (unused `requiredSpecializations`); tsc `src/shared/api/endpoints/operator112.test.ts:34` TS2741 (`notificationConfirmed` в CardDraft); pytest `tests/integration/test_exam_flow.py::test_dds_exam_timeout_and_no_repeat` (400 «без нужной специализации… u-006»)
+- fix, graph: pytest `test_ready_applicant_audio_is_playable_from_recordings[wav|mp3]`, `test_release_invariants` — те же, что на main; чинятся K1 (`3720f58`)
+
+## F3 — K3 SASHA @ ad5e271
+
+- Дата: 2026-10-20 · База: `fdff5f3` · Вершина сверена ✅ · Merge-коммит: `c422f48`
+- Конфликты: 6 (ожидалось 6)
+
+| Файл | Тип | Из HEAD | Из K3 | Почему |
+|---|---|---|---|---|
+| `backend/app/api/v1/__init__.py` | content | `student_cards` | `problem_reports` | нужны оба роутера, импорты слились сами |
+| `src/widgets/simulator-bar/index.ts` | content | экспорт `SimulatorBarSlot` | экспорт `SimulatorBarPortal` | оба потребителя живы (TrainerNorms ДДС, Operator112Session 112) |
+| `src/widgets/simulator-bar/ui/SimulatorBar.tsx` | content | `data-simulator-bar-slot` | `id={SIMULATOR_BAR_SLOT_ID}`, «Справочник» справа | P5/R7: **один** элемент слота с обоими признаками; Slot (без полосы — ничего) и Portal (без полосы — на месте) — разные политики запасного рендера, правок потребителей не нужно |
+| `src/widgets/simulator-bar/ui/SimulatorBar.module.css` | content | — | целиком | версия SASHA уже содержит `.bar__slot` (+`flex`, `min-width`) и сжатие подсказки; правила HEAD — подмножество |
+| `.ai/SESSIONS.md` | content | записи 2026-10-20d–g | запись 2026-10-20 (6) | append-only: обе |
+| `.ai/SESSION_STATE.md` | content | всё | всё | обе стороны подряд; переписывается в F8 |
+
+- Генерируемые: `uv lock --check` ✅, `expected_fields.json` — перегенерирован, совпал со слитым
+- Миграции: `uv run alembic heads` → `0007_problem_reports` (одна)
+- Гейт кластера: lint ✅ · steiger ✅ · test **2173 passed** ✅ · typecheck ✅ · build ✅ · pytest **1184 passed / 0 / 4** ✅ · ruff ✅
+- Итог: влит. Кластер ДДС (K1–K4) в интеграционной ветке; K5, K6 — уже содержатся (T009, T010)

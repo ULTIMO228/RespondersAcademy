@@ -23,7 +23,7 @@ description: "Задачи: поэтапное сведение всех вет�
 ## Phase 2: Foundational (эталон до слияния — блокирует всё)
 
 - [X] T004 Прогнать быстрый гейт (quickstart.md) на `origin/main` в WT и записать результат в J, раздел «Эталон»
-- [ ] T005 [P] Через `git worktree add --detach` во временную папку scratchpad (общий `node_modules` симлинком — `package.json` ни одна ветка не меняет; `uv sync` на каждую) прогнать быстрый гейт на вершинах `feat/011-dds-sasha`, `SASHA`, `fix/ai-connection-probe-timeout`, `feature/scenario-graph-builder` (остальные — их предки или без бэкенда; при неясном красном прогнать и их). Сохранить красные тесты каждой ветки в J, «Эталон», чтобы потом отличать унаследованные (L005). Субагент Haiku на прогоны, сводку проверяет интегратор. Временные worktree удалить `git worktree remove`
+- [X] T005 [P] Через `git worktree add --detach` во временную папку scratchpad (общий `node_modules` симлинком — `package.json` ни одна ветка не меняет; `uv sync` на каждую) прогнать быстрый гейт на вершинах `feat/011-dds-sasha`, `SASHA`, `fix/ai-connection-probe-timeout`, `feature/scenario-graph-builder` (остальные — их предки или без бэкенда; при неясном красном прогнать и их). Сохранить красные тесты каждой ветки в J, «Эталон», чтобы потом отличать унаследованные (L005). Субагент Haiku на прогоны, сводку проверяет интегратор. Временные worktree удалить `git worktree remove`
 - [X] T006 [P] Проверить сетевые зависимости из R10: extras `speechkit` и `stt-local` в `backend/pyproject.toml` веток `develop` и `SASHA`, вызовы `yandexcloud` и GigaAM в `backend/ml/speech` и `backend/app/services`. Нужно ответить, включается ли сеть без явной переменной окружения. Итог записать в J. **Блокирует T011**: опция, включающая сеть по умолчанию, выключается в слиянии (В2)
 
 **Checkpoint**: эталон записан, известны унаследованные красные тесты.
@@ -53,9 +53,9 @@ description: "Задачи: поэтапное сведение всех вет�
 
 - [X] T011 [US3] F1: в WT `git merge --no-ff origin/develop`, конфликтов не ожидается. Затем `cd backend && uv lock && uv sync --group dev` (новые `websockets` и extras), быстрый гейт. Запись в J
 - [X] T012 [US3] F2: `git merge --no-ff origin/feat/011-dds-sasha`, перегенерировать `backend/tests/contract/expected_fields.json` (`uv run python scripts/extract_ts_fields.py`), `npm run test` (синк моков). Быстрый гейт, запись в J. Красные сверять с эталоном T005
-- [ ] T013 [US3] F3: `git merge --no-ff origin/SASHA`. Разрешить 6 конфликтов: `.ai/SESSIONS.md` (объединить по дате), `.ai/SESSION_STATE.md` (HEAD + уникальное SASHA), `backend/app/api/v1/__init__.py` (оба роутера `problem_reports` и `student_cards`). simulator-bar — задача T014. Запись в J
-- [ ] T014 [US3] F3 (P5, R7): в `src/widgets/simulator-bar/{index.ts,ui/SimulatorBar.tsx,ui/SimulatorBar.module.css}` оставить один механизм слота (Portal из SASHA или Slot из dds-sasha, выбрать по коду: меньше правок потребителей). Перевести `src/pages/operator112/ui/Operator112Session.tsx` и `src/pages/incident/ui/TrainerNorms.tsx`, сохранить `ReferenceToggle` справа. Тесты обеих сторон зелёные
-- [ ] T015 [US3] F3: `expected_fields.json` перегенерировать, `uv run alembic heads` (ожидается одна: `0007_problem_reports`), быстрый гейт + `npm run build` (гейт кластера). Запись в J
+- [X] T013 [US3] F3: `git merge --no-ff origin/SASHA`. Разрешить 6 конфликтов: `.ai/SESSIONS.md` (объединить по дате), `.ai/SESSION_STATE.md` (HEAD + уникальное SASHA), `backend/app/api/v1/__init__.py` (оба роутера `problem_reports` и `student_cards`). simulator-bar — задача T014. Запись в J
+- [X] T014 [US3] F3 (P5, R7): в `src/widgets/simulator-bar/{index.ts,ui/SimulatorBar.tsx,ui/SimulatorBar.module.css}` оставить один механизм слота (Portal из SASHA или Slot из dds-sasha, выбрать по коду: меньше правок потребителей). Перевести `src/pages/operator112/ui/Operator112Session.tsx` и `src/pages/incident/ui/TrainerNorms.tsx`, сохранить `ReferenceToggle` справа. Тесты обеих сторон зелёные
+- [X] T015 [US3] F3: `expected_fields.json` перегенерировать, `uv run alembic heads` (ожидается одна: `0007_problem_reports`), быстрый гейт + `npm run build` (гейт кластера). Запись в J
 
 **Checkpoint**: кластер ДДС в интеграционной ветке, гейт зелёный или красное объяснено.
 
@@ -67,7 +67,7 @@ description: "Задачи: поэтапное сведение всех вет�
 
 **Independent Test**: в J записано решение В1 с датой; после T020 у пользователя один источник специализации.
 
-- [ ] T016 [US4] Подготовить для владельца сводку P1 на один экран (R5): обе модели, демо-учётки (ivanov, egorov, u-005, u-006, u-016, u-017), что теряется в каждом варианте. Положить в J, раздел «Решения», и задать вопрос В1. **Ждать ответа** перед T018
+- [X] T016 [US4] Подготовить для владельца сводку P1 на один экран (R5): обе модели, демо-учётки (ivanov, egorov, u-005, u-006, u-016, u-017), что теряется в каждом варианте. Положить в J, раздел «Решения», и задать вопрос В1. **Ждать ответа** перед T018
 
 ---
 
