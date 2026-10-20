@@ -130,21 +130,28 @@ class PolzaSession(CascadeSession):
         # реплики ограничивает respond() — 600 символов.
         options: dict = {"max_completion_tokens": 1500}
         settings = get_settings()
-        if settings.live_call_polza_reasoning_max_tokens:
+        if settings.live_call_polza_provider:
+            options["provider"] = {"order": [settings.live_call_polza_provider], "allow_fallbacks": True}
+        if settings.live_call_polza_reasoning_off:
+            options["reasoning"] = {"enabled": False}
+        elif settings.live_call_polza_reasoning_max_tokens:
             options["reasoning"] = {"max_tokens": settings.live_call_polza_reasoning_max_tokens}
         elif settings.live_call_polza_reasoning_effort:
             options["reasoning_effort"] = settings.live_call_polza_reasoning_effort
         return options
 
     async def reply_stream(self, messages: list[dict[str, str]]):
-        """Сбой до первого слова — один повтор; после — оставляем сказанное, звонок не рвём."""
+        """Сбой или пустой ответ до первого слова — один повтор; после — оставляем сказанное, звонок не рвём."""
         for attempt in (1, 2):
             produced = False
             try:
                 async for delta in stream_reply(messages, self.client, self.llm_endpoint(), self.llm_options()):
-                    produced = True
+                    if delta.strip():
+                        produced = True
                     yield delta
-                return
+                if produced or attempt == 2:
+                    return
+                logger.warning("Модель закончила ответ без слов; повторяем запрос")
             except ApiError:
                 if produced:
                     logger.warning("Ответ заявителя оборван провайдером; сказанное сохранено")

@@ -392,3 +392,33 @@ async def test_silero_voice_is_warmed_once_before_the_call_is_ready(settings, mo
     await asyncio.gather(polza.warm_voice(), polza.warm_voice())
     await polza.warm_voice()
     assert len(calls) == 1 and calls[0][1:3] == ("v5_6_ru.pt", "xenia")
+
+
+def test_reasoning_off_and_provider_routing_come_from_settings(settings, monkeypatch):
+    # Замер 20.10, qwen/qwen3.8-27b: reasoning_effort=none игнорируется (300 токенов «мыслей», пустой ответ),
+    # reasoning.enabled=false — ответ без размышления; провайдер (cerebras/fp16) выбирается полем provider.
+    monkeypatch.setattr(settings, "live_call_polza_reasoning_off", True)
+    monkeypatch.setattr(settings, "live_call_polza_reasoning_max_tokens", 64)
+    monkeypatch.setattr(settings, "live_call_polza_provider", "cerebras/fp16")
+    options = polza.PolzaSession().llm_options()
+    assert options["reasoning"] == {"enabled": False} and "reasoning_effort" not in options
+    assert options["provider"] == {"order": ["cerebras/fp16"], "allow_fallbacks": True}
+    monkeypatch.setattr(settings, "live_call_polza_reasoning_off", False)
+    monkeypatch.setattr(settings, "live_call_polza_provider", None)
+    options = polza.PolzaSession().llm_options()
+    assert options["reasoning"] == {"max_tokens": 64} and "provider" not in options
+
+
+async def test_empty_answer_is_retried_once(settings):
+    # qwen3.8-27b, 20.10: на «Ваше имя и телефон?» модель закончила ответ без единого слова;
+    # в звонке это ошибка «пустой ответ» и обрыв. Повторяем запрос один раз.
+    calls = []
+
+    def handler(_request):
+        calls.append(1)
+        return httpx.Response(200, text=_sse() if len(calls) == 1 else _sse("Сидорова Анна Викторовна."))
+
+    session = _session(handler)
+    assert [d async for d in session.reply_stream([])] == ["Сидорова Анна Викторовна."]
+    assert len(calls) == 2
+    await session.client.aclose()

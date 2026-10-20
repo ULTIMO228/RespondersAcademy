@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     # Потолок токенов размышления (reasoning.max_tokens) — стабильнее effort: у GLM-5.3 effort=low после
     # перебивания уходил в сотни токенов «мыслей». Задан — effort не отправляется (вместе — пустой ответ).
     live_call_polza_reasoning_max_tokens: int | None = Field(default=None, ge=1, alias="LIVE_CALL_POLZA_REASONING_MAX_TOKENS")
+    # Выключить размышление полностью (reasoning.enabled=false) — для моделей, где оно необязательное (qwen3.8-27b).
+    live_call_polza_reasoning_off: bool = Field(default=False, alias="LIVE_CALL_POLZA_REASONING_OFF")
+    # Предпочтительный провайдер модели у Polza (например, cerebras/fp16); при сбое Polza может взять другого.
+    live_call_polza_provider: str | None = Field(default=None, alias="LIVE_CALL_POLZA_PROVIDER")
     live_call_polza_tts_format: Literal["wav", "pcm"] = Field(default="wav", alias="LIVE_CALL_POLZA_TTS_FORMAT")
     live_call_polza_tts_instructions: bool = Field(default=True, alias="LIVE_CALL_POLZA_TTS_INSTRUCTIONS")
     live_call_end_silence_ms: int = Field(default=700, ge=300, le=2000, alias="LIVE_CALL_END_SILENCE_MS")
