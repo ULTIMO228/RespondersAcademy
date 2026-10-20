@@ -146,3 +146,11 @@
 - Миграции: `0011_merge_sasha_seva` (пустая, родители `0007_problem_reports` + `0010_ai_request_started_at`) → `0012_specs_from_training_profile`; `alembic heads` → одна
 - Гейт кластера: lint ✅ · steiger ✅ · test 2381/2382 → после правки теста ✅ · typecheck ✅ (первый прогон — устаревший `.next/types`, после build 0) · build ✅ · pytest 1519/5/4 → 5 красных `test_ai_settings_service` исправлены (15/15) · ruff ✅
 - Итог: влит
+
+## F5b — K8 codex/feature-007-learner-role-split @ 971261d
+
+- Дата: 2026-10-20 · Вершина сверена ✅ · Разбор: субагент Sonnet (песочница-копия WT), применение — интегратор
+- Конфликты: 9. `test_admin.py`, `test_teacher_specializations.py` — ours (адаптированы в F5; refresh в фикстуре равносилен свежей сессии theirs); `Operator112Result.tsx` — ours (диалог «Начать этап ДДС» не нужен: цепочка выведена); `shared/lib/index.ts` — ours (реестр открытой попытки перенесён в `entities/operator112-attempt/model/openAttempt.ts`: лимит steiger на `shared/lib`); `SimulatorBar.tsx` — HEAD + `"use client"` + диалог смены зоны (FR-014); `SimulatorBar.test.tsx` — тесты theirs + тест «сосуществуют» из F5 + проверка одного элемента слота; `StudentResults.test.tsx`, `Operator112Screen.test.tsx` — обе стороны (без тестов цепочки); удалены `e2e/two-mode-full-path.spec.ts`, `Operator112Workspace.test.tsx`, `shared/lib/open-attempt/`
+- Адаптированы под новую семантику: `test_operator112_lifecycle.py` (доставка карточки — в банк, не в занятие ДДС, спека 011 D4; +исход noContact без подтверждения), `test_operator112_events.py` (очистка аудита в фикстуре); `IncidentCard{View,Live}.test.tsx` — без элементов, убранных спекой 012
+- Короткий гейт (решение владельца ускорить): lint ✅ · steiger ✅ · typecheck ✅ · vitest затронутых каталогов 330/331 → флейк `Operator112Screen.hotkeys` «Esc прячет окно…» (отдельно 3/3 ✅) · pytest затронутых 51 passed / 3 xfailed ✅
+- Итог: влит

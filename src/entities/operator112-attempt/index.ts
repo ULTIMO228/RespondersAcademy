@@ -17,3 +17,5 @@ export type { CallerAudioLoader, CallerAudioState } from "./model/useCallerAudio
 export { useApplicantVoice } from "./model/useApplicantVoice";
 export type { ApplicantVoice, ApplicantVoiceState } from "./model/useApplicantVoice";
 export { formatAon } from "./lib/aon";
+export { getOpenAttempt, setOpenAttempt, useOpenAttempt } from "./model/openAttempt";
+export type { OpenAttempt } from "./model/openAttempt";

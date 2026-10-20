@@ -126,6 +126,42 @@ describe("MonitorScreen (T3.3-07…T3.3-09)", () => {
     expect(screen.getByText("только просмотр")).toBeInTheDocument();
   });
 
+  it("обучающийся только со специализацией 112: вместо карточки ДДС — зеркало рабочего места 112", async () => {
+    setup({
+      listUsers: vi.fn(async () => [
+        {
+          id: IVANOV,
+          login: "ivanov",
+          fullName: "Иванов Сергей Петрович",
+          role: "student",
+          armNumber: 1,
+          specializations: ["operator112"],
+        },
+      ]),
+    });
+    const mirror = await screen.findByRole("group", { name: /Специалист 112.*только просмотр/ });
+    expect(mirror).toBeDisabled();
+    expect(within(mirror).getByRole("status")).toHaveTextContent(/нет данных попытки 112/i);
+    expect(screen.queryByRole("group", { name: /Зеркало экрана курсанта/ })).not.toBeInTheDocument();
+  });
+
+  it("парная проверка: обучающийся с обеими специализациями и открытой карточкой ДДС — зеркало ДДС", async () => {
+    setup({
+      listUsers: vi.fn(async () => [
+        {
+          id: IVANOV,
+          login: "ivanov",
+          fullName: "Иванов Сергей Петрович",
+          role: "student",
+          armNumber: 1,
+          specializations: ["operator112", "dds"],
+        },
+      ]),
+    });
+    const mirror = await screen.findByRole("group", { name: /Зеркало экрана курсанта/ });
+    expect(within(mirror).getByText(new RegExp(String(fixture.number)))).toBeInTheDocument();
+  });
+
   it("лента сужена до одного курсанта (мок-слой получает studentId)", async () => {
     const { api } = setup();
     await screen.findByRole("group", { name: /только просмотр/ });

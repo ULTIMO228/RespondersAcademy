@@ -138,3 +138,22 @@ describe("«Аналитика»", () => {
     );
   });
 });
+
+describe("подписи нормативов по режиму (T053, FR-011)", () => {
+  it("называет нормативы каждого режима, где есть попытки", async () => {
+    render(<StudentAnalyticsScreen api={makeApi()} />);
+    const norms = await screen.findByRole("list", { name: "Нормативы по режимам" });
+    expect(within(norms).getByText(/Режим 112: ответ на вызов/)).toBeInTheDocument();
+    expect(within(norms).getByText(/Режим ДДС: реакция на новую карточку/)).toBeInTheDocument();
+  });
+
+  it("парная проверка: режим без попыток не получает подпись", async () => {
+    const only112: Analytics = {
+      ...ANALYTICS,
+      byMode: { operator112: stats(3, 90, 24_000, 150_000), dds: stats(0) },
+    };
+    render(<StudentAnalyticsScreen api={makeApi({ analytics: vi.fn(async () => only112) })} />);
+    const norms = await screen.findByRole("list", { name: "Нормативы по режимам" });
+    expect(within(norms).queryByText(/Режим ДДС/)).not.toBeInTheDocument();
+  });
+});

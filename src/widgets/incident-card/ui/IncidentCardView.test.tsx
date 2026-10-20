@@ -216,3 +216,28 @@ describe("IncidentCardView — специализация ДДС", () => {
     expect(screen.getByRole("button", { name: "Указать на карте" })).toBeDisabled();
   });
 });
+
+describe("IncidentCardView — специализация ДДС: парные проверки (T042)", () => {
+  it("парная: без isDdsLearner те же контролы активны", () => {
+    renderCard({ id: "card-881412" });
+    expect(screen.getByRole("button", { name: "дополнение" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Отключение" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Копировать АОН" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Отправить СМС: АОН" })).toBeEnabled();
+  });
+
+  it("телефоны только для чтения", () => {
+    renderCard({ isDdsLearner: true, id: "card-881412" });
+    expect(screen.getByLabelText("телефон на место")).toHaveAttribute("readonly");
+    expect(screen.getByLabelText("предоставленный")).toHaveAttribute("readonly");
+  });
+
+  it("«список SMS» показывает историю, но без формы отправки; линия телефонии неактивна", () => {
+    renderCard({ isDdsLearner: true, id: "card-36814859" });
+    expect(screen.getByRole("button", { name: "Статус телефонии: недоступен" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "список SMS" }));
+    expect(screen.getByText(/Помогите мне! Дым в квартире/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Текст СМС")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Отправить СМС" })).toBeNull();
+  });
+});

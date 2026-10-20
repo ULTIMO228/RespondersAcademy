@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { describeNorms } from "@/entities/report";
 import type { AssignmentFormat, HistoryItem, LobbyMode } from "@/shared/api";
 import { ROUTES } from "@/shared/config";
 import { formatDate } from "@/shared/lib";
@@ -129,6 +130,13 @@ export function StudentResultsScreen({ api = studentResultsApi }: StudentResults
                   rows={data.items}
                   getRowKey={(item) => item.attemptId}
                 />
+                <ul className={styles.norms} aria-label="Нормативы по режимам">
+                  {(["operator112", "dds"] as const)
+                    .filter((scope) => data.items.some((item) => item.mode === scope))
+                    .map((scope) => (
+                      <li key={scope}>{describeNorms(scope).summary}</li>
+                    ))}
+                </ul>
                 <Pagination page={data.page} perPage={data.perPage} total={data.total} onChange={setPage} />
               </>
             )

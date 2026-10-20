@@ -42,3 +42,5 @@ export {
   toneAgainstNorm,
 } from "./lib/analytics";
 export type { NormTone, PerformanceSummary } from "./lib/analytics";
+export { describeNorms, NORM_SCOPE_LABELS } from "./lib/norm-scope";
+export type { NormDescription, NormScope } from "./lib/norm-scope";

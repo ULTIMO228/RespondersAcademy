@@ -33,3 +33,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.norms {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-body);
+}

@@ -1,10 +1,15 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { setOpenAttempt } from "@/entities/operator112-attempt";
 
 import { SimulatorBar } from "./SimulatorBar";
 import { SimulatorBarSlot } from "./SimulatorBarSlot";
 
 vi.mock("@/features/arm-reference", () => ({ ReferenceToggle: () => null }));
+
+const pushMock = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }) }));
 
 describe("SimulatorBar — слот экрана (спека 012 FR-002)", () => {
   it("содержимое SimulatorBarSlot попадает в полосу тренажёра, а не на место вызова", async () => {
@@ -66,5 +71,42 @@ describe("SimulatorBar: «В кабинет» и переключатель зо
     const bar = document.querySelector<HTMLElement>("[data-simulator-bar]") as HTMLElement;
     expect(within(bar).getByRole("navigation", { name: "Рабочая зона" })).toBeInTheDocument();
     expect(await within(bar).findByText("Норматив реакции 0:30")).toBeInTheDocument();
+    expect(document.querySelectorAll("[data-simulator-bar-slot]")).toHaveLength(1);
+  });
+});
+
+describe("SimulatorBar: смена зоны при открытой попытке (спека 007, FR-014)", () => {
+  afterEach(() => {
+    act(() => setOpenAttempt(null));
+    pushMock.mockClear();
+  });
+
+  it("без открытой попытки ссылка зоны работает как обычная, подтверждения нет", () => {
+    render(<SimulatorBar zones={["operator112", "dds"]} currentZone="operator112" />);
+    fireEvent.click(screen.getByRole("link", { name: "Оператор ДДС" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("при открытой попытке спрашивает подтверждение, называет роли и не уходит без согласия", () => {
+    render(<SimulatorBar zones={["operator112", "dds"]} currentZone="operator112" />);
+    act(() => setOpenAttempt({ title: "Билет 112: Пожар" }));
+    fireEvent.click(screen.getByRole("link", { name: "Оператор ДДС" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent("Билет 112: Пожар");
+    expect(dialog).toHaveTextContent("Специалист 112");
+    expect(dialog).toHaveTextContent("Оператор ДДС");
+    expect(pushMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Остаться" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("после подтверждения переходит в выбранную зону", () => {
+    render(<SimulatorBar zones={["operator112", "dds"]} currentZone="operator112" />);
+    act(() => setOpenAttempt({ title: "Билет 112: Пожар" }));
+    fireEvent.click(screen.getByRole("link", { name: "Оператор ДДС" }));
+    fireEvent.click(screen.getByRole("button", { name: /Перейти/ }));
+    expect(pushMock).toHaveBeenCalledWith("/arm");
   });
 });

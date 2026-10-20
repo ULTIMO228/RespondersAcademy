@@ -19,3 +19,10 @@
   flex-wrap: wrap;
   gap: var(--pf-space-2);
 }
+
+.norms {
+  margin: var(--spacing-md) 0 0;
+  padding-left: var(--spacing-lg);
+  color: var(--pf-text-muted);
+  font-size: var(--pf-fs-body);
+}

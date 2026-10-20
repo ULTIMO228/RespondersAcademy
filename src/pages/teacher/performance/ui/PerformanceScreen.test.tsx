@@ -194,3 +194,29 @@ describe("страница «Успеваемость»", () => {
     expect(await screen.findByText(/сервер/i)).toBeInTheDocument();
   });
 });
+
+describe("подписи нормативов по режиму (T053, FR-011)", () => {
+  it("режим 112: плитки и колонки называют ответ на вызов и отправку карточки", async () => {
+    const report = { ...REPORT, filters: { mode: "operator112" as const, period: "1m" as const } };
+    render(<PerformanceScreen api={makeApi({ report: vi.fn().mockResolvedValue(report) })} />);
+    const totals = await screen.findByRole("region", { name: "Итого" });
+    expect(within(totals).getByText(/ответ на вызов, норматив 30 с/)).toBeInTheDocument();
+    expect(within(totals).getByText(/отправка карточки, норматив 3 мин/)).toBeInTheDocument();
+    const table = screen.getByRole("table", { name: "Сравнение групп" });
+    expect(within(table).getByText("Ответ на вызов в норме")).toBeInTheDocument();
+  });
+
+  it("режим ДДС: реакция на карточку и полная отработка", async () => {
+    const report = { ...REPORT, filters: { mode: "dds" as const, period: "1m" as const } };
+    render(<PerformanceScreen api={makeApi({ report: vi.fn().mockResolvedValue(report) })} />);
+    const table = await screen.findByRole("table", { name: "Сравнение групп" });
+    expect(within(table).getByText("Реакция на карточку в норме")).toBeInTheDocument();
+    expect(within(table).queryByText("Ответ на вызов в норме")).not.toBeInTheDocument();
+  });
+
+  it("смешанный срез: не подменяет один норматив другим и просит выбрать режим", async () => {
+    render(<PerformanceScreen api={makeApi()} />);
+    const totals = await screen.findByRole("region", { name: "Итого" });
+    expect(within(totals).getByText(/выберите режим/)).toBeInTheDocument();
+  });
+});

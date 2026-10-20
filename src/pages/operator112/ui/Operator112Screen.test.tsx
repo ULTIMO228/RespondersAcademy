@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mocked } from "vitest";
 
 import { ApiError, ServerRequiredError } from "@/shared/api";
+import { getOpenAttempt } from "@/entities/operator112-attempt";
 import type {
   AssignmentDetail,
   ClassifierEntry,
@@ -687,5 +688,25 @@ describe("Operator112Screen: подсказки", () => {
       type: "hintShown",
       payload: { stage: "answer" },
     });
+  });
+});
+
+describe("Operator112Screen: реестр открытой попытки (спека 007, FR-014)", () => {
+  it("пока попытка идёт — отмечена как открытая; после передачи — снята", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
+    expect(getOpenAttempt()?.title).toMatch(/билет 112/);
+    await openSavedConfirm();
+    await screen.findByLabelText("Разбор попытки");
+    expect(getOpenAttempt()).toBeNull();
+  });
+
+  it("парная проверка: после ухода с экрана реестр очищен", async () => {
+    const { unmount } = render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
+    await acceptCall();
+    expect(getOpenAttempt()).not.toBeNull();
+    unmount();
+    expect(getOpenAttempt()).toBeNull();
   });
 });

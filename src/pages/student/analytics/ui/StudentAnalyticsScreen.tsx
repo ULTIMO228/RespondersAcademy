@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import {
   describeErrorType,
+  describeNorms,
   PROCESSING_NORM_MS,
   REACTION_NORM_MS,
   summarizePerformance,
@@ -185,6 +186,14 @@ export function StudentAnalyticsScreen({ api = studentAnalyticsApi }: StudentAna
                   />
                 </Card>
               </div>
+
+              <ul className={styles.norms} aria-label="Нормативы по режимам">
+                {(["operator112", "dds"] as const)
+                  .filter((scope) => data.byMode[scope]?.count > 0)
+                  .map((scope) => (
+                    <li key={scope}>{describeNorms(scope).summary}</li>
+                  ))}
+              </ul>
 
               <Card title="Разрезы">
                 <DataTable
