@@ -69,3 +69,7 @@
 ## L015 | stand restart in cloud container
 ❌ `lsof -ti … | xargs kill` → no lsof here, old next-server keeps :3130; new demo-up dies EADDRINUSE, old build answers health check
 ✅ `ps aux | grep -E "next-server|next start|uvicorn"` → kill PIDs; check `.next/BUILD_ID` mtime and that BOTH :3130 and :8130 answer before browser checks
+
+## L016 | handoff from another account/session
+❌ read local `.ai/SESSION_STATE.md` without fetching → stale handoff, worked on wrong T007 (004 instead of 009)
+✅ `git fetch origin <branch>` + `git log HEAD..origin/<branch>` BEFORE reading handoff; task ids (TNNN) repeat across specs → resolve by spec folder

@@ -76,3 +76,12 @@ Done: spec/004-polza-provider/quickstart.md (steps 1-6 + protocol) ✅ | offline
 Blocked: ❌ no POLZA_API_KEY, polza.ai 403 by env network policy → real call not run, T007 stays [ ]
 Next: !1 owner: key in backend/.env + allow polza.ai → run quickstart, fill protocol
 ---
+
+---
+## 2026-10-20 (4) | @claude | branch:SASHA | mode:normal
+Focus: 009 T007 (new operator112 event types)
+Done: ✅ EVENT_TYPES +typeAdded/typeRemoved/serviceRemoved/linkAdded/linkRemoved/linkPrimary/callHidden, payload checks; linkAdded outside journal → 400 | tests 17 passed | pytest 1000/3 known red | ruff clean
+Decisions: 🧠 journal bg = ArmCardFixture (global) + own 112 IncidentCards; other students' cards → 400 (FR-007)
+Lesson: ❌ first took handoff from stale local SESSION_STATE (004 T007) → ✅ git fetch branch before reading handoff
+Next: !1 T008 mock validator | owner: T009 ticket texts + DB reset/0007
+---

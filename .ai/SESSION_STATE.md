@@ -1,5 +1,7 @@
 ## Handoff 2026-10-20 → next window (009 implement)
-Where: spec/009-arm-112-student/tasks.md | Phase 2 Foundational | done T001-T006 | NEXT: T007 (new event types in operator112_service + tests/integration/test_operator112_events_v2.py)
+Where: spec/009-arm-112-student/tasks.md | Phase 2 Foundational | done T001-T007 | NEXT: T008 (mock validator: channel/smsText/repeatOf/lockedBy) → T009 needs owner texts
+  - T007 ✅ 2026-10-20: 7 new event types + payload checks (schemas/v1/operator112.py); linkAdded cardId ∈ journal via operator112_service.in_student_journal (ArmCardFixture bg | own IncidentCard mode_origin=operator112) → reuse in T011; tests/integration/test_operator112_events_v2.py 17 passed; pytest 1000 passed/3 known red; ruff clean
+  - 🧠 assumption: journal background = all ArmCardFixture rows (no per-assignment bg exists yet) — recheck in T011
 Done this window:
   - T001 baseline.txt (pytest 977/3 known red, vitest 1951/1 red teacher-v1 Blob = env, prettier 4 foreign files)
   - T002 affected-tests.md | T003 checklists/visual-112.md (17 windows/states)
@@ -7,7 +9,6 @@ Done this window:
   - T006 app/schemas/v1/operator112.py: CardDraftAddress +country..code,lat,lon; CardDraftLink; CardDraft +channel,incidents,links,outcome; what=incidents[0] if empty; outcome!=filled skips minimum; address minimum also object|lat+lon
   - T005 src/shared/api/types/operator112.ts (+CardChannel, CardOutcome, CardDraftLink, Journal112Row/Response, 7 event types) + exports in types/index.ts, api/index.ts; expected_fields.json regenerated
 Checks@2026-10-20: tests/contract 241 passed / 2 known red | ruff clean | tsc pass | prettier (changed) clean | vitest not rerun after T005 (types only)
-Not done yet in T007: OperatorEventCreate still accepts only 5 types (EVENT_TYPES in schemas/v1/operator112.py:20) → extend + linkAdded cardId must be in student journal (400 else, pair 201)
 Rules: DDS code untouched (R14) | services panel color by card state R13a (#ec653b new, #49555d saved) | timer R7a (60 s, only timer block red) | TDD pairs 400/200 | commits w/o Co-Authored-By
 Stand: ./scripts/demo-up.sh; before restart kill next-server/uvicorn by PID (no lsof, L015)
 

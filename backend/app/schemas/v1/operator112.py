@@ -7,7 +7,7 @@ OperatorEvent, NotificationListResponse, CardDraft, OperatorEvaluation (= Evalua
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 
 from pydantic import Field, field_validator, model_validator
 
@@ -16,8 +16,13 @@ from app.schemas.common import ApiModel
 Voice = Literal["male", "female", "auto"]
 AudioStatus = Literal["pending", "ready", "failed"]
 AttemptState = Literal["ringing", "answered", "submitted"]
-EventType = Literal["fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown"]
-EVENT_TYPES: tuple[str, ...] = ("fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown")
+EventType = Literal[
+    "fieldChanged", "signSelected", "serviceAdded", "replay", "hintShown",
+    # спека 009: вкладки «что случилось?», ручные службы, связи карточек, закрытие окна вызова «×»
+    "typeAdded", "typeRemoved", "serviceRemoved", "linkAdded", "linkRemoved", "linkPrimary", "callHidden",
+]
+EVENT_TYPES: tuple[str, ...] = get_args(EventType)
+LINK_EVENT_TYPES: tuple[str, ...] = ("linkAdded", "linkRemoved", "linkPrimary")
 ADDRESS_SOURCES = ("directory", "manual")
 
 
@@ -117,7 +122,7 @@ class OperatorEventCreate(ApiModel):
     @classmethod
     def _type(cls, value: Any) -> Any:
         if value not in EVENT_TYPES:
-            raise ValueError("Поле «type» — fieldChanged, signSelected, serviceAdded, replay или hintShown")
+            raise ValueError(f"Поле «type» — одно из: {', '.join(EVENT_TYPES)}")
         return value
 
     @field_validator("payload", mode="before")
@@ -135,8 +140,15 @@ class OperatorEventCreate(ApiModel):
             raise ValueError("Событие fieldChanged: укажите payload.field")
         if self.type == "signSelected" and not isinstance(self.payload.get("signs"), list):
             raise ValueError("Событие signSelected: укажите payload.signs (список признаков)")
-        if self.type == "serviceAdded" and not _clean(self.payload.get("serviceId")):
-            raise ValueError("Событие serviceAdded: укажите payload.serviceId")
+        if self.type in ("serviceAdded", "serviceRemoved") and not _clean(self.payload.get("serviceId")):
+            raise ValueError(f"Событие {self.type}: укажите payload.serviceId")
+        if self.type == "typeAdded" and not _clean(self.payload.get("finalType")):
+            raise ValueError("Событие typeAdded: укажите payload.finalType")
+        index = self.payload.get("index")
+        if self.type == "typeRemoved" and (not isinstance(index, int) or isinstance(index, bool) or index < 0):
+            raise ValueError("Событие typeRemoved: payload.index — номер вкладки (целое ≥ 0)")
+        if self.type in LINK_EVENT_TYPES and not _clean(self.payload.get("cardId")):
+            raise ValueError(f"Событие {self.type}: укажите payload.cardId")
         return self
 
 
