@@ -1,12 +1,11 @@
 ## Facts
-Proj:RespondersAcademy | Branch:main | Mode:normal | HEAD:abc6347 pushed to origin/main | tree:only docs/demo.mp4 + docs/demo-new.mp4 untracked (not ours)
-Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ T001-T071 | 004 polza-provider ✅ T001-T006, T007 open | 008 operator112-student (ivanov = только 112) T001-T038 ✅ uncommitted, T039 частично, T040 open}
-Stand:demo-up.sh running @2026-10-19 (front :3130, back :8130, db backend/var/demo.db) | stop: lsof -ti tcp:3130 tcp:8130 -sTCP:LISTEN | xargs kill
-Tests@2026-10-19:{pytest:911 passed/2 skipped/3 red(known debt, docs/FINAL-GATE.md),ruff:clean,vitest:1912 passed (234 files; 1 flaky IncidentScreen run, passes alone),steiger:pass,tsc:pass,build:pass,mocks:validate:pass}
-E2E@2026-10-19:{scripts/e2e-error-map.sh via run_frontend_e2e.sh --only error-map: 20/20} | not run:{simulator-visual playwright,e2e-student/teacher/admin since 002}
-npm run check:⚠️ stops at prettier on 2 foreign files (scripts/demo-video/record.mjs, GenerateDialog.tsx) | steiger/tsc/build run separately
-Updated:2026-10-19
-
+Proj:RespondersAcademy | Branch:SASHA | Mode:normal | HEAD:SASHA pushed | tree:clean after commit
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza ✅ T001-T006, T007 open | 005 arm-reference ✅ | 006 student-rating ✅ | 007 arm-one-to-one spec only | 008 operator112-student ✅ T001-T041 | 009 arm-112-student spec+plan+tasks T001-T074, not started | 010 lesson-call-session spec, owner answers in}
+Scope@2026-10-20(owner): only student-112 workplace now; voice dialog (007 FR-031..034) = friend, later; plug point useApplicantVoice (009 R6)
+Stand:./scripts/demo-up.sh (front :3130, back :8130, db backend/var/demo.db) | stop: ps aux|grep -E "next-server|next start|uvicorn" → kill PIDs (no lsof in cloud container)
+Tests@2026-10-20:{vitest:1951 passed/1 red teacher-v1.test.ts downloadReportExport "Blob not instance of Blob" — red on clean HEAD too (Node22+jsdom env), not ours | tsc:pass | steiger:pass | eslint(changed):pass | pytest:not rerun this session}
+SC-004(008)@2026-10-20: 5 identical 112 runs c-010 before(5f4988e)/after(HEAD) = 96/81/81/89/86 both, all components equal ✅
+Updated:2026-10-20
 ## Story
 1 003 error-map: stages w/ traffic light (icon+word, thresholds 0.10/0.30, min 5/3, band ±10pp), stage detail, student map vs group, group journal, present mode, PDF, AI explain w/ agree/disagree verdict (migration 0005 error_map_verdicts, audit error_map.verdict), /me/focus + widget my-focus, thresholds in admin settings
 2 004 polza: AI_PROVIDER=local|polza (default local), PolzaClient in ml/generate/llm.py (OpenAI-compat, Bearer, rpm+daily limits, any error → None → template fallback), only scenario generation + explain_stage go external, audit ai.external_call (no texts/key), GET /api/v1/admin/ai/provider (admin), no admin UI; AGENTS §2 amended w/ owner OK
@@ -20,6 +19,7 @@ audit events buffered in llm.py, flushed async by external_ai_audit.flush_extern
 polza without key → Settings validator fails startup (no silent switch)
 
 ## Action
+!0 009: owner to approve synthetic tickets (T009: 1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + DB reset/migration 0007 → then speckit-implement Phase 1
 !1 T007 polza real-key check: owner puts POLZA_API_KEY in backend/.env, then says ready; run 1 scenario gen + 1 explain, check audit rows
 !2 T072 usability check w/ ≥3 teachers + T073 manual scenarios 1-14 (quickstart.md) NOT done
  3 simulator-visual playwright (SC-010) NOT run

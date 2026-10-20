@@ -115,9 +115,15 @@
 - [X] T036 [P] `README.md`: в списке демо-учёток отметить ivanov как специалиста-112 и сослаться на `spec/008-operator112-student/`.
 - [X] T037 [P] Перевести e2e из списка T002 (пометка «упадёт»), где ivanov проходит режим ДДС, на petrova: `e2e/*.spec.ts`, `backend/scripts/run_frontend_e2e.sh`.
 - [X] T038 Полный прогон: `cd backend && ruff check . && pytest -q`, `npx vitest run`, `npx tsc --noEmit`, `npm run mocks:validate`; сравнить с `baseline.txt` (T001) — новых красных нет; записать итог в `spec/008-operator112-student/quickstart.md` (раздел «Результаты прогона», дата).
-- [ ] T039 Пройти ручные сценарии `quickstart.md` №1–10 на стенде `demo_up.sh` и отметить результат в том же разделе; SC-004 — сравнить оценки 5 прогонов 112 под ivanov с базой (если эталонных прогонов нет — отметить «не проверено», не выдумывать).
+- [X] T039 Пройти ручные сценарии `quickstart.md` №1–10 на стенде `demo_up.sh` и отметить результат в том же разделе; SC-004 — сравнить оценки 5 прогонов 112 под ivanov с базой (если эталонных прогонов нет — отметить «не проверено», не выдумывать).
   - Частично (2026-10-20): API-сценарии 1, 2, 3, 6, 8, 9 — ✅ на свежей базе (:8008); 4, 5, 7 — только компонентными тестами (второй `next dev` не стартует, :3000 занят чужим процессом); SC-004 не сравнивался — эталонных прогонов нет. См. quickstart.md «Результаты прогона».
-- [ ] T040 Обновить `.ai/SESSION_STATE.md` (Features: 008 и статус) и удалить временные `baseline.txt`/`affected-tests.md`, если они не нужны владельцу (спросить).
+  - Закрыто (2026-10-20): 4, 5, 7, 1, 10 — в браузере на стенде demo-up; SC-004 ✅ — 5 одинаковых прогонов до/после 008 совпали (96/81/81/89/86). См. quickstart.md «Дополнительный прогон».
+  - ❌ Найдено при №10: «Открыть АРМ» в кабинете ivanov ведёт в журнал ДДС `/arm` — задача T041.
+- [X] T041 [US1] Закрыть ivanov журнал и карточку ДДС: `/arm`, `/arm/card/[cardId]`, `/arm/phone` для профиля `operator112`. Решение владельца 2026-10-20: «у 112 по сути нет ничего кроме окна со звонками — скрой».
+  - Сделано: пункт «Открыть АРМ» получил `requiresMode: "dds"` (`src/widgets/platform-nav/config/navItems.ts`), рамка кабинета фильтрует пункты через `visibleNavEntries` (`src/widgets/platform-nav/model/visibleNav.ts`); `requireSessionUser(role, mode?)` + `isModeForbidden` (`src/entities/user/model/route-access.ts`) → `/forbidden`; режим `dds` у `ArmJournalLayout`, `ArmCardLayout` и новый вложенный `ArmDdsGuardLayout` для `/arm/phone`. `/arm/operator112` не затронут.
+  - Проверено 2026-10-20: vitest `route-access.test.ts` + `visibleNav.test.ts` (8 новых), tsc, eslint, steiger; браузер на стенде demo-up: ivanov — пункта нет, `/arm`, `/arm/card/c-095`, `/arm/phone` → `/forbidden`, «Начать» задание 112 → `/arm/operator112`; tarasova (без профиля) — пункт есть, все три экрана открываются.
+  - Ограничение: проверка — в серверном лэйауте (как гвард роли); данные ДДС на API для профиля 112 не закрываются (Next docs «Layouts and auth checks»). Для «скрыть» достаточно; закрытие данных — отдельной задачей, если понадобится.
+- [X] T040 Обновить `.ai/SESSION_STATE.md` (Features: 008 и статус) и удалить временные `baseline.txt`/`affected-tests.md`, если они не нужны владельцу (спросить). — Владелец 2026-10-20: файлы оставить.
 
 ---
 

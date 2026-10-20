@@ -39,3 +39,23 @@ Next:
 Caution:
   ⚠️ Do not use git add .
   ⚠️ no Co-Authored-By trailer
+
+---
+## 2026-10-20 | @claude | branch:SASHA | mode:normal
+Focus: speckit install, 009 plan+tasks (student-112 only), 008 finish (T039-T041)
+Done: ✅
+  - specify CLI 1.2.3.dev0 via uv tool; project .specify stays 1.0.9 (no init over it); ps scripts not runnable (no pwsh) → steps by hand
+  - 009 => plan, research R1-R13 (R7a timer pixels: dark #2f353a, red #ff0000 = existing tokens; R13 services panel orange #ec653b only 112 fill card, DDS grey #49555d), data-model, contracts, quickstart, tasks T001-T074 (MVP US1-US4)
+  - 008 T039 => browser 1,4,5,7,10 on demo-up; SC-004 measured equal; found ivanov "Открыть АРМ" → DDS journal
+  - 008 T041 => hide «Открыть АРМ» for profile 112 + /arm,/arm/card,/arm/phone → /forbidden (requireSessionUser mode); browser ivanov/tarasova pair ✅
+  - 008 T040 => owner: keep baseline.txt/affected-tests.md; 008 added to spec/README registry
+Decisions: 🧠
+  - 009 plan in spec/009 (refines 007 for 112) > plan in 007
+  - colors only from pixel measure of same screen+role > spec wording (owner asked why orange)
+  - layout-level mode guard (same as role guard) > API data lock: owner asked "hide"
+Next:
+  !1: owner texts for 009 T009 tickets + ok for DB reset/0007
+  !2: speckit-implement 009 Phase 1-2
+Caution:
+  ⚠️ no lsof here: kill stale next-server by PID before demo-up, else EADDRINUSE + old build answers "READY"
+  ⚠️ no Co-Authored-By trailer

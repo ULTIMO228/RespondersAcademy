@@ -60,3 +60,12 @@
 
 ## L013 | flaky tests
 ⚠️ IncidentScreen "card-881412" failed once in full vitest run, passes alone → rerun file before blaming own change
+
+## L014 | colors / ARM authenticity
+❌ take a color from spec wording or from another role's screen (owner: "почему оранжевое то, что в АРМ не оранжевое")
+✅ measure pixel on reference of the SAME screen + SAME role (PIL), comment token w/ file+coord; 112 fill card panel #ec653b, DDS panel #49555d
+! same block differs by role/state in real ARM
+
+## L015 | stand restart in cloud container
+❌ `lsof -ti … | xargs kill` → no lsof here, old next-server keeps :3130; new demo-up dies EADDRINUSE, old build answers health check
+✅ `ps aux | grep -E "next-server|next start|uvicorn"` → kill PIDs; check `.next/BUILD_ID` mtime and that BOTH :3130 and :8130 answer before browser checks
