@@ -15,7 +15,7 @@
     { "id": "u-007", "login": "sidorova", "password": "student112", "fullName": "Сидорова Мария Игоревна", "role": "student", "armNumber": 3, "isActive": true, "group": "ДДС-01", "service": "ДДС района Зюзино" },
     { "id": "u-008", "login": "kuzmin", "password": "student112", "fullName": "Кузьмин Олег Андреевич", "role": "student", "armNumber": 4, "isActive": true, "group": "ДДС-01", "service": "Мосводоканал (учебный профиль)" },
     { "id": "u-009", "login": "vasileva", "password": "student112", "fullName": "Васильева Ольга Николаевна", "role": "student", "armNumber": 5, "isActive": true, "group": "ДДС-01", "service": "Мосгаз (учебный профиль)" },
-    { "id": "u-010", "login": "egorov", "password": "student112", "fullName": "Егоров Павел Сергеевич", "role": "student", "armNumber": 6, "isActive": true, "group": "ДДС-01", "service": "ДДС района Обручевский" },
+    { "id": "u-010", "login": "egorov", "password": "student112", "fullName": "Егоров Павел Сергеевич", "role": "student", "armNumber": 6, "isActive": true, "group": "ДДС-01", "service": "ДДС района Обручевский", "trainingProfile": "dds" },
     { "id": "u-011", "login": "nikolaeva", "password": "student112", "fullName": "Николаева Дарья Андреевна", "role": "student", "armNumber": 7, "isActive": true, "group": "ДДС-01", "service": "ДДС района Зюзино" },
     { "id": "u-012", "login": "fedorov", "password": "student112", "fullName": "Фёдоров Максим Игоревич", "role": "student", "armNumber": 8, "isActive": true, "group": "ДДС-01", "service": "Мосводоканал (учебный профиль)" },
     { "id": "u-013", "login": "orlova", "password": "student112", "fullName": "Орлова Ксения Дмитриевна", "role": "student", "armNumber": 9, "isActive": true, "group": "ДДС-01", "service": "ДДС района Царицыно" },

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { LOGIN_QUERY } from "@/entities/user";
 import type { UserRole } from "@/shared/api";
-import { ROUTES } from "@/shared/config";
+import { ROUTES, TRAINING_PROFILE_TITLES } from "@/shared/config";
 
 import { DEMO_ROLE_QUERY, ROLE_SHORTCUTS } from "../config/loginContent";
 import type { DemoAccount } from "../model/authAccounts";
@@ -24,7 +24,10 @@ export function DemoAccessPanel({ accounts, roleTitles, returnUrl }: DemoAccessP
       <ul className={styles["login__demo-list"]}>
         {accounts.map((account) => (
           <li key={account.login}>
-            {roleTitles[account.role]}: <strong>{account.login}</strong> / {account.password}
+            {account.trainingProfile
+              ? TRAINING_PROFILE_TITLES[account.trainingProfile]
+              : roleTitles[account.role]}
+            : <strong>{account.login}</strong> / {account.password}
             {account.isActive ? "" : " — заблокирована"}
           </li>
         ))}
