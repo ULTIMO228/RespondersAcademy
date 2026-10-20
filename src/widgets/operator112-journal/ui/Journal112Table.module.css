@@ -66,25 +66,51 @@
   color: var(--color-white);
 }
 .status {
+  color: var(--color-light-muted);
+}
+.status[data-alarm="true"] {
   background: var(--color-status-new);
   color: var(--color-white);
+}
+.row td + td {
+  border-left: var(--border-width) solid var(--color-graphite-700);
+}
+.cells {
+  display: inline-flex;
+  height: var(--row-height-journal);
+}
+.cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  color: var(--color-light-muted);
+}
+.cell + .cell {
+  border-left: var(--border-width) solid var(--color-graphite-700);
+}
+.cell[data-on="true"] {
+  color: var(--color-white);
+}
+.linked {
+  background: var(--color-operator-cell);
+  color: var(--color-light-text);
+}
+.checked {
+  width: 40px;
+  color: var(--color-graphite-500);
+  text-align: center;
+}
+.checked[data-on="true"] {
+  color: var(--color-light-text);
 }
 .addr {
   font-size: var(--font-size-lg);
   color: var(--color-white);
 }
-.links {
+.row .links {
+  padding: 0;
   white-space: nowrap;
-}
-
-/* Связанная карточка: малиновая ячейка «Связи» с цепочкой (ИНСТРУКЦИЯ_66). */
-.links[data-linked="true"] {
-  background: var(--color-operator-cell);
-}
-
-.links__chain {
-  display: inline-flex;
-  color: var(--color-light-text);
 }
 .desc td {
   background: var(--color-graphite-700);

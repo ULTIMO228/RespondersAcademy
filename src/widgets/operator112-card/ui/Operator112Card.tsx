@@ -84,10 +84,11 @@ export function Operator112Card({
                   type="button"
                   className={styles.flag}
                   aria-pressed={flags[key]}
+                  aria-label={label}
                   disabled={disabled}
                   onClick={() => onFlag(key, !flags[key])}
                 >
-                  {label}
+                  <FlagLabel label={label} />
                 </button>
               ))}
             </div>
@@ -116,5 +117,17 @@ export function Operator112Card({
       {servicesBar ? <div className={styles.card__services}>{servicesBar}</div> : null}
       {overlays}
     </div>
+  );
+}
+
+/** Подпись флага в две строки после «/», как на КАРТОЧКА_image1 («Нет на месте/» над «Отказ от скорой»). */
+function FlagLabel({ label }: { label: string }) {
+  const [first, second] = label.split("/ ");
+  if (!second) return <>{label}</>;
+  return (
+    <>
+      {first}/<br />
+      {second}
+    </>
   );
 }

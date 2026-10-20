@@ -13,7 +13,10 @@
 }
 
 .header__title {
+  overflow: hidden;
   margin: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: var(--card-font-title);
   font-weight: var(--font-weight-bold);
 }

@@ -446,7 +446,8 @@ export function Operator112CardView({
     <div ref={root} hidden={!active || view === "links"} className={styles.view}>
       <Operator112Card
         phone={{
-          status: isPractice ? "не подключен" : "доступен",
+          // Во время разговора линия занята — подпись трубки «Отключение» (КАРТОЧКА_1).
+          status: isPractice ? "не подключен" : attempt?.state === "answered" ? "Отключение" : "доступен",
           aon: attempt ? formatAon(attempt.aon) : "",
           phoneProvided: form.phoneProvided,
           phoneOnSite: form.phoneOnSite,

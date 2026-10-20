@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { ArmIcon, Glyph } from "@/shared/ui";
+import type { GlyphName } from "@/shared/ui";
 
 import { formatClock, formatHeaderDate } from "./format";
 import styles from "./Journal112Header.module.css";
@@ -18,6 +19,19 @@ const MENU = [
   "аудит",
   "отчёты",
 ] as const;
+
+/** Значки над пунктами меню разделов (ИНСТРУКЦИЯ_106). */
+const MENU_GLYPHS: Record<(typeof MENU)[number], GlyphName> = {
+  журнал: "menu",
+  экран: "launch",
+  статистика: "barChart",
+  УЕР: "settings",
+  вики: "help",
+  заявители: "people",
+  техника: "vehicle",
+  аудит: "eye",
+  отчёты: "doc",
+};
 
 type Props = {
   operatorName: string;
@@ -131,10 +145,12 @@ export function Journal112Header({
           {MENU.map((item) =>
             item === "журнал" ? (
               <span key={item} className={`${styles.menuItem} ${styles.menuActive}`} aria-current="page">
+                <Glyph name={MENU_GLYPHS[item]} size={20} />
                 {item}
               </span>
             ) : (
               <span key={item} className={styles.menuItem} aria-disabled="true">
+                <Glyph name={MENU_GLYPHS[item]} size={20} />
                 {item}
               </span>
             ),

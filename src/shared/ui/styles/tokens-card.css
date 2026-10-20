@@ -31,6 +31,7 @@
 
   /* ——— Сетка и отступы ——— */
   --card-gap: 10px; /* 8 px на скрине */
+  --card-screen-min-height: calc(100vh - 28px); /* экран минус полоса тренажёра: панель «Службы:» у нижнего края (КАРТОЧКА_1) */
   --card-block-padding-x: 10px;
   --card-columns: minmax(0, 840fr) minmax(0, 1008fr); /* левая / правая колонки */
 
@@ -95,6 +96,7 @@
   --card-font-label: 12px; /* подписи полей, 9–10 px */
   --card-font-small-btn: 11px; /* «записи звонков», «просмотр» */
   --card-font-title: 19px; /* «Происшествие 36814845» */
+  --card-font-applicant: 16px; /* «Фамилия и имя заявителя», «выберите статус» (КАРТОЧКА_1) */
   --card-font-phone: 22px; /* номер телефона в поле */
   --card-font-tile-name: 15px;
   --card-font-tile-status: 12px;

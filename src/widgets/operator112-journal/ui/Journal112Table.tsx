@@ -19,6 +19,9 @@ const COLUMNS = [
   "Проверена",
 ];
 
+/** Статусы-нарушения: ячейка красная (ИНСТРУКЦИЯ_106 «Не оповещено»); прочие — на фоне строки (ИНСТРУКЦИЯ_4). */
+const ALARM_STATUSES = new Set(["Новая", "Не оповещено", "Не завершено", "Отказ"]);
+
 type Props = {
   rows: Journal112Row[];
   onOpenRow: (row: Journal112Row) => void;
@@ -68,15 +71,32 @@ export function Journal112Table({ rows, onOpenRow }: Props) {
                     if (e.key === "Enter") open();
                   }}
                 >
-                  <td className={styles.links} data-linked={row.linked ? "true" : undefined}>
-                    {row.linked ? (
-                      <span className={styles.links__chain} role="img" aria-label="связь">
-                        <Glyph name="link" size={14} />
+                  <td className={styles.links}>
+                    <span className={styles.cells}>
+                      <span className={styles.cell} aria-hidden="true">
+                        <Glyph name="chevronDown" size={16} />
                       </span>
-                    ) : null}
-                    <ArmIcon name="row-reminder" size={14} />
+                      {row.linked ? (
+                        <span className={`${styles.cell} ${styles.linked}`} role="img" aria-label="связь">
+                          <Glyph name="link" size={14} />
+                        </span>
+                      ) : (
+                        <span className={styles.cell} aria-hidden="true">
+                          <ArmIcon name="row-bookmark" size={14} />
+                        </span>
+                      )}
+                    </span>
                   </td>
-                  <td>{row.chs ? <ArmIcon name="row-important" size={14} label="ЧС" /> : null}</td>
+                  <td className={styles.links}>
+                    <span className={styles.cells}>
+                      <span className={styles.cell} data-on={row.chs ? "true" : undefined}>
+                        <ArmIcon name="row-important" size={14} label={row.chs ? "ЧС" : undefined} />
+                      </span>
+                      <span className={styles.cell} aria-hidden="true">
+                        <ArmIcon name="row-reminder" size={14} />
+                      </span>
+                    </span>
+                  </td>
                   <td>{row.operator}</td>
                   <td>{row.arm}</td>
                   <td>{row.number}</td>
@@ -84,10 +104,17 @@ export function Journal112Table({ rows, onOpenRow }: Props) {
                   <td className={styles.time}>{time}</td>
                   <td className={styles.what}>{row.whatHappened}</td>
                   <td>{row.injured}</td>
-                  <td className={styles.status}>{row.status}</td>
+                  <td
+                    className={styles.status}
+                    data-alarm={ALARM_STATUSES.has(row.status) ? "true" : undefined}
+                  >
+                    {row.status}
+                  </td>
                   <td className={styles.addr}>{row.address}</td>
-                  <td>
-                    {row.checked ? <ArmIcon name="service-status" size={20} label="проверена" /> : null}
+                  <td className={styles.checked} data-on={row.checked ? "true" : undefined}>
+                    <span role="img" aria-label={row.checked ? "проверена" : "не проверена"}>
+                      <Glyph name="checkCircle" size={22} />
+                    </span>
                   </td>
                 </tr>
                 {row.description ? (

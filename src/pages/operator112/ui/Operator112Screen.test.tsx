@@ -173,7 +173,7 @@ describe("Operator112Screen: журнал и входящий вызов", () =>
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     expect(screen.getByRole("status")).toHaveTextContent("Выдача вызова");
     expect(await screen.findByRole("dialog", { name: "Входящий звонок" })).toBeInTheDocument();
-    expect(api.journal).toHaveBeenCalledWith("asg-001");
+    await waitFor(() => expect(api.journal).toHaveBeenCalledWith("asg-001"));
     expect((await screen.findAllByText("Задымление")).length).toBe(2);
     expect(screen.getByText(/с номера/)).toBeInTheDocument();
   });

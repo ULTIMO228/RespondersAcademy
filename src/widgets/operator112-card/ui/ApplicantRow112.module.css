@@ -16,11 +16,11 @@
   background: transparent;
   color: var(--color-ink);
   font: inherit;
-  font-size: var(--card-font-title);
+  font-size: var(--card-font-applicant);
 }
 
 .row__name {
-  flex: 1.2;
+  flex: 1.5;
   min-width: 0;
 }
 
