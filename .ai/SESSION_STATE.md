@@ -27,6 +27,7 @@ polza without key → Settings validator fails startup (no silent switch)
  5 `npm run mocks:sync` — spec mocks (sessions/users) changed, mocks/ copy not refreshed
  6 owner checklist (screenshot): 5.1 filter sizes 44/16px (a11y.test only scans cursor:pointer rules → fields may be missed), 5.3 group assignments in existing DB, 5.4 student recommendations rating race (old phase-14 code, not ours)
  7 T061 docs/demo.mp4 — owner records; never fabricate
+ 8 2026-10-20 browser check /admin/performance as admin ✅: export.xlsx fetch 200 xlsx 14KB, tabs Students+Errors render; group col nowrap fixed (uncommitted, vitest 10 pass, eslint/prettier/tsc clean); 5 resolved: mock exportFormats csv|pdf is correct (mock layer has no xlsx)
 
 ## Caution
 ⚠️ .next baked with BACKEND_URL=127.0.0.1:8130 after run_frontend_e2e.sh / demo-up → rebuild before plain `next dev`/start

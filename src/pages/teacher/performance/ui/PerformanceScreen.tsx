@@ -311,7 +311,11 @@ function ReportBody({
                 title: "ФИО",
                 render: (row) => <span className={styles.nowrap}>{row.name}</span>,
               },
-              { key: "group", title: "Группа", render: (row) => row.groupId ?? "Без группы" },
+              {
+                key: "group",
+                title: "Группа",
+                render: (row) => <span className={styles.nowrap}>{row.groupId ?? "Без группы"}</span>,
+              },
               ...statColumns((row: PerformanceReport["students"][number]) => row.stats),
             ]}
             rows={data.students}
