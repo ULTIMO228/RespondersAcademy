@@ -68,3 +68,11 @@ Decisions: 🧠
   - panel color by card state (new #ec653b / saved #49555d, same in 112 instruction ИНСТРУКЦИЯ_94 and DDS) > by role (R13a)
   - what = incidents[0] server-side > assessor change (SC-004 kept: old body = 96)
 Next: !1 T007 events | then T008-T020 | owner: T009 ticket texts + DB reset/0007 ok
+
+---
+## 2026-10-20 (3) | @claude | branch:SASHA | mode:normal
+Focus: 004 T007 (Polza real-key check)
+Done: spec/004-polza-provider/quickstart.md (steps 1-6 + protocol) ✅ | offline polza tests 33 passed, ruff clean
+Blocked: ❌ no POLZA_API_KEY, polza.ai 403 by env network policy → real call not run, T007 stays [ ]
+Next: !1 owner: key in backend/.env + allow polza.ai → run quickstart, fill protocol
+---

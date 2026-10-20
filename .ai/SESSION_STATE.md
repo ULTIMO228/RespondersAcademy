@@ -33,7 +33,7 @@ polza without key → Settings validator fails startup (no silent switch)
 
 ## Action
 !0 009: owner to approve synthetic tickets (T009: 1 SMS, 1-2 repeatOf pairs, 1-2 lockedBy) + DB reset/migration 0007 → then speckit-implement Phase 1
-!1 T007 polza real-key check: owner puts POLZA_API_KEY in backend/.env, then says ready; run 1 scenario gen + 1 explain, check audit rows
+!1 004 T007 polza real-key check: procedure+protocol ready spec/004-polza-provider/quickstart.md (2026-10-20) | blocked: no key + cloud env 403 on polza.ai | next: owner adds key + allows polza.ai → steps 1-6
 !2 T072 usability check w/ ≥3 teachers + T073 manual scenarios 1-14 (quickstart.md) NOT done
  3 simulator-visual playwright (SC-010) NOT run
  4 backend/var/dev.db lacks error_map_verdicts → alembic upgrade head or app.seed.load --reset (ask owner first)
