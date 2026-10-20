@@ -277,7 +277,8 @@ async def relay(browser: WebSocket, upstream, record: dict) -> None:
                 stats = record.setdefault("diagnostics", {})
                 stats["responses"] = stats.get("responses", 0) + 1
                 responses[rid] = ""
-                if pending_inputs:
+                # Перебивание — ответ на ещё не законченную речь, а не на ожидающую реплику оператора.
+                if pending_inputs and not event.get("response", {}).get("interrupting"):
                     response_inputs[rid] = pending_inputs.popleft()
             elif kind == "input_audio_buffer.committed":
                 item_id = event.get("item_id", "")
@@ -317,7 +318,8 @@ async def relay(browser: WebSocket, upstream, record: dict) -> None:
             if kind.startswith(("response.", "input_audio_buffer.", "conversation.item.input_audio_transcription.")):
                 safe = {key: event[key] for key in ("type", "response_id", "item_id", "delta", "transcript") if key in event}
                 if kind in ("response.created", "response.done"):
-                    safe["response"] = {key: event.get("response", {})[key] for key in ("id", "status") if key in event.get("response", {})}
+                    safe["response"] = {key: event.get("response", {})[key]
+                                        for key in ("id", "status", "interrupting") if key in event.get("response", {})}
                 await browser.send_json(safe)
 
     tasks = [asyncio.create_task(to_model()), asyncio.create_task(to_browser())]

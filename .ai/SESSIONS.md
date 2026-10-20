@@ -96,3 +96,9 @@ focus:caller prompt quality
 done:facts_text, prompt rewrite, STYLE fillers down, [перебили] tag
 checks:pytest 1013 passed/3 skipped, ruff clean | live model eval NOT run (permission denied for pasted key)
 next:owner live check; old-vs-new eval script in scratchpad only
+
+## 2026-10-20c claude/awesome-curie-i39fyz
+focus:caller barge-in (liveliness)
+done:backend barge_in + STILL_TALKING prompt + relay interrupting; front playback overlapping
+checks:pytest 1020/3 skipped, ruff clean, vitest 40/40 (realtime-audio, softphone), tsc ok | npm run check, e2e not run
+next:owner headset test; tune LIVE_CALL_BARGE_IN_SEC

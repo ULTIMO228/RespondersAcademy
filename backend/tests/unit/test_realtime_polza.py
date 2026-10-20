@@ -578,3 +578,93 @@ async def test_fully_heard_reply_is_not_marked_as_interrupted(settings):
 def test_prompt_says_answer_operator_question_even_before_greeting():
     instructions = call.session_update({}, {"summary": "пожар"})["session"]["instructions"]
     assert "уже задал вопрос" in instructions
+
+
+def _barge_session(settings, monkeypatch, handler, mood="паника"):
+    session = _speech_session(settings, monkeypatch, handler)
+    monkeypatch.setattr(settings, "live_call_barge_in_sec", 1.0)
+    session.mood = mood
+    barged = asyncio.Event()
+    seen = {}
+
+    async def respond(initial=False, barge=None):
+        seen["barge"], seen["speaking"] = barge, session.speaking
+        barged.set()
+
+    monkeypatch.setattr(session, "respond", respond)
+    return session, barged, seen
+
+
+async def test_anxious_caller_interrupts_long_operator_speech_by_meaning(settings, monkeypatch):
+    # Живость: встревоженный заявитель не ждёт конца длинной речи оператора, а перебивает по смыслу услышанного.
+    calls = []
+    session, barged, seen = _barge_session(
+        settings, monkeypatch, lambda r: calls.append(r) or httpx.Response(200, json={"text": "сейчас я задам вам"}))
+    session.listener = asyncio.create_task(session.listen())
+    for _ in range(12):  # 1,2 с речи без паузы
+        await session.audio.put(SPEECH)
+    await asyncio.wait_for(barged.wait(), 2)
+    assert seen == {"barge": "сейчас я задам вам", "speaking": True}  # оператор ещё говорит
+    assert len(calls) == 1
+    await session.__aexit__()
+
+
+async def test_calm_caller_waits_for_operator(settings, monkeypatch):
+    calls = []
+    session, barged, _ = _barge_session(
+        settings, monkeypatch, lambda r: calls.append(r) or httpx.Response(200, json={"text": "x"}), mood="спокойно")
+    session.listener = asyncio.create_task(session.listen())
+    for _ in range(15):
+        await session.audio.put(SPEECH)
+    await _drain(session)
+    assert not barged.is_set() and calls == []
+    await session.__aexit__()
+
+
+async def test_barge_in_is_dropped_when_operator_finished_first(settings, monkeypatch):
+    # Оператор договорил, пока распознавалось начало: перебивать уже некого — будет обычный ответ.
+    release = asyncio.Event()
+    replies = []
+
+    async def slow_transcribe(pcm):
+        if not replies:
+            replies.append("partial")
+            await release.wait()
+            return "сейчас я задам вам"
+        return "сейчас я задам вам вопросы"
+
+    session, barged, seen = _barge_session(settings, monkeypatch, lambda r: httpx.Response(200, json={"text": ""}))
+    monkeypatch.setattr(session, "transcribe", slow_transcribe)
+    session.listener = asyncio.create_task(session.listen())
+    for chunk in [SPEECH] * 12 + [SILENCE] * 7:
+        await session.audio.put(chunk)
+    await asyncio.wait_for(barged.wait(), 2)
+    release.set()
+    await asyncio.sleep(0.05)
+    assert seen["barge"] is None  # ответ на всю реплику, а не перебивание
+    await session.__aexit__()
+
+
+async def test_barge_reply_is_marked_for_browser_and_model_knows_operator_still_talks(settings, monkeypatch):
+    seen = {}
+
+    async def tokens(messages):
+        seen["last"] = messages[-1]["content"]
+        yield "[паника] А что мне делать?!"
+
+    session = _session(lambda _: httpx.Response(200, content=_wav24(10)))
+    session.tts = lambda text, mood=None: asyncio.sleep(0, b"\0\0")
+    monkeypatch.setattr(session, "reply_stream", tokens)
+    await session.respond(barge="оставайтесь на линии сейчас")
+    events = [session.events.get_nowait() for _ in range(session.events.qsize())]
+    created = next(event for event in events if event["type"] == "response.created")
+    assert created["response"]["interrupting"] is True
+    assert seen["last"].startswith("оставайтесь на линии сейчас") and "[оператор ещё говорит]" in seen["last"]
+    assert "оператор ещё говорит" in persona_style()
+    await session.client.aclose()
+
+
+def persona_style():
+    from app.services.caller_persona import STYLE
+
+    return STYLE

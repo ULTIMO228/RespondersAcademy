@@ -10,6 +10,8 @@ type Playing = {
 export function createPcmPlayback(context: AudioContext) {
   const playing = new Map<string, Playing>();
   const rejected = new Set<string>();
+  // Перебивание заявителя: звучит, пока оператор ещё говорит.
+  const overlapping = new Set<string>();
   let current: string | null = null;
   let userSpeaking = false;
   const pending: { interrupted: boolean }[] = [];
@@ -24,8 +26,12 @@ export function createPcmPlayback(context: AudioContext) {
     committed() {
       pending.push({ interrupted: false });
     },
-    begin(id: string) {
+    begin(id: string, interrupting = false) {
       current = id;
+      if (interrupting) {
+        overlapping.add(id);
+        return;
+      }
       const waiting = pending.shift();
       if (userSpeaking || waiting?.interrupted) rejected.add(id);
     },
@@ -51,7 +57,7 @@ export function createPcmPlayback(context: AudioContext) {
       userSpeaking = false;
     },
     push(id: string, itemId: string | undefined, encoded: string) {
-      if (id !== current || rejected.has(id) || userSpeaking) return;
+      if (id !== current || rejected.has(id) || (userSpeaking && !overlapping.has(id))) return;
       const bytes = Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0));
       if (bytes.length % 2) throw new Error("Некорректный поток звука");
       const view = new DataView(bytes.buffer);
@@ -89,10 +95,12 @@ export function createPcmPlayback(context: AudioContext) {
       // Завершённая генерация ещё может звучать: сохраняем время для truncate.
       for (const [key, entry] of playing) if (!entry.nodes.size) playing.delete(key);
       rejected.delete(id);
+      overlapping.delete(id);
     },
     stop() {
       clear();
       rejected.clear();
+      overlapping.clear();
       current = null;
       pending.length = 0;
     },

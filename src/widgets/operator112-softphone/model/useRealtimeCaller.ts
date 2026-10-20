@@ -121,7 +121,7 @@ export function useRealtimeCaller(attemptId: string, answered: boolean) {
             break;
           case "response.created":
             setLastCaller("");
-            duplex.begin(id);
+            duplex.begin(id, event.response?.interrupting === true);
             break;
           case "conversation.item.input_audio_transcription.completed":
             setLastHeard(event.transcript ?? "");

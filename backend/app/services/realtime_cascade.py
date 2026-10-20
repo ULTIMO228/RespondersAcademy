@@ -19,6 +19,7 @@ from app.config import get_settings
 from ml.speech import stt, tts, vad
 
 logger = logging.getLogger(__name__)
+STILL_TALKING = "[оператор ещё говорит]"  # пометка для модели: реплика оператора не закончена
 
 
 def configured() -> bool:
@@ -297,11 +298,12 @@ class CascadeSession:
                 return
             yield await asyncio.to_thread(tts.synthesize_pcm, phrase)
 
-    async def respond(self, initial: bool = False):
+    async def respond(self, initial: bool = False, barge: str | None = None):
+        """barge — начало ещё не законченной речи оператора: заявитель перебивает его."""
         rid, item = "response-" + uuid4().hex, "caller-" + uuid4().hex
         phrases: asyncio.Queue[str | None] = asyncio.Queue(maxsize=3)
         text = ""
-        await self.emit("response.created", response={"id": rid})
+        await self.emit("response.created", response={"id": rid, **({"interrupting": True} if barge else {})})
 
         async def generate():
             nonlocal text
@@ -311,6 +313,8 @@ class CascadeSession:
             messages = [{"role": "system", "content": self.instructions}, *self.history]
             if initial:
                 messages.append({"role": "user", "content": "Соединение установлено. Начни звонок как заявитель: коротко поздоровайся и своими словами попроси помощь по происшествию. Не перечисляй адрес и контакты заранее."})
+            if barge:
+                messages.append({"role": "user", "content": barge + " " + STILL_TALKING})
             async for delta in self.reply_stream(messages):
                 text += delta
                 buffer += delta

@@ -67,6 +67,27 @@ describe("Потоковый PCM", () => {
     player.push("next", "new", chunk);
     expect(nodes).toHaveLength(1);
   });
+  it("перебивание заявителя звучит поверх ещё не законченной речи оператора", () => {
+    const { player, nodes, chunk } = setup();
+    player.committed();
+    player.speechStarted();
+    player.begin("barge", true);
+    player.push("barge", "item", chunk);
+    expect(nodes).toHaveLength(1);
+    player.begin("plain");
+    player.push("plain", "item2", chunk);
+    expect(nodes).toHaveLength(1); // обычный ответ во время речи оператора по-прежнему молчит
+  });
+  it("новая речь оператора обрывает и перебивание", () => {
+    const { player, nodes, chunk } = setup();
+    player.speechStarted();
+    player.begin("barge", true);
+    player.push("barge", "item", chunk);
+    player.speechStopped();
+    expect(player.speechStarted()[0].itemId).toBe("item");
+    player.push("barge", "item", chunk);
+    expect(nodes).toHaveLength(1);
+  });
   it("прерывает уже сгенерированный, но ещё звучащий ответ", () => {
     const { player, nodes, chunk } = setup();
     player.begin("r1");

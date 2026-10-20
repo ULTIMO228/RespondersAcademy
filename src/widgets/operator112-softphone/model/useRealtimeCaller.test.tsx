@@ -53,6 +53,10 @@ describe("Потоковый разговор", () => {
     act(() => receive({ type: "ready" }));
     expect(audio.transmit).toHaveBeenCalledOnce();
     act(() => receive({ type: "response.created", response: { id: "r" } }));
+    expect(audio.begin).toHaveBeenLastCalledWith("r", false);
+    act(() => receive({ type: "response.created", response: { id: "b", interrupting: true } }));
+    expect(audio.begin).toHaveBeenLastCalledWith("b", true); // перебивание звучит поверх оператора
+    act(() => receive({ type: "response.created", response: { id: "r" } }));
     act(() => receive({ type: "conversation.item.input_audio_transcription.completed", transcript: "алло" }));
     act(() => receive({ type: "response.text.delta", response_id: "r", delta: "Помогите." }));
     expect(result.current.lastHeard).toBe("алло");

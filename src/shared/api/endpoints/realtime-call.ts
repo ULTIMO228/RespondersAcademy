@@ -3,7 +3,8 @@ import { v1ApiClient } from "../v1-client";
 export type RealtimeEvent = {
   type: string;
   response_id?: string;
-  response?: { id?: string; status?: string };
+  /** interrupting — заявитель перебивает оператора, звук идёт поверх его речи. */
+  response?: { id?: string; status?: string; interrupting?: boolean };
   item_id?: string;
   delta?: string;
   transcript?: string;

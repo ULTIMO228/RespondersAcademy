@@ -127,7 +127,7 @@ export function createDuplex(options: {
       });
       if (value) options.onLevel(0);
     },
-    begin: (id: string) => playback?.begin(id),
+    begin: (id: string, interrupting?: boolean) => playback?.begin(id, interrupting),
     committed: () => playback?.committed(),
     speechStarted: () => playback?.speechStarted() ?? [],
     speechStopped: () => playback?.speechStopped(),

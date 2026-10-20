@@ -30,6 +30,7 @@ PROVIDER = "Polza.ai"
 logger = logging.getLogger(__name__)
 # Пометка в истории модели: метка в скобках — её не покажет TagFilter и не озвучит segments(), даже если модель повторит.
 INTERRUPTED = "[перебили]"
+BARGE_MOODS = {"тревожно", "паника", "плачет"}  # спокойный заявитель дослушивает оператора
 MIN_VOICED_MS = 200  # щелчок/стук короче не отправляем в STT
 MAX_UTTERANCE_MS = 15000
 PREROLL_MS = 300
@@ -256,6 +257,21 @@ class PolzaSession(CascadeSession):
             message = exc.message if isinstance(exc, ApiError) else "Распознавание речи прервалось. Подключитесь повторно"
             await self.emit("error", code="polza", message=message)
 
+    async def barge_in(self, item_id: str, pcm: bytes):
+        """Оператор говорит долго: распознаём услышанное и перебиваем по смыслу, пока он ещё говорит."""
+        try:
+            async with self.stt_lock:
+                text = await self.transcribe(pcm)
+            if not text or not self.speaking or self.item_id != item_id:
+                return
+            logger.info("Заявитель перебивает длинную речь оператора")
+            await self.cancel_response()
+            self.response = asyncio.create_task(self.respond(barge=text))
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.warning("Перебивание пропущено: распознавание не ответило")
+
     async def listen(self):
         settings = get_settings()
         preroll: deque[bytes] = deque()
@@ -263,6 +279,8 @@ class PolzaSession(CascadeSession):
         voiced_ms = 0.0
         early: asyncio.Task | None = None  # распознавание, начатое на ранней паузе
         turn_end = asyncio.Event()
+        barge: asyncio.Task | None = None  # перебивание длинной речи оператора
+        barged = False
 
         def start_commit(event: asyncio.Event) -> asyncio.Task:
             task = asyncio.create_task(self.commit(self.item_id, bytes(utterance), event,
@@ -290,12 +308,20 @@ class PolzaSession(CascadeSession):
                     utterance = bytearray(b"".join(preroll))  # начало первого слова не обрезаем
                     preroll.clear()
                     voiced_ms = self.onset_ms
+                    barged = False
                     await self.emit("input_audio_buffer.speech_started", item_id=self.item_id)
                     await self.cancel_response()
                     continue
                 utterance += pcm
                 voiced_ms += duration if voiced else 0
                 self.silent_ms = 0 if voiced else self.silent_ms + duration
+                barge_ms = settings.live_call_barge_in_sec * 1000
+                if (not barged and barge_ms and len(utterance) >= barge_ms * 32 and self.mood in BARGE_MOODS
+                        and (self.response is None or self.response.done())):
+                    barged = True
+                    barge = asyncio.create_task(self.barge_in(self.item_id, bytes(utterance)))
+                    self.transcriptions.add(barge)
+                    barge.add_done_callback(self.transcriptions.discard)
                 if voiced and early is not None:
                     early.cancel()  # оператор продолжил фразу: распознаем её целиком
                     early = None
@@ -312,6 +338,9 @@ class PolzaSession(CascadeSession):
                         start_commit(turn_end)
                     turn_end.set()
                 early = None
+                if barge is not None and not barge.done():
+                    barge.cancel()  # оператор договорил раньше, чем распознали начало: будет обычный ответ
+                barge = None
                 self.speaking, self.onset_ms, self.silent_ms = False, 0, 0
                 await self.emit("input_audio_buffer.speech_stopped", item_id=self.item_id)
                 utterance = bytearray()
