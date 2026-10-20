@@ -7,7 +7,6 @@ import type {
   AssignmentDetail,
   AssignmentProgress,
   CardDraft,
-  ChainSubmitReview,
   ClassifierEntry,
   OperatorAttempt,
   OperatorEvaluation,
@@ -24,13 +23,12 @@ export type Problem = { kind: ProblemKind; message: string };
 export type Screen =
   | { status: "loading" }
   | { status: "problem"; problem: Problem }
-  /** Этап ДДС цепочки: открывается карточка ДДС, а не рабочее место 112. */
+  /** Сервер выдал попытку ДДС (задание режима dds): открывается карточка ДДС, а не рабочее место 112. */
   | { status: "redirect"; cardId: string }
   | { status: "ready"; assignment: AssignmentDetail; attempt: OperatorAttempt; entries: ClassifierEntry[] };
 
 export type Result = {
   evaluation: OperatorEvaluation;
-  chainReview?: ChainSubmitReview;
 };
 
 /** Итог попытки, закрытой сервером по лимиту времени экзамена (оценка 0, «не выполнено»). */
@@ -143,7 +141,7 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
         const submitted = await api.submitAttempt(attempt.id, draft);
         setAttempt(submitted.attempt);
         const evaluation = await api.getEvaluation(attempt.id);
-        setResult({ evaluation, chainReview: submitted.chainReview });
+        setResult({ evaluation });
       } catch (error) {
         const message =
           error instanceof Error && error.message ? error.message : "Не удалось передать карточку";

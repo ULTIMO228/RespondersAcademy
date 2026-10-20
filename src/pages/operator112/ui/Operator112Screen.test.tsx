@@ -306,6 +306,15 @@ describe("Operator112Screen: отказы при выдаче", () => {
       new ApiError(409, "conflict", "В экзамене билет выдаётся один раз"),
       "В экзамене билет выдаётся один раз",
     ],
+    // Старое задание chain (режим выведен 20.10.2026): сервер отказывает в start, экран не падает.
+    [
+      new ApiError(
+        409,
+        "conflict",
+        "Режим «Цепочка 112 → ДДС» выведен: задание доступно только для просмотра",
+      ),
+      "задание доступно только для просмотра",
+    ],
   ])("%s", async (error, expected) => {
     render(
       <Operator112Screen
@@ -429,61 +438,5 @@ describe("Operator112Screen: подсказки", () => {
       type: "hintShown",
       payload: { stage: "answer" },
     });
-  });
-});
-
-describe("Operator112Screen: цепочка 112 → ДДС", () => {
-  const CHAIN_MESSAGES = [
-    "Вход ДДС ожидает проверки и подтверждения преподавателем",
-    "Сначала сохраните карточку режима 112",
-    "Сохранённая карточка изменилась после подтверждения ДДС",
-    "Цепочка A → B уже завершена",
-    "Цепочке A → B не назначена утверждённая версия operator112",
-  ];
-
-  async function submitChain(api: ReturnType<typeof makeApi>) {
-    api.submitAttempt.mockResolvedValue({
-      attempt: attempt({ state: "submitted", completedAt: "2026-09-29T10:01:00+03:00" }),
-      card: {} as never,
-      evaluationId: "att-100",
-      chainReview: { scenarioId: "ais-001", version: 2, cardId: "c-777" },
-    });
-    render(<Operator112Screen assignmentId="asg-011" api={api} />);
-    await answerCall();
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
-    await screen.findByLabelText("Разбор попытки");
-  }
-
-  it("после передачи этапа A: «ожидает подтверждения преподавателем» и кнопка «Начать этап ДДС» вместо «Следующего билета»", async () => {
-    const api = makeApi();
-    await submitChain(api);
-    expect(screen.getByText(/Этап ДДС ожидает проверки и подтверждения преподавателем/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Начать этап ДДС" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Следующий билет" })).toBeNull();
-  });
-
-  it.each(CHAIN_MESSAGES.map((message) => [message]))(
-    "409 при повторном start: причина «%s» показана дословно",
-    async (message) => {
-      const api = makeApi();
-      await submitChain(api);
-      api.startAssignment.mockRejectedValueOnce(new ApiError(409, "conflict", message));
-      fireEvent.click(screen.getByRole("button", { name: "Начать этап ДДС" }));
-      expect(await screen.findByRole("alert")).toHaveTextContent(message);
-      expect(replace).not.toHaveBeenCalled();
-    },
-  );
-
-  it("после подтверждения start возвращает попытку ДДС → открывается /arm/card/{cardId}", async () => {
-    const api = makeApi();
-    await submitChain(api);
-    api.startAssignment.mockResolvedValueOnce({
-      kind: "dds",
-      sessionId: "ses-1",
-      attempt: { id: "att-200", cardId: "c-777", studentId: "u-005" } as never,
-      created: true,
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Начать этап ДДС" }));
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/arm/card/c-777"));
   });
 });

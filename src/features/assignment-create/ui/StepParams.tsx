@@ -1,5 +1,6 @@
 import { Alert, Field } from "@/shared/ui/platform";
 
+import { referenceAllowedOf } from "../model/types";
 import type { StepErrors, WizardDraft } from "../model/types";
 import { CheckRow } from "./CheckRow";
 
@@ -70,6 +71,21 @@ export function StepParams({ draft, errors, onChange }: StepParamsProps) {
           ) : null}
         </fieldset>
       )}
+
+      <fieldset className={styles.group}>
+        <legend className={styles.group__title}>Справочник</legend>
+        <CheckRow
+          checked={referenceAllowedOf(draft)}
+          onChange={(checked) => onChange({ referenceAllowed: checked })}
+        >
+          Справочник доступен
+        </CheckRow>
+        <p className={styles.step__note}>
+          {isExam
+            ? "В экзамене по умолчанию выключен: во время попытки обучающийся не сможет открыть справочник."
+            : "В тренировке по умолчанию включён: справочник открывается панелью прямо в АРМ."}
+        </p>
+      </fieldset>
 
       <div className={styles.grid}>
         <Field

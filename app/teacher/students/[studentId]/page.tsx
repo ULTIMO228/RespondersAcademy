@@ -6,9 +6,13 @@ export const metadata: Metadata = {
   title: "Обучающийся",
 };
 
-type PageProps = { params: Promise<{ studentId: string }> };
+type PageProps = {
+  params: Promise<{ studentId: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
+};
 
-export default async function TeacherStudentPage({ params }: PageProps) {
+export default async function TeacherStudentPage({ params, searchParams }: PageProps) {
   const { studentId } = await params;
-  return <TeacherStudentScreen studentId={studentId} />;
+  const { from } = await searchParams;
+  return <TeacherStudentScreen studentId={studentId} from={Array.isArray(from) ? from[0] : from} />;
 }

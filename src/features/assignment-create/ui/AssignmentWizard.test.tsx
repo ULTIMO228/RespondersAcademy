@@ -4,7 +4,7 @@ import type { Mocked } from "vitest";
 
 import { MODE_TITLES } from "@/entities/assignment";
 import { ApiError } from "@/shared/api";
-import type { AIScenarioVersion, PublicUser, Scenario, Ticket } from "@/shared/api";
+import type { PublicUser, Ticket } from "@/shared/api";
 
 import type { AssignmentCreateApi } from "../api/assignmentCreateApi";
 import { AssignmentWizard } from "./AssignmentWizard";
@@ -30,15 +30,6 @@ const ticket = (id: string, group: string, approved = true): Ticket =>
     modeOrigin: "seed",
   }) as unknown as Ticket;
 
-const version = (approval: AIScenarioVersion["approval"], number: number): AIScenarioVersion =>
-  ({
-    scenarioId: "sc-1",
-    version: number,
-    mode: "operator112",
-    approval,
-    cardSnapshot: { id: "c-500", fields: {} },
-  }) as unknown as AIScenarioVersion;
-
 function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
   const api = {
     listStudents: vi
@@ -53,8 +44,6 @@ function makeApi(overrides: Partial<AssignmentCreateApi> = {}) {
       .fn()
       .mockResolvedValue([ticket("c-010", "Пожар"), ticket("c-020", "ДТП"), ticket("c-030", "Пожар", false)]),
     listIncidentGroups: vi.fn().mockResolvedValue(["Пожар", "ДТП"]),
-    listScenarios: vi.fn().mockResolvedValue([{ id: "sc-1", title: "Сценарий один" } as Scenario]),
-    listScenarioVersions: vi.fn().mockResolvedValue([version("approved", 2), version("pending_review", 3)]),
     create: vi.fn().mockResolvedValue({ id: "asg-010" }),
     ...overrides,
   };
@@ -177,26 +166,14 @@ describe("мастер назначения", () => {
     expect(screen.getByRole("button", { name: "Создать задание" })).toBeEnabled();
   });
 
-  it("цепочка: выбираются только утверждённые версии operator112, у каждого билета — своя версия", async () => {
-    const api = makeApi();
-    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+  it("режимы — только 112 и ДДС: цепочки 112 → ДДС в мастере нет (выведена 20.10.2026)", async () => {
+    render(
+      <AssignmentWizard api={makeApi()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />,
+    );
     await pickStudent(/Иванов Иван/);
     next();
-    fireEvent.click(screen.getByRole("radio", { name: /Цепочка/ }));
-    next();
-    fireEvent.click(await screen.findByRole("button", { name: "Показать утверждённые версии" }));
-    const versionRow = await screen.findByRole("checkbox", { name: /Версия 2/ });
-    expect(screen.queryByRole("checkbox", { name: /Версия 3/ })).not.toBeInTheDocument();
-    fireEvent.click(versionRow);
-    next();
-    next();
-    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
-    await waitFor(() => expect(api.create).toHaveBeenCalled());
-    expect(api.create.mock.calls[0][0]).toMatchObject({
-      trainingMode: "chain",
-      cardIds: ["c-500"],
-      scenarioVersions: [{ scenarioId: "sc-1", version: 2, cardId: "c-500" }],
-    });
+    expect(screen.getAllByRole("radio", { name: /Режим (112|ДДС)/ })).toHaveLength(2);
+    expect(screen.queryByRole("radio", { name: /Цепочка/ })).not.toBeInTheDocument();
   });
 
   it("Отмена вызывает onCancel; «Назад» возвращает к прошлому шагу с сохранённым выбором", async () => {
@@ -354,5 +331,72 @@ describe("мастер назначения: начальные значения
     next();
     expect(await screen.findByText("c-010")).toBeInTheDocument();
     expect(screen.queryByText(/Подберите билеты/)).not.toBeInTheDocument();
+  });
+});
+
+describe("мастер назначения: профиль режима обучаемого (spec/008)", () => {
+  const withProfile = () =>
+    makeApi({
+      listStudents: vi
+        .fn()
+        .mockResolvedValue([
+          { ...student("u-005", "Иванов Сергей Петрович", "Группа 1"), trainingProfile: "operator112" },
+          student("u-006", "Петрова Анна Дмитриевна", "Группа 1"),
+        ]),
+    });
+
+  async function toMode(api: ReturnType<typeof makeApi>, names: RegExp[]) {
+    render(<AssignmentWizard api={api} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />);
+    for (const name of names) await pickStudent(name);
+    next();
+  }
+
+  it("метка «112» у курсанта с профилем на шаге «Обучающиеся»", async () => {
+    render(
+      <AssignmentWizard api={withProfile()} assignedGroups={GROUPS} onCreated={vi.fn()} onCancel={vi.fn()} />,
+    );
+    const ivanov = await screen.findByRole("checkbox", { name: /Иванов Сергей Петрович/ });
+    expect(ivanov.closest("label")).toHaveTextContent("112");
+    expect(screen.getByTitle("Профиль: Специалист системы-112")).toBeInTheDocument();
+  });
+
+  it("ivanov + petrova → ДДС: предупреждение о пропуске, в запросе только petrova", async () => {
+    const api = withProfile();
+    await toMode(api, [/Иванов Сергей/, /Петрова Анна/]);
+    expect(screen.queryByText(/Пропущены/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    expect(screen.getByText("Пропущены (профиль специалиста-112): Иванов С. П.")).toBeInTheDocument();
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    next();
+    next();
+    expect(screen.getByText("Петрова Анна Дмитриевна")).toBeInTheDocument();
+    expect(screen.getByText("Пропущены (профиль режима)")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-006"], trainingMode: "dds" });
+  });
+
+  it("только ivanov → ДДС: ошибка шага, дальше не пускает", async () => {
+    await toMode(withProfile(), [/Иванов Сергей/]);
+    fireEvent.click(screen.getByRole("radio", { name: (name) => name.includes(MODE_TITLES.dds) }));
+    next();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Нет обучающихся для режима ДДС: у выбранных профиль специалиста-112",
+    );
+    expect(screen.getByRole("heading", { name: "Режим и формат" })).toBeInTheDocument();
+  });
+
+  it("ivanov → 112: попадает в задание без предупреждений", async () => {
+    const api = withProfile();
+    await toMode(api, [/Иванов Сергей/]);
+    expect(screen.queryByText(/Пропущены/)).not.toBeInTheDocument();
+    next();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /c-010/ }));
+    next();
+    next();
+    fireEvent.click(screen.getByRole("button", { name: "Создать задание" }));
+    await waitFor(() => expect(api.create).toHaveBeenCalled());
+    expect(api.create.mock.calls[0][0]).toMatchObject({ studentIds: ["u-005"], trainingMode: "operator112" });
   });
 });

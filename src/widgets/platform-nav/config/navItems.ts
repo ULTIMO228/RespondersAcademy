@@ -58,6 +58,7 @@ export const PLATFORM_NAV: Record<UserRole, PlatformNavEntry[]> = {
       activeOn: [ROUTES.teacherStudents, "/teacher/groups"],
     },
     { href: ROUTES.teacherErrorMap, title: "Карта ошибок", icon: "analytics" },
+    { href: ROUTES.teacherRating, title: "Рейтинг", icon: "results" },
     { href: ROUTES.teacherScenarios, title: "Сценарии", icon: "doc" },
     { href: ROUTES.teacherReports, title: "Отчёты", icon: "results" },
     REFERENCE,

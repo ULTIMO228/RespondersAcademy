@@ -61,7 +61,7 @@ export {
 } from "./assignments";
 export { acceptRecommendation, getAnalytics, getGroupInsights, getHistory, getMe } from "./lobby";
 export { getStudentProfile, listRecommendations } from "./lobby";
-export { getKbArticle, listKbArticles, updateKbArticle } from "./kb";
+export { getKbArticle, getReferenceAccess, listKbArticles, updateKbArticle } from "./kb";
 export { listTickets } from "./tickets";
 export {
   EXAM_REPLAY_DENIED_MESSAGE,
@@ -88,3 +88,5 @@ export {
   saveErrorMapVerdict,
 } from "./error-map";
 export type { ErrorMapPdfParams, ErrorMapQuery } from "./error-map";
+export { getStudentRating, getStudentStats } from "./student-rating";
+export type { StudentRatingQuery, StudentStatsQuery } from "./student-rating";

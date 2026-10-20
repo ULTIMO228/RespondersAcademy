@@ -1,4 +1,4 @@
-import type { AssignmentFormat, AssignmentScenarioVersion, TrainingMode } from "@/shared/api";
+import type { AssignableMode, AssignmentFormat } from "@/shared/api";
 
 export const WIZARD_STEPS = [
   "Обучающиеся",
@@ -14,18 +14,21 @@ export type TicketSource = "cards" | "rule";
 export type WizardDraft = {
   title: string;
   studentIds: string[];
-  trainingMode: TrainingMode;
+  trainingMode: AssignableMode;
   format: AssignmentFormat;
   ticketSource: TicketSource;
   cardIds: string[];
-  /** Только для цепочки: утверждённые версии operator112 по выбранным билетам. */
-  scenarioVersions: AssignmentScenarioVersion[];
   ruleGroups: string[];
   ruleDifficulty: number[];
   ruleCount: string;
   answerSec: string;
   submitSec: string;
   hintsEnabled: boolean;
+  /**
+   * «Справочник доступен» (спека 005). null — не менялось вручную: действует значение формата
+   * (тренировка — да, экзамен — нет), см. `referenceAllowedOf`.
+   */
+  referenceAllowed: boolean | null;
   hintIdleSec: string;
   passThreshold: string;
   timeLimitSec: string;
@@ -48,7 +51,7 @@ export const TITLE_MAX = 120;
  */
 export type WizardInitial = {
   studentIds?: string[];
-  trainingMode?: TrainingMode;
+  trainingMode?: AssignableMode;
   title?: string;
 };
 
@@ -61,13 +64,13 @@ export function createDraft(initial?: WizardInitial): WizardDraft {
     format: "training",
     ticketSource: "cards",
     cardIds: [],
-    scenarioVersions: [],
     ruleGroups: [],
     ruleDifficulty: [],
     ruleCount: "5",
     answerSec: "30",
     submitSec: "180",
     hintsEnabled: true,
+    referenceAllowed: null,
     hintIdleSec: "20",
     passThreshold: "70",
     timeLimitSec: "",
@@ -75,4 +78,9 @@ export function createDraft(initial?: WizardInitial): WizardDraft {
     workMessagesEnabled: false,
     workMessageIntervals: ["20", "50", "90", "150"],
   };
+}
+
+/** Итоговое «Справочник доступен»: ручной выбор преподавателя или значение по умолчанию формата. */
+export function referenceAllowedOf(draft: Pick<WizardDraft, "format" | "referenceAllowed">): boolean {
+  return draft.referenceAllowed ?? draft.format === "training";
 }

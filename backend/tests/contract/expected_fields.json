@@ -483,7 +483,8 @@
     "maxGrammarErrors",
     "workMessagesEnabled",
     "workMessageIntervalsSec",
-    "adaptive"
+    "adaptive",
+    "referenceAllowed"
    ],
    "extends": []
   },
@@ -497,8 +498,7 @@
    ],
    "optional": [
     "score",
-    "passed",
-    "chainReview"
+    "passed"
    ],
    "extends": []
   },
@@ -956,27 +956,6 @@
    "optional": [
     "operator"
    ],
-   "extends": []
-  },
-  "ChainReview": {
-   "file": "assignments.ts",
-   "required": [
-    "scenarioId",
-    "version",
-    "approval",
-    "validation"
-   ],
-   "optional": [],
-   "extends": []
-  },
-  "ChainSubmitReview": {
-   "file": "assignments.ts",
-   "required": [
-    "scenarioId",
-    "version",
-    "cardId"
-   ],
-   "optional": [],
    "extends": []
   },
   "ChangePasswordRequest": {
@@ -1822,6 +1801,24 @@
    ],
    "extends": []
   },
+  "RatingGroup": {
+   "file": "student-rating.ts",
+   "required": [
+    "groupId",
+    "studentCount"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "RatingNorms": {
+   "file": "student-rating.ts",
+   "required": [
+    "reactionMs",
+    "processingMs"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "Recommendation": {
    "file": "lobby.ts",
    "required": [
@@ -1845,6 +1842,17 @@
     "ruleId"
    ],
    "optional": [],
+   "extends": []
+  },
+  "ReferenceAccess": {
+   "file": "kb.ts",
+   "required": [
+    "allowed"
+   ],
+   "optional": [
+    "assignmentId",
+    "message"
+   ],
    "extends": []
   },
   "ReferenceData": {
@@ -2479,6 +2487,110 @@
     "strongerMode",
     "typicalErrors",
     "recommendations"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentRatingResponse": {
+   "file": "student-rating.ts",
+   "required": [
+    "groups",
+    "groupId",
+    "period",
+    "mode",
+    "norms",
+    "minAttempts",
+    "rows"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentRatingRow": {
+   "file": "student-rating.ts",
+   "required": [
+    "attempts",
+    "averageScore",
+    "averageReactionMs",
+    "averageProcessingMs",
+    "withinNormsShare",
+    "studentId",
+    "fullName",
+    "groupId",
+    "ratingOperator112",
+    "ratingDds",
+    "enoughData"
+   ],
+   "optional": [],
+   "extends": [
+    "StudentStatsSummary"
+   ]
+  },
+  "StudentStats": {
+   "file": "student-rating.ts",
+   "required": [
+    "studentId",
+    "fullName",
+    "groupId",
+    "period",
+    "mode",
+    "norms",
+    "summary",
+    "byMode",
+    "dynamics",
+    "attempts"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentStatsAttempt": {
+   "file": "student-rating.ts",
+   "required": [
+    "attemptId",
+    "at",
+    "mode",
+    "score",
+    "reactionMs",
+    "processingMs",
+    "sessionId",
+    "format",
+    "title",
+    "passed"
+   ],
+   "optional": [],
+   "extends": [
+    "StudentStatsPoint"
+   ]
+  },
+  "StudentStatsByMode": {
+   "file": "student-rating.ts",
+   "required": [
+    "operator112",
+    "dds"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentStatsPoint": {
+   "file": "student-rating.ts",
+   "required": [
+    "attemptId",
+    "at",
+    "mode",
+    "score",
+    "reactionMs",
+    "processingMs"
+   ],
+   "optional": [],
+   "extends": []
+  },
+  "StudentStatsSummary": {
+   "file": "student-rating.ts",
+   "required": [
+    "attempts",
+    "averageScore",
+    "averageReactionMs",
+    "averageProcessingMs",
+    "withinNormsShare"
    ],
    "optional": [],
    "extends": []

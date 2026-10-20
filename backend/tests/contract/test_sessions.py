@@ -16,7 +16,7 @@ def _now(offset_seconds: int = 0) -> str:
 
 
 async def test_student_journey(client):
-    session = await login_as(client, "student")
+    session = await login_as(client, "student2")  # spec/008: занятие ДДС — petrova, ivanov — специалист-112
     student_id = session["userId"]
 
     created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": [student_id], "scenarioIds": [SCENARIO_ID], "mode": "practice", "cardSource": "generated"})
@@ -69,9 +69,9 @@ async def test_student_journey(client):
     found = [e for s in mine.json() for e in s["cardEvents"] if e["id"] == attempt_id]
     assert found and all(s["studentIds"] == [student_id] for s in mine.json())
 
-    alien = await client.get("/sessions", params={"studentId": "u-006"})
+    alien = await client.get("/sessions", params={"studentId": "u-007"})
     assert alien.status_code == 403 and alien.json()["error"]["code"] == "forbidden"
-    alien_feed = await client.get(f"/sessions/{session_id}/feed", params={"studentId": "u-006"})
+    alien_feed = await client.get(f"/sessions/{session_id}/feed", params={"studentId": "u-007"})
     assert alien_feed.status_code == 403
     client.cookies.clear()
 
@@ -83,7 +83,7 @@ async def test_session_validation_and_feed_access(client):
     unapproved = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-005"], "scenarioIds": ["s-999"], "mode": "practice", "cardSource": "generated"})
     assert unapproved.status_code == 400
     plan = {"categories": [], "issueOrder": "manual", "hints": True, "timeNorms": {"primaryReactionSec": 30, "fullProcessingSec": 180}, "maxGrammarErrors": 1, "paceSec": 60, "conveyor": False}
-    created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-005", "u-006"], "scenarioIds": ["s-001"], "mode": "follow", "cardSource": "generated", "plan": plan})
+    created = await client.post("/sessions", json={"teacherId": TEACHER_ID, "studentIds": ["u-006", "u-016"], "scenarioIds": ["s-001"], "mode": "follow", "cardSource": "generated", "plan": plan})
     assert created.status_code == 201, created.text
     session_id = created.json()["id"]
     await login_as(client, "teacher")
@@ -97,7 +97,7 @@ async def test_session_validation_and_feed_access(client):
     assert paused.json()["paused"] is True and paused.json()["pendingCount"] >= 0
     resumed = await client.post(f"/sessions/{session_id}/control", json={"action": "resume"})
     assert resumed.json()["paused"] is False and resumed.json()["session"]["cardFlow"] == []
-    issued = await client.post(f"/sessions/{session_id}/control", json={"action": "issue", "studentId": "u-005", "cardId": "c-002"})
+    issued = await client.post(f"/sessions/{session_id}/control", json={"action": "issue", "studentId": "u-006", "cardId": "c-002"})
     assert len(issued.json()["session"]["cardFlow"]) == 1
     assert (await client.post(f"/sessions/{session_id}/control", json={"action": "fly"})).status_code == 400
     bad_feed = await client.get(f"/sessions/{session_id}/feed", params={"since": "garbage"})

@@ -364,7 +364,7 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     await db.flush()
     from app.services.chain_service import issue_submitted_card
 
-    await issue_submitted_card(db, card, attempt, assignment)
+    await issue_submitted_card(db, card, attempt)
     contract = attempt.to_operator_contract(replays=link.replays if link else 0, hints_shown=link.hints_shown if link else 0)
     params = dict((assignment.params if assignment else None) or {})
     weights = params.get("weights") if isinstance(params.get("weights"), dict) else None
@@ -434,12 +434,7 @@ async def submit(db: AsyncSession, attempt_id: str, draft: dict[str, Any], viewe
     from app.services.rating_service import sync as sync_rating
 
     await sync_rating(db, attempt.student_id, MODE)
-    response: dict[str, Any] = {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
-    if assignment is not None and assignment.training_mode == "chain":
-        from app.services.assignment_service import register_chain_submission
-
-        response["chainReview"] = await register_chain_submission(db, assignment, attempt)
-    return response
+    return {"attempt": await contract_of(db, attempt, link, assignment), "card": card.to_contract(), "evaluationId": attempt.id}
 
 
 async def saved_card_for_attempt(db: AsyncSession, attempt_id: str) -> IncidentCard:

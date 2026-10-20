@@ -1,5 +1,6 @@
 import type { AssignmentCreateRequest, AssignmentParams } from "@/shared/api";
 
+import { referenceAllowedOf } from "./types";
 import type { StepErrors, WizardDraft } from "./types";
 
 function toInt(value: string): number | null {
@@ -26,20 +27,7 @@ export function validateTickets(draft: WizardDraft): StepErrors {
     }
     return {};
   }
-  if (draft.cardIds.length === 0) {
-    return {
-      cardIds:
-        draft.trainingMode === "chain"
-          ? "Выберите утверждённую версию сценария"
-          : "Выберите хотя бы один билет",
-    };
-  }
-  if (draft.trainingMode === "chain") {
-    const covered = new Set(draft.scenarioVersions.map((item) => item.cardId));
-    if (draft.cardIds.some((cardId) => !covered.has(cardId))) {
-      return { cardIds: "Для цепочки нужна утверждённая версия operator112 у каждого билета" };
-    }
-  }
+  if (draft.cardIds.length === 0) return { cardIds: "Выберите хотя бы один билет" };
   return {};
 }
 
@@ -93,6 +81,7 @@ export function buildParams(draft: WizardDraft): AssignmentParams {
     // Экзамен сервер всё равно создаёт без подсказок — фронт не даёт их включить.
     hints: isExam ? { enabled: false } : { enabled: draft.hintsEnabled, idleSec: Number(draft.hintIdleSec) },
     workMessagesEnabled: draft.workMessagesEnabled,
+    referenceAllowed: referenceAllowedOf(draft),
   };
   if (isExam) params.passThreshold = Number(draft.passThreshold);
   if (draft.timeLimitSec.trim() !== "") params.timeLimitSec = Number(draft.timeLimitSec);
@@ -119,7 +108,6 @@ export function buildRequest(draft: WizardDraft): AssignmentCreateRequest {
     };
   } else {
     request.cardIds = draft.cardIds;
-    if (draft.trainingMode === "chain") request.scenarioVersions = draft.scenarioVersions;
   }
   return request;
 }

@@ -1,5 +1,5 @@
 /* Public API контрактных типов мок-слоя (spec/000-фронт/05-data-models.md + транспорт /api/mock/*). */
-export type { AuthPolicy, AuthSession, PublicUser, Role, User } from "./user";
+export type { AuthPolicy, AuthSession, PublicUser, Role, TrainingProfile, User } from "./user";
 export type { CallerStatus, CardStatus, CardStatusDef, ClassifierRowsRef, DdsStatus } from "./reference";
 export type { DdsStatusDef, District, InternalNumber, ReferenceData, ServiceKind } from "./reference";
 export type { ServiceRef, ServiceStatus, ServiceStatusDef } from "./reference";
@@ -107,8 +107,7 @@ export type {
 export type {
   AssignmentRandomRule,
   AssignmentState,
-  ChainReview,
-  ChainSubmitReview,
+  AssignableMode,
   StartAssignmentResult,
 } from "./assignments";
 export type { TrainingMode } from "./assignments";
@@ -117,7 +116,7 @@ export type { Ticket, TicketOrigin, TicketsQuery } from "./tickets";
 export type { GroupInsight, GroupInsights, StudentProfile, TypicalError } from "./lobby";
 export type { Analytics, AnalyticsDynamics, AnalyticsTopError, HistoryItem, HistoryQuery } from "./lobby";
 export type { LobbyMode, Recommendation, RecommendationKind, RecommendationReason, Stats } from "./lobby";
-export type { KbArticle, KbArticlePatch, KbArticlesQuery, KbSections } from "./kb";
+export type { KbArticle, KbArticlePatch, KbArticlesQuery, KbSections, ReferenceAccess } from "./kb";
 export type { ReportAudioResponse, ReportCall, ReportCheck, ReportCheckResult } from "./work-messages";
 export type { ReportTranscriptLine, WorkMessage, WorkMessageKind, WorkMessageStatus } from "./work-messages";
 export type {
@@ -182,3 +181,16 @@ export type {
   StageLevelWord,
   VerdictKind,
 } from "./error-map";
+export type {
+  RatingGroup,
+  RatingMode,
+  RatingNorms,
+  RatingPeriod,
+  StudentRatingResponse,
+  StudentRatingRow,
+  StudentStats,
+  StudentStatsAttempt,
+  StudentStatsByMode,
+  StudentStatsPoint,
+  StudentStatsSummary,
+} from "./student-rating";

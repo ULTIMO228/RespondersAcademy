@@ -1,0 +1,181 @@
+/* Справочник поверх АРМ (спека 005): только токены АРМ (--color-*), как у панели тренажёра. */
+.toggle {
+  min-height: 24px;
+  padding: 0 var(--spacing-lg);
+  border: var(--border-width) solid var(--color-graphite-600);
+  border-radius: 2px;
+  background: var(--color-graphite-800);
+  color: var(--color-white);
+  font: inherit;
+  cursor: pointer;
+}
+
+.toggle[aria-expanded="true"] {
+  background: var(--color-accent-blue);
+  border-color: var(--color-accent-blue);
+}
+
+.toggle:focus-visible,
+.link:focus-visible,
+.close:focus-visible,
+.back:focus-visible,
+.result:focus-visible,
+.input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.panel {
+  position: fixed;
+  top: 28px;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100vw);
+  background: var(--color-white);
+  color: var(--color-ink);
+  border-left: var(--border-width) solid var(--color-graphite-400);
+  box-shadow: -4px 0 16px var(--color-shadow);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: var(--color-graphite-800);
+  color: var(--color-white);
+}
+
+.panel__title {
+  margin: 0;
+  margin-right: auto;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+}
+
+.link,
+.close {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.link {
+  text-decoration: underline;
+}
+
+.close {
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  min-width: 24px;
+}
+
+.window {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-base);
+  color: var(--color-ink);
+}
+
+.browser {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.label {
+  font-weight: var(--font-weight-medium);
+}
+
+.input {
+  min-height: 32px;
+  padding: 0 var(--spacing-md);
+  border: var(--border-width) solid var(--color-graphite-400);
+  font: inherit;
+}
+
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.result {
+  display: grid;
+  width: 100%;
+  gap: var(--spacing-xxs);
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-gray-200);
+  background: var(--color-gray-25);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.result:hover {
+  background: var(--color-gray-100);
+}
+
+.result__title {
+  font-weight: var(--font-weight-medium);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.notice {
+  margin: 0;
+  padding: var(--spacing-lg);
+  border-left: 3px solid var(--color-accent-orange);
+  background: var(--color-gray-50);
+}
+
+.article {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.article__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.back {
+  justify-self: start;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--color-accent-blue);
+  font: inherit;
+  cursor: pointer;
+}
+
+.section__title {
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.theses {
+  margin: 0;
+  padding-left: var(--spacing-2xl);
+}

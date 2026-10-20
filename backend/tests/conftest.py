@@ -31,6 +31,8 @@ os.environ.setdefault("TTS_ENABLED", "0")  # аудио билетов в тес
 DEMO_USERS = {
     "student": {"login": "ivanov", "password": "student112", "armNumber": 1},
     "student2": {"login": "petrova", "password": "student112", "armNumber": 2},
+    # spec/008: ivanov — специалист-112; для режима ДДС в тестах — petrova, «чужой» курсант ДДС — sidorova.
+    "student3": {"login": "sidorova", "password": "student112", "armNumber": 3},
     "teacher": {"login": "morozova", "password": "teacher112", "armNumber": 21},
     "teacher2": {"login": "kovalev", "password": "teacher112", "armNumber": 22},
     "admin": {"login": "admin", "password": "admin112", "armNumber": 24},

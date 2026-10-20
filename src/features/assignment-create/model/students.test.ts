@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PublicUser } from "@/shared/api";
 
-import { NO_GROUP, assignableStudents } from "./students";
+import { NO_GROUP, assignableStudents, splitByMode } from "./students";
 
 const user = (id: string, group: string | undefined, patch: Partial<PublicUser> = {}): PublicUser =>
   ({
@@ -33,5 +33,25 @@ describe("assignableStudents", () => {
     expect(assignableStudents(roster, undefined)).toEqual([]);
     expect(assignableStudents(roster, [])).toEqual([]);
     expect(assignableStudents(roster, [NO_GROUP]).map((item) => item.id)).toEqual(["d"]);
+  });
+});
+
+describe("splitByMode (spec/008)", () => {
+  const roster = [
+    user("none", "Группа 1"),
+    user("op", "Группа 1", { trainingProfile: "operator112" }),
+    user("dds", "Группа 1", { trainingProfile: "dds" }),
+  ];
+
+  it("режим ДДС пропускает специалиста-112", () => {
+    const { allowed, skipped } = splitByMode(roster, "dds");
+    expect(allowed.map((u) => u.id)).toEqual(["none", "dds"]);
+    expect(skipped.map((u) => u.id)).toEqual(["op"]);
+  });
+
+  it("режим 112 пропускает диспетчера ДДС", () => {
+    const { allowed, skipped } = splitByMode(roster, "operator112");
+    expect(allowed.map((u) => u.id)).toEqual(["none", "op"]);
+    expect(skipped.map((u) => u.id)).toEqual(["dds"]);
   });
 });

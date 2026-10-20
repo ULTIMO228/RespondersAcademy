@@ -61,6 +61,14 @@ export const ROUTES = {
   reference: "/reference",
   referenceSearch: (query: string) => `/reference?q=${encodeURIComponent(query)}`,
   referenceArticle: (articleId: string) => `/reference?article=${encodeURIComponent(articleId)}`,
+  /** Справочник в отдельном окне для второго монитора (спека 005): без меню кабинета, под гвардом /arm. */
+  referenceWindow: (query = "", articleId: string | null = null): string => {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set("q", query.trim());
+    if (articleId) params.set("article", articleId);
+    const search = params.toString();
+    return search ? `/arm/reference-window?${search}` : "/arm/reference-window";
+  },
   /** Профиль и безопасность (все роли). */
   account: "/account",
   accountSecurity: "/account/security",
@@ -76,7 +84,11 @@ export const ROUTES = {
   teacherAssignmentNew: "/teacher/assignments/new",
   teacherAssignment: (assignmentId: string) => `/teacher/assignments/${encodeURIComponent(assignmentId)}`,
   teacherStudents: "/teacher/students",
-  teacherStudent: (studentId: string) => `/teacher/students/${encodeURIComponent(studentId)}`,
+  /** Профиль обучающегося; `from` — адрес рейтинга для кнопки «Назад к рейтингу» (спека 006). */
+  teacherStudent: (studentId: string, from?: string) =>
+    `/teacher/students/${encodeURIComponent(studentId)}${from ? `?from=${encodeURIComponent(from)}` : ""}`,
+  /** Рейтинг обучающихся (спека 006); query — группа, режим, период, сортировка. */
+  teacherRating: "/teacher/rating",
   teacherGroup: (groupId: string) => `/teacher/groups/${encodeURIComponent(groupId)}`,
   teacherReports: "/teacher/reports",
   teacherReport: (sessionId: string) => `/teacher/reports/${sessionId}`,

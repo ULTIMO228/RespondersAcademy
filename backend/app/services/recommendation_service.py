@@ -16,7 +16,7 @@ from app.models.kb import KbArticle
 from app.models.recommendation import Recommendation
 from app.models.scenario import Scenario
 from app.models.user import User
-from app.services import analytics, rating_service
+from app.services import analytics, rating_service, training_profile
 from app.services.assignment_service import _approved_ids
 from app.services.session_engine import filter_cards_for_student
 from app.services.time import now_iso
@@ -31,6 +31,10 @@ def _id(student_id: str, kind: str, target_id: str) -> str:
 
 async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[dict[str, Any]]:
     history = await analytics.rows(db, student_id)
+    student = await db.get(User, student_id)
+    # spec/008: курсанту с профилем режима не предлагаем повторять то, что ему недоступно.
+    if student is not None:
+        history = [row for row in history if training_profile.allows(student, row["mode"])]
     if not history:
         return []
     weak = recommender.weak_categories(history, now_iso())
@@ -74,7 +78,7 @@ async def generate(db: AsyncSession, student_id: str, limit: int = 10) -> list[d
                 penalty = 200 if card["id"] in issued or card["id"] in completed else 0
                 proposals.append((base - 10 - penalty, "card", card["id"], card["title"], reason))
     stronger = recommender.stronger_mode(ratings)
-    if stronger and abs(ratings["dds"] - ratings["operator112"]) >= 20:
+    if stronger and abs(ratings["dds"] - ratings["operator112"]) >= 20 and (student is None or student.training_profile is None):
         weaker = "dds" if stronger == "operator112" else "operator112"
         proposals.append((100, "mode", weaker, f"Повторить режим {weaker}",
                           {"errorType": "modeGap", "count": 1, "ruleId": "R10"}))

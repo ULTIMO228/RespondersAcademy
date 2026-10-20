@@ -27,14 +27,6 @@ import styles from "./TeacherAssignments.module.css";
 
 type Loaded = { detail: AssignmentDetail; students: PublicUser[] };
 
-const APPROVAL_TITLES: Record<string, string> = {
-  pending_review: "ожидает подтверждения",
-  approved: "подтверждён",
-  rejected: "отклонён",
-  draft: "черновик",
-  validation_failed: "не прошёл проверку",
-};
-
 function progressColumns(nameOf: (studentId: string) => string): DataColumn<AssignmentProgress>[] {
   return [
     { key: "student", title: "Обучающийся", render: (row) => nameOf(row.studentId) },
@@ -58,29 +50,12 @@ function progressColumns(nameOf: (studentId: string) => string): DataColumn<Assi
           <Tag tone="danger">Не сдал</Tag>
         ),
     },
-    {
-      key: "chain",
-      title: "Вход ДДС",
-      render: (row) =>
-        row.chainReview ? (
-          <span>
-            <Link href={ROUTES.teacherScenario(row.chainReview.scenarioId)}>
-              {row.chainReview.scenarioId}, версия {row.chainReview.version}
-            </Link>{" "}
-            <Tag tone={row.chainReview.approval === "approved" ? "success" : "warning"}>
-              {APPROVAL_TITLES[row.chainReview.approval] ?? row.chainReview.approval}
-            </Tag>
-          </span>
-        ) : (
-          "—"
-        ),
-    },
   ];
 }
 
 type TeacherAssignmentDetailScreenProps = { assignmentId: string; api?: TeacherAssignmentsApi };
 
-/** `/teacher/assignments/[id]` — условия, прогресс по обучающимся, вход ДДС цепочки, завершение задания. */
+/** `/teacher/assignments/[id]` — условия, прогресс по обучающимся, завершение задания; старая цепочка — только просмотр. */
 export function TeacherAssignmentDetailScreen({
   assignmentId,
   api = teacherAssignmentsApi,
@@ -158,6 +133,12 @@ export function TeacherAssignmentDetailScreen({
                   </div>
                 </Alert>
               ) : null}
+              {detail.trainingMode === "chain" ? (
+                <Alert tone="info">
+                  Режим «Цепочка 112 → ДДС» выведен 20.10.2026: задание и его результаты доступны только для
+                  просмотра, подтверждения этапа ДДС больше нет.
+                </Alert>
+              ) : null}
               {finishError ? (
                 <Alert tone="danger" role="alert">
                   {finishError}
@@ -218,6 +199,15 @@ export function TeacherAssignmentDetailScreen({
                     <div>
                       <dt>Сообщения служб</dt>
                       <dd>{params.workMessagesEnabled ? "включены" : "выключены"}</dd>
+                    </div>
+                    <div>
+                      <dt>Справочник</dt>
+                      {/* Старые задания без ключа: тренировка — доступен, экзамен — нет (спека 005). */}
+                      <dd>
+                        {(params.referenceAllowed ?? detail.format === "training")
+                          ? "доступен"
+                          : "недоступен"}
+                      </dd>
                     </div>
                   </dl>
                 </Card>

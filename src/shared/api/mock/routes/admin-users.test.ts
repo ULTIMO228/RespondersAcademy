@@ -186,6 +186,31 @@ describe("PATCH /api/mock/admin/users/[id] — редактирование и �
     expect(roleEntry?.details).toContain("«Обучающийся» → «Преподаватель»");
   });
 
+  it("профиль режима (spec/008): ivanov — специалист-112; смена и сброс пишутся в аудит, мусор → 400", async () => {
+    const ivanov = (await list()).find((user) => user.id === STUDENT_ID);
+    expect(ivanov?.trainingProfile).toBe("operator112");
+    expect(ivanov?.service).toBe("ЦОВ системы-112");
+
+    const reset = await patch(STUDENT_ID, { adminId: ADMIN_ID, trainingProfile: null });
+    expect(reset.status).toBe(200);
+    expect((await reset.json()).trainingProfile).toBeUndefined();
+    expect((await audit())[0].details).toContain("профиль «Специалист системы-112» → «Не задан»");
+
+    const dds = await patch(STUDENT_ID, { adminId: ADMIN_ID, trainingProfile: "dds" });
+    expect((await dds.json()).trainingProfile).toBe("dds");
+    const kept = await patch(STUDENT_ID, { adminId: ADMIN_ID, fullName: "Иванов Сергей Петрович (2)" });
+    expect((await kept.json()).trainingProfile).toBe("dds");
+
+    const bad = await patch(STUDENT_ID, { adminId: ADMIN_ID, trainingProfile: "chain" });
+    expect(bad.status).toBe(400);
+    const teacher = await patch(STUDENT_ID, {
+      adminId: ADMIN_ID,
+      role: "teacher",
+      assignedGroups: ["ДДС-01"],
+    });
+    expect((await teacher.json()).trainingProfile).toBeUndefined();
+  });
+
   it("правка без изменений не засоряет журнал аудита", async () => {
     const before = (await audit()).length;
     await patch(STUDENT_ID, { adminId: ADMIN_ID });

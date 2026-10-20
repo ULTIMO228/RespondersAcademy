@@ -1,4 +1,4 @@
-import type { TrainingMode } from "@/shared/api";
+import type { AssignableMode } from "@/shared/api";
 import { ASSIGNMENT_NEW_QUERY } from "@/shared/config";
 
 import type { WizardInitial } from "./types";
@@ -8,8 +8,8 @@ export type AssignmentQuery = Readonly<Record<string, string | string[] | undefi
 
 export type AssignmentPrefill = { initial: WizardInitial; focusStage?: string };
 
-/** Режим `chain` не предзаполняется: ему нужны утверждённые версии сценариев, которых в ссылке нет. */
-const PREFILL_MODES: readonly TrainingMode[] = ["operator112", "dds"];
+/** Режим `chain` выведен 20.10.2026 (spec/007 Clarifications): в ссылке он отбрасывается как неизвестный. */
+const PREFILL_MODES: readonly AssignableMode[] = ["operator112", "dds"];
 
 const valuesOf = (raw: string | string[] | undefined): string[] =>
   raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];

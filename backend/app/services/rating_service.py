@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.card import IncidentCard
@@ -17,9 +18,16 @@ from ml.insights import rating as elo
 async def sync(db: AsyncSession, student_id: str, mode: str) -> StudentRating:
     row = await db.get(StudentRating, (student_id, mode))
     if row is None:
-        row = StudentRating(student_id=student_id, mode=mode, rating=elo.BASE_RATING, history=[], weak_groups={})
-        db.add(row)
-        await db.flush()
+        # Параллельные запросы (несколько виджетов кабинета, рейтинг группы) могут создать строку одновременно:
+        # вставка в точке сохранения, при конфликте ключа берётся уже созданная строка (дефект 1.5 / 5.4).
+        try:
+            async with db.begin_nested():
+                row = StudentRating(student_id=student_id, mode=mode, rating=elo.BASE_RATING, history=[], weak_groups={})
+                db.add(row)
+        except IntegrityError:
+            row = await db.get(StudentRating, (student_id, mode), populate_existing=True)
+            if row is None:
+                raise
     done = {item["attemptId"] for item in row.history or []}
     attempts = (await db.execute(select(Attempt, Evaluation).join(Evaluation, Evaluation.attempt_id == Attempt.id)
                                  .where(Attempt.student_id == student_id, Attempt.mode == mode)

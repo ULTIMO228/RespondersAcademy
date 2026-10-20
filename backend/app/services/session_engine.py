@@ -24,6 +24,7 @@ from app.models.scenario import Scenario
 from app.models.session import Attempt, Evaluation, TeacherOverride, TrainingSession
 from app.models.teacher import ProfileMappingRow
 from app.models.user import User
+from app.services import training_profile
 from app.services.time import is_iso, ms_to_iso, now_iso, parse_iso_ms
 
 SESSION_STATES = ("draft", "configured", "running", "finished", "reported")
@@ -183,8 +184,11 @@ async def list_sessions(db: AsyncSession, viewer: Viewer | None, teacher_id: str
     if state is not None and state not in SESSION_STATES:
         raise validation_failed(f"Некорректное состояние занятия: {state}")
     result = []
+    me = await db.get(User, viewer.user_id) if viewer is not None and viewer.is_student else None
     for row in await list_session_rows(db):
         if teacher_id and row.teacher_id != teacher_id:
+            continue
+        if me is not None and not training_profile.allows(me, row.training_mode):
             continue
         if student_scope and student_scope not in (row.student_ids or []):
             continue
@@ -248,10 +252,12 @@ async def create_session(db: AsyncSession, body: dict[str, Any]) -> dict[str, An
     student_ids = body.get("studentIds")
     if not _is_string_list(student_ids) or not student_ids:
         raise validation_failed("Выберите курсантов занятия")
+    students = []
     for sid in student_ids:
         user = await db.get(User, sid)
         if user is None or user.role != "student":
             raise validation_failed(f"Курсант «{sid}» не найден")
+        students.append(user)
     scenario_ids = body.get("scenarioIds")
     if not _is_string_list(scenario_ids) or not scenario_ids:
         raise validation_failed("Выберите сценарии занятия")
@@ -263,6 +269,10 @@ async def create_session(db: AsyncSession, body: dict[str, Any]) -> dict[str, An
             raise validation_failed(f"Сценарий «{scenario_id}» не утверждён и недоступен для занятий")
     if body.get("mode") not in MODES:
         raise validation_failed("Выберите режим занятия")
+    session_mode = body.get("trainingMode") if body.get("trainingMode") in ("dds", "operator112") else "dds"
+    _, blocked = training_profile.split_by_profile(students, session_mode)
+    if blocked:
+        raise validation_failed(training_profile.create_rejection(blocked, session_mode, "Занятие"))
     if body.get("cardSource") not in CARD_SOURCES:
         raise validation_failed("Выберите категорию вопросов")
     card_flow = body.get("cardFlow")
@@ -296,7 +306,7 @@ async def create_session(db: AsyncSession, body: dict[str, Any]) -> dict[str, An
         plan=plan,
         paused_at=None,
         parked=[],
-        training_mode=body.get("trainingMode") if body.get("trainingMode") in ("dds", "operator112", "chain") else "dds",
+        training_mode=session_mode,
         format=body.get("format") if body.get("format") in ("training", "exam") else "training",
         exam=body.get("exam") if isinstance(body.get("exam"), dict) else None,
     )

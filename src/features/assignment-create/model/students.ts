@@ -1,4 +1,5 @@
-import type { PublicUser } from "@/shared/api";
+import type { PublicUser, TrainingProfile } from "@/shared/api";
+import { allowsMode } from "@/shared/config";
 
 /** Группа для обучающихся без группы: подпись в списке и ключ в наборе закреплённых групп. */
 export const NO_GROUP = "Без группы";
@@ -16,4 +17,18 @@ export function assignableStudents(
   return students.filter(
     (user) => user.isActive && user.role === "student" && allowed.has(user.group ?? NO_GROUP),
   );
+}
+
+/**
+ * Разбивка выбранных по профилю режима (spec/008): курсант с профилем другого режима пропускается.
+ * Шаг «Обучающиеся» идёт до выбора режима, поэтому пропуск показывается на шаге «Режим и формат».
+ */
+export function splitByMode(
+  students: PublicUser[],
+  mode: TrainingProfile,
+): { allowed: PublicUser[]; skipped: PublicUser[] } {
+  const allowed: PublicUser[] = [];
+  const skipped: PublicUser[] = [];
+  for (const user of students) (allowsMode(user, mode) ? allowed : skipped).push(user);
+  return { allowed, skipped };
 }

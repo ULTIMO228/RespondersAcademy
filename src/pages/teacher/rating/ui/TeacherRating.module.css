@@ -1,0 +1,94 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-space-4);
+  align-items: flex-end;
+  margin-bottom: var(--pf-space-5);
+}
+
+/* FR-012: элементы управления не меньше 44 px, текст от 16 px (как FR-023 спеки 003). */
+.filter select {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.table caption {
+  text-align: left;
+  color: var(--pf-text-muted);
+  padding-bottom: var(--pf-space-2);
+}
+
+.table th,
+.table td {
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border-bottom: 1px solid var(--pf-border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+  text-align: left;
+  white-space: normal;
+}
+
+.table thead th {
+  background: var(--pf-bg-subtle);
+  font-weight: 600;
+  padding: 0;
+}
+
+.sort {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--pf-space-1);
+  padding: var(--pf-space-2) var(--pf-space-3);
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sort--left {
+  justify-content: flex-start;
+}
+
+.sort:focus-visible {
+  outline: 2px solid var(--pf-focus);
+  outline-offset: -2px;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--pf-bg-hover);
+}
+
+.name {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.over {
+  color: var(--pf-danger);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--pf-text-muted);
+}

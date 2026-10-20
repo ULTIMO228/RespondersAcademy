@@ -21,6 +21,8 @@ class User(Base):
     group: Mapped[str | None] = mapped_column(String(64), nullable=True)
     service: Mapped[str | None] = mapped_column(String(160), nullable=True)
     assigned_groups: Mapped[list[str] | None] = mapped_column(JSONVariant, nullable=True)
+    # spec/008: профиль режима обучаемого — "operator112" | "dds"; None — «не задан», доступны оба режима.
+    training_profile: Mapped[str | None] = mapped_column(String(16), nullable=True)
     failed_logins: Mapped[int] = mapped_column(Integer, default=0)
     locked_until: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
@@ -39,4 +41,6 @@ class User(Base):
             data["service"] = self.service
         if self.assigned_groups:
             data["assignedGroups"] = list(self.assigned_groups)
+        if self.training_profile:
+            data["trainingProfile"] = self.training_profile
         return data

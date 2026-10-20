@@ -15,13 +15,14 @@ cd "$(dirname "$0")/.." || exit 1
 
 BASE_URL="${BASE_URL:-http://127.0.0.1:3130}"
 API="$BASE_URL/api/mock"
-LOGIN="${E2E_LOGIN:-ivanov}"
+# spec/008: ivanov — специалист-112, занятие ДДС проходит petrova; «чужой» курсант — ivanov (у него есть попытки в сидах).
+LOGIN="${E2E_LOGIN:-petrova}"
 PASSWORD="${E2E_PASSWORD:-student112}"
-ARM_NUMBER="${E2E_ARM:-1}"
+ARM_NUMBER="${E2E_ARM:-2}"
 TWO_FACTOR="${E2E_2FA:-123456}"
 SCENARIO_ID="${E2E_SCENARIO:-s-005}" # «Билет 05: пожар-окно 9 эт. + отравление + стройка»
 TEACHER_ID="${E2E_TEACHER:-u-002}"
-OTHER_STUDENT_ID="${E2E_OTHER_STUDENT:-u-006}"
+OTHER_STUDENT_ID="${E2E_OTHER_STUDENT:-u-005}"
 PHONE_NUMBER="${E2E_PHONE:-301}" # Руководитель дежурной смены ДДС
 
 WORK_DIR="$(mktemp -d)"

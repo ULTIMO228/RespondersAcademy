@@ -6,7 +6,6 @@
 import { v1ApiBaseUrl, v1ApiClient } from "../v1-client";
 import type {
   CardDraft,
-  ChainSubmitReview,
   IncidentCard,
   NotificationListPreview,
   NotificationListResponse,
@@ -28,8 +27,6 @@ export interface SubmitAttemptResult {
   card: IncidentCard;
   /** Совпадает с id попытки. */
   evaluationId: string;
-  /** Только задание chain: вход ДДС ждёт подтверждения преподавателя. */
-  chainReview?: ChainSubmitReview;
 }
 
 const attemptPath = (attemptId: string) => `/operator112/attempts/${encodeURIComponent(attemptId)}`;

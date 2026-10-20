@@ -123,6 +123,7 @@ async def seed_users(db: AsyncSession, paths: SeedPaths) -> int:
                 "group": user.get("group"),
                 "service": user.get("service"),
                 "assigned_groups": user.get("assignedGroups"),
+                "training_profile": user.get("trainingProfile"),
             },
         )
     return len(users)

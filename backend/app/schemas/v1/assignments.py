@@ -8,7 +8,10 @@ from pydantic import Field, field_validator, model_validator
 
 from app.schemas.common import ApiModel
 
+# "chain" (цепочка A → B) выведен 20.10.2026 (spec/007 Clarifications): остаётся только в ответах
+# для старых заданий, которые открываются на чтение; создать новое задание chain нельзя.
 TrainingMode = Literal["dds", "operator112", "chain"]
+CreatableTrainingMode = Literal["dds", "operator112"]
 AssignmentFormat = Literal["training", "exam"]
 
 
@@ -41,7 +44,7 @@ class ScenarioVersionSelection(ApiModel):
 class AssignmentCreateRequest(ApiModel):
     student_ids: list[str]
     teacher_id: str | None = None
-    training_mode: TrainingMode
+    training_mode: CreatableTrainingMode
     format: AssignmentFormat
     card_ids: list[str] = Field(default_factory=list)
     scenario_versions: list[ScenarioVersionSelection] = Field(default_factory=list)
@@ -71,6 +74,11 @@ class AssignmentCreateRequest(ApiModel):
         limit = self.params.get("timeLimitSec")
         if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0):
             raise ValueError("Лимит времени — положительное целое число секунд")
+        reference = self.params.get("referenceAllowed")
+        if reference is not None and not isinstance(reference, bool):
+            raise ValueError("Параметр «Справочник доступен» — да или нет")
+        # Спека 005: по умолчанию справочник доступен в тренировке и закрыт на экзамене; значение пишется явно.
+        self.params = {**self.params, "referenceAllowed": self.format == "training" if reference is None else reference}
         if self.format == "exam":
             self.params = {**self.params, "hints": {**(self.params.get("hints") or {}), "enabled": False}}
         return self
@@ -91,13 +99,6 @@ class Assignment(ApiModel):
     due_at: str | None = None
 
 
-class ChainReview(ApiModel):
-    scenario_id: str
-    version: int
-    approval: str
-    validation: str
-
-
 class AssignmentProgress(ApiModel):
     student_id: str
     card_id: str
@@ -105,7 +106,6 @@ class AssignmentProgress(ApiModel):
     attempt_id: str
     score: int | None = None
     passed: bool | None = None
-    chain_review: ChainReview | None = None
 
 
 class AssignmentDetail(Assignment):

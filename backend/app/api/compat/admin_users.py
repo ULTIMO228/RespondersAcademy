@@ -31,7 +31,7 @@ from app.schemas.admin import (
 )
 from app.schemas.common import read_string
 from app.schemas.scenarios import parse_body
-from app.services import audit
+from app.services import audit, training_profile
 from app.services.security import hash_password, revoke_user_sessions, temporary_password
 
 router = APIRouter()
@@ -120,6 +120,7 @@ async def create_admin_user(request: Request, db: AsyncSession = Depends(get_db)
         is_active=True,
     )
     _apply_role_fields(user, body.role, body.group, body.service, body.assigned_groups)
+    user.training_profile = body.training_profile if user.role == "student" else None
     db.add(user)
     await db.flush()
     await _audit(db, admin, "user.create", f"Создана учётная запись {_describe(user)}, роль «{ROLE_TITLE[user.role]}», АРМ {user.arm_number}")
@@ -139,6 +140,8 @@ def _collect_changes(before: dict[str, Any], user: User) -> list[str]:
         changes.append(f"группа «{before['group'] or '—'}» → «{user.group or '—'}»")
     if before["service"] != user.service:
         changes.append(f"служба «{before['service'] or '—'}» → «{user.service or '—'}»")
+    if before["training_profile"] != user.training_profile:
+        changes.append(f"профиль «{training_profile.profile_title(before['training_profile'])}» → «{training_profile.profile_title(user.training_profile)}»")
     if ", ".join(before["assigned_groups"] or []) != ", ".join(user.assigned_groups or []):
         changes.append(f"закреплённые группы «{', '.join(before['assigned_groups'] or []) or '—'}» → «{', '.join(user.assigned_groups or []) or '—'}»")
     return changes
@@ -150,7 +153,7 @@ async def update_admin_user(user_id: str, request: Request, db: AsyncSession = D
     admin = await _actor(db, viewer, raw)
     body: AdminUserUpdateRequest = parse_body(AdminUserUpdateRequest, raw)
     user = await _require_user(db, user_id)
-    before = {"full_name": user.full_name, "login": user.login, "arm_number": user.arm_number, "group": user.group, "service": user.service, "assigned_groups": list(user.assigned_groups or []), "role": user.role}
+    before = {"full_name": user.full_name, "login": user.login, "arm_number": user.arm_number, "group": user.group, "service": user.service, "assigned_groups": list(user.assigned_groups or []), "role": user.role, "training_profile": user.training_profile}
     next_role = body.role or user.role
     if body.full_name is not None:
         user.full_name = body.full_name
@@ -160,6 +163,10 @@ async def update_admin_user(user_id: str, request: Request, db: AsyncSession = D
     if body.arm_number is not None:
         user.arm_number = body.arm_number
     _apply_role_fields(user, next_role, body.group, body.service, body.assigned_groups)
+    if "training_profile" in body.model_fields_set:
+        user.training_profile = body.training_profile
+    if next_role != "student":
+        user.training_profile = None
     await db.flush()
     if next_role != before["role"]:
         await revoke_user_sessions(db, user.id)

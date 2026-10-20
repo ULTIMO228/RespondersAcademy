@@ -7,10 +7,12 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.errors import invalid_transition, not_found, validation_failed
+from app.api.errors import forbidden, invalid_transition, not_found, validation_failed
 from app.db.ids import PREFIX, next_id
 from app.models.scenario import Scenario
 from app.models.session import Attempt, TrainingSession
+from app.models.user import User
+from app.services import training_profile
 from app.services.session_engine import evaluation_contract
 from app.services.time import is_iso, now_iso, parse_iso_ms
 
@@ -101,6 +103,9 @@ async def open_attempt(db: AsyncSession, card_id: str, body: dict[str, Any]) -> 
             session, attempt = existing
             return {"sessionId": session.id, "attempt": await attempt_contract(db, attempt), "created": False}, False
         session = await _resolve_session(db, card_id, student_id)
+    student = await db.get(User, student_id)
+    if student is not None and not training_profile.allows(student, session.training_mode):
+        raise forbidden(training_profile.blocked_message(student, session.training_mode))
     opened_at = now_iso()
     if issued_at is None:
         issued_at = next((i["issuedAt"] for i in (session.card_flow or []) if i.get("cardId") == card_id and i.get("studentId") == student_id), None)

@@ -8,7 +8,7 @@ from __future__ import annotations
 import datetime as dt
 
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 from tests.conftest import DEMO_USERS, login_as
 
@@ -221,3 +221,42 @@ async def test_audit_filters_and_pagination(client: AsyncClient):
     assert (await client.get("/admin/audit", params={"type": "nope"})).status_code == 400
     assert (await client.get("/admin/audit", params={"from": "not-a-date"})).status_code == 400
     assert (await client.get("/admin/audit", params={"page": "x"})).status_code == 400
+
+
+async def test_admin_sets_training_profile(client: AsyncClient, app):
+    """spec/008 US3: профиль режима виден и меняется админом, изменение пишется в аудит и сразу действует."""
+    await login_as(client, "admin")
+    ivanov = next(u for u in (await client.get("/admin/users", params={"q": "ivanov"})).json() if u["login"] == "ivanov")
+    assert ivanov["trainingProfile"] == "operator112" and ivanov["service"] == "ЦОВ системы-112"
+
+    body = {"adminId": ADMIN_ID, "fullName": "Профильный Курсант Тестович", "login": "profile.tester", "password": "Temp-1234",
+            "role": "student", "armNumber": 34, "group": "ДДС-01", "service": "ДДС района Чертаново Южное"}
+    created = await client.post("/admin/users", json=body)
+    assert created.status_code == 201 and "trainingProfile" not in created.json(), created.text
+    user_id = created.json()["id"]
+    bad = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": "chain"})
+    assert bad.status_code == 400 and "Профиль режима: специалист системы-112, диспетчер ДДС или не задан" in bad.text
+
+    set_112 = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": "operator112"})
+    assert set_112.status_code == 200 and set_112.json()["trainingProfile"] == "operator112"
+    untouched = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "fullName": "Профильный Курсант Петрович"})
+    assert untouched.json()["trainingProfile"] == "operator112"
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test/api/v1") as v1:
+        await login_as(v1, "teacher")
+        refused = await v1.post("/assignments", json={"studentIds": [user_id], "trainingMode": "dds", "format": "training",
+                                                      "cardIds": ["c-010"], "title": "008 профиль"})
+        assert refused.status_code == 400 and "Профильный К. П." in refused.text
+
+    await login_as(client, "admin")
+    reset = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": None})
+    assert reset.status_code == 200 and "trainingProfile" not in reset.json()
+    await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "trainingProfile": "dds"})
+    teacher = await client.patch(f"/admin/users/{user_id}", json={"adminId": ADMIN_ID, "role": "teacher", "assignedGroups": ["ДДС-01"]})
+    assert teacher.status_code == 200 and "trainingProfile" not in teacher.json()
+
+    audit = await client.get("/admin/audit", params={"type": "users", "perPage": 100})
+    details = [e["details"] for e in audit.json()["items"] if user_id in e["details"] and e["action"] == "user.update"]
+    assert any("профиль «Не задан» → «Специалист системы-112»" in d for d in details)
+    assert any("профиль «Специалист системы-112» → «Не задан»" in d for d in details)
+    assert any("профиль «Диспетчер ДДС» → «Не задан»" in d for d in details)

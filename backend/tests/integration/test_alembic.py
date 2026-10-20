@@ -55,12 +55,13 @@ def test_initial_migration_and_seed_on_clean_database(tmp_path: Path):
     with sqlite3.connect(database) as connection:
         tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
         assert set(Base.metadata.tables) <= tables
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0005_error_map_verdicts"
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone()[0] == "0006_user_training_profile"
     _run("-m", "alembic", "check", environment=environment)
     _run("-m", "app.seed.load", environment=environment)
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT COUNT(*) FROM users").fetchone()[0] >= 20
         assert connection.execute("SELECT COUNT(*) FROM incident_cards").fetchone()[0] >= 96
+        assert connection.execute("SELECT training_profile FROM users WHERE login = 'ivanov'").fetchone()[0] == "operator112"
 
 
 def test_migrated_schema_has_every_model_table_and_same_guards_as_create_all(migrated_database: Path, tmp_path: Path):
