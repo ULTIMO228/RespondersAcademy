@@ -64,13 +64,15 @@ export function useCardStatuses(options: UseCardStatusesOptions) {
       setMarks((previous) => [...previous, { ...request, at }]);
       setCurrent(request.ddsStatus);
       if (!machine.isFinal(request.ddsStatus)) return;
-      setCompletedAt(at);
       await dispatch({
         id: `complete-${at}`,
         kind: "progress",
         attemptId: attempt.id,
         request: { completedAt: at },
       });
+      // После ответа на завершение: isCompleted запускает GET оценки, а сервер оценивает попытку при завершении —
+      // параллельные запросы дважды писали оценку одной попытки (500 на «Итоге отработки»).
+      setCompletedAt(at);
     },
     [attempt.id, cardId, clock, current, ddsStatuses, dispatch],
   );
