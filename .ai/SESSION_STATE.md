@@ -1,3 +1,18 @@
+## Handoff 2026-10-20 (late) → next window
+Branch:SASHA | HEAD:285fda4 pushed | tree:clean | spec:009-arm-112-student | tasks.md: 70/74 [X]
+Done this window (after da634ac):
+  ✅ ecd1568 T031 channel/smsText/repeatOf in attempt | T051 e2e-student.sh 112 block (run_frontend_e2e --only student: 69/69 PASS)
+  ✅ 8878cd6 T068 hotkeys = памятка §3.17 (Alt+F1-3/Q/A/P/N/T/O/Z/S/W/B/M, Esc, Insert, Enter)
+  ✅ a2dfd45 T059 «связана» on services bar + crimson link cell in journal
+  ✅ 16ab893 T066 «справка» menu → «Краткая инструкция» (ShortGuideWindow, text from памятка) + «Сообщить о проблеме»
+  ✅ 7cd2caf/95fb45c/baf328a/285fda4 visual fixes vs refs: journal menu icons+row cells+alarm-only red status; card services bar at bottom, «Отключение» during call, 2-line flags; Esc only top modal; links/SMS history as overlays w/ current card; «Округ» select (12 Moscow okrugs)
+  ✅ d9ca9ae checklists/visual-112.md filled (windows 2,3,3a,3b,3c,4,5,6,7,7a,8,9,12)
+Checks@2026-10-20: vitest full 2147 passed/2 red (IncidentScreen flaky L013; teacher-v1 Blob env, known) | pytest 1171 passed/4 skipped/0 red | ruff clean | tsc, steiger clean
+Stand: scratchpad stand.sh (demo_up.sh w/ env JWT_SECRET, DEMO_DB in scratchpad) | screenshots via Playwright script (not in repo)
+Open 009: T052 SC-004 before/after scores | T069 e2e visual spec (needs backend) | T070 rows 7b,13,reminder,problem not compared; row 4 (tab label/row titles — no data) | T072 quickstart manual
+Owner decisions pending: c-066/c-093/lockedBy texts + c-093 phone | address word threshold 0.5 | primary = repeatOf card | journal 404 vs 403 | migration 0007 to working DB | «Краткая инструкция» text drafted from памятка — review
+⚠️ /ef_before.json at FS root (executor leftover) — owner deletes
+
 ## Handoff 2026-10-20 (009 executor commits) → next window
 Branch:SASHA | HEAD:da634ac = origin/SASHA (fetched, 0/0 at start; L024 done) | tree before docs:clean | spec:009-arm-112-student
 Scope:student-112 workplace only | DDS code untouched (R14) | docs of this window NOT committed (AGENTS.md, spec/README.md, spec/009 tasks.md, .ai/*)
