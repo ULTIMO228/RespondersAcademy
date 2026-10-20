@@ -28,8 +28,14 @@
   box-shadow: var(--focus-ring);
 }
 
+/* Подсказка сжимается первой, чтобы кнопка «Справочник» в правом краю всегда оставалась видна. */
 .bar__hint {
-  margin-left: auto;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bar__slot {
