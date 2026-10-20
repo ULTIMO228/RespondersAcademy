@@ -59,3 +59,12 @@ Next:
 Caution:
   ⚠️ no lsof here: kill stale next-server by PID before demo-up, else EADDRINUSE + old build answers "READY"
   ⚠️ no Co-Authored-By trailer
+
+---
+## 2026-10-20 (2) | @claude | branch:SASHA | mode:normal
+Focus: 009 speckit-implement Phase 1 + start Phase 2; services panel color rule
+Done: ✅ T001-T006 (baseline, affected tests, visual checklist, additive CardDraft contract TS+Pydantic, expected_fields)
+Decisions: 🧠
+  - panel color by card state (new #ec653b / saved #49555d, same in 112 instruction ИНСТРУКЦИЯ_94 and DDS) > by role (R13a)
+  - what = incidents[0] server-side > assessor change (SC-004 kept: old body = 96)
+Next: !1 T007 events | then T008-T020 | owner: T009 ticket texts + DB reset/0007 ok

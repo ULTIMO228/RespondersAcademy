@@ -1,6 +1,19 @@
+## Handoff 2026-10-20 → next window (009 implement)
+Where: spec/009-arm-112-student/tasks.md | Phase 2 Foundational | done T001-T006 | NEXT: T007 (new event types in operator112_service + tests/integration/test_operator112_events_v2.py)
+Done this window:
+  - T001 baseline.txt (pytest 977/3 known red, vitest 1951/1 red teacher-v1 Blob = env, prettier 4 foreign files)
+  - T002 affected-tests.md | T003 checklists/visual-112.md (17 windows/states)
+  - T004 backend/tests/contract/test_operator112_draft_v2.py (6 tests: old body=96 like baseline, incidents→what, 2 primary links 400/1→200, noContact/dropped w/o address 200, filled w/o address 400, any-subject address+channel in snapshot) ✅
+  - T006 app/schemas/v1/operator112.py: CardDraftAddress +country..code,lat,lon; CardDraftLink; CardDraft +channel,incidents,links,outcome; what=incidents[0] if empty; outcome!=filled skips minimum; address minimum also object|lat+lon
+  - T005 src/shared/api/types/operator112.ts (+CardChannel, CardOutcome, CardDraftLink, Journal112Row/Response, 7 event types) + exports in types/index.ts, api/index.ts; expected_fields.json regenerated
+Checks@2026-10-20: tests/contract 241 passed / 2 known red | ruff clean | tsc pass | prettier (changed) clean | vitest not rerun after T005 (types only)
+Not done yet in T007: OperatorEventCreate still accepts only 5 types (EVENT_TYPES in schemas/v1/operator112.py:20) → extend + linkAdded cardId must be in student journal (400 else, pair 201)
+Rules: DDS code untouched (R14) | services panel color by card state R13a (#ec653b new, #49555d saved) | timer R7a (60 s, only timer block red) | TDD pairs 400/200 | commits w/o Co-Authored-By
+Stand: ./scripts/demo-up.sh; before restart kill next-server/uvicorn by PID (no lsof, L015)
+
 ## Facts
 Proj:RespondersAcademy | Branch:SASHA | Mode:normal | HEAD:SASHA pushed | tree:clean after commit
-Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza ✅ T001-T006, T007 open | 005 arm-reference ✅ | 006 student-rating ✅ | 007 arm-one-to-one spec only | 008 operator112-student ✅ T001-T041 | 009 arm-112-student spec+plan+tasks T001-T074, not started | 010 lesson-call-session spec, owner answers in}
+Features:{000 front ✅ | 001 local AI (T052-T060 open) | 002 integration ✅ (T061 demo.mp4 open, owner) | 003 error-map ✅ | 004 polza ✅ T001-T006, T007 open | 005 arm-reference ✅ | 006 student-rating ✅ | 007 arm-one-to-one spec only | 008 operator112-student ✅ T001-T041 | 009 arm-112-student IN PROGRESS: T001-T006 ✅, next T007 | 010 lesson-call-session spec, owner answers in}
 Scope@2026-10-20(owner): only student-112 workplace now; DDS profile+ARM = other teammate → never edit DDS code (widgets/{incident-card,incident-list,service-panel}, pages/{incident,journal,phone}); 112 in own slices (009 R14); voice dialog (007 FR-031..034) = friend, later; plug point useApplicantVoice (009 R6)
 Stand:./scripts/demo-up.sh (front :3130, back :8130, db backend/var/demo.db) | stop: ps aux|grep -E "next-server|next start|uvicorn" → kill PIDs (no lsof in cloud container)
 Tests@2026-10-20:{vitest:1951 passed/1 red teacher-v1.test.ts downloadReportExport "Blob not instance of Blob" — red on clean HEAD too (Node22+jsdom env), not ours | tsc:pass | steiger:pass | eslint(changed):pass | pytest:not rerun this session}

@@ -159,6 +159,19 @@ class CardDraftAddress(ApiModel):
     raion: str = ""
     descriptive: str = ""
     source: str = "manual"  # directory | manual — фиксация «из справочника / вручную» (FR-014)
+    # Адрес любого субъекта (спека 009, FR-014, FR-023; КАРТОЧКА_image1): поля необязательны, старые карточки их не содержат.
+    country: str = ""
+    subject: str = ""
+    locality: str = ""
+    object: str = ""
+    korpus: str = ""
+    building: str = ""
+    flat: str = ""
+    entrance: str = ""
+    floor: str = ""
+    code: str = ""
+    lat: float | None = None
+    lon: float | None = None
 
     @field_validator("source", mode="before")
     @classmethod
@@ -191,8 +204,21 @@ class CardDraftNotification(ApiModel):
     added_by: str = "auto"
 
 
+def _what_filled(what: CardDraftWhat) -> bool:
+    return bool(what.signs or _clean(what.final_type) or _clean(what.classifier_code) or _clean(what.poll_answers))
+
+
+class CardDraftLink(ApiModel):
+    card_id: str
+    primary: bool = False
+
+
 class CardDraft(ApiModel):
-    """Карточка ПОВ-112 с нуля (`ArmCardFixture`-подобная): заявитель, телефоны, адрес, описание, опросная карта, флаги, список."""
+    """Карточка ПОВ-112 с нуля (`ArmCardFixture`-подобная): заявитель, телефоны, адрес, описание, опросная карта, флаги, список.
+
+    Спека 009 добавляет поля без поломки прежнего тела: канал, вкладки типов (`what` = первая вкладка — её читает оценщик),
+    связи карточек и исход («нет контакта» / «срыв звонка» сохраняют карточку без адреса и типа).
+    """
 
     applicant: CardDraftApplicant = Field(default_factory=CardDraftApplicant)
     phones: CardDraftPhones = Field(default_factory=CardDraftPhones)
@@ -201,6 +227,10 @@ class CardDraft(ApiModel):
     description: str = ""
     emergency: CardDraftEmergency = Field(default_factory=CardDraftEmergency)
     notification_list: list[CardDraftNotification] = Field(default_factory=list)
+    channel: Literal["call", "sms"] = "call"
+    incidents: list[CardDraftWhat] = Field(default_factory=list)
+    links: list[CardDraftLink] = Field(default_factory=list)
+    outcome: Literal["filled", "noContact", "dropped"] = "filled"
 
     @field_validator("description", mode="before")
     @classmethod
@@ -212,8 +242,16 @@ class CardDraft(ApiModel):
 
     @model_validator(mode="after")
     def _minimum(self) -> CardDraft:
+        if sum(1 for link in self.links if link.primary) > 1:
+            raise ValueError("Главной может быть только одна связанная карточка")
+        if self.incidents and not _what_filled(self.what):
+            self.what = self.incidents[0]
+        if self.outcome != "filled":
+            return self  # «нет контакта» / «срыв звонка»: пустая карточка сохраняется как в АРМ (007, FR-017)
         # Минимум для регистрации (памятка стр. 12–20): адрес и описание либо опросная карта.
-        if not (_clean(self.address.formal) or _clean(self.address.street) or _clean(self.address.descriptive)):
+        address = self.address
+        has_point = address.lat is not None and address.lon is not None
+        if not (_clean(address.formal) or _clean(address.street) or _clean(address.descriptive) or _clean(address.object) or has_point):
             raise ValueError("Заполните адресный блок")
         if not (self.description or self.what.signs or _clean(self.what.final_type) or _clean(self.what.classifier_code)):
             raise ValueError("Заполните описание со слов заявителя или опросную карту")
