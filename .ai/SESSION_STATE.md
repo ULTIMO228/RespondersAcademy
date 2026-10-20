@@ -7,6 +7,7 @@ Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanc
 Updated:2026-10-19
 
 ## Story
+000 2026-10-20 tried qwen/qwen3.8-27b (cerebras/fp16, reasoning.enabled=false): first token ~0.9s vs GLM ~2.2s, BUT wrong phone («двести шесть»), «библиотека рядом», empty answer once → GLM kept as default; LIVE_CALL_POLZA_REASONING_OFF + LIVE_CALL_POLZA_PROVIDER added; empty answer retried once; pytest last full 1002 passed (+3 targeted since)
 00 2026-10-20 voice → local Silero v5.6 (LIVE_CALL_TTS_ENGINE=silero, models/silero-live/v5_6_ru.pt via prepare_models --only tts-live, speaker xenia); filler «Да-да» removed (owner); warm_voice at startup + before ready (cold 12s+5s); real call: greeting 2.5s, operator end→voice ~5s (STT Polza ~2.4s, GLM ~1.5s, Silero 0.1–1s); pytest 1002 passed
 0 2026-10-20 live caller verified on REAL Polza (cloud, polza.ai allowed): WS call → VAD → gigaam-v3 → glm-5.3-flash(reasoning.max_tokens=64) → gpt-4o-mini-tts coral; filler «Да-да…»; parallel TTS; interrupted reply kept in history; stream retry; tests ignore backend/.env
 1 3 red backend tests fixed: manifest CRLF hashes → LF + pack.py text_sha256 | applicant-audio test now creates own attempt

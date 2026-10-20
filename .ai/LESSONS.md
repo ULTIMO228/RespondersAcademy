@@ -77,3 +77,7 @@
 ❌ assume OpenAI-compatible /audio/speech returns raw audio and Qwen TTS exists in catalog
 ✅ probe real API (catalog GET /models, one request) before choosing; Polza TTS → JSON base64, voice required
 ! reasoning models: cap via reasoning.max_tokens; effort=low not bounded (finish=length, empty answer)
+
+## L018 | reasoning params differ per model on aggregator
+❌ assume top-level reasoning_effort=none disables thinking
+✅ probe: qwen3.8-27b needs reasoning.enabled=false; GLM-5.3 mandatory → reasoning.max_tokens; never combine effort+max_tokens (empty answer)
