@@ -88,3 +88,12 @@
 - Быстрый гейт: lint ✅ · steiger ✅ · test **1951 passed** ✅ · typecheck ✅ · pytest **1033 passed / 0 failed / 4 skipped** ✅ · ruff ✅
 - Красные: нет — 3 красных эталона main починены коммитом `3720f58` из K1
 - Итог: влит
+
+## F2 — K2+K4 feat/011-dds-sasha @ ada3e78
+
+- Дата: 2026-10-20 · База: `70bd45a` · Вершина сверена ✅ · Merge-коммит: `0de2c32`
+- Конфликты: 0
+- Генерируемые: `uv lock --check` ✅, `extract_ts_fields.py` → без изменений
+- Миграции: голова `0006_user_training_profile`
+- Быстрый гейт: lint ✅ · steiger ✅ · test **2033 passed** ✅ · typecheck ✅ · pytest **1135 passed / 0 failed / 4 skipped** ✅ · ruff ✅
+- Итог: влит
