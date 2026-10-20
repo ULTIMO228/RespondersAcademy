@@ -8,7 +8,9 @@
 2. работа с моделью идёт в потоке; contextvars копируются в поток, и исходы складываются в список контекста;
 3. на выходе из `llm_scope` исходы пишутся в `ai_health` и аудит в той же асинхронной сессии — в контексте вызова,
    от имени пользователя, чей запрос обратился к модели (так же, как раньше `flush_external_calls`, но без глобального
-   списка событий). Коммит — на вызывающем.
+   списка событий). Коммит — на вызывающем. При `release_connection=True` (T043) транзакция фиксируется уже перед
+   вызовом модели, чтобы соединение не держалось на время сетевого ожидания; тогда вызывающий обязан передавать
+   только то, что допустимо зафиксировать раньше (см. `llm_scope`).
 
 Состояние для интерфейса: `ok` — ответил выбранный источник; `degraded` — облако выбрано, ответила локальная модель;
 `down` — шаблон. Повторяющиеся сбои не плодят строк: одна строка id=1 и счётчик `errors_today`.
@@ -195,10 +197,20 @@ async def read(db: AsyncSession) -> AiHealth | None:
 
 
 @asynccontextmanager
-async def llm_scope(db: AsyncSession, viewer: Viewer | None, *, now: dt.datetime | None = None) -> AsyncIterator[llm.LlmCallContext]:
-    """Контекст вызовов модели одного запроса; на выходе исходы записываются (см. docstring модуля)."""
+async def llm_scope(
+    db: AsyncSession, viewer: Viewer | None, *, now: dt.datetime | None = None, release_connection: bool = False
+) -> AsyncIterator[llm.LlmCallContext]:
+    """Контекст вызовов модели одного запроса; на выходе исходы записываются (см. docstring модуля).
+
+    `release_connection=True`: перед вызовом модели транзакция `db` фиксируется, и соединение возвращается в пул
+    (сетевой вызов не держит его, T043). Фиксируется всё, что лежит в транзакции к этому моменту, поэтому включать
+    флаг можно только там, где там лишь чтения или записи, которые допустимо зафиксировать раньше. Исходы и аудит
+    пишутся в `db` уже после вызова, то есть в тот же коммит, что и записи вызывающего.
+    """
     ai = await ai_settings_service.effective(db)
     row = await db.get(AiHealth, HEALTH_ROW_ID)
+    if release_connection:
+        await db.commit()
     ctx = llm.LlmCallContext(ai=ai, calls_today=calls_today(row, _day(_now(now))))
 
     async def reserve() -> bool:

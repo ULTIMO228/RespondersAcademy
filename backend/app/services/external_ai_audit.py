@@ -14,7 +14,11 @@ from app.services import audit
 from ml.generate import llm
 
 ACTION = "ai.external_call"
-PURPOSES = {"scenario_generation": "генерация сценария", "error_map_explain": "пояснение карты ошибок"}
+PURPOSES = {
+    "scenario_generation": "генерация сценария",
+    "error_map_explain": "пояснение карты ошибок",
+    "connection_probe": "проверка подключения",
+}
 SERVED = {
     "cloud": "ответила облачная модель",
     "local": "ответила локальная модель (запасной путь)",

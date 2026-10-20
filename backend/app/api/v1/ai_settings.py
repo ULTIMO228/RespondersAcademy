@@ -11,7 +11,7 @@ import datetime as dt
 import logging
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Response
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
@@ -49,6 +49,7 @@ CLOUD_FUNCTIONS = [
 PROBE_SYSTEM = "Ответь JSON-объектом {\"ok\": true}."
 PROBE_USER = "Проверка подключения."
 PROBE_SCHEMA = {"type": "object", "properties": {"ok": {"type": "boolean"}}, "required": ["ok"]}
+PROBE_PURPOSE = "connection_probe"  # метка аудита `ai.external_call` для пробы облака
 
 
 class SettingsBody(BaseModel):
@@ -143,13 +144,16 @@ def _probe_cloud(
     reserve_cloud_call: Callable[[], bool],
     before_send: Callable[[], bool],
     timeout_sec: float = PROBE_TIMEOUT_SEC,
-) -> str:
-    """Одна проба облака теми же примитивами, что и `complete_json` (закреплённый маршрут, лимиты, транспорт)."""
+) -> tuple[str, bool, bool]:
+    """Одна проба облака теми же примитивами, что и `complete_json` (закреплённый маршрут, лимиты, транспорт).
+
+    Возвращает (результат, запрос ушёл в сеть, квота зарезервирована) — по ним пишется исход в `ai_health`.
+    """
     if not ai_settings_service.cloud_allowed():
-        return "wrong_route"
+        return "wrong_route", False, False
     payload = llm.build_cloud_payload(PROBE_SYSTEM, PROBE_USER, PROBE_SCHEMA, max_tokens=16)
     if payload is None:
-        return "wrong_route"
+        return "wrong_route", False, False
     settings = config.get_settings()
     client = llm.PolzaClient(
         settings.polza_base_url,
@@ -159,24 +163,54 @@ def _probe_cloud(
         transport=llm._cloud_transport,
         limiter=llm._cloud_limiter(),
     )
-    _, result, _ = client.request_json(
+    _, result, sent = client.request_json(
         payload,
         check_route=True,
         count_toward_daily=False,
         reserve_cloud_call=reserve_cloud_call,
         before_send=before_send,
     )
-    return result
+    return result, sent, client.cloud_reserved
+
+
+async def _record_cloud_probe(db: AsyncSession, viewer: Viewer, result: str, *, sent: bool, reserved: bool) -> None:
+    """Исход облачной пробы — в `ai_health` тем же путём, что и обычные вызовы (`ai_health_service.record_outcomes`).
+
+    Успех: облако ответило — `served_by=cloud`, `last_ok_at=now`, прошлая причина сбоя не стирается. Неудача: причина
+    из enum; запасной путь пробой не проверяется, поэтому `served_by=template` (облако не ответило, ответа нет).
+    Квота пробы уже зарезервирована до HTTP, поэтому `cloud_sent and not cloud_reserved` не даёт второго списания.
+    Вызывается только для выбранного облака и сохранённого ключа: состояние описывает настроенный источник, а не
+    пробу до сохранения или с другим ключом.
+    """
+    ok = result == "ok"
+    outcome = llm.LlmOutcome(
+        data=None,
+        source="cloud" if ok else "template",
+        provider=llm.CLOUD_PROVIDER,
+        reason=None if ok else cast(llm.Reason, result),
+        purpose=PROBE_PURPOSE,
+        active_source="cloud",
+        request_chars=len(PROBE_SYSTEM) + len(PROBE_USER),
+        cloud_result=result,
+        cloud_sent=sent,
+        cloud_reserved=reserved,
+    )
+    await ai_health_service.record_outcomes(db, [outcome], viewer)
 
 
 @router.post("/admin/ai/settings/test")
 async def test_ai_connection(
     body: ProbeBody, response: Response, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(admin_only)
 ) -> dict[str, Any]:
-    """Пробный запрос; настройки и состояние здоровья не меняются, квота учитывается отдельно."""
+    """Пробный запрос: настройки не меняются; квота пробы учитывается отдельно.
+
+    Исход облачной пробы пишется в `ai_health` только если облако выбрано и проверен сохранённый ключ: проба с
+    введённым (несохранённым) ключом ничего не меняет (quickstart, шаг 2).
+    """
     response.headers["Cache-Control"] = NO_STORE
     _check_source(body.source)
     key = (body.api_key or "").strip() or None
+    typed_key = key is not None
     effective = await ai_settings_service.effective(db)
     if body.source == "cloud" and key is None:
         try:
@@ -189,6 +223,7 @@ async def test_ai_connection(
     # чтобы не удерживать блокировку SQLite (lock contention / busy wait)
     await db.rollback()
     started = time.perf_counter()
+    sent = reserved = False
     if body.source == "cloud":
         if not ai_settings_service.cloud_allowed() or llm.build_cloud_payload(PROBE_SYSTEM, PROBE_USER, PROBE_SCHEMA, max_tokens=16) is None:
             result = "wrong_route"
@@ -214,7 +249,7 @@ async def test_ai_connection(
 
             try:
                 remaining_sec = max(0.0, probe_deadline - time.monotonic())
-                result = await asyncio.wait_for(
+                result, sent, reserved = await asyncio.wait_for(
                     asyncio.to_thread(_probe_cloud, key, reserve_probe, probe_is_before_deadline, remaining_sec),
                     timeout=remaining_sec + 0.5,
                 )
@@ -229,6 +264,8 @@ async def test_ai_connection(
     ok = result == "ok"
     if not ok:
         logger.warning("ai_probe_failed source=%s reason=%s latency_ms=%d", body.source, result, latency)
+    if body.source == "cloud" and effective.source == "cloud" and not typed_key:
+        await _record_cloud_probe(db, viewer, result, sent=sent, reserved=reserved)
     await audit.record(
         db,
         action="ai.connection_test",

@@ -111,7 +111,9 @@ async def generate(db: AsyncSession, student_id: str, limit: int = 10, viewer: V
             }
             for key, row in keyed_rows.values()
         ]
-        async with llm_scope(db, viewer):
+        # T045: новые предложения (детерминированные upsert) фиксируются до модели, соединение отпускается на время
+        # ответа. Повтор после отката заново запросит тексты: `text` остаётся пустым (гард в тесте).
+        async with llm_scope(db, viewer, release_connection=True):
             generated = await report_ai_text.recommendation_texts(facts)
         for key, row in keyed_rows.values():
             result = generated[key]

@@ -200,8 +200,12 @@ async def has_reports(db: AsyncSession, session_id: str) -> bool:
     return (await db.execute(select(GroupReport.id).where(GroupReport.session_id == session_id))).scalar_one_or_none() is not None or (await db.execute(select(Report.id).where(Report.session_id == session_id, Report.static.is_(True)))).first() is not None
 
 
-async def build_session_report(db: AsyncSession, session_id: str, viewer: Viewer | None = None) -> None:
-    """Идемпотентная сборка: ничего не делает для статики, незавершённого занятия и уже собранного отчёта."""
+async def build_session_report(db: AsyncSession, session_id: str, viewer: Viewer | None = None, *, release_connection: bool = False) -> None:
+    """Идемпотентная сборка: ничего не делает для статики, незавершённого занятия и уже собранного отчёта.
+
+    `release_connection` — см. `llm_scope`: соединение отпускается до вызовов модели. Включает его тот, кто вправе
+    зафиксировать текущую транзакцию до сборки (просмотр отчётов; управление занятием — до смены состояния).
+    """
     session = await db.get(TrainingSession, session_id)
     if session is None or session.state not in REPORTABLE_STATES or await has_reports(db, session_id):
         return
@@ -215,7 +219,7 @@ async def build_session_report(db: AsyncSession, session_id: str, viewer: Viewer
         report = build_student_report(session, student, student_id, scored, generated_at)
         template = report["aiComment"]
         built.append({"report": report, "attempts": scored, "templateComment": template})
-    async with llm_scope(db, viewer):
+    async with llm_scope(db, viewer, release_connection=release_connection):
         for item in built:
             result = await report_ai_text.attempt_comment(
                 report_ai_text.attempt_facts(item["attempts"], item["report"]["errors"]), item["templateComment"]
@@ -236,9 +240,11 @@ async def build_session_report(db: AsyncSession, session_id: str, viewer: Viewer
 
 
 async def ensure_student_reports(db: AsyncSession, student_id: str, viewer: Viewer | None = None) -> None:
+    # Каждое занятие фиксируется отдельно (см. release_connection): готовые отчёты предыдущего занятия уходят в коммит
+    # до вызова модели для следующего. Сборка каждого занятия идемпотентна, частичный результат дособирается при просмотре.
     for session in await list_session_rows(db):
         if student_id in (session.student_ids or []):
-            await build_session_report(db, session.id, viewer)
+            await build_session_report(db, session.id, viewer, release_connection=True)
 
 
 # ─── Чтение ───────────────────────────────────────────────────────────────────────────────────────
@@ -268,7 +274,7 @@ async def get_reports(db: AsyncSession, viewer: Viewer | None, session_id: str |
         raise validation_failed("Укажите параметр «sessionId» или «studentId»")
     if session_id:
         await require_session_row(db, session_id)
-        await build_session_report(db, session_id, viewer)
+        await build_session_report(db, session_id, viewer, release_connection=True)
     elif scope:
         await ensure_student_reports(db, scope, viewer)
     query = select(Report).order_by(Report.id)

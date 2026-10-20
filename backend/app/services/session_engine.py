@@ -778,9 +778,11 @@ async def post_control(db: AsyncSession, session_id: str, body: dict[str, Any], 
         await _issue(db, row, _read_optional_id(body, "studentId"), _read_optional_id(body, "cardId"), _read_optional_id(body, "trapType"))
     elif action == "report":
         assert_transition(row, "reported")
-        row.state = "reported"
-        await db.flush()
+        # Сборка идёт до смены состояния: она может зафиксировать транзакцию перед вызовом модели (T043), и тогда
+        # состояние не должно уйти в коммит раньше отчётов. Занятие в `finished` сборке допустимо.
         if build_report is not None:
             await build_report(db, session_id)
+        row.state = "reported"
+        await db.flush()
     await db.flush()
     return await control_response(db, row)

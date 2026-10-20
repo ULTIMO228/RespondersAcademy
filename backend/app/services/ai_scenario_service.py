@@ -5,11 +5,13 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 import re
 import time
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,6 +41,12 @@ from ml.generate import llm, scenario_generator, validator
 SOURCE_TICKET_NUMBER = re.compile(r"(\d+)$")
 SERVICE_NUMBER = re.compile(r"\b10[1-4]\b")
 EDITABLE_PATH_SEGMENT = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+logger = logging.getLogger(__name__)
+# T046: pending-маркер AIRequest (response=None) старше TTL считается брошенным и перехватывается повтором.
+# TTL короче худшего законного вызова модели: (LLM_RETRIES + 1) × (облачный 60 с + локальный 120 с) = 540 с.
+# Допустимо: UI выдаёт новый requestId на каждую отправку, а владелец, перехваченный по TTL, не фиксирует итог
+# (fence в `_create_drafts_reserved`), то есть при перехвате возможен лишь повторный расчёт, но не двойная запись.
+PENDING_TTL_SEC = 120
 
 
 def _scenario_source_kind(provider: str) -> str:
@@ -49,6 +57,61 @@ def _scenario_source_kind(provider: str) -> str:
 def _request_hash(payload: dict[str, Any]) -> str:
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _new_token() -> str:
+    """Метка владельца pending-маркера: с микросекундами, чтобы перехват давал другую метку."""
+    return datetime.now(UTC).isoformat(timespec="microseconds")
+
+
+def _is_expired(token: str | None) -> bool:
+    """Маркер брошен: строка без метки (до миграции 0010) или метка старше TTL."""
+    if token is None:
+        return True
+    try:
+        started = datetime.fromisoformat(token)
+    except ValueError:
+        return True
+    return datetime.now(UTC) - started > timedelta(seconds=PENDING_TTL_SEC)
+
+
+def _token_matches(token: str | None) -> Any:
+    """SQL-условие владения. `response` в условиях не используется: pending хранится как JSON `null`, не SQL NULL."""
+    return AIRequest.started_at.is_(None) if token is None else AIRequest.started_at == token
+
+
+async def _reclaim_pending(db: AsyncSession, existing: AIRequest) -> AIRequest:
+    """Перехват брошенного маркера: условный UPDATE по id и прежней метке, при гонке выигрывает один запрос."""
+    row_id, previous = existing.id, existing.started_at
+    token = _new_token()
+    claimed = await db.execute(
+        update(AIRequest)
+        .where(AIRequest.id == row_id, _token_matches(previous))
+        .values(started_at=token)
+        .execution_options(synchronize_session=False)
+    )
+    if claimed.rowcount != 1:
+        raise conflict("Запрос с таким requestId ещё выполняется")
+    existing.started_at = token
+    return existing
+
+
+async def _release_pending(db: AsyncSession, marker_id: int, token: str) -> None:
+    """Сбой после модели: откат недописанного и удаление только своего маркера (по id и метке).
+
+    Та же сессия: после отката соединение свободно (пул в тестах — один слот). Ошибка снятия не подменяет исходный
+    сбой: он перевыбрасывается вызывающим, а маркер в худшем случае уйдёт по TTL.
+    """
+    try:
+        await db.rollback()
+        await db.execute(
+            delete(AIRequest)
+            .where(AIRequest.id == marker_id, AIRequest.started_at == token)
+            .execution_options(synchronize_session=False)
+        )
+        await db.commit()
+    except Exception:  # noqa: BLE001 — исходная ошибка запроса важнее ошибки уборки
+        logger.warning("ai_scenario: pending-маркер %s не снят, сработает TTL", marker_id, exc_info=True)
 
 
 async def _reserve_request(
@@ -73,7 +136,9 @@ async def _reserve_request(
         if existing.request_hash != request_hash:
             raise conflict("requestId уже использован с другим содержимым")
         if existing.response is None:
-            raise conflict("Запрос с таким requestId ещё выполняется")
+            if not _is_expired(existing.started_at):
+                raise conflict("Запрос с таким requestId ещё выполняется")
+            return await _reclaim_pending(db, existing), None
         return None, existing.response
 
     request = AIRequest(
@@ -82,6 +147,7 @@ async def _reserve_request(
         request_id=request_id,
         request_hash=request_hash,
         response=None,
+        started_at=_new_token(),
     )
     try:
         async with db.begin_nested():
@@ -105,6 +171,7 @@ async def _reserve_request(
 
 def _finish_request(request: AIRequest, response: Any) -> Any:
     request.response = response
+    request.started_at = None  # завершённый запрос не принадлежит никому (T046)
     return response
 
 
@@ -479,7 +546,24 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
     )
     if request is None:
         return replay
+    # id и метка владельца снимаются до любого отката: rollback истекает атрибуты ORM (иначе ленивая загрузка).
+    marker_id, token = request.id, request.started_at or ""
+    try:
+        return await _create_drafts_reserved(db, body, viewer, request, marker_id, token)
+    except BaseException:
+        await _release_pending(db, marker_id, token)
+        raise
 
+
+async def _create_drafts_reserved(
+    db: AsyncSession,
+    body: ScenarioDraftRequest,
+    viewer: Viewer,
+    request: AIRequest,
+    marker_id: int,
+    token: str,
+) -> list[dict[str, Any]]:
+    """Генерация и сохранение после резервации; любой сбой здесь снимает маркер в `create_drafts`."""
     source = await _load_source(db, body.source_ticket_id)
     classifier_rows = (await db.execute(select(ClassifierEntry).order_by(ClassifierEntry.code))).scalars().all()
     classifier_entries = [row.to_contract() for row in classifier_rows]
@@ -489,7 +573,7 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
     addresses = [row.doc for row in (await db.execute(select(Address).order_by(Address.id))).scalars().all()]
     reference = await reference_service.read_reference(db)
     started = time.perf_counter()
-    async with llm_scope(db, viewer):  # исходы вызовов модели → ai_health и аудит (фича 006); поток видит контекст
+    async with llm_scope(db, viewer, release_connection=True):  # исходы → ai_health и аудит (фича 006); T046
         produced = await asyncio.to_thread(
             generate_from_approved_source,
             source,
@@ -569,6 +653,15 @@ async def create_drafts(db: AsyncSession, body: ScenarioDraftRequest, viewer: Vi
         role=viewer.role,
         details=f"Создано черновиков: {len(responses)}; режим {body.mode}; источник {source.source_ticket_id}:{source.situation_no}",
     )
+    # Fence (T046): итог фиксируется только владельцем маркера. Если маркер перехвачен по TTL, запись не пройдёт.
+    owned = await db.execute(
+        update(AIRequest)
+        .where(AIRequest.id == marker_id, AIRequest.started_at == token)
+        .values(response=responses, started_at=None)
+        .execution_options(synchronize_session=False)
+    )
+    if owned.rowcount != 1:
+        raise conflict("Запрос с таким requestId перехвачен повторной отправкой после таймаута; повторите")
     return _finish_request(request, responses)
 
 

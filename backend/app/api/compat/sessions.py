@@ -23,7 +23,7 @@ def _report_builder(viewer: Viewer):
     try:
         from app.services.report_builder import build_session_report
 
-        return partial(build_session_report, viewer=viewer)
+        return partial(build_session_report, viewer=viewer, release_connection=True)
     except ImportError:
         return None
 

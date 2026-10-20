@@ -20,6 +20,7 @@ from datetime import date
 from typing import Any, Literal
 
 import httpx
+from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -373,7 +374,8 @@ class PolzaClient(OllamaClient):
         if reserve_cloud_call is not None:
             try:
                 self._cloud_reserved = reserve_cloud_call()
-            except TimeoutError:
+            except (TimeoutError, PoolTimeoutError):
+                # Ожидание резервации или соединения пула БД (T045): занятость нашей БД, облако не отвечало.
                 return None, "timeout", False
             except Exception:  # noqa: BLE001 — при ошибке учёта не отправляем оплачиваемый запрос
                 return None, "network", False

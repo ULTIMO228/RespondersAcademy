@@ -170,7 +170,9 @@ async def build_explanation(
     """Пояснение этапа с текущим вердиктом преподавателя; `None` — данных мало, пояснять нечего (FR-016)."""
     if level.level == "noData":
         return None
-    async with llm_scope(db, viewer) as calls:  # исходы вызова модели → ai_health и аудит (фича 006)
+    # Исходы вызова модели → ai_health и аудит (фича 006). Разбор этапа — GET без записей до вызова: соединение
+    # отпускается до модели (T043), иначе оно держится всё время сетевого ожидания.
+    async with llm_scope(db, viewer, release_connection=True) as calls:
         text = await _from_gateway(mode, stage, level, typical_errors, subject)
     if calls.outcomes:
         await db.commit()  # разбор этапа — GET: запись здоровья и аудита иначе не сохранится
