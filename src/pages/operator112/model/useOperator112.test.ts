@@ -102,7 +102,11 @@ function makeApi(
     answerAttempt: vi.fn().mockResolvedValue(attempt({ state: "answered", answeredAt: ANSWERED })),
     sendEvent: vi.fn().mockResolvedValue({}),
     submitAttempt: vi.fn().mockResolvedValue({
-      attempt: attempt({ state: "submitted", answeredAt: ANSWERED, completedAt: "2026-09-29T10:01:00+03:00" }),
+      attempt: attempt({
+        state: "submitted",
+        answeredAt: ANSWERED,
+        completedAt: "2026-09-29T10:01:00+03:00",
+      }),
       card: {},
       evaluationId: "att-100",
     }),
@@ -181,7 +185,9 @@ describe("вид экрана 112: журнал → входящий → кар�
   });
 
   it("неудачный «Принять» остаётся во входящем окне с текстом ошибки", async () => {
-    const api = makeApi(attempt(), { answerAttempt: vi.fn().mockRejectedValue(new Error("Сервер недоступен")) });
+    const api = makeApi(attempt(), {
+      answerAttempt: vi.fn().mockRejectedValue(new Error("Сервер недоступен")),
+    });
     const { result } = await loaded(api);
     await act(async () => {
       await result.current.accept();
@@ -267,7 +273,10 @@ describe("вид экрана 112: журнал → входящий → кар�
       startAssignment: vi
         .fn()
         .mockResolvedValueOnce({ kind: "operator112", attempt: attempt() })
-        .mockResolvedValueOnce({ kind: "operator112", attempt: attempt({ id: "att-101", incidentNumber: 5 }) }),
+        .mockResolvedValueOnce({
+          kind: "operator112",
+          attempt: attempt({ id: "att-101", incidentNumber: 5 }),
+        }),
     });
     const { result } = await loaded(api);
     await act(async () => {

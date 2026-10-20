@@ -211,7 +211,7 @@ function withPrimary(links: CardDraftLink[]): CardDraftLink[] {
 }
 
 /** Связи из событий linkAdded / linkRemoved / linkPrimary: первая привязанная карточка становится главной. */
-function applyLinkEvent(
+export function applyLinkEvent(
   links: readonly CardDraftLink[],
   type: OperatorEvent["type"],
   cardIdValue: unknown,

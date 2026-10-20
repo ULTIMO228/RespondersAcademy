@@ -9,3 +9,4 @@ export { Description112, DESCRIPTION_MAX } from "./ui/Description112";
 export { SmsHistory } from "./ui/SmsHistory";
 export type { SmsMessage } from "./ui/SmsHistory";
 export { ReminderWindow } from "./ui/ReminderWindow";
+export { useCardReminder } from "./model/useCardReminder";

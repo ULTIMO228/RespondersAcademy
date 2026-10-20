@@ -38,7 +38,8 @@ export type Expired = Pick<AssignmentProgress, "score" | "passed">;
  * Вид рабочего места 112 (спека 009, data-model «Состояния экрана 112»): журнал → входящий вызов → карточка → разбор.
  * links и smsHistory — окна поверх карточки; practiceCard — карточка-тренировка, открытая из журнала.
  */
-export type OperatorView = "journal" | "incoming" | "card" | "links" | "smsHistory" | "practiceCard" | "result";
+export type OperatorView =
+  "journal" | "incoming" | "card" | "links" | "smsHistory" | "practiceCard" | "result";
 
 const HTTP_FORBIDDEN = 403;
 const HTTP_NOT_FOUND = 404;
@@ -90,6 +91,8 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
   const [result, setResult] = useState<Result | null>(null);
   const [expired, setExpired] = useState<Expired | null>(null);
   const [nextProblem, setNextProblem] = useState<string | null>(null);
+  /** Сколько раз сервер подтвердил callHidden: журнал перечитывается, когда в нём уже появилась строка очереди. */
+  const [hiddenCount, setHiddenCount] = useState(0);
   const loading = useRef<{ id: string; promise: Promise<void> } | null>(null);
   const submitting = useRef(false);
 
@@ -162,7 +165,10 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
   const hideCall = useCallback(() => {
     if (attempt?.state !== "ringing") return;
     setView("journal");
-    void api.sendEvent(attempt.id, { type: "callHidden" }).catch(() => undefined);
+    api.sendEvent(attempt.id, { type: "callHidden" }).then(
+      () => setHiddenCount((count) => count + 1),
+      () => undefined,
+    );
   }, [api, attempt]);
 
   /** Клик по строке очереди в журнале: снова показать входящее окно (пока вызов не принят). */
@@ -247,6 +253,7 @@ export function useOperator112(assignmentId: string, api: Operator112Api) {
     result,
     expired,
     nextProblem,
+    hiddenCount,
     answer,
     accept,
     hideCall,

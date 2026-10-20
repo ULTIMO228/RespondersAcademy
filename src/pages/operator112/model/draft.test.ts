@@ -41,7 +41,11 @@ describe("значения по умолчанию", () => {
   it("адрес: страна «Россия», субъект и город «Москва»; улицы нет", () => {
     expect(EMPTY_FORM.address).toMatchObject({ country: "Россия", subject: "Москва", locality: "Москва" });
     expect(EMPTY_FORM.address.street).toBe("");
-    expect(restoreForm([]).address).toMatchObject({ country: "Россия", subject: "Москва", locality: "Москва" });
+    expect(restoreForm([]).address).toMatchObject({
+      country: "Россия",
+      subject: "Москва",
+      locality: "Москва",
+    });
   });
 
   it("новые поля: одна вкладка, связей нет, исход «заполнена», канал «звонок»", () => {
