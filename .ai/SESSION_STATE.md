@@ -7,6 +7,7 @@ Front@2026-10-19 (cloud):{tsc:pass, vitest:1948/1949 — teacher-v1 Blob instanc
 Updated:2026-10-19
 
 ## Story
+000000000 2026-10-20 barge never fired in owner calls (prep at 5s + STT/LLM 4–5s → operator done first) → prepare at LIVE_CALL_BARGE_PREPARE_SEC=1.5 voiced, hold events server-side, release at LIVE_CALL_BARGE_IN_SEC=4 voiced; drop (no browser, no history) if operator ends first; INFO log reasons | not checked live
 00000000 2026-10-20 caller LLM → qwen/qwen3-30b-a3b-instruct-2507 (team decision: Qwen; GLM 328GB ≠ TZ server) in .env.example/docs/spec 005; owner must edit own backend/.env (remove REASONING_*) | not re-listened after prompt fixes
 0000000 2026-10-20 barge-in (owner choice: by meaning via LLM, 5s, anxious moods only): operator speech ≥ LIVE_CALL_BARGE_IN_SEC & mood∈{тревожно,паника,плачет} → STT partial → respond(barge) w/ «[оператор ещё говорит]» → response.created.interrupting → front playback plays over operator; cancelled if operator ends first | vitest realtime-audio+softphone 40/40, tsc ok | not checked live
 000000 2026-10-20 bug «Как вас зовут?» → «Алло, здравствуйте, пожар на улице Грина»: browser truncate on barge-in deleted caller reply from LLM history (realtime_cascade send) → model restarted call | fix: PolzaSession.send keeps heard part (audio_end_ms/sent audio) + [перебили]; prompt: operator asked first → answer, no re-greeting | not checked live

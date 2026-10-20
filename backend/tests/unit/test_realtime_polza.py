@@ -583,6 +583,7 @@ def test_prompt_says_answer_operator_question_even_before_greeting():
 def _barge_session(settings, monkeypatch, handler, mood="паника"):
     session = _speech_session(settings, monkeypatch, handler)
     monkeypatch.setattr(settings, "live_call_barge_in_sec", 1.0)
+    monkeypatch.setattr(settings, "live_call_barge_prepare_sec", 1.0)
     session.mood = mood
     barged = asyncio.Event()
     seen = {}
@@ -656,6 +657,8 @@ async def test_barge_reply_is_marked_for_browser_and_model_knows_operator_still_
     session.tts = lambda text, mood=None: asyncio.sleep(0, b"\0\0")
     monkeypatch.setattr(session, "reply_stream", tokens)
     await session.respond(barge="оставайтесь на линии сейчас")
+    assert session.events.empty()  # готовое перебивание ждёт порога
+    await session.release_barge()
     events = [session.events.get_nowait() for _ in range(session.events.qsize())]
     created = next(event for event in events if event["type"] == "response.created")
     assert created["response"]["interrupting"] is True
@@ -668,3 +671,65 @@ def persona_style():
     from app.services.caller_persona import STYLE
 
     return STYLE
+
+
+def _held_session(settings, monkeypatch):
+    session = _speech_session(settings, monkeypatch, lambda _r: httpx.Response(200, json={"text": "оставайтесь на линии"}))
+    monkeypatch.setattr(settings, "live_call_barge_prepare_sec", 0.5)
+    monkeypatch.setattr(settings, "live_call_barge_in_sec", 1.5)
+    session.mood = "паника"
+
+    async def tokens(messages):
+        still = "[оператор ещё говорит]" in messages[-1]["content"]
+        yield "[паника] Быстрее, пожалуйста!" if still else "[паника] Улица Грина."
+
+    async def tts(text, mood=None):
+        return b"\0\0" * 240
+
+    monkeypatch.setattr(session, "reply_stream", tokens)
+    session.tts = tts
+    return session
+
+
+def _sent(session):
+    return [session.events.get_nowait() for _ in range(session.events.qsize())]
+
+
+async def test_barge_is_prepared_early_and_heard_only_after_threshold(settings, monkeypatch):
+    # Звонки 20.10: перебивание ни разу не прозвучало — его начинали готовить через 5 с, а распознавание
+    # и модель занимали ещё 4–5 с; оператор успевал договорить. Теперь реплика готовится заранее и ждёт порога.
+    session = _held_session(settings, monkeypatch)
+    session.listener = asyncio.create_task(session.listen())
+    for _ in range(10):  # 1 с речи: реплика уже готова, но порог 1,5 с не пройден
+        await session.audio.put(SPEECH)
+    for _ in range(100):
+        if session.held and any(e["type"] == "response.done" for e in session.held):
+            break
+        await asyncio.sleep(0.01)
+    assert not any(e["type"].startswith("response.") for e in _sent(session))  # оператор ещё ничего не слышит
+    for _ in range(6):  # речь дошла до 1,6 с
+        await session.audio.put(SPEECH)
+    await _drain(session)
+    events = _sent(session)
+    created = next(e for e in events if e["type"] == "response.created")
+    assert created["response"]["interrupting"] is True
+    assert any(e["type"] == "response.audio.delta" for e in events)
+    await session.__aexit__()
+
+
+async def test_prepared_barge_is_dropped_if_operator_stops_before_threshold(settings, monkeypatch):
+    session = _held_session(settings, monkeypatch)
+    session.listener = asyncio.create_task(session.listen())
+    for _ in range(10):
+        await session.audio.put(SPEECH)
+    for _ in range(100):
+        if session.held and any(e["type"] == "response.done" for e in session.held):
+            break
+        await asyncio.sleep(0.01)
+    for _ in range(7):  # оператор замолчал до порога
+        await session.audio.put(SILENCE)
+    await _drain(session)
+    events = _sent(session)
+    assert not any(e.get("response", {}).get("interrupting") for e in events if e["type"] == "response.created")
+    assert all("Быстрее" not in m["content"] for m in session.history if m["role"] == "assistant")  # неуслышанное не помним
+    await session.__aexit__()

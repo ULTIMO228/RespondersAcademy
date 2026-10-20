@@ -97,6 +97,10 @@ class PolzaSession(CascadeSession):
         self.turn_mark: float | None = None  # конец речи оператора — для замера задержки ответа
         self.turn_marks: set[str] = set()
         self.item_audio_ms: dict[str, float] = {}  # сколько звука реплики ушло в браузер
+        # Готовое перебивание ждёт порога: его события копятся здесь и не уходят в браузер.
+        self.held: list[dict] | None = None
+        self.held_rid = ""
+        self.released_rid = ""
 
 
     async def __aenter__(self):
@@ -168,7 +172,29 @@ class PolzaSession(CascadeSession):
                 if attempt == 2:
                     raise
 
+    async def release_barge(self) -> None:
+        """Оператор говорит дольше порога: готовое перебивание звучит."""
+        events, self.held, self.released_rid = self.held or [], None, self.held_rid
+        logger.info("Заявитель перебивает длинную речь оператора")
+        for event in events:
+            await self.emit(event.pop("type"), **event)
+
+    async def drop_barge(self) -> None:
+        """Оператор договорил до порога: перебивание не прозвучало — ни в браузер, ни в память модели."""
+        if self.held is None:
+            return
+        if self.response and not self.response.done():
+            await self.cancel_response()
+        for event in self.held:
+            message = self.assistant_items.pop(event.get("item_id", ""), None)
+            if message is not None:
+                self.history = [item for item in self.history if item is not message]
+        self.held = None
+        logger.info("Перебивание не понадобилось: оператор договорил раньше порога")
+
     def on_interrupted(self, text: str) -> None:
+        if self.held is not None:
+            return  # перебивание ещё не звучало — оператор его не слышал
         # Оператор уже слышал начало: без этого модель «забывает» сказанное и здоровается заново.
         if text.strip():
             self.history.append({"role": "assistant", "content": text.rstrip() + "… " + INTERRUPTED})
@@ -202,6 +228,13 @@ class PolzaSession(CascadeSession):
         if kind == "response.audio.delta":
             item = fields.get("item_id", "")
             self.item_audio_ms[item] = self.item_audio_ms.get(item, 0.0) + len(fields.get("delta", "")) * 3 / 4 / 48
+        response = fields.get("response") if isinstance(fields.get("response"), dict) else {}
+        rid = fields.get("response_id") or response.get("id", "")
+        if kind == "response.created" and response.get("interrupting") and rid != self.released_rid:
+            self.held, self.held_rid = [], rid
+        if self.held is not None and rid and rid == self.held_rid:
+            self.held.append({"type": kind, **fields})
+            return
         # Замер хода: от конца речи оператора до первого слова модели и первого звука (без текста реплик).
         if self.turn_mark is not None and kind in ("response.text.delta", "response.audio.delta"):
             stage = "первое слово" if kind == "response.text.delta" else "первый звук"
@@ -264,7 +297,7 @@ class PolzaSession(CascadeSession):
                 text = await self.transcribe(pcm)
             if not text or not self.speaking or self.item_id != item_id:
                 return
-            logger.info("Заявитель перебивает длинную речь оператора")
+            logger.info("Перебивание готовится: распознано начало длинной речи оператора")
             await self.cancel_response()
             self.response = asyncio.create_task(self.respond(barge=text))
         except asyncio.CancelledError:
@@ -316,12 +349,20 @@ class PolzaSession(CascadeSession):
                 voiced_ms += duration if voiced else 0
                 self.silent_ms = 0 if voiced else self.silent_ms + duration
                 barge_ms = settings.live_call_barge_in_sec * 1000
-                if (not barged and barge_ms and len(utterance) >= barge_ms * 32 and self.mood in BARGE_MOODS
-                        and (self.response is None or self.response.done())):
+                prepare_ms = min(settings.live_call_barge_prepare_sec * 1000, barge_ms)
+                # Пороги — по времени речи, без пауз между фразами.
+                if not barged and barge_ms and voiced_ms >= prepare_ms:
                     barged = True
-                    barge = asyncio.create_task(self.barge_in(self.item_id, bytes(utterance)))
-                    self.transcriptions.add(barge)
-                    barge.add_done_callback(self.transcriptions.discard)
+                    if self.mood not in BARGE_MOODS:
+                        logger.info("Перебивания не будет: заявитель «%s» дослушивает оператора", self.mood)
+                    elif self.response is not None and not self.response.done():
+                        logger.info("Перебивания не будет: заявитель ещё говорит")
+                    else:
+                        barge = asyncio.create_task(self.barge_in(self.item_id, bytes(utterance)))
+                        self.transcriptions.add(barge)
+                        barge.add_done_callback(self.transcriptions.discard)
+                if self.held is not None and voiced_ms >= barge_ms:
+                    await self.release_barge()
                 if voiced and early is not None:
                     early.cancel()  # оператор продолжил фразу: распознаем её целиком
                     early = None
@@ -340,7 +381,9 @@ class PolzaSession(CascadeSession):
                 early = None
                 if barge is not None and not barge.done():
                     barge.cancel()  # оператор договорил раньше, чем распознали начало: будет обычный ответ
+                    logger.info("Перебивание не успело: оператор договорил раньше, чем распознали начало")
                 barge = None
+                await self.drop_barge()
                 self.speaking, self.onset_ms, self.silent_ms = False, 0, 0
                 await self.emit("input_audio_buffer.speech_stopped", item_id=self.item_id)
                 utterance = bytearray()
