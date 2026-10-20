@@ -10,6 +10,7 @@ import {
   DEFAULT_SUBJECT,
   clearAddress,
   isMoscow,
+  MOSCOW_OKRUGS,
   pickStreet,
   typeStreet,
   withFields,
@@ -211,14 +212,34 @@ export function Operator112AddressField({
           onChange={(object) => set({ object })}
         />
         <Field label="Округ:" className={styles["span-3"]}>
-          {(id) => (
-            <input
-              id={id}
-              className={styles.field__input}
-              value={value.okrug}
-              onChange={(event) => set({ okrug: event.target.value })}
-            />
-          )}
+          {(id) =>
+            isMoscow(value) ? (
+              <select
+                id={id}
+                className={`${styles.field__input} ${styles.field__select}`}
+                value={value.okrug}
+                onChange={(event) => set({ okrug: event.target.value })}
+              >
+                <option value="" />
+                {/* Значение не из списка (ввод до смены субъекта) не теряется. */}
+                {value.okrug && !MOSCOW_OKRUGS.includes(value.okrug) ? (
+                  <option value={value.okrug}>{value.okrug}</option>
+                ) : null}
+                {MOSCOW_OKRUGS.map((okrug) => (
+                  <option key={okrug} value={okrug}>
+                    {okrug}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                id={id}
+                className={styles.field__input}
+                value={value.okrug}
+                onChange={(event) => set({ okrug: event.target.value })}
+              />
+            )
+          }
         </Field>
         <Field label="Район:" className={styles["span-3"]}>
           {(id) => (

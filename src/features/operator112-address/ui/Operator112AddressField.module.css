@@ -182,3 +182,8 @@
   font-size: var(--font-size-xs);
   cursor: pointer;
 }
+
+/* «Округ»: выпадающий список с нижней линией, как поле с ▾ на КАРТОЧКА_image1. */
+.field__select {
+  cursor: pointer;
+}

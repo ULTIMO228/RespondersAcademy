@@ -19,6 +19,22 @@ export const EMPTY_ADDRESS: CardDraftAddress = {
 };
 
 /** Адрес Москвы: справочник улиц доступен только для неё, для других субъектов — ручной ввод (FR-023). */
+/** Административные округа Москвы — список «Округ» адресного блока ПОВ-112 (КАРТОЧКА_image1: поле с ▾). */
+export const MOSCOW_OKRUGS: readonly string[] = [
+  "ЦАО",
+  "САО",
+  "СВАО",
+  "ВАО",
+  "ЮВАО",
+  "ЮАО",
+  "ЮЗАО",
+  "ЗАО",
+  "СЗАО",
+  "ЗелАО",
+  "НАО",
+  "ТАО",
+];
+
 export function isMoscow(address: Pick<CardDraftAddress, "subject">): boolean {
   return (address.subject ?? DEFAULT_SUBJECT).trim().toLowerCase() === DEFAULT_SUBJECT.toLowerCase();
 }

@@ -21,7 +21,8 @@ function Harness({ search, error }: { search: StreetSearch; error?: string }) {
   return <Operator112AddressField value={value} onChange={setValue} search={search} error={error} />;
 }
 
-const type = (text: string) => fireEvent.change(screen.getByRole("combobox"), { target: { value: text } });
+const type = (text: string) =>
+  fireEvent.change(screen.getByRole("combobox", { name: "Улица:" }), { target: { value: text } });
 async function settle() {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(SUGGEST_DEBOUNCE_MS + 10);
@@ -42,7 +43,9 @@ describe("Operator112AddressField", () => {
     await settle();
     expect(search).toHaveBeenCalledTimes(1);
     expect(search.mock.calls[0][0]).toBe("Гри");
-    expect(screen.getAllByRole("option")).toHaveLength(2);
+    expect(
+      within(screen.getByRole("listbox", { name: "Улицы справочника" })).getAllByRole("option"),
+    ).toHaveLength(2);
   });
 
   it("быстрый набор даёт один запрос по последнему тексту (задержка ввода)", async () => {
@@ -89,7 +92,7 @@ describe("Operator112AddressField", () => {
     render(<Harness search={vi.fn<StreetSearch>().mockResolvedValue([GRINA, GRIBOEDOVA])} />);
     type("Гри");
     await settle();
-    const input = screen.getByRole("combobox");
+    const input = screen.getByRole("combobox", { name: "Улица:" });
     fireEvent.keyDown(input, { key: "ArrowDown" });
     fireEvent.keyDown(input, { key: "ArrowDown" });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -102,7 +105,7 @@ describe("Operator112AddressField", () => {
     type("Абракадабра");
     await settle();
     expect(screen.getByText(/можно ввести вручную/)).toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toBeEnabled();
+    expect(screen.getByRole("combobox", { name: "Улица:" })).toBeEnabled();
   });
 
   it("400 сервера: сообщение выводится у поля, набор продолжается", async () => {
@@ -187,7 +190,9 @@ describe("Operator112AddressField", () => {
     fireEvent.change(screen.getByLabelText("Округ:"), { target: { value: "ЦАО" } });
     type("Гри");
     await settle();
-    expect(screen.getAllByRole("option")).toHaveLength(1);
+    expect(
+      within(screen.getByRole("listbox", { name: "Улицы справочника" })).getAllByRole("option"),
+    ).toHaveLength(1);
   });
 
   it("кнопка карты открывает окно «С112 — карта»; выбор точки пишет lat/lon в адрес", () => {
