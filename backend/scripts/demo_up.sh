@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # T060 — стенд для демо одной командой (конституция IV: «без ручной подготовки», SC-015).
 # Запуск из корня репозитория или из backend/:
-#   ./scripts/demo-up.sh [--skip-build] [--backend-port PORT] [--front-port PORT]
+#   ./scripts/demo-up.sh [--skip-build] [--live] [--backend-port PORT] [--front-port PORT]
+#   --live — живой ИИ-заявитель в софтфоне (фича 005): настройки в backend/.env, см. docs/LIVE-CALLER-POLZA.md
 # или:
 #   backend/scripts/demo_up.sh [--skip-build] [--backend-port PORT] [--front-port PORT]
 #
@@ -26,14 +27,16 @@ BACKEND_PORT="${BACKEND_PORT:-8130}"
 FRONT_PORT="${FRONT_PORT:-3130}"
 DEMO_DB="${DEMO_DB:-$BACKEND_DIR/var/demo.db}"
 SKIP_BUILD="${SKIP_BUILD:-0}"
+LIVE="${LIVE:-0}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --skip-build) SKIP_BUILD=1 ;;
+    --live) LIVE=1 ;;
     --backend-port) shift; BACKEND_PORT="${1:-8130}" ;;
     --front-port) shift; FRONT_PORT="${1:-3130}" ;;
     -h|--help)
-      echo "Использование: $0 [--skip-build] [--backend-port PORT] [--front-port PORT]"
+      echo "Использование: $0 [--skip-build] [--live] [--backend-port PORT] [--front-port PORT]"
       exit 0
       ;;
     *) echo "Неизвестный аргумент: $1" >&2; exit 2 ;;
@@ -179,8 +182,21 @@ if [ -z "${LLAMA_URL:-}" ] && curl -sf -m 2 "http://127.0.0.1:8081/health" >/dev
 fi
 echo "   ИИ-модель: ${LLAMA_URL:-не подключена (генерация карточек — только шаблоны)}"
 
+if [ "$LIVE" -eq 1 ]; then
+  # Переменные окружения перекрывают backend/.env: включаем звонок и WS на порт этого стенда.
+  export LIVE_CALLS_ENABLED=true
+  export LIVE_CALL_PUBLIC_WS_URL="ws://127.0.0.1:$BACKEND_PORT/api/v1/operator112/realtime"
+  echo "▸ Живой ИИ-заявитель (--live): проверка настроек"
+  (cd "$BACKEND_DIR" && uv run python -m scripts.live_caller_check) || {
+    echo "❌ Живой заявитель не готов — допишите недостающее в backend/.env (docs/LIVE-CALLER-POLZA.md)" >&2
+    exit 1
+  }
+  SKIP_BUILD=0   # NEXT_PUBLIC_LIVE_CALLS_ENABLED запекается в сборку фронта
+fi
+
 echo "▸ Запуск бэкенда на http://127.0.0.1:$BACKEND_PORT..."
-(cd "$BACKEND_DIR" && uv run uvicorn app.main:app --port "$BACKEND_PORT" >"$LOG_DIR/backend.log" 2>&1) &
+# Один worker: билеты и занятость голосовых соединений хранятся в памяти процесса.
+(cd "$BACKEND_DIR" && uv run uvicorn app.main:app --port "$BACKEND_PORT" --workers 1 >"$LOG_DIR/backend.log" 2>&1) &
 BACKEND_PID=$!
 
 wait_for "http://127.0.0.1:$BACKEND_PORT/api/mock/auth/policy" 60 || {
@@ -204,7 +220,8 @@ fi
 
 if [ "$SKIP_BUILD" -eq 0 ]; then
   echo "▸ Сборка фронта с BACKEND_URL=$BACKEND_URL..."
-  (cd "$ROOT" && npm run mocks:sync && npm run mocks:validate && NEXT_TELEMETRY_DISABLED=1 npx next build) >"$LOG_DIR/build.log" 2>&1 || {
+  LIVE_FLAG=false; [ "$LIVE" -eq 1 ] && LIVE_FLAG=true
+  (cd "$ROOT" && npm run mocks:sync && npm run mocks:validate && NEXT_PUBLIC_LIVE_CALLS_ENABLED=$LIVE_FLAG NEXT_TELEMETRY_DISABLED=1 npx next build) >"$LOG_DIR/build.log" 2>&1 || {
     echo "❌ Ошибка сборки фронта! Последние строки лога:" >&2
     tail -40 "$LOG_DIR/build.log" >&2
     exit 1
@@ -247,6 +264,15 @@ echo "   2. Отработать звонок 112, заполнить карту
 echo "   3. Войти преподавателем morozova → подтвердить карточку в сценариях."
 echo "   4. Вернуться курсантом ivanov → нажать «Начать этап ДДС» → отработать карточку."
 echo ""
+if [ "$LIVE" -eq 1 ]; then
+  echo "🎧 Живой ИИ-заявитель (гарнитура, Chrome; адрес — именно localhost, иначе браузер не даст микрофон):"
+  echo "   1. Войти курсантом ivanov → «Задания» → активная тренировка режима «Специалист-112»."
+  echo "   2. Открыть билет (c-010 пожар или c-050 скорая) → «Ответить на вызов» → разрешить микрофон."
+  echo "   3. Заявитель заговорит сам. Говорите в гарнитуру; пауза ~0,7 с — реплика отправлена;"
+  echo "      начните говорить, пока он отвечает, — он замолчит (перебивание)."
+  echo "   4. «Завершить разговор» → транскрипт сохранён в попытке."
+  echo ""
+fi
 echo "📝 Логи доступны в: $LOG_DIR"
 echo "🛑 Для завершения работы нажмите Ctrl+C"
 echo "================================================================="

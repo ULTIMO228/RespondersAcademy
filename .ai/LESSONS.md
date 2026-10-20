@@ -60,3 +60,37 @@
 
 ## L013 | flaky tests
 ⚠️ IncidentScreen "card-881412" failed once in full vitest run, passes alone → rerun file before blaming own change
+
+## L014 | hashes of text artifacts
+❌ sha256 over raw bytes of text files built on Windows (CRLF) → manifest red on Linux/mac
+✅ hash LF-normalized content for text artifacts (pack.py text_sha256); raw bytes only for binaries/zip
+
+## L015 | order-dependent tests
+❌ test relies on state left by another test (attempt created elsewhere)
+✅ test creates and removes its own state; module-scoped restore is not isolation between tests
+
+## L016 | settings isolation in tests
+❌ pydantic Settings reads backend/.env in tests → AI_PROVIDER=polza/keys leak into test run (real paid calls)
+✅ conftest: Settings.model_config["env_file"]=None before first get_settings(); test_settings_isolation
+
+## L017 | provider facts over docs
+❌ assume OpenAI-compatible /audio/speech returns raw audio and Qwen TTS exists in catalog
+✅ probe real API (catalog GET /models, one request) before choosing; Polza TTS → JSON base64, voice required
+! reasoning models: cap via reasoning.max_tokens; effort=low not bounded (finish=length, empty answer)
+
+## L018 | reasoning params differ per model on aggregator
+❌ assume top-level reasoning_effort=none disables thinking
+✅ probe: qwen3.8-27b needs reasoning.enabled=false; GLM-5.3 mandatory → reasoning.max_tokens; never combine effort+max_tokens (empty answer)
+
+## L019 barge-in must not erase caller memory
+❌ truncate → delete assistant msg from LLM history → caller greets again on any question
+✅ keep heard part + [перебили]; test «operator speaks over greeting»
+! «плохо отвечает» was state bug, not prompt wording → check history before rewriting prompt
+
+## L020 team model decision lives in spec, not only in chat summary
+❌ kept GLM as default (summary said «open question») though spec/005 README:3 says team chose Qwen
+✅ before recommending model → read spec 005 decisions; TZ server fit (32GB CPU) is hard rule
+
+## L021 persona prompt: limits overshoot
+❌ fixed «overacting» with hard caps (one filler, 1–2 phrases, answer only) → Qwen literal → dry questionnaire
+✅ say what IS allowed (feelings, questions) + what is forbidden (new facts); show tone by fact-free examples; check temperature

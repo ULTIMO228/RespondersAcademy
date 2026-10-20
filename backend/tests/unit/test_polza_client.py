@@ -191,8 +191,17 @@ def test_local_clients_stay_for_warmup_even_with_polza(monkeypatch):
 def test_polza_without_key_fails_at_startup():
     with pytest.raises(ValueError, match="POLZA_API_KEY"):
         Settings(JWT_SECRET="x" * 40, AI_PROVIDER="polza")
-    assert Settings(JWT_SECRET="x" * 40, AI_PROVIDER="polza", POLZA_API_KEY="k").ai_provider == "polza"
+    assert Settings(JWT_SECRET="x" * 40, AI_PROVIDER="polza", POLZA_API_KEY="k",
+                    POLZA_MODEL="qwen/open-model").ai_provider == "polza"
     assert Settings(JWT_SECRET="x" * 40).ai_provider == "local"
+
+
+def test_polza_model_has_no_hardcoded_default():
+    # Условие организаторов: только модели, разворачиваемые локально, и без хардкода —
+    # модель выбирается явно в окружении, закрытой модели по умолчанию нет.
+    with pytest.raises(ValueError, match="POLZA_MODEL"):
+        Settings(JWT_SECRET="x" * 40, AI_PROVIDER="polza", POLZA_API_KEY="k")
+    assert Settings(JWT_SECRET="x" * 40).polza_model is None
 
 
 def test_unknown_provider_is_rejected():

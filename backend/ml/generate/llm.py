@@ -258,7 +258,7 @@ def external_client() -> PolzaClient | None:
     from app.config import get_settings
 
     settings = get_settings()
-    if settings.ai_provider != "polza" or settings.polza_api_key is None:
+    if settings.ai_provider != "polza" or settings.polza_api_key is None or not settings.polza_model:
         return None
     key = (settings.polza_base_url, settings.polza_model)
     if _external_cache.get("key") != key:

@@ -105,9 +105,32 @@ describe("Operator112Softphone: разговор и запись", () => {
 
   it("StrictMode не делает второй запрос файла (в экзамене он был бы засчитан как повтор)", async () => {
     const audioLoader = vi.fn().mockResolvedValue(new Blob(["RIFF"]));
-    const { container } = render(<StrictMode>{view({ attempt: answered(), audioLoader })}</StrictMode>);
+    const { container, unmount } = render(
+      <StrictMode>{view({ attempt: answered(), audioLoader })}</StrictMode>,
+    );
     await waitFor(() => expect(container.querySelector("audio")).not.toBeNull());
     expect(audioLoader).toHaveBeenCalledTimes(1);
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+    unmount();
+    await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1));
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:audio-1");
+  });
+
+  it("не создаёт ссылку, если загрузка завершилась после ухода со страницы", async () => {
+    let resolveAudio!: (blob: Blob) => void;
+    const audioLoader = vi.fn(
+      () =>
+        new Promise<Blob>((resolve) => {
+          resolveAudio = resolve;
+        }),
+    );
+    const { unmount } = render(view({ attempt: answered(), audioLoader }));
+    unmount();
+    await act(async () => {
+      resolveAudio(new Blob(["RIFF"]));
+    });
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
   });
 
   it("StrictMode: blob-URL, стоящий в плеере, не отозван (иначе play() → NotSupportedError)", async () => {
@@ -175,6 +198,7 @@ describe("Operator112Softphone: разговор и запись", () => {
     const onReplay = vi.fn();
     const { container } = render(view({ attempt: answered(), audioLoader, onReplay }));
     await waitFor(() => expect(container.querySelector("audio")).not.toBeNull());
+    await waitFor(() => expect(play).toHaveBeenCalled());
     play.mockClear();
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Прослушать ещё раз" }));

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { APP_ENV } from "@/shared/config";
 
 import type { AssignmentFormat, OperatorAttempt } from "@/shared/api";
 import { AiBadge, Button, TimerBadge } from "@/shared/ui";
@@ -17,6 +18,7 @@ import type { AttemptNorms } from "@/entities/operator112-attempt";
 
 import { useCallerAudio } from "../model/useCallerAudio";
 import type { CallerAudioLoader } from "../model/useCallerAudio";
+import { RealtimeCaller } from "./RealtimeCaller";
 
 import styles from "./Operator112Softphone.module.css";
 
@@ -24,7 +26,7 @@ export const EMERGENCY_AUDIO_NOTE = "Аварийный режим: аудио �
 export const EXAM_REPLAY_NOTE = "Повторное прослушивание в экзамене запрещено";
 const AI_VOICE_TITLE = "Речь заявителя синтезирована локальной моделью";
 
-type Operator112SoftphoneProps = {
+export type Operator112SoftphoneProps = {
   attempt: OperatorAttempt;
   format: AssignmentFormat | null;
   norms: AttemptNorms;
@@ -41,7 +43,15 @@ type Operator112SoftphoneProps = {
  * Софтфон режима «Специалист-112»: индикатор входящего вызова, отсчёт ожидания ответа против норматива, «Ответить», таймер
  * разговора, плеер записи заявителя, аварийный транскрипт. Оформление — токены softphone/АРМ, форм новых контролов нет.
  */
-export function Operator112Softphone({
+export function Operator112Softphone(props: Operator112SoftphoneProps) {
+  return APP_ENV.liveCallsEnabled && props.format === "training" ? (
+    <RealtimeCaller {...props} />
+  ) : (
+    <RecordedOperator112Softphone {...props} />
+  );
+}
+
+function RecordedOperator112Softphone({
   attempt,
   format,
   norms,
