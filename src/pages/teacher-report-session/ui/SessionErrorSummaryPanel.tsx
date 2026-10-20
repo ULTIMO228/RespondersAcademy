@@ -57,7 +57,7 @@ export function SessionErrorSummaryPanel({ summary, attempts }: SessionErrorSumm
         </div>
       </div>
 
-      {summary && Object.keys(summary.byDetector).length > 0 ? (
+      {summary?.byDetector && Object.keys(summary.byDetector).length > 0 ? (
         <div
           style={{
             display: "flex",
