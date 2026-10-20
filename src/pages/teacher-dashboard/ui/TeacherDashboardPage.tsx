@@ -2,6 +2,7 @@ import { formatShortName } from "@/entities/user";
 import { requireSessionUser } from "@/entities/user/index.server";
 
 import { DashboardScreen } from "./DashboardScreen";
+import { ProblemReportsBlock } from "./ProblemReportsBlock";
 import { TeacherHomeSummary } from "./TeacherHomeSummary";
 
 /**
@@ -13,6 +14,7 @@ export async function TeacherDashboardPage() {
   return (
     <>
       <TeacherHomeSummary />
+      <ProblemReportsBlock />
       <DashboardScreen teacherId={user.id} teacherName={formatShortName(user.fullName)} />
     </>
   );

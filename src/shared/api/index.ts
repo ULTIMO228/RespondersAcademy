@@ -53,6 +53,15 @@ export type {
   HeadlineKind,
 } from "./types";
 export { getStudentRating, getStudentStats } from "./endpoints";
+export {
+  buildProblemReportForm,
+  createProblemReport,
+  listTeacherProblemReports,
+  markProblemReportRead,
+  problemReportAttachmentUrl,
+} from "./endpoints";
+export type { ProblemReportDraft } from "./endpoints";
+export type { ProblemReport, ProblemReportList } from "./types";
 export type { StudentRatingQuery, StudentStatsQuery } from "./endpoints";
 export type {
   RatingGroup,

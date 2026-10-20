@@ -196,3 +196,4 @@ export type {
   StudentStatsPoint,
   StudentStatsSummary,
 } from "./student-rating";
+export type { ProblemReport, ProblemReportList } from "./problem-report";

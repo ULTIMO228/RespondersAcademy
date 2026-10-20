@@ -97,3 +97,11 @@ export {
 export type { ErrorMapPdfParams, ErrorMapQuery } from "./error-map";
 export { getStudentRating, getStudentStats } from "./student-rating";
 export type { StudentRatingQuery, StudentStatsQuery } from "./student-rating";
+export {
+  buildProblemReportForm,
+  createProblemReport,
+  listTeacherProblemReports,
+  markProblemReportRead,
+  problemReportAttachmentUrl,
+} from "./problem-reports";
+export type { ProblemReportDraft } from "./problem-reports";

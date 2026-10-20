@@ -1832,6 +1832,32 @@
    ],
    "extends": []
   },
+  "ProblemReport": {
+   "file": "problem-report.ts",
+   "required": [
+    "id",
+    "studentId",
+    "studentName",
+    "text",
+    "hasAttachment",
+    "createdAt"
+   ],
+   "optional": [
+    "groupId",
+    "attemptId",
+    "incidentNumber",
+    "readAt"
+   ],
+   "extends": []
+  },
+  "ProblemReportList": {
+   "file": "problem-report.ts",
+   "required": [
+    "items"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "ProfileMappingRow": {
    "file": "teacher.ts",
    "required": [
