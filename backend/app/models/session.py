@@ -76,8 +76,23 @@ class Attempt(Base):
             data["evaluation"] = evaluation
         return data
 
-    def to_operator_contract(self, *, replays: int = 0, hints_shown: int = 0, hints: dict[str, Any] | None = None, assignment_id: str | None = None, audio: dict[str, Any] | None = None) -> dict[str, Any]:
-        """OperatorAttempt контракта v1 (contracts/v1-endpoints.md, «Режим специалиста-112»)."""
+    def to_operator_contract(
+        self,
+        *,
+        replays: int = 0,
+        hints_shown: int = 0,
+        hints: dict[str, Any] | None = None,
+        assignment_id: str | None = None,
+        audio: dict[str, Any] | None = None,
+        channel: str = "call",
+        sms_text: str | None = None,
+        repeat_of: str | None = None,
+    ) -> dict[str, Any]:
+        """OperatorAttempt контракта v1 (contracts/v1-endpoints.md, «Режим специалиста-112»).
+
+        channel, sms_text, repeat_of — поля билета (спека 009, FR-010, US5/US6): канал «звонок» по умолчанию,
+        текст СМС только у канала sms, повтор — id карточки журнала, к которой привязан вызов.
+        """
         data: dict[str, Any] = {
             "id": self.id,
             "cardId": self.card_id,
@@ -90,7 +105,12 @@ class Attempt(Base):
             "events": list(self.events or []),
             "replays": replays,
             "hintsShown": hints_shown,
+            "channel": "sms" if channel == "sms" else "call",
         }
+        if data["channel"] == "sms":
+            data["smsText"] = sms_text or ""
+        if repeat_of:
+            data["repeatOf"] = repeat_of
         if self.answered_at:
             data["answeredAt"] = self.answered_at
         if self.completed_at:

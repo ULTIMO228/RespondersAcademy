@@ -14,6 +14,7 @@ from app.models.card import Address, ArmCardFixture, CardRuntime, IncidentCard
 from app.models.classifier import ClassifierEntry
 from app.models.error_map import ErrorMapVerdict
 from app.models.kb import KbArticle
+from app.models.problem_report import ProblemReport
 from app.models.recommendation import Recommendation, StudentRating
 from app.models.reference import ReferenceEntry, SystemSettings
 from app.models.report import CalibrationSample, GroupReport, Report, ReportFeedback
@@ -51,6 +52,7 @@ __all__ = [
     "ErrorRecord",
     "IncidentCard",
     "KbArticle",
+    "ProblemReport",
     "ProfileMappingRow",
     "ReferenceEntry",
     "Recommendation",

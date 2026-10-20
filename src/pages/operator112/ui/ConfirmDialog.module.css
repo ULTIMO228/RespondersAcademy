@@ -1,0 +1,85 @@
+/* Окно подтверждения 112: оранжевое окно как «Вы не можете вносить изменения» (ИНСТРУКЦИЯ_94), поверх затемнённого вида. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--card-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: min(560px, calc(100% - 2 * var(--spacing-3xl)));
+  padding: var(--spacing-xl);
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+}
+
+.window__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.window__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-base);
+}
+
+.window__actions {
+  display: flex;
+  gap: var(--spacing-lg);
+}
+
+.window__confirm,
+.window__cancel {
+  height: var(--control-height-lg);
+  padding: 0 var(--spacing-2xl);
+  border: 1px solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.window__confirm {
+  background: var(--color-white);
+  color: var(--color-accent-orange);
+}
+
+.window__confirm:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.window__list {
+  margin: 0;
+  padding-left: var(--spacing-xl);
+}
+
+.window__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.window__input {
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-md);
+  border: 0;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-md);
+}

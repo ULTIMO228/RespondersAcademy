@@ -5,6 +5,8 @@ export { BarChart, ChartDataTable, LineChart } from "./charts";
 export type { ChartTableColumn, LineSeries } from "./charts";
 export { Chip } from "./chip";
 export { ConnectionBanner } from "./connection-banner";
+export { Glyph } from "./glyph";
+export type { GlyphName } from "./glyph";
 export { ArmIcon } from "./icon";
 export type { ArmIconName } from "./icon";
 export { Input } from "./input";

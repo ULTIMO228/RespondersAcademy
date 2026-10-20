@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 
 import { ApiError } from "@/shared/api";
 import type { KbArticle } from "@/shared/api";
@@ -14,11 +15,14 @@ import {
 
 import { LOCKED_TEXT } from "../model/referenceApi";
 import type { ReferencePanelApi } from "../model/referenceApi";
+import { BackIcon, CloseIcon, SearchIcon } from "./icons";
 
 import styles from "./ReferencePanel.module.css";
 
 const HTTP_FORBIDDEN = 403;
 const MAX_RESULTS = 20;
+/** Примеры запросов под полем поиска (проверены на 105 статьях: у каждого есть результат). Это слова поиска, не содержание. */
+const EXAMPLE_QUERIES = ["пожар", "запах газа", "балкон", "взрыв", "лифт", "ребёнок", "драка", "оружие"];
 
 type Load =
   | { status: "loading" }
@@ -46,7 +50,18 @@ function Highlight({ text, stems }: { text: string; stems: string[] }) {
   );
 }
 
-/** Поиск и чтение статей справочника тезисами (спека 005, FR-003/FR-004). Общий для панели в АРМ и отдельного окна. */
+/** Первый тезис, где встретилось слово запроса: показывается под названием, чтобы не открывать каждую статью. */
+function snippetOf(article: KbArticle, stems: string[]): string | null {
+  for (const { key } of KB_SECTION_ORDER) {
+    const found = (article.sections[key] ?? []).find((thesis) =>
+      highlightParts(thesis, stems).some((part) => part.match),
+    );
+    if (found) return found;
+  }
+  return null;
+}
+
+/** Поиск и чтение статей справочника тезисами (спека 005, FR-003/FR-004). Общий для окошка в АРМ и отдельного окна. */
 export function ReferenceBrowser({
   api,
   query,
@@ -56,6 +71,8 @@ export function ReferenceBrowser({
   autoFocus = false,
 }: ReferenceBrowserProps) {
   const inputId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLUListElement>(null);
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [fresh, setFresh] = useState<KbArticle | null>(null);
 
@@ -113,15 +130,17 @@ export function ReferenceBrowser({
     return (
       <article className={styles.article} aria-labelledby={`${inputId}-title`}>
         <button type="button" className={styles.back} onClick={() => onArticle(null)}>
-          ← К результатам
+          <BackIcon />К результатам
         </button>
-        <h3 id={`${inputId}-title`} className={styles.article__title}>
-          <Highlight text={opened.title} stems={stems} />
-        </h3>
-        <p className={styles.muted}>{opened.group}</p>
+        <header className={styles.article__head}>
+          <span className={styles.tag}>{opened.group}</span>
+          <h3 id={`${inputId}-title`} className={styles.article__title}>
+            <Highlight text={opened.title} stems={stems} />
+          </h3>
+        </header>
         {KB_SECTION_ORDER.filter(({ key }) => (opened.sections[key] ?? []).length > 0).map(
           ({ key, title }) => (
-            <section key={key} className={styles.section}>
+            <section key={key} className={styles.section} data-section={key}>
               <h4 className={styles.section__title}>{title}</h4>
               <ul className={styles.theses}>
                 {opened.sections[key].map((thesis, index) => (
@@ -138,22 +157,76 @@ export function ReferenceBrowser({
   }
 
   const trimmed = query.trim();
+  const resultButtons = () =>
+    Array.from(resultsRef.current?.querySelectorAll<HTMLButtonElement>("button") ?? []);
+
+  const onInputKey = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      resultButtons()[0]?.focus();
+    }
+  };
+  const onResultsKey = (event: KeyboardEvent<HTMLUListElement>) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const buttons = resultButtons();
+    const index = buttons.findIndex((button) => button === document.activeElement);
+    const next = index + (event.key === "ArrowDown" ? 1 : -1);
+    if (next < 0) inputRef.current?.focus();
+    else buttons[Math.min(next, buttons.length - 1)]?.focus();
+  };
+
   return (
     <div className={styles.browser}>
       <label className={styles.label} htmlFor={inputId}>
         Поиск по ключевым словам
       </label>
-      <input
-        id={inputId}
-        className={styles.input}
-        type="search"
-        value={query}
-        autoFocus={autoFocus}
-        placeholder="например: балкон пожар"
-        onChange={(event) => onQuery(event.target.value)}
-      />
+      <div className={styles.search}>
+        <span className={styles.search__icon} aria-hidden="true">
+          <SearchIcon size={18} />
+        </span>
+        <input
+          id={inputId}
+          ref={inputRef}
+          className={styles.input}
+          type="search"
+          value={query}
+          autoFocus={autoFocus}
+          autoComplete="off"
+          placeholder="например: балкон пожар"
+          onChange={(event) => onQuery(event.target.value)}
+          onKeyDown={onInputKey}
+        />
+        {query !== "" ? (
+          <button
+            type="button"
+            className={styles.search__clear}
+            aria-label="Очистить поиск"
+            onClick={() => {
+              onQuery("");
+              inputRef.current?.focus();
+            }}
+          >
+            <CloseIcon size={14} />
+          </button>
+        ) : null}
+      </div>
       {trimmed === "" ? (
-        <p className={styles.muted}>Введите слова из вызова: что случилось, где, кто пострадал.</p>
+        <>
+          <p className={styles.muted}>Введите слова из вызова: что случилось, где, кто пострадал.</p>
+          <div className={styles.suggest}>
+            <p className={styles.suggest__title}>Попробуйте найти</p>
+            <ul className={styles.chips} aria-label="Примеры запросов">
+              {EXAMPLE_QUERIES.map((example) => (
+                <li key={example}>
+                  <button type="button" className={styles.chip} onClick={() => onQuery(example)}>
+                    {example}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       ) : stems.length === 0 ? (
         <p className={styles.muted}>Введите хотя бы {KB_QUERY_MIN_LENGTH} буквы.</p>
       ) : hits.length === 0 ? (
@@ -161,18 +234,36 @@ export function ReferenceBrowser({
           Ничего не найдено. Измените запрос или проверьте написание.
         </p>
       ) : (
-        <ul className={styles.results} aria-label="Найденные статьи">
-          {hits.map(({ article }) => (
-            <li key={article.id}>
-              <button type="button" className={styles.result} onClick={() => onArticle(article.id)}>
-                <span className={styles.result__title}>
-                  <Highlight text={article.title} stems={stems} />
-                </span>
-                <span className={styles.muted}>{article.group}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p className={styles.count} role="status">
+            Найдено статей: {hits.length}
+          </p>
+          <ul
+            className={styles.results}
+            aria-label="Найденные статьи"
+            ref={resultsRef}
+            onKeyDown={onResultsKey}
+          >
+            {hits.map(({ article }) => {
+              const snippet = snippetOf(article, stems);
+              return (
+                <li key={article.id}>
+                  <button type="button" className={styles.result} onClick={() => onArticle(article.id)}>
+                    <span className={styles.result__title}>
+                      <Highlight text={article.title} stems={stems} />
+                    </span>
+                    {snippet ? (
+                      <span className={styles.result__snippet}>
+                        <Highlight text={snippet} stems={stems} />
+                      </span>
+                    ) : null}
+                    <span className={styles.tag}>{article.group}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
     </div>
   );

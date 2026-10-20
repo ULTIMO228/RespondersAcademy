@@ -7,6 +7,8 @@ import {
   getNotificationList,
   getOperatorEvaluation,
   getTicketAudio,
+  journal,
+  matches,
   searchStreets,
   sendAttemptEvent,
   submitAttempt,
@@ -159,5 +161,48 @@ describe("клиент режима 112 /api/v1/operator112", () => {
     await expect(fetchTicketAudioFile("c-010")).rejects.toMatchObject({ status: 404, code: "notFound" });
     stubFetch(409, { error: { code: "conflict", message: "В экзамене запись прослушивается один раз" } });
     await expect(fetchTicketAudioFile("c-010")).rejects.toMatchObject({ status: 409, code: "conflict" });
+  });
+
+  it("journal: GET /operator112/journal?assignmentId= — строки журнала приходят как есть, queued сохраняется", async () => {
+    const row = {
+      cardId: "att-1",
+      number: "3",
+      createdAt: "2026-10-20T10:00:00+03:00",
+      operator: "Иванов С. П.",
+      arm: "1",
+      whatHappened: "",
+      injured: "",
+      status: "",
+      address: "",
+      description: "",
+      linked: false,
+      chs: false,
+      checked: false,
+      isOwn: true,
+      queued: true,
+    };
+    const fetchMock = stubFetch(200, { rows: [row], total: 1 });
+    const response = await journal("asg-001");
+    expect(response.total).toBe(1);
+    expect(response.rows[0]?.queued).toBe(true);
+    const { url, method } = sent(fetchMock);
+    expect(method).toBe("GET");
+    expect(url.pathname).toBe("/api/v1/operator112/journal");
+    expect(url.searchParams.get("assignmentId")).toBe("asg-001");
+  });
+
+  it("matches: GET …/attempts/{id}/matches; пустой список — штатный ответ, а не ошибка", async () => {
+    const fetchMock = stubFetch(200, { matches: [] });
+    expect(await matches("att-1")).toEqual({ matches: [] });
+    const { url, method } = sent(fetchMock);
+    expect(method).toBe("GET");
+    expect(url.pathname).toBe("/api/v1/operator112/attempts/att-1/matches");
+  });
+
+  it("matches: 403 чужой попытки — ApiError forbidden", async () => {
+    stubFetch(403, {
+      error: { code: "forbidden", message: "Обучающемуся доступны только собственные попытки" },
+    });
+    await expect(matches("att-2")).rejects.toMatchObject({ status: 403, code: "forbidden" });
   });
 });

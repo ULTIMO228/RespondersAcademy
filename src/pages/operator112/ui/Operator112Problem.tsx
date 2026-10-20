@@ -17,7 +17,7 @@ const TITLES: Record<Problem["kind"], string> = {
 
 /** Сообщение сервера показывается дословно; возврат — к заданиям (единственный вход в режим 112). */
 export function Operator112Problem({ problem }: { problem: Problem }) {
-  if (problem.kind === "serverRequired") return <ServerRequired section="Режим «Специалист-112»" />;
+  if (problem.kind === "serverRequired") return <ServerRequired section="Рабочее место 112" />;
   return (
     <section className={styles.problem} role="alert" data-kind={problem.kind}>
       <h1 className={styles.problem__title}>{TITLES[problem.kind]}</h1>
@@ -33,7 +33,7 @@ export function Operator112Problem({ problem }: { problem: Problem }) {
 export function Operator112Missing() {
   return (
     <section className={styles.problem} role="status" data-kind="missing">
-      <h1 className={styles.problem__title}>Режим «Специалист-112»</h1>
+      <h1 className={styles.problem__title}>Задание не выбрано</h1>
       <p>Откройте задание из раздела заданий: вызов выдаётся только в рамках задания.</p>
       <Link href={ROUTES.studentAssignments} className={styles.problem__link}>
         К заданиям

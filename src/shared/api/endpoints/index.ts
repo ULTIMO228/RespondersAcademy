@@ -70,7 +70,14 @@ export {
   answerAttempt,
   fetchTicketAudioFile,
 } from "./operator112";
-export { getNotificationList, getOperatorEvaluation, getTicketAudio, searchStreets } from "./operator112";
+export {
+  getNotificationList,
+  getOperatorEvaluation,
+  getTicketAudio,
+  journal,
+  matches,
+  searchStreets,
+} from "./operator112";
 export { sendAttemptEvent, submitAttempt, ticketAudioFileUrl } from "./operator112";
 export type { SubmitAttemptResult } from "./operator112";
 export { listWorkMessages, postReportAudio } from "./work-messages";
@@ -91,3 +98,11 @@ export {
 export type { ErrorMapPdfParams, ErrorMapQuery } from "./error-map";
 export { getStudentRating, getStudentStats } from "./student-rating";
 export type { StudentRatingQuery, StudentStatsQuery } from "./student-rating";
+export {
+  buildProblemReportForm,
+  createProblemReport,
+  listTeacherProblemReports,
+  markProblemReportRead,
+  problemReportAttachmentUrl,
+} from "./problem-reports";
+export type { ProblemReportDraft } from "./problem-reports";

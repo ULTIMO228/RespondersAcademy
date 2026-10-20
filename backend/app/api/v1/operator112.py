@@ -1,6 +1,7 @@
 """Режим специалиста-112 (`contracts/v1-endpoints.md`, «Режим специалиста-112»; T084):
 `POST /operator112/attempts`, `…/answer`, `…/events`, `GET …/notification-list`, `POST …/submit`, `GET …/evaluation`,
-`GET /streets?q=&limit=`. Все эндпоинты требуют сессию (401); обучающийся — только свои попытки (403).
+`GET /streets?q=&limit=`; спека 009: `GET /operator112/journal?assignmentId=`, `GET …/matches`.
+Все эндпоинты требуют сессию (401); обучающийся — только свои попытки (403).
 """
 
 from __future__ import annotations
@@ -67,6 +68,21 @@ async def submit_attempt(attempt_id: str, request: Request, db: AsyncSession = D
 @router.get("/operator112/attempts/{attempt_id}/evaluation")
 async def attempt_evaluation(attempt_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
     return await service.evaluation(db, attempt_id, viewer)
+
+
+@router.get("/operator112/journal")
+async def journal(request: Request, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
+    """Журнал «Поиск происшествий» ученика-112 (спека 009, FR-006/FR-007): `?assignmentId=` обязателен."""
+    assignment_id = (request.query_params.get("assignmentId") or "").strip()
+    if not assignment_id:
+        raise validation_failed("Укажите «assignmentId» задания")
+    return await service.journal(db, assignment_id, viewer)
+
+
+@router.get("/operator112/attempts/{attempt_id}/matches")
+async def attempt_matches(attempt_id: str, db: AsyncSession = Depends(get_db), viewer: Viewer = Depends(require_viewer)) -> dict[str, Any]:
+    """Совпадения с карточками журнала по АОН и адресу (спека 009, US5): `{matches: []}`, если совпадений нет."""
+    return await service.matches(db, attempt_id, viewer)
 
 
 @router.get("/streets")

@@ -78,6 +78,15 @@ async def _own_card(v1: AsyncClient, assignment_id: str, role: str) -> str:
     return card_id
 
 
+async def _ringing(v1: AsyncClient, assignment_id: str) -> str:
+    """Поступление вызова c-010 без ответа (состояние ringing)."""
+    await login_as(v1, "student")
+    created = await v1.post("/operator112/attempts", json={"assignmentId": assignment_id, "cardId": "c-010"})
+    assert created.status_code in (200, 201), created.text
+    assert created.json()["state"] == "ringing"
+    return created.json()["id"]
+
+
 async def _event(v1: AsyncClient, attempt_id: str, event_type: str, payload: dict[str, Any] | None = None):
     return await v1.post(f"/operator112/attempts/{attempt_id}/events", json={"type": event_type, "payload": payload or {}})
 
@@ -146,6 +155,29 @@ async def test_linkAdded_своей_карточки_112_201_чужой_400(v1: 
     refused = await _event(v1, attempt_id, "linkAdded", {"cardId": foreign})
     assert refused.status_code == 400, refused.text
     assert (await _event(v1, attempt_id, "linkAdded", {"cardId": own})).status_code == 201
+
+
+@pytest.mark.parametrize(
+    ("event_type", "payload"),
+    [("fieldChanged", {"field": "applicant.name", "value": "Сидорова"}), ("signSelected", {"signs": []}), ("hintShown", {}), ("linkAdded", {"cardId": BACKGROUND_CARD})],
+    ids=["fieldChanged", "signSelected", "hintShown", "linkAdded"],
+)
+async def test_в_ringing_кроме_callHidden_409(v1: AsyncClient, event_type: str, payload: dict[str, Any]):
+    """Спека 009: до приёма вызова принимается только «callHidden» (окно закрыто «×»); прочие события — 409."""
+    attempt_id = await _ringing(v1, await _assignment(v1))
+    refused = await _event(v1, attempt_id, event_type, payload)
+    assert refused.status_code == 409, refused.text
+    assert refused.json()["error"]["code"] == "invalidTransition"
+    assert (await _event(v1, attempt_id, "callHidden")).status_code == 201
+
+
+async def test_callHidden_в_ringing_201_и_после_ответа_201(v1: AsyncClient):
+    attempt_id = await _ringing(v1, await _assignment(v1))
+    hidden = await _event(v1, attempt_id, "callHidden")
+    assert hidden.status_code == 201, hidden.text
+    assert hidden.json()["type"] == "callHidden"
+    assert (await v1.post(f"/operator112/attempts/{attempt_id}/answer")).status_code == 200
+    assert (await _event(v1, attempt_id, "callHidden")).status_code == 201
 
 
 async def test_событие_в_чужую_попытку_403(v1: AsyncClient):

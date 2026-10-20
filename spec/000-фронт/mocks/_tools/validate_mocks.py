@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Валидация моков spec/000-фронт/mocks под пересобранные схемы (пересборка 2026-09-17 по hack/Фронт/МОКИ-ДАННЫЕ.md):
-# JSON-синтаксис, форматы id, перекрёстные ссылки, доменные правила.
+# JSON-синтаксис, форматы id, перекрёстные ссылки, доменные правила; спека 009: channel/smsText/repeatOf/lockedBy.
 # Запуск из корня репо: python3 spec/000-фронт/mocks/_tools/validate_mocks.py  (exit 0 = PASS, exit 1 = FAIL)
 import json, os, re, sys
 from datetime import datetime
@@ -145,6 +145,44 @@ for c in cs:
     for b in ('noAmbulance', 'crossRegion'):
         if b in c and not isinstance(c[b], bool): err(F, f'{cid}: {b} не boolean')
 summary.append(f'{F}: {len(cs)} карточек, билеты 1–32 покрыты')
+
+# ---------- спека 009 (data-model.md): channel, smsText, repeatOf, lockedBy ----------
+# repeatOf указывает на фон журнала (fixtures/arm-cards.json), а не на билет; lockedBy — только у фона.
+CHANNELS = ('call', 'sms')
+LOCKED_KEYS = {'operator', 'name', 'arm'}
+F = 'cards.json'
+fx_ids = {c.get('id') for c in fx.get('cards', [])}
+n_sms = n_rep = 0
+for c in cs:
+    cid = c.get('id', '?')
+    ch = c.get('channel', 'call')
+    if ch not in CHANNELS: err(F, f'{cid}: channel {ch!r} не из {list(CHANNELS)}')
+    if ch == 'sms':
+        n_sms += 1
+        if not isinstance(c.get('smsText'), str) or not c['smsText'].strip():
+            err(F, f'{cid}: channel=sms без непустого smsText')
+    elif 'smsText' in c:
+        warn(F, f'{cid}: smsText задан при channel={ch!r}, в окне и истории он не показывается')
+    ro = c.get('repeatOf')
+    if ro is not None:
+        n_rep += 1
+        if not isinstance(ro, str) or ro not in fx_ids:
+            err(F, f'{cid}: repeatOf {ro!r} — не карточка фона журнала (fixtures/arm-cards.json) и не null')
+    if 'lockedBy' in c: err(F, f'{cid}: lockedBy только у фоновых карточек журнала, у билета недопустим')
+F = 'fixtures/arm-cards.json'
+n_locked = 0
+for fxd in fx.get('cards', []):
+    if 'lockedBy' not in fxd: continue
+    n_locked += 1
+    owner, lb = fxd.get('id', '?'), fxd['lockedBy']
+    if not isinstance(lb, dict):
+        err(F, f'{owner}: lockedBy должен быть объектом'); continue
+    if set(lb) != LOCKED_KEYS:
+        err(F, f'{owner}: lockedBy ключи {sorted(lb)}, нужны ровно {sorted(LOCKED_KEYS)}'); continue
+    if not isinstance(lb['operator'], int) or isinstance(lb['operator'], bool): err(F, f'{owner}: lockedBy.operator не целое число')
+    if not isinstance(lb['name'], str) or not lb['name'].strip(): err(F, f'{owner}: lockedBy.name не непустая строка')
+    if not isinstance(lb['arm'], int) or isinstance(lb['arm'], bool): err(F, f'{owner}: lockedBy.arm не целое число')
+summary.append(f'009 (channel/smsText/repeatOf/lockedBy): sms {n_sms}, repeatOf {n_rep}, lockedBy {n_locked}')
 
 # ---------- scenarios.json ----------
 F = 'scenarios.json'

@@ -1,0 +1,90 @@
+/* Раскладка карточки ПОВ-112 (КАРТОЧКА_image1): колонки — токен --card-columns, фон — светлый экран карточки. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--card-screen-min-height);
+  gap: var(--card-gap);
+  padding: var(--card-gap);
+  background: var(--color-gray-150);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--card-font-text);
+}
+
+.card__top {
+  display: flex;
+  align-items: stretch;
+  gap: var(--spacing-xs);
+  height: var(--card-phone-bar-height);
+}
+
+.card__body {
+  display: grid;
+  grid-template-columns: var(--card-columns);
+  gap: var(--card-gap);
+  flex: 1;
+  align-items: start;
+}
+
+.card__left,
+.card__right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  min-width: 0;
+}
+
+.flags {
+  display: flex;
+  align-items: center;
+  gap: var(--card-gap);
+}
+
+.flags__group {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--card-block-padding-x);
+  background: var(--color-gray-50);
+}
+
+.flag {
+  min-width: var(--card-flag-btn-width);
+  min-height: var(--card-flag-btn-height);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.flag[aria-pressed="true"] {
+  background: var(--color-graphite-700);
+  border-color: var(--color-graphite-700);
+  color: var(--color-white);
+}
+
+.flag--danger {
+  border-color: var(--card-color-flag-danger);
+  color: var(--card-color-flag-danger);
+}
+
+.flag:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.flag:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.card__services {
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: var(--card-z-panel);
+  margin: 0 calc(-1 * var(--card-gap)) calc(-1 * var(--card-gap));
+}

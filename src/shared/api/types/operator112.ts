@@ -91,6 +91,11 @@ export interface OperatorAttempt {
   hints?: OperatorHints;
   audio?: TicketAudio;
   cardSnapshot?: Record<string, unknown>;
+  /* Поля билета (спека 009, FR-010, US5/US6): канал по умолчанию «звонок»; текст СМС — только у канала sms. */
+  channel?: CardChannel;
+  smsText?: string;
+  /** id карточки журнала, к которой привязан повторный вызов (билет с repeatOf). */
+  repeatOf?: string;
 }
 
 export interface CardDraftApplicant {
@@ -203,6 +208,11 @@ export interface Journal112Row {
 export interface Journal112Response {
   rows: Journal112Row[];
   total: number;
+}
+
+/** Совпадения вызова с карточками журнала (спека 009, US5): пустой matches — окно «Есть карточка…» не показывается. */
+export interface Journal112MatchesResponse {
+  matches: Journal112Row[];
 }
 
 /** Служба списка оповещения (обязательная — services, условная — conditional). */

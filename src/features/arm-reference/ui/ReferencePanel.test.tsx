@@ -62,6 +62,33 @@ describe("справочник поверх АРМ", () => {
     expect(screen.getByText("балкон", { selector: "mark" })).toBeInTheDocument();
   });
 
+  it("в выдаче виден тезис с найденным словом, пример запроса подставляется в поиск, «×» очищает его", async () => {
+    render(<ReferenceToggle api={api()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Справочник" }));
+    const input = await screen.findByLabelText("Поиск по ключевым словам");
+    fireEvent.click(screen.getByRole("button", { name: "балкон" }));
+    expect(input).toHaveValue("балкон");
+    const results = await screen.findByRole("list", { name: "Найденные статьи" });
+    expect(within(results).getByText("Горит", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Найдено статей: 1")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Очистить поиск" }));
+    expect(input).toHaveValue("");
+    expect(screen.getByRole("list", { name: "Примеры запросов" })).toBeInTheDocument();
+  });
+
+  it("стрелка вниз из поля переводит фокус на первую статью, вверх — обратно в поле", async () => {
+    render(<ReferenceToggle api={api()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Справочник" }));
+    const input = await screen.findByLabelText("Поиск по ключевым словам");
+    fireEvent.change(input, { target: { value: "пожар" } });
+    const results = await screen.findByRole("list", { name: "Найденные статьи" });
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    const first = within(results).getAllByRole("button")[0];
+    expect(first).toHaveFocus();
+    fireEvent.keyDown(first, { key: "ArrowUp" });
+    expect(input).toHaveFocus();
+  });
+
   it("короткий запрос и пустой результат — подсказки, панель не закрывается", async () => {
     render(<ReferenceToggle api={api()} />);
     fireEvent.click(await screen.findByRole("button", { name: "Справочник" }));

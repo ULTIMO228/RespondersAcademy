@@ -1520,6 +1520,14 @@
    "optional": [],
    "extends": []
   },
+  "Journal112MatchesResponse": {
+   "file": "operator112.ts",
+   "required": [
+    "matches"
+   ],
+   "optional": [],
+   "extends": []
+  },
   "Journal112Response": {
    "file": "operator112.ts",
    "required": [
@@ -1715,7 +1723,10 @@
     "assignmentId",
     "hints",
     "audio",
-    "cardSnapshot"
+    "cardSnapshot",
+    "channel",
+    "smsText",
+    "repeatOf"
    ],
    "extends": []
   },
@@ -1824,6 +1835,32 @@
     "fromUserId",
     "endedAt"
    ],
+   "extends": []
+  },
+  "ProblemReport": {
+   "file": "problem-report.ts",
+   "required": [
+    "id",
+    "studentId",
+    "studentName",
+    "text",
+    "hasAttachment",
+    "createdAt"
+   ],
+   "optional": [
+    "groupId",
+    "attemptId",
+    "incidentNumber",
+    "readAt"
+   ],
+   "extends": []
+  },
+  "ProblemReportList": {
+   "file": "problem-report.ts",
+   "required": [
+    "items"
+   ],
+   "optional": [],
    "extends": []
   },
   "ProfileMappingRow": {
