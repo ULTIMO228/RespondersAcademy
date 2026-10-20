@@ -193,6 +193,8 @@ draft = {
     "notificationList": [],
     "channel": channel,
     "outcome": outcome,
+    # Сохранение заполненной карточки — после подтверждения списка оповещения (спека 019; иначе 409).
+    "notificationConfirmed": True,
 }
 print(json.dumps(draft, ensure_ascii=False))
 PY
