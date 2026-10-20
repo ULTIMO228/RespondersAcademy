@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { formatShortName, useLogout, useSessionUser } from "@/entities/user";
 import { resolveNorms, resolveTimeLimitSec, useApplicantVoice } from "@/entities/operator112-attempt";
 import { IncomingWindow } from "@/features/operator112-incoming";
+import { ProblemReportDialog } from "@/features/problem-report";
 import { LockedWindow, Operator112Journal } from "@/widgets/operator112-journal";
 import { SimulatorBarPortal } from "@/widgets/simulator-bar";
 import type {
@@ -37,7 +38,7 @@ type Operator112SessionProps = {
   api: Operator112Api;
   clock?: Clock;
   nowMs: number;
-  /** Alt+M и значок «Сообщить о проблеме»: окно подключает фича problem-report (T066), без неё значок неактивен. */
+  /** Alt+M и значок «Сообщить о проблеме»; по умолчанию открывает окно фичи problem-report (T066). */
   onProblem?: () => void;
 };
 
@@ -62,6 +63,8 @@ export function Operator112Session({
   const { view } = op;
   const [notice, setNotice] = useState<string | null>(null);
   const [locked, setLocked] = useState<Journal112Row | null>(null);
+  const [isProblemOpen, setProblemOpen] = useState(false);
+  const openProblem = onProblem ?? (() => setProblemOpen(true));
   const norms = resolveNorms(assignment.params);
   const limitSec = resolveTimeLimitSec(assignment.params);
   const channel = attemptChannel(attempt);
@@ -141,11 +144,19 @@ export function Operator112Session({
     onBackToCard: op.backToCard,
     onNotice: setNotice,
     onJournalChanged: journal.reload,
-    onProblem,
+    onProblem: openProblem,
   };
 
   return (
     <>
+      {isProblemOpen ? (
+        <ProblemReportDialog
+          senderName={user?.fullName ?? ""}
+          incidentNumber={attempt.incidentNumber}
+          attemptId={attempt.id}
+          onClose={() => setProblemOpen(false)}
+        />
+      ) : null}
       <SimulatorBarPortal>
         <TrainerStrip
           assignment={assignment}
