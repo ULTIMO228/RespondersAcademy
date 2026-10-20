@@ -72,3 +72,15 @@
 
 ## L015 | parallel sessions share tree
 ⚠️ full pytest unreliable while another session adds tests before modules (collection errors) → run feature-area tests; compare failures on clean HEAD via `git worktree add --detach` before blaming own change
+
+## L016 | cloud quota
+❌ count cloud usage after LLM response → timeout and concurrent workers can undercount paid requests
+✅ reserve shared DB quota before HTTP; persist request and probe buckets; mark timed-out reservations as spent
+
+## L017 | SAVEPOINT on aiosqlite
+❌ trust begin_nested() rollback on SQLite → pending marker survives rollback, retry gets 409 forever
+✅ marker with owner token + TTL, explicit release on failure, fenced final UPDATE (ai_scenario_service)
+
+## L018 | e2e script launch
+❌ run run_frontend_e2e.sh directly / without env → permission denied, JWT_SECRET missing
+✅ `JWT_SECRET=<32+ bytes> bash backend/scripts/run_frontend_e2e.sh [--only ai]`; verify failures belong to own change by reverting own files temporarily
