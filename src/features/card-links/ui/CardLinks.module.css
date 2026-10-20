@@ -1,0 +1,91 @@
+/* Окно совпадения и «Показ связей» карточки ПОВ-112 (ИНСТРУКЦИЯ_image62, 64–68). Малиновый — токен ячейки «Опер.». */
+.match__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.match {
+  background: var(--color-graphite-500);
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+.match__title {
+  margin: 0;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  background: var(--color-operator-cell);
+  color: var(--color-white);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+.match__body {
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-lg);
+  overflow-x: auto;
+}
+
+.match__footer {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-md);
+  background: var(--color-operator-cell);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-graphite-500);
+}
+
+.links__back {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--spacing-lg);
+  border: 0;
+  background: var(--color-operator-cell);
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+  cursor: pointer;
+}
+
+.links__body {
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+}
+
+.outlined {
+  min-height: 34px;
+  padding: 0 var(--spacing-lg);
+  border: 2px solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.match__footer .outlined {
+  min-height: 48px;
+  font-size: var(--font-size-2xl);
+}
+
+.outlined:hover {
+  background: var(--color-graphite-900);
+}
+
+.outlined:focus-visible,
+.links__back:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

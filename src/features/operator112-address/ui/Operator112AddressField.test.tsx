@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -70,7 +70,8 @@ describe("Operator112AddressField", () => {
       raion: "Чертаново Южное",
       source: "directory",
     });
-    expect(screen.getByTestId("address-source")).toHaveTextContent("из справочника");
+    expect(screen.getByRole("group", { name: "Адрес" })).toHaveAttribute("data-source", "directory");
+    expect(screen.getByTestId("address-formal")).toHaveTextContent("Москва, улица Грина");
     expect(screen.queryByRole("listbox")).toBeNull();
   });
 
@@ -118,9 +119,87 @@ describe("Operator112AddressField", () => {
 
   it("дом и описательный адрес пересчитывают formal; ошибка передачи показывается у блока", () => {
     render(<Harness search={vi.fn<StreetSearch>()} error="Заполните адресный блок" />);
-    fireEvent.change(screen.getByLabelText("Дом"), { target: { value: "11" } });
-    fireEvent.change(screen.getByLabelText("Описательный адрес"), { target: { value: "у библиотеки" } });
+    fireEvent.change(screen.getByLabelText("Дом/Вл.:"), { target: { value: "11" } });
+    fireEvent.change(screen.getByLabelText("Описательный адрес:"), { target: { value: "у библиотеки" } });
     expect(latest.house).toBe("11");
     expect(screen.getByRole("alert")).toHaveTextContent("Заполните адресный блок");
+  });
+
+  it("«очистить адрес» и «×» строки адреса очищают все поля; расширенные поля неактивны до этапа B", () => {
+    render(<Harness search={vi.fn<StreetSearch>()} />);
+    type("улица Грина");
+    fireEvent.change(screen.getByLabelText("Дом/Вл.:"), { target: { value: "11" } });
+    fireEvent.click(screen.getByRole("button", { name: "очистить адрес" }));
+    expect(latest).toEqual(EMPTY_ADDRESS);
+    type("Ленина");
+    fireEvent.click(screen.getByRole("button", { name: "Очистить строку адреса" }));
+    expect(latest).toEqual(EMPTY_ADDRESS);
+    expect(screen.getByLabelText("Субъект:")).toHaveValue("Москва");
+  });
+
+  it("умолчания Россия / Москва / Москва; «очистить адрес» возвращает их после правки", () => {
+    render(<Harness search={vi.fn<StreetSearch>()} />);
+    expect(screen.getByLabelText("Страна:")).toHaveValue("Россия");
+    expect(screen.getByLabelText("Субъект:")).toHaveValue("Москва");
+    expect(screen.getByLabelText("Населенный пункт:")).toHaveValue("Москва");
+    fireEvent.change(screen.getByLabelText("Субъект:"), { target: { value: "Тверская область" } });
+    fireEvent.change(screen.getByLabelText("Страна:"), { target: { value: "Беларусь" } });
+    fireEvent.change(screen.getByLabelText("Квартира/офис:"), { target: { value: "12" } });
+    expect(latest.subject).toBe("Тверская область");
+    fireEvent.click(screen.getByRole("button", { name: "очистить адрес" }));
+    expect(latest).toEqual(EMPTY_ADDRESS);
+    expect(screen.getByLabelText("Страна:")).toHaveValue("Россия");
+    expect(screen.getByLabelText("Квартира/офис:")).toHaveValue("");
+  });
+
+  it("все расширенные поля активны и пишутся в адрес", () => {
+    render(<Harness search={vi.fn<StreetSearch>()} />);
+    const fields: [string, keyof CardDraftAddress][] = [
+      ["Объект:", "object"],
+      ["Корпус:", "korpus"],
+      ["Стр/соор:", "building"],
+      ["Квартира/офис:", "flat"],
+      ["Подъезд:", "entrance"],
+      ["Этаж:", "floor"],
+      ["Код:", "code"],
+    ];
+    for (const [label, key] of fields) {
+      fireEvent.change(screen.getByLabelText(label), { target: { value: `v-${key}` } });
+      expect(latest[key]).toBe(`v-${key}`);
+    }
+  });
+
+  it("другой субъект — ручной ввод: справочник не запрашивается, источник manual", async () => {
+    const search = vi.fn<StreetSearch>().mockResolvedValue([GRINA]);
+    render(<Harness search={search} />);
+    fireEvent.change(screen.getByLabelText("Субъект:"), { target: { value: "Тверская область" } });
+    type("улица Ленина");
+    await settle();
+    expect(search).not.toHaveBeenCalled();
+    expect(latest.source).toBe("manual");
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("округ сужает подсказки справочника", async () => {
+    render(
+      <Harness search={vi.fn<StreetSearch>().mockResolvedValue([GRINA, { ...GRIBOEDOVA, okrug: "ЦАО" }])} />,
+    );
+    fireEvent.change(screen.getByLabelText("Округ:"), { target: { value: "ЦАО" } });
+    type("Гри");
+    await settle();
+    expect(screen.getAllByRole("option")).toHaveLength(1);
+  });
+
+  it("кнопка карты открывает окно «С112 — карта»; выбор точки пишет lat/lon в адрес", () => {
+    render(<Harness search={vi.fn<StreetSearch>()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Указать на карте" }));
+    const surface = screen.getByTestId("map-surface");
+    surface.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect;
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Указать на карте" }));
+    fireEvent.click(surface, { clientX: 50, clientY: 50 });
+    fireEvent.click(screen.getByRole("button", { name: "ОК" }));
+    expect(latest.lat).toBe(55.7558);
+    expect(latest.lon).toBe(37.6173);
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

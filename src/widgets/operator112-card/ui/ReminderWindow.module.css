@@ -1,0 +1,104 @@
+/* Напоминание для карточки ПОВ-112 (ИНСТРУКЦИЯ_image100): серо-голубое окно, оранжевая «перейти в карточку». */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--card-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: min(1010px, calc(100% - 2 * var(--spacing-3xl)));
+  padding: var(--spacing-2xl) var(--spacing-3xl);
+  background: var(--color-graphite-500);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+}
+
+.window__title,
+.window__line {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.window__muted {
+  color: var(--color-light-muted);
+}
+
+.window__close {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-xl);
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+  font-size: var(--font-size-3xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.window__actions {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-xl);
+}
+
+.window__go {
+  height: var(--control-height-lg);
+  padding: 0 var(--spacing-2xl);
+  border: 0;
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.window__go:hover {
+  background: var(--color-accent-orange-hover);
+}
+
+.window__minutes {
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.window__input {
+  width: 88px;
+  height: var(--control-height-md);
+  border: 0;
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.window__btn {
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-xl);
+  border: var(--border-width) solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.window__go:focus-visible,
+.window__btn:focus-visible,
+.window__input:focus-visible,
+.window__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

@@ -18,6 +18,7 @@ def build_router() -> APIRouter:
         live_calls,
         lobby,
         operator112,
+        problem_reports,
         realtime_calls,
         recommendations,
         reports_export,
@@ -45,6 +46,7 @@ def build_router() -> APIRouter:
         validation,
         error_map,
         student_rating,
+        problem_reports,
     ):
         # Без действующей сессии — 401 (ТЗ §9); /api/v1/health объявлен в main.py и остаётся открытым.
         router.include_router(module.router, dependencies=[Depends(require_viewer)])

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from dataclasses import dataclass
 from typing import Any
 
 from sqlalchemy import func, select
@@ -32,7 +33,9 @@ from app.models.classifier import ClassifierEntry
 from app.models.session import Attempt, Evaluation
 from app.models.street import Street
 from app.models.ticket_audio import TicketAudio
-from app.services import ticket_audio_service
+from app.models.user import User
+from app.schemas.v1.operator112 import Journal112Response, Journal112Row
+from app.services import ticket_audio_service, training_profile
 from app.services.reference import read_reference
 from app.services.session_engine import evaluation_contract
 from app.services.time import now_iso, parse_iso_ms
@@ -246,7 +249,8 @@ def _last_payload(events: list[dict[str, Any]], event_type: str, key: str | None
 
 async def add_event(db: AsyncSession, attempt_id: str, event_type: str, payload: dict[str, Any], viewer: Viewer) -> dict[str, Any]:
     attempt, link, assignment = await require_attempt(db, attempt_id, viewer)
-    if attempt.state == "ringing":
+    # Окно вызова можно закрыть «×» до приёма (спека 009, R5): «callHidden» — единственное событие в состоянии ringing.
+    if attempt.state == "ringing" and event_type != "callHidden":
         raise invalid_transition("Сначала примите вызов")
     if attempt.state == "submitted":
         raise invalid_transition("Карточка уже отправлена")
@@ -515,3 +519,209 @@ async def search_streets(db: AsyncSession, query: str, limit: int) -> list[dict[
             if len(found) >= limit:
                 break
     return found[:limit]
+
+
+# ─── Журнал ученика-112 (спека 009, US1: FR-006, FR-007; US5: совпадения) ─────────────────────────
+
+_OPERATOR_PREFIX = "Опер."
+_ARM_NUMBER = re.compile(r"АРМ\s*(\d+)", re.IGNORECASE)
+PHONE_TAIL_DIGITS = 10  # телефоны сравниваются по последним 10 цифрам: «+7 (916) 126-34-71» = «916-126-34-71»
+STREET_KEY_MIN = 3  # короче трёх букв — не ключ совпадения по адресу (ввод «Гр» не находит всё подряд)
+
+
+@dataclass(frozen=True)
+class _JournalEntry:
+    """Строка журнала и то, по чему она совпадает с вызовом: телефоны карточки и её адрес."""
+
+    card_id: str
+    row: dict[str, Any]
+    phones: tuple[str, ...]
+    address: str
+
+
+def _yes_no(flag: Any) -> str:
+    return "Да" if flag else "Нет"
+
+
+def _phone_tail(value: str) -> str:
+    digits = _DIGITS.sub("", value or "")
+    return digits[-PHONE_TAIL_DIGITS:] if len(digits) >= PHONE_TAIL_DIGITS else ""
+
+
+def _street_key(text: str) -> str:
+    key = address_nlp.normalize_street(text or "")
+    return key if len(key) >= STREET_KEY_MIN else ""
+
+
+def _norm_text(text: str) -> str:
+    return (text or "").lower().replace("ё", "е")
+
+
+def _sort_ms(value: str) -> int:
+    """«Дата ↓»: ISO-метка → миллисекунды; пустая или битая метка уходит в конец списка."""
+    try:
+        return parse_iso_ms(value)
+    except ValueError:
+        return 0
+
+
+def _journal_order(entry: _JournalEntry) -> tuple[int, str]:
+    return (-_sort_ms(str(entry.row["created_at"])), entry.card_id)
+
+
+def _fixture_entry(doc: dict[str, Any], titles: dict[str, str], linked_ids: set[str]) -> _JournalEntry:
+    """Фон журнала: UI-фикстура ПОВ-112 (`ArmCardFixture`) — учебные карточки, общие для всех обучающихся."""
+    registered = str(doc.get("registeredBy") or "")
+    arm = _ARM_NUMBER.search(registered)
+    what = doc.get("what") or {}
+    address = doc.get("address") or {}
+    phones = doc.get("phones") or {}
+    status = str(doc.get("cardStatus") or "")
+    card_id = str(doc["id"])
+    address_text = str(address.get("formal") or address.get("descriptive") or "")
+    row: dict[str, Any] = {
+        "card_id": card_id,
+        "number": str(doc.get("number") or ""),
+        "created_at": str(doc.get("createdAt") or ""),
+        "operator": registered.split(",")[0].strip().removeprefix(_OPERATOR_PREFIX).strip(),
+        "arm": arm.group(1) if arm else "",
+        "what_happened": str(what.get("finalType") or ""),
+        "injured": _yes_no((what.get("casualties") or {}).get("injured")),
+        "status": titles.get(status, status),
+        "address": address_text,
+        "description": str(doc.get("description") or ""),
+        "linked": card_id in linked_ids,
+        "chs": bool((doc.get("emergency") or {}).get("chs")),
+        "checked": status == "checked",
+        "is_own": False,
+    }
+    if isinstance(doc.get("lockedBy"), dict):
+        row["locked_by"] = doc["lockedBy"]
+    return _JournalEntry(card_id, row, (str(phones.get("aon") or ""), str(phones.get("provided") or "")), address_text)
+
+
+def _own_entry(card: IncidentCard, draft: dict[str, Any], titles: dict[str, str], linked_ids: set[str], operator: str, arm: str) -> _JournalEntry:
+    """Собственная карточка ученика режима 112 (отправленная попытка): строка с пометкой «isOwn»."""
+    extra = card.extra or {}
+    status = str(extra.get("cardStatus") or "")
+    row: dict[str, Any] = {
+        "card_id": card.id,
+        "number": str(card.ticket_no),
+        "created_at": str(extra.get("registeredAt") or ""),
+        "operator": operator,
+        "arm": arm,
+        "what_happened": str(extra.get("finalType") or ""),
+        "injured": _yes_no(card.victims),
+        "status": titles.get(status, status),
+        "address": card.address,
+        "description": card.summary,
+        "linked": card.id in linked_ids or bool(draft.get("links")),
+        "chs": bool((draft.get("emergency") or {}).get("chs")),
+        "checked": False,
+        "is_own": True,
+    }
+    return _JournalEntry(card.id, row, (str((card.caller or {}).get("phone") or ""),), card.address)
+
+
+def _queued_entry(attempt: Attempt, operator: str, arm: str) -> _JournalEntry:
+    """Вызов текущей попытки в состоянии ringing (окно закрыто «×» или ещё не показано): без содержания билета — номер и время."""
+    row: dict[str, Any] = {
+        "card_id": attempt.card_id,
+        "number": str(attempt.incident_number or 0),
+        "created_at": attempt.opened_at,
+        "operator": operator,
+        "arm": arm,
+        "what_happened": "",
+        "injured": "",
+        "status": "",
+        "address": "",
+        "description": "",
+        "linked": False,
+        "chs": False,
+        "checked": False,
+        "is_own": True,
+        "queued": True,
+    }
+    return _JournalEntry(attempt.card_id, row, (), "")
+
+
+async def _student_marks(db: AsyncSession, student_id: str) -> tuple[str, str]:
+    """Оператор и АРМ ученика для его строк журнала: у учебной учётки нет номера оператора — короткое ФИО и номер АРМ."""
+    user = await db.get(User, student_id)
+    if user is None:
+        return "", ""
+    name = training_profile.short_name(user.full_name) if user.full_name.strip() else ""
+    return name, str(user.arm_number)
+
+
+async def _journal_entries(db: AsyncSession, student_id: str, assignment_id: str | None = None) -> list[_JournalEntry]:
+    """Строки журнала ученика (FR-007): фон, его карточки режима 112 и, если задан `assignment_id`, вызовы в очереди.
+
+    Членство — то же правило, что у `in_student_journal`: любая фикстура фона и карточка режима 112 с `created_by_student_id`.
+    """
+    titles = {str(s.get("status")): str(s.get("title")) for s in (await read_reference(db)).get("cardStatuses", [])}
+    operator, arm = await _student_marks(db, student_id)
+    own = (
+        await db.execute(
+            select(IncidentCard)
+            .where(IncidentCard.mode_origin == MODE, IncidentCard.created_by_student_id == student_id)
+            .order_by(IncidentCard.id)
+        )
+    ).scalars().all()
+    source_ids = [card.source_attempt_id for card in own if card.source_attempt_id]
+    attempts = (await db.execute(select(Attempt).where(Attempt.id.in_(source_ids)))).scalars().all() if source_ids else []
+    snapshots = {attempt.id: dict(attempt.card_snapshot or {}) for attempt in attempts}
+    own_drafts = {card.id: snapshots.get(card.source_attempt_id or "", {}) for card in own}
+    linked_ids = {str(link.get("cardId")) for draft in own_drafts.values() for link in draft.get("links") or [] if link.get("cardId")}
+    fixtures = (await db.execute(select(ArmCardFixture).order_by(ArmCardFixture.seq, ArmCardFixture.id))).scalars().all()
+    entries = [_fixture_entry(fixture.to_contract(), titles, linked_ids) for fixture in fixtures]
+    entries += [_own_entry(card, own_drafts[card.id], titles, linked_ids, operator, arm) for card in own]
+    if assignment_id is not None:
+        ringing = (
+            await db.execute(
+                select(Attempt)
+                .join(AssignmentAttempt, AssignmentAttempt.attempt_id == Attempt.id)
+                .where(
+                    AssignmentAttempt.assignment_id == assignment_id,
+                    Attempt.student_id == student_id,
+                    Attempt.mode == MODE,
+                    Attempt.state == "ringing",
+                )
+            )
+        ).scalars().all()
+        entries += [_queued_entry(attempt, operator, arm) for attempt in ringing]
+    return entries
+
+
+async def journal(db: AsyncSession, assignment_id: str, viewer: Viewer) -> dict[str, Any]:
+    """GET /operator112/journal?assignmentId= (FR-006, FR-007): обучающийся с профилем 112; чужое задание → 404."""
+    if not viewer.is_student:
+        raise forbidden("Журнал ученика-112 доступен обучающемуся")
+    student = await db.get(User, viewer.user_id)
+    if student is not None and not training_profile.allows(student, MODE):
+        raise forbidden(training_profile.blocked_message(student, MODE))
+    assignment = await db.get(Assignment, assignment_id)
+    if assignment is None or viewer.user_id not in (assignment.student_ids or []):
+        raise not_found(f"Задание «{assignment_id}» не найдено")
+    entries = sorted(await _journal_entries(db, viewer.user_id, assignment_id), key=_journal_order)
+    response = Journal112Response(rows=[Journal112Row.model_validate(entry.row) for entry in entries], total=len(entries))
+    return response.dump()
+
+
+async def matches(db: AsyncSession, attempt_id: str, viewer: Viewer) -> dict[str, Any]:
+    """GET …/matches (US5, FR-024): карточки журнала ученика с тем же АОН или адресом, что у вызова; чужая попытка → 403.
+
+    Адрес — введённая улица (`fieldChanged address.street`), без неё — улица из адреса билета (GET без тела).
+    """
+    attempt, _, _ = await require_attempt(db, attempt_id, viewer)
+    aon = _phone_tail(attempt.aon or "")
+    entered = _last_payload(list(attempt.events or []), "fieldChanged", "value", field="address.street")
+    ticket = await db.get(IncidentCard, attempt.card_id)
+    street = _street_key(str(entered or "")) or _street_key(address_nlp.extract_street_query(ticket.address if ticket else ""))
+    found: list[dict[str, Any]] = []
+    for entry in sorted(await _journal_entries(db, attempt.student_id), key=_journal_order):
+        by_aon = bool(aon) and aon in {_phone_tail(phone) for phone in entry.phones}
+        by_street = bool(street) and street in _norm_text(entry.address)
+        if (by_aon or by_street) and await in_student_journal(db, attempt.student_id, entry.card_id):
+            found.append(Journal112Row.model_validate(entry.row).dump())
+    return {"matches": found}

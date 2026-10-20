@@ -12,7 +12,7 @@ import { operator112Api } from "../api/operator112Api";
 import type { Operator112Api } from "../api/operator112Api";
 import { Operator112Problem } from "./Operator112Problem";
 import { Operator112Result } from "./Operator112Result";
-import { Operator112Workspace } from "./Operator112Workspace";
+import { Operator112Session } from "./Operator112Session";
 
 import styles from "./Operator112.module.css";
 
@@ -22,7 +22,7 @@ type Operator112ScreenProps = {
   clock?: Clock;
 };
 
-/** Экран режима 112: loading / problem / рабочее место / разбор. Попытка выдаётся и восстанавливается через start задания. */
+/** Экран режима 112: loading / problem / рабочее место по видам (журнал, вызов, карточка) / разбор. Попытка выдаётся и восстанавливается через start задания. */
 export function Operator112Screen({ assignmentId, api = operator112Api, clock }: Operator112ScreenProps) {
   const router = useRouter();
   const op = useOperator112(assignmentId, api);
@@ -63,19 +63,14 @@ export function Operator112Screen({ assignmentId, api = operator112Api, clock }:
     );
   }
   return (
-    <Operator112Workspace
-      key={attempt.id}
+    <Operator112Session
       assignment={screen.assignment}
       attempt={attempt}
       entries={screen.entries}
+      op={op}
+      api={api}
+      clock={clock}
       nowMs={nowMs}
-      isAnswering={op.isAnswering}
-      answerError={op.answerError}
-      isSubmitting={op.isSubmitting}
-      errors={op.errors}
-      sendEvent={(event) => api.sendEvent(attempt.id, event)}
-      onAnswer={() => void op.answer()}
-      onSubmit={(draft, examZero) => void op.submit(draft, examZero)}
     />
   );
 }

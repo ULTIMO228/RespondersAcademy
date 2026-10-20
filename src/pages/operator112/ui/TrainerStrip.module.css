@@ -1,0 +1,36 @@
+/* Учебные показатели в слоте полосы тренажёра (токены АРМ). */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-lg);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-sm);
+}
+
+.strip__title {
+  font-weight: var(--font-weight-bold);
+}
+
+.strip__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.strip__timer [data-exceeded="true"],
+.strip__flag {
+  color: var(--color-timer-exceeded);
+  font-weight: var(--font-weight-bold);
+}
+
+.strip__note,
+.strip__transcript {
+  color: var(--color-light-muted);
+}
+
+.strip__hint {
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+}

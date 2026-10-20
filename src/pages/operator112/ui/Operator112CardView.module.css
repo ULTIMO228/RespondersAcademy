@@ -1,0 +1,35 @@
+/* Обёртка карточки 112: скрытая карточка остаётся в дереве (черновик не теряется), на экране — без собственной вёрстки. */
+.view[hidden] {
+  display: none;
+}
+
+.view__error {
+  margin: 0;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--color-accent-orange);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-md);
+}
+
+.view__services {
+  margin: 0;
+  padding-left: var(--spacing-xl);
+}
+
+.view__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.view__input {
+  height: var(--control-height-md);
+  padding: 0 var(--spacing-md);
+  border: 0;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-md);
+}

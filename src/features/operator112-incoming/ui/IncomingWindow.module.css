@@ -1,0 +1,79 @@
+/* Окна «Входящий звонок» / «Входящее сообщение» ПОВ-112 (ИНСТРУКЦИЯ_4, ИНСТРУКЦИЯ_107). Только токены АРМ (vars.css). */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 120px;
+  background: var(--color-overlay-strong);
+}
+
+.window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  width: min(1420px, calc(100% - 2 * var(--spacing-3xl)));
+  padding: var(--spacing-3xl) var(--spacing-3xl) var(--spacing-2xl);
+  background: var(--color-accent-blue);
+  border: 2px solid var(--color-white);
+  color: var(--color-white);
+  font-family: var(--font-ui);
+}
+
+.window__title {
+  margin: var(--spacing-xl) 0 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.window__line {
+  text-align: center;
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.window__accept {
+  min-width: 134px;
+  height: 44px;
+  margin-top: var(--spacing-xs);
+  padding: 0 var(--spacing-2xl);
+  border: 2px solid var(--color-white);
+  background: transparent;
+  color: var(--color-white);
+  font: inherit;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.window__accept:hover:not(:disabled) {
+  background: var(--color-accent-blue-hover);
+}
+
+.window__accept:disabled {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+.window__close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-lg);
+  border: 0;
+  background: transparent;
+  color: var(--color-white);
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.window__accept:focus-visible,
+.window__close:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

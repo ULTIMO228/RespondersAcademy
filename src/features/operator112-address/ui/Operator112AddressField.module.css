@@ -1,49 +1,152 @@
-/* Блок адреса режима 112: поля — общий Input АРМ, подсказка — плоский список с линиями, как выпадающий адрес карточки. */
+/* Блок «Адрес:» карточки ПОВ-112 (КАРТОЧКА_image1): подписи мелким серым над полями с нижней линией. Только токены АРМ. */
 .address {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: var(--spacing-md) var(--spacing-lg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
   margin: 0;
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-lg);
   border: 0;
   background: var(--color-gray-50);
+  color: var(--color-ink);
   font-family: var(--font-ui);
   font-size: var(--font-size-md);
+}
+
+.address__head {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.address__map,
+.address__clear {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.address__map:disabled {
+  cursor: default;
+}
+
+.address__line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  font-size: var(--font-size-base);
+}
+
+.address__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--spacing-lg) var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.span-3 {
+  grid-column: span 3;
+}
+
+.span-4 {
+  grid-column: span 4;
+}
+
+.span-6 {
+  grid-column: span 6;
+}
+
+.span-12 {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.field__label {
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+}
+
+.field__input {
+  width: 100%;
+  height: 26px;
+  padding: 0 var(--spacing-xxs);
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-lg);
+}
+
+.field__input:disabled {
+  cursor: default;
+}
+
+.field__area {
+  height: auto;
+  min-height: 52px;
+  resize: vertical;
+}
+
+.field__input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--color-accent-blue);
+}
+
+.address__map:focus-visible,
+.address__clear:focus-visible,
+.address__reset:focus-visible,
+.address__option:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .address__street {
   position: relative;
 }
 
-.address__wide {
-  grid-column: 1 / -1;
-}
-
 .address__suggest {
   position: absolute;
-  z-index: 20;
   top: 100%;
   left: 0;
-  right: 0;
+  z-index: 20;
+  width: 100%;
   max-height: 240px;
   margin: 0;
   padding: 0;
-  overflow-y: auto;
+  overflow: auto;
   list-style: none;
   background: var(--color-white);
   border: var(--border-width) solid var(--color-gray-200);
-  box-shadow: 0 2px 6px var(--color-shadow);
+  box-shadow: 0 2px 8px var(--color-shadow);
 }
 
 .address__option {
   display: block;
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
   border: 0;
+  border-bottom: var(--border-width) solid var(--color-gray-200);
   background: transparent;
   color: var(--color-ink);
-  font-size: var(--font-size-base);
+  font: inherit;
   text-align: left;
+  cursor: pointer;
 }
 
 .address__option:hover,
@@ -53,14 +156,29 @@
 }
 
 .address__status {
-  display: block;
-  padding-top: var(--spacing-xs);
   color: var(--color-ink-muted);
   font-size: var(--font-size-sm);
 }
 
 .address__error {
-  grid-column: 1 / -1;
   margin: 0;
   color: var(--color-accent-red);
+  font-weight: var(--font-weight-medium);
+}
+
+.address__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--spacing-lg);
+}
+
+.address__reset {
+  height: var(--control-height-sm);
+  padding: 0 var(--spacing-lg);
+  border: var(--border-width) solid var(--color-graphite-300);
+  background: var(--color-white);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
 }

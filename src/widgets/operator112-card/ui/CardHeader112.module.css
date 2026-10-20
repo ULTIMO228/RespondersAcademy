@@ -1,0 +1,19 @@
+/* Шапка карточки ПОВ-112 (КАРТОЧКА_image1): остаётся светлой и при красном таймере. */
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: none;
+  width: var(--card-header-width);
+  padding: 0 var(--card-block-padding-x);
+  background: var(--color-gray-50);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: var(--card-font-label);
+}
+
+.header__title {
+  margin: 0;
+  font-size: var(--card-font-title);
+  font-weight: var(--font-weight-bold);
+}

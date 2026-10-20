@@ -320,3 +320,44 @@ class OperatorEvaluation(ApiModel):
     mode: str = "operator112"
     assessor_version: str = ""
     passed: bool | None = None
+
+
+# ─── Журнал ученика-112 (спека 009, US1 FR-006/FR-007; US5 — совпадения) ──────────────────────────
+
+
+class Journal112LockedBy(ApiModel):
+    operator: int
+    name: str
+    arm: int
+
+
+class Journal112Row(ApiModel):
+    """Строка журнала «Поиск происшествий» (FR-006): фон задания, свои карточки ученика, вызов в очереди (`queued`)."""
+
+    card_id: str
+    number: str
+    created_at: str
+    operator: str
+    arm: str
+    what_happened: str
+    injured: str
+    status: str
+    address: str
+    description: str
+    linked: bool
+    chs: bool
+    checked: bool
+    is_own: bool
+    locked_by: Journal112LockedBy | None = None
+    queued: bool | None = None
+
+
+class Journal112Response(ApiModel):
+    rows: list[Journal112Row] = Field(default_factory=list)
+    total: int
+
+
+class Journal112MatchesResponse(ApiModel):
+    """«Есть карточка с заявителем по этому номеру» (US5): пустой список — окно не показывается."""
+
+    matches: list[Journal112Row] = Field(default_factory=list)

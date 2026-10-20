@@ -6,6 +6,7 @@ import { ApiError, ServerRequiredError } from "@/shared/api";
 import type {
   AssignmentDetail,
   ClassifierEntry,
+  Journal112Row,
   OperatorAttempt,
   OperatorEvaluation,
   StartAssignmentResult,
@@ -38,7 +39,7 @@ function attempt(overrides: Partial<OperatorAttempt> = {}): OperatorAttempt {
       enabled: true,
       idleSec: 20,
       steps: [
-        { stage: "answer", text: "Примите вызов: нажмите «Ответить»" },
+        { stage: "answer", text: "Примите вызов: нажмите «Принять»" },
         { stage: "applicant", text: "Заполните заявителя" },
       ],
     },
@@ -99,6 +100,24 @@ const ENTRIES: ClassifierEntry[] = [
   },
 ];
 
+const ROW: Journal112Row = {
+  cardId: "c-900",
+  number: "900",
+  createdAt: "2026-09-29T09:50:00+03:00",
+  operator: "Оп. 3",
+  arm: "АРМ 2",
+  whatHappened: "Задымление",
+  injured: "",
+  status: "Принята",
+  address: "Москва, Тверская 1",
+  description: "",
+  linked: false,
+  chs: false,
+  checked: false,
+  isOwn: false,
+};
+const QUEUED_ROW: Journal112Row = { ...ROW, cardId: "c-010", number: "4", queued: true, isOwn: true };
+
 function makeApi(overrides: Partial<Record<keyof Operator112Api, unknown>> = {}) {
   const api = {
     getAssignment: vi.fn().mockResolvedValue(assignment()),
@@ -116,14 +135,29 @@ function makeApi(overrides: Partial<Record<keyof Operator112Api, unknown>> = {})
       evaluationId: "att-100",
     }),
     getEvaluation: vi.fn().mockResolvedValue(EVALUATION),
+    journal: vi.fn().mockResolvedValue({ rows: [QUEUED_ROW, ROW], total: 2 }),
+    matches: vi.fn().mockResolvedValue({ matches: [] }),
+    getNotificationList: vi.fn().mockResolvedValue({
+      finalType: "",
+      classifierCode: "",
+      group: "",
+      services: [],
+      conditional: [],
+    }),
     ...overrides,
   };
   return api as unknown as Mocked<Operator112Api>;
 }
 
-async function answerCall() {
-  fireEvent.click(await screen.findByRole("button", { name: "Ответить на вызов" }));
-  await waitFor(() => expect(screen.getByLabelText("Описание")).toBeEnabled());
+/** Журнал → окно входящего вызова → «Принять» → карточка. */
+async function acceptCall() {
+  fireEvent.click(await screen.findByRole("button", { name: "Принять" }));
+  await waitFor(() => expect(screen.getByLabelText("Фамилия и имя заявителя")).toBeEnabled());
+}
+
+async function openSavedConfirm() {
+  fireEvent.click(screen.getByRole("button", { name: "сохранить" }));
+  fireEvent.click(await screen.findByRole("button", { name: "оповестить" }));
 }
 
 beforeEach(() => {
@@ -133,51 +167,112 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-describe("Operator112Screen: основной путь", () => {
-  it("выдача → «Ответить» → заполнение → передача → разбор; кнопки «Завершить» нет", async () => {
+describe("Operator112Screen: журнал и входящий вызов", () => {
+  it("журнал: loading → строки из journal(assignmentId); вызов в очереди открывает окно, окно поверх журнала", async () => {
     const api = makeApi();
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
     expect(screen.getByRole("status")).toHaveTextContent("Выдача вызова");
-    await answerCall();
+    expect(await screen.findByRole("dialog", { name: "Входящий звонок" })).toBeInTheDocument();
+    expect(api.journal).toHaveBeenCalledWith("asg-001");
+    expect((await screen.findAllByText("Задымление")).length).toBe(2);
+    expect(screen.getByText(/с номера/)).toBeInTheDocument();
+  });
+
+  it("журнал: ошибка загрузки и пустой список показываются состояниями", async () => {
+    const failing = makeApi({ journal: vi.fn().mockRejectedValue(new Error("Журнал недоступен")) });
+    const first = render(<Operator112Screen assignmentId="asg-001" api={failing} />);
+    expect(await screen.findByText("Журнал недоступен")).toBeInTheDocument();
+    first.unmount();
+    render(
+      <Operator112Screen
+        assignmentId="asg-001"
+        api={makeApi({ journal: vi.fn().mockResolvedValue({ rows: [], total: 0 }) })}
+      />,
+    );
+    expect(await screen.findByText("В журнале пока нет карточек")).toBeInTheDocument();
+  });
+
+  it("«×» прячет окно: вызов остаётся в очереди, callHidden уходит на сервер, журнал перечитывается; клик по строке очереди возвращает окно", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Закрыть окно вызова" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(api.sendEvent).toHaveBeenCalledWith("att-100", { type: "callHidden" });
+    await waitFor(() => expect(api.journal.mock.calls.length).toBeGreaterThanOrEqual(2));
+    expect(api.answerAttempt).not.toHaveBeenCalled();
+    fireEvent.click(document.querySelector("tr[data-queued='true']") as HTMLElement);
+    expect(await screen.findByRole("dialog", { name: "Входящий звонок" })).toBeInTheDocument();
+  });
+
+  it("карточка занята другим оператором: клик по строке открывает окно блокировки", async () => {
+    const locked = { ...ROW, lockedBy: { operator: 7, name: "Иванов", arm: 3 } };
+    const api = makeApi({ journal: vi.fn().mockResolvedValue({ rows: [locked], total: 1 }) });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Закрыть окно вызова" }));
+    fireEvent.click((await screen.findAllByText("Задымление"))[0]);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Вы не можете вносить изменения");
+  });
+});
+
+describe("Operator112Screen: основной путь", () => {
+  it("журнал → вызов → «Принять» → заполнение → «сохранить» → подтверждение → разбор; кнопки «Завершить» нет", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
     expect(api.answerAttempt).toHaveBeenCalledWith("att-100");
-    fireEvent.change(screen.getByLabelText("Описание"), { target: { value: "Горит балкон на 13 этаже" } });
-    fireEvent.change(screen.getByLabelText("Улица"), { target: { value: "улица Грина" } });
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    fireEvent.change(screen.getByLabelText("Описание со слов заявителя"), {
+      target: { value: "Горит балкон на 13 этаже" },
+    });
+    fireEvent.change(screen.getByLabelText("Улица:"), { target: { value: "улица Грина" } });
+    fireEvent.click(screen.getByRole("button", { name: "сохранить" }));
+    expect(await screen.findByRole("dialog", { name: "Подтвердите оповещение служб" })).toBeInTheDocument();
+    expect(api.submitAttempt).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "оповестить" }));
     expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);
     const [attemptId, draft] = api.submitAttempt.mock.calls[0];
     expect(attemptId).toBe("att-100");
     expect(draft.description).toBe("Горит балкон на 13 этаже");
-    expect(draft.address).toMatchObject({
-      street: "улица Грина",
-      source: "manual",
-      formal: "Москва, улица Грина",
-    });
+    expect(draft.address).toMatchObject({ street: "улица Грина", source: "manual", subject: "Москва" });
     expect(draft.phones.aon).toBe("9161263471");
+    expect(draft.outcome).toBe("filled");
+    expect(draft.channel).toBe("call");
     expect(screen.getByTestId("total-score")).toHaveTextContent("85");
     expect(screen.queryByRole("button", { name: /Завершить/ })).toBeNull();
   });
 
-  it("поля недоступны до ответа, передача — тоже", async () => {
+  it("поля карточки до приёма недоступны: карточки нет, пока вызов не принят", async () => {
     render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
-    expect(await screen.findByLabelText("Описание")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Передать карточку" })).toBeDisabled();
-    expect(screen.getByText(/Сначала примите вызов/)).toBeInTheDocument();
+    await screen.findByRole("dialog", { name: "Входящий звонок" });
+    expect(screen.queryByLabelText("Описание со слов заявителя")).toBeNull();
+    expect(screen.queryByRole("button", { name: "сохранить" })).toBeNull();
   });
 
-  it("400 «Заполните адресный блок»: сообщение у адреса, введённое сохранено, повторная передача доступна", async () => {
+  it("«отмена» в подтверждении оповещения не передаёт карточку", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
+    fireEvent.click(screen.getByRole("button", { name: "сохранить" }));
+    fireEvent.click(await screen.findByRole("button", { name: "отмена" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(api.submitAttempt).not.toHaveBeenCalled();
+  });
+
+  it("400 «Заполните адресный блок»: сообщение у адреса, введённое сохранено, повторное сохранение доступно", async () => {
     const api = makeApi({
       submitAttempt: vi
         .fn()
         .mockRejectedValue(new ApiError(400, "validationFailed", "Заполните адресный блок")),
     });
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
-    await answerCall();
-    fireEvent.change(screen.getByLabelText("Описание"), { target: { value: "Горит балкон" } });
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await acceptCall();
+    fireEvent.change(screen.getByLabelText("Описание со слов заявителя"), {
+      target: { value: "Горит балкон" },
+    });
+    await openSavedConfirm();
     expect(await screen.findByText("Заполните адресный блок")).toBeInTheDocument();
-    expect(screen.getByLabelText("Описание")).toHaveValue("Горит балкон");
-    expect(screen.getByRole("button", { name: "Передать карточку" })).toBeEnabled();
+    expect(screen.getByLabelText("Описание со слов заявителя")).toHaveValue("Горит балкон");
+    expect(screen.getByRole("button", { name: "сохранить" })).toBeEnabled();
     expect(screen.queryByLabelText("Разбор попытки")).toBeNull();
   });
 
@@ -188,21 +283,75 @@ describe("Operator112Screen: основной путь", () => {
         .mockRejectedValue(new ApiError(409, "invalidTransition", "Карточка уже отправлена")),
     });
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
-    await answerCall();
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await acceptCall();
+    await openSavedConfirm();
     expect(await screen.findByRole("alert")).toHaveTextContent("Карточка уже отправлена");
   });
 
-  it("двойной щелчок «Передать» отправляет карточку один раз", async () => {
+  it("ошибка «Принять»: вызов остаётся во входящем окне, сообщение — в полосе тренажёра", async () => {
+    const api = makeApi({ answerAttempt: vi.fn().mockRejectedValue(new Error("Вызов уже принят")) });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Принять" }));
+    expect(await screen.findByText("Вызов уже принят")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Входящий звонок" })).toBeInTheDocument();
+  });
+
+  it("«×» до сохранения: «Закрыть карточку без сохранения?» · отмена остаётся в карточке, «закрыть» — журнал, задание не завершено", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
+    fireEvent.change(screen.getByLabelText("Описание со слов заявителя"), { target: { value: "Горит" } });
+    fireEvent.click(screen.getByRole("button", { name: "Закрыть карточку" }));
+    expect(
+      await screen.findByRole("dialog", { name: "Закрыть карточку без сохранения?" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "отмена" }));
+    expect(screen.getByLabelText("Описание со слов заявителя")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Закрыть карточку" }));
+    fireEvent.click(await screen.findByRole("button", { name: "закрыть" }));
+    expect(await screen.findByRole("button", { name: "создать новую карточку" })).toBeInTheDocument();
+    expect(api.submitAttempt).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText("Разбор попытки")).toBeNull();
+  });
+
+  it("история сообщений поверх карточки не теряет введённое", async () => {
+    render(<Operator112Screen assignmentId="asg-001" api={makeApi()} />);
+    await acceptCall();
+    fireEvent.change(screen.getByLabelText("Описание со слов заявителя"), {
+      target: { value: "Горит балкон" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /список SMS/ }));
+    expect(screen.getByLabelText("История сообщений")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /вернуться в карточку/ }));
+    expect(screen.getByLabelText("Описание со слов заявителя")).toHaveValue("Горит балкон");
+  });
+
+  it("«нет контакта» и «срыв звонка» сохраняют карточку с исходом", async () => {
+    for (const [button, outcome] of [
+      ["нет контакта", "noContact"],
+      ["срыв звонка", "dropped"],
+    ] as const) {
+      const api = makeApi();
+      const { unmount } = render(<Operator112Screen assignmentId="asg-001" api={api} />);
+      await acceptCall();
+      fireEvent.click(screen.getByRole("button", { name: button }));
+      expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
+      expect(api.submitAttempt.mock.calls[0][1]).toMatchObject({ outcome });
+      unmount();
+    }
+  });
+
+  it("двойной щелчок «оповестить» передаёт карточку один раз", async () => {
     let release: (value: unknown) => void = () => undefined;
     const api = makeApi({
       submitAttempt: vi.fn().mockReturnValue(new Promise((resolve) => (release = resolve))),
     });
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
-    await answerCall();
-    const submit = screen.getByRole("button", { name: "Передать карточку" });
-    fireEvent.click(submit);
-    fireEvent.click(submit);
+    await acceptCall();
+    fireEvent.click(screen.getByRole("button", { name: "сохранить" }));
+    const confirm = await screen.findByRole("button", { name: "оповестить" });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);
     await act(async () =>
       release({ attempt: attempt({ state: "submitted" }), card: {}, evaluationId: "att-100" }),
@@ -213,8 +362,8 @@ describe("Operator112Screen: основной путь", () => {
   it("«Следующий билет»: новый start; 409 «Все билеты задания уже выполнены» остаётся на экране", async () => {
     const api = makeApi();
     render(<Operator112Screen assignmentId="asg-001" api={api} />);
-    await answerCall();
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await acceptCall();
+    await openSavedConfirm();
     await screen.findByLabelText("Разбор попытки");
     api.startAssignment.mockRejectedValueOnce(
       new ApiError(409, "conflict", "Все билеты задания уже выполнены"),
@@ -226,7 +375,77 @@ describe("Operator112Screen: основной путь", () => {
       attempt: attempt({ id: "att-101", cardId: "c-050" }),
     });
     fireEvent.click(screen.getByRole("button", { name: "Следующий билет" }));
-    expect(await screen.findByRole("button", { name: "Ответить на вызов" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Принять" })).toBeInTheDocument();
+  });
+});
+
+describe("Operator112Screen: «создать новую карточку» (карточка-тренировка)", () => {
+  it("пустая карточка без телефонии; сохранение — только закрытие с подтверждением, submit и приём не вызываются", async () => {
+    const api = makeApi();
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Закрыть окно вызова" }));
+    fireEvent.click(await screen.findByRole("button", { name: "создать новую карточку" }));
+    expect(await screen.findByRole("heading", { name: /Происшествие/ })).toBeInTheDocument();
+    expect(screen.getByText("не подключен")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Описание со слов заявителя"), { target: { value: "Учебная" } });
+    fireEvent.click(screen.getByRole("button", { name: "сохранить" }));
+    expect(
+      await screen.findByRole("dialog", { name: "Закрыть карточку без сохранения?" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "закрыть" }));
+    expect(await screen.findByRole("button", { name: "создать новую карточку" })).toBeInTheDocument();
+    expect(api.submitAttempt).not.toHaveBeenCalled();
+    expect(api.answerAttempt).not.toHaveBeenCalled();
+    expect(api.sendEvent).not.toHaveBeenCalledWith(
+      "att-100",
+      expect.objectContaining({ type: "fieldChanged" }),
+    );
+  });
+});
+
+describe("Operator112Screen: СМС и связи", () => {
+  it("СМС-билет: «Входящее сообщение», после «Принять» текст — в «Истории сообщений», канал карточки sms", async () => {
+    const sms = attempt({ cardSnapshot: { channel: "sms", smsText: "Горит балкон, помогите" } });
+    const api = makeApi({
+      startAssignment: vi.fn().mockResolvedValue({ kind: "operator112", attempt: sms }),
+      answerAttempt: vi.fn().mockResolvedValue({ ...sms, state: "answered", answeredAt: OPENED }),
+    });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    expect(await screen.findByRole("dialog", { name: "Входящее сообщение" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Принять" }));
+    await waitFor(() => expect(screen.getByLabelText("Фамилия и имя заявителя")).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /список SMS/ }));
+    expect(screen.getByText("Горит балкон, помогите")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /вернуться в карточку/ }));
+    await openSavedConfirm();
+    await screen.findByLabelText("Разбор попытки");
+    expect(api.submitAttempt.mock.calls[0][1]).toMatchObject({ channel: "sms" });
+  });
+
+  it("совпадение по АОН: окно «Есть карточка…», «привязать» шлёт linkAdded, links попадают в черновик", async () => {
+    const api = makeApi({ matches: vi.fn().mockResolvedValue({ matches: [ROW] }) });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
+    expect(await screen.findByText("Есть карточка с заявителем по этому номеру:")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "привязать карточку 900" }));
+    expect(api.sendEvent).toHaveBeenCalledWith("att-100", {
+      type: "linkAdded",
+      payload: { cardId: "c-900" },
+    });
+    expect(screen.queryByText("Есть карточка с заявителем по этому номеру:")).toBeNull();
+    await openSavedConfirm();
+    await screen.findByLabelText("Разбор попытки");
+    expect(api.submitAttempt.mock.calls[0][1].links).toEqual([{ cardId: "c-900", primary: true }]);
+  });
+
+  it("«закрыть и продолжить заполнение новой» не теряет поля", async () => {
+    const api = makeApi({ matches: vi.fn().mockResolvedValue({ matches: [ROW] }) });
+    render(<Operator112Screen assignmentId="asg-001" api={api} />);
+    await acceptCall();
+    fireEvent.click(await screen.findByRole("button", { name: "закрыть и продолжить заполнение новой" }));
+    fireEvent.change(screen.getByLabelText("Описание со слов заявителя"), { target: { value: "Текст" } });
+    expect(screen.getByLabelText("Описание со слов заявителя")).toHaveValue("Текст");
+    expect(api.sendEvent).not.toHaveBeenCalledWith("att-100", expect.objectContaining({ type: "linkAdded" }));
   });
 });
 
@@ -258,17 +477,15 @@ describe("Operator112Screen: перезагрузка и вход", () => {
         startAssignment: vi.fn().mockResolvedValue({ kind: "operator112", attempt: restored }),
       });
       const first = render(<Operator112Screen assignmentId="asg-001" api={api} />);
-      expect(await screen.findByLabelText("Описание")).toHaveValue("Горит балкон");
+      expect(await screen.findByLabelText("Описание со слов заявителя")).toHaveValue("Горит балкон");
       first.unmount();
       render(<Operator112Screen assignmentId="asg-001" api={api} />);
-      expect(await screen.findByLabelText("ФИО")).toHaveValue("Сидорова А. В.");
+      expect(await screen.findByLabelText("Фамилия и имя заявителя")).toHaveValue("Сидорова А. В.");
       expect(api.startAssignment).toHaveBeenCalledTimes(2);
       expect(api.answerAttempt).not.toHaveBeenCalled();
-      expect(screen.getByText("9161263471")).toBeInTheDocument();
+      expect(screen.getByLabelText("АОН")).toHaveValue("+7 (916) 126-34-71");
       if (format === "exam")
-        expect(await screen.findByRole("alert")).toHaveTextContent(
-          "Повторное прослушивание в экзамене запрещено",
-        );
+        expect(await screen.findByText("Повторное прослушивание в экзамене запрещено")).toBeInTheDocument();
     },
   );
 
@@ -387,7 +604,7 @@ describe("Operator112Screen: лимит времени экзамена на п�
   it("передача при нулевом остатке: сначала чтение задания; закрыта сервером → submit не вызывается (submit сам лимит не применяет)", async () => {
     const api = examApi("answered");
     render(<Operator112Screen assignmentId="asg-002" api={api} />);
-    await screen.findByLabelText("Описание");
+    await screen.findByLabelText("Описание со слов заявителя");
     api.getAssignment.mockResolvedValue(
       assignment({
         format: "exam",
@@ -404,7 +621,7 @@ describe("Operator112Screen: лимит времени экзамена на п�
         ],
       }),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await openSavedConfirm();
     expect(await screen.findByText("Время на билет истекло")).toBeInTheDocument();
     expect(api.submitAttempt).not.toHaveBeenCalled();
   });
@@ -412,8 +629,8 @@ describe("Operator112Screen: лимит времени экзамена на п�
   it("расхождение часов: сервер лимит ещё не применил — карточка передаётся как обычно", async () => {
     const api = examApi("answered");
     render(<Operator112Screen assignmentId="asg-002" api={api} />);
-    await screen.findByLabelText("Описание");
-    fireEvent.click(screen.getByRole("button", { name: "Передать карточку" }));
+    await screen.findByLabelText("Описание со слов заявителя");
+    await openSavedConfirm();
     expect(await screen.findByLabelText("Разбор попытки")).toBeInTheDocument();
     expect(api.submitAttempt).toHaveBeenCalledTimes(1);
   });
