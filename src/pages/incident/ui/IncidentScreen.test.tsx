@@ -201,6 +201,70 @@ describe("IncidentScreen — статусы, итог, хоткеи (T2.3-12, T2
   });
 });
 
+describe("IncidentScreen — дополнение карточки", () => {
+  it("сохранённое дополнение остаётся в журнале после повторного открытия, новое дописывается к прежним", async () => {
+    const amend = async (text: string) => {
+      fireEvent.keyDown(document, { key: "F2", shiftKey: true });
+      const region = screen.getByRole("region", { name: "Дополнение карточки" });
+      fireEvent.change(within(region).getByRole("textbox"), { target: { value: text } });
+      fireEvent.click(within(region).getByRole("button", { name: /Сохранить/ }));
+      await waitFor(() => expect(screen.queryByRole("region", { name: "Дополнение карточки" })).toBeNull());
+    };
+    const first = await renderCard("card-36814853", student("u-107"));
+    await amend("Заявитель перезвонил: водитель выбрался сам");
+    first.unmount();
+    await renderCard("card-36814853", student("u-107"));
+    expect(await screen.findByText(/Заявитель перезвонил: водитель выбрался сам/)).toBeInTheDocument();
+    await amend("Пострадавших нет");
+    await waitFor(async () => {
+      const sessions = (await (await fetcher("/api/mock/sessions?studentId=u-107")).json()) as {
+        cardEvents: { cardId: string; enteredText: Record<string, string> }[];
+      }[];
+      const event = sessions
+        .flatMap((session) => session.cardEvents)
+        .find((e) => e.cardId === "card-36814853");
+      expect(event?.enteredText.amendment).toBe(
+        "Заявитель перезвонил: водитель выбрался сам\nПострадавших нет",
+      );
+    });
+  });
+});
+
+describe("IncidentScreen — флаги карточки", () => {
+  const savedFlags = async () => {
+    const sessions = (await (await fetcher("/api/mock/sessions?studentId=u-107")).json()) as {
+      cardEvents: { cardId: string; enteredText: Record<string, string> }[];
+    }[];
+    return sessions.flatMap((session) => session.cardEvents).find((e) => e.cardId === "card-36814853")
+      ?.enteredText;
+  };
+
+  it("клик ЧС без карандаша переключает aria-pressed и сохраняется после повторного открытия", async () => {
+    const first = await renderCard("card-36814853", student("u-107"));
+    const before = screen.getByRole("button", { name: /ЧС/ }).getAttribute("aria-pressed");
+    fireEvent.click(screen.getByRole("button", { name: /ЧС/ }));
+    const after = before === "true" ? "false" : "true";
+    expect(screen.getByRole("button", { name: /ЧС/ })).toHaveAttribute("aria-pressed", after);
+    await waitFor(async () => expect((await savedFlags())?.["flag.emergency"]).toBeDefined());
+    first.unmount();
+    await renderCard("card-36814853", student("u-107"));
+    expect(screen.getByRole("button", { name: /ЧС/ })).toHaveAttribute("aria-pressed", after);
+  });
+
+  it("клик «Пострадавшие» меняет да/нет и сохраняется", async () => {
+    const first = await renderCard("card-36814853", student("u-107"));
+    const item = screen.getByRole("button", { name: /Пострадавшие: (да|нет) — изменить/ });
+    const was = item.textContent;
+    fireEvent.click(item);
+    const now = was === "Пострадавшие: да" ? "нет" : "да";
+    expect(screen.getByRole("button", { name: `Пострадавшие: ${now} — изменить` })).toBeInTheDocument();
+    await waitFor(async () => expect((await savedFlags())?.["flag.victims"]).toBe(now));
+    first.unmount();
+    await renderCard("card-36814853", student("u-107"));
+    expect(screen.getByRole("button", { name: `Пострадавшие: ${now} — изменить` })).toBeInTheDocument();
+  });
+});
+
 describe("IncidentScreen — потеря соединения (T2.3-20)", () => {
   it("сбой сети → баннер, статус в буфере; восстановление → досылка, баннер скрыт", async () => {
     await renderCard("card-36814858", student("u-106"));

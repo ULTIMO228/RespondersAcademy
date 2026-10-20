@@ -74,7 +74,12 @@ export type FlagsControl = {
   canEdit: boolean;
   emergency: { chs: boolean; chp: boolean };
   onToggle: (flag: "chs" | "chp") => void;
+  /** Текущие «Пострадавшие / Отказ от скорой / Заблокированные»; без поля пункты остаются текстом. */
+  casualties?: CasualtiesState;
+  onToggleCasualty?: (key: keyof CasualtiesState) => void;
 };
+
+export type CasualtiesState = { injured: boolean; ambulanceRefused: boolean; blocked: boolean };
 
 /**
  * Живой режим карточки обучающегося (волна 2): управление из pages/incident. Без controls виджет работает

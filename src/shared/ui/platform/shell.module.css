@@ -168,7 +168,10 @@
 }
 
 .search:focus-within {
-  box-shadow: var(--pf-focus-ring);
+  border-color: var(--pf-focus);
+  box-shadow: 0 0 0 1px var(--pf-focus);
+  /* Прозрачный outline виден в режиме высокой контрастности, где box-shadow не рисуется. */
+  outline: 2px solid transparent;
 }
 
 .search__input {
@@ -180,6 +183,13 @@
   background: transparent;
   color: var(--pf-text);
   font: inherit;
+}
+
+/* Фокус показывает рамка формы; глобальное :focus-visible внутри поля дало бы вторую рамку. */
+.search__input:focus,
+.search__input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .user {

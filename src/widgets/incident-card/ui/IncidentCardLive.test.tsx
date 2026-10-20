@@ -121,12 +121,11 @@ describe("шапка и телефония (T2.3-02, T2.3-03, T2.3-04)", () => {
 });
 
 describe("заявитель и флаги (T2.3-05)", () => {
-  it("флаги по casualties; ЧС/ЧП переключаются после карандаша, если сценарий разрешает", () => {
+  it("флаги по casualties; ЧС/ЧП переключаются кликом без карандаша, если сценарий разрешает", () => {
     const controls = renderLive("card-36814850");
     expect(screen.getByText("Пострадавшие: да")).toBeInTheDocument();
     const chs = screen.getByRole("button", { name: /ЧС/ });
-    expect(chs).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Изменить (Alt + E)" }));
+    expect(chs).toBeEnabled();
     fireEvent.click(chs);
     expect(controls.flags.onToggle).toHaveBeenCalledWith("chs");
   });

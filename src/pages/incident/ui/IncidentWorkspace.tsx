@@ -126,6 +126,7 @@ export function IncidentWorkspace({
       />
       {isResultShown ? (
         <AttemptResult
+          cardId={card.id}
           cardNumber={card.number}
           evaluation={evaluation}
           reactionMs={attempt.primaryReactionMs}
