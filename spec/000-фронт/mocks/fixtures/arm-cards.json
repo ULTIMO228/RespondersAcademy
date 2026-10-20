@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "UI-фикстуры рабочей карточки ПОВ-112 (мок)",
-    "note": "UI-фикстуры рабочей карточки ПОВ-112 для экранов /arm (спека 04-pages/02-arm-card.md); учебный датасет — cards.json. Все данные вымышленные и обезличенные. classifierCode — привязка к mocks/classifier.json. Модель: spec/000-фронт/05-data-models.md → ArmCardFixture (фикстура рабочей карточки ПОВ-112; учебные карточки c-NNN — IncidentCard)",
+    "note": "UI-фикстуры рабочей карточки ПОВ-112 для экранов /arm (спека 04-pages/02-arm-card.md); учебный датасет — cards.json. Все данные вымышленные и обезличенные. classifierCode — привязка к mocks/classifier.json. Модель: spec/000-фронт/05-data-models.md → ArmCardFixture (фикстура рабочей карточки ПОВ-112; учебные карточки c-NNN — IncidentCard) Спека 009: тексты 009 (SMS, повторный звонок, блокировка) — на согласование владельцу. lockedBy — card-36814850 и card-36814854 (карточку ведёт другой оператор); АОН card-36814851 заменён на +7 (916) 410-22-38 для повторного звонка c-093.",
     "count": 12
   },
   "cards": [
@@ -347,7 +347,12 @@
         "chs": false,
         "chp": true
       },
-      "createdByVis": false
+      "createdByVis": false,
+      "lockedBy": {
+        "operator": 7,
+        "name": "Громова Т.А.",
+        "arm": 9
+      }
     },
     {
       "id": "card-36814851",
@@ -357,7 +362,7 @@
       "source": "Служба 112",
       "cardStatus": "registered",
       "phones": {
-        "aon": "+7 (495) 678-90-12",
+        "aon": "+7 (916) 410-22-38",
         "provided": "",
         "onSite": ""
       },
@@ -695,7 +700,12 @@
         "chs": false,
         "chp": false
       },
-      "createdByVis": false
+      "createdByVis": false,
+      "lockedBy": {
+        "operator": 12,
+        "name": "Тихонова М.Н.",
+        "arm": 2
+      }
     },
     {
       "id": "card-36814855",
