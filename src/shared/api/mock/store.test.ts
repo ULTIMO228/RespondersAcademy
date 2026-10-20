@@ -16,7 +16,7 @@ const FIXTURE_ID = "card-881412";
 const FIXTURE_WITH_SMS_ID = "card-36814859";
 const ATTEMPT_ID = "att-01";
 const FINISHED_SESSION_ID = "ses-2026-09-16-01";
-const BLOCKED_USER_ID = "u-010";
+const BLOCKED_USER_ID = "u-025";
 
 beforeEach(() => {
   resetMockStore();
@@ -122,13 +122,13 @@ describe("store: админка", () => {
       userId: "u-001",
       role: "admin",
       action: "user.block",
-      details: "u-010",
+      details: "u-025",
     });
     const second = appendAuditEntry({
       userId: "u-001",
       role: "admin",
       action: "user.unblock",
-      details: "u-010",
+      details: "u-025",
     });
     const expectedId = `audit-${String(seedCount + 2).padStart(3, "0")}`;
     expect(first.id).toBe(`audit-${String(seedCount + 1).padStart(3, "0")}`);

@@ -27,6 +27,7 @@ Updated:2026-10-19
 3 v1 router duplicates removed (test_v1_router_unique)
 4 polza transport: app/services/realtime_polza.py (VAD segmentation → /audio/transcriptions; /chat/completions stream; /audio/speech + instructions) | persona: app/services/caller_persona.py
 5 POLZA_MODEL default removed; AGENTS §2 + spec 004 amended
+6 2026-10-20 egorov (u-010) unblocked via cherry-pick ce6c3dd (claude/zealous-goldberg-mu6erp) → active DDS student for 011 demo; blocked demo → u-025 lebedev
 
 ## Reasoning
 tags kept in LLM history (style continuity), stripped from shown text/transcript
@@ -48,6 +49,7 @@ model IDs not hardcoded (unverified ids; organizers forbid hardcode) → configu
  3 latency on TZ-like CPU box; Silero TTS license CC BY-NC (risk) if used
  4 PR from this branch to main — team decision; not opened
  5 old open items: T072/T073, simulator-visual, T061 demo.mp4, dev.db migration 0005
+!F011 existing backend DBs: egorov still blocked + no u-025 → `uv run python -m app.seed.load` (upsert) or demo-up (fresh demo.db)
 
 ## Caution
 ⚠️ cloud container: polza.ai, huggingface.co blocked → no real provider calls verified
