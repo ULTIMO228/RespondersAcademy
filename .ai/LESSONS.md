@@ -86,3 +86,7 @@
 ❌ truncate → delete assistant msg from LLM history → caller greets again on any question
 ✅ keep heard part + [перебили]; test «operator speaks over greeting»
 ! «плохо отвечает» was state bug, not prompt wording → check history before rewriting prompt
+
+## L020 team model decision lives in spec, not only in chat summary
+❌ kept GLM as default (summary said «open question») though spec/005 README:3 says team chose Qwen
+✅ before recommending model → read spec 005 decisions; TZ server fit (32GB CPU) is hard rule
